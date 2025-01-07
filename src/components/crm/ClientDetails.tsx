@@ -142,6 +142,7 @@ export const ClientDetails = () => {
           companySize={client.company_size}
           contactEmail={client.contact_email}
           contactPhone={client.contact_phone}
+          additionalContacts={client.additional_contacts}
         />
 
         <AdditionalInfoCard 
