@@ -24,6 +24,8 @@ interface ClientData {
   project_revenue_forecast: boolean;
   annual_revenue_signed_off: number;
   annual_revenue_forecast: number;
+  annual_revenue: number | null;
+  project_revenue: number | null;
   [key: string]: any;
 }
 
@@ -76,7 +78,6 @@ const prepareClientData = async (clientId: string, formData: any, contacts: Cont
     project_revenue_forecast: Boolean(formData.project_revenue_forecast),
     annual_revenue_signed_off: formData.annual_revenue_signed_off ? Number(formData.annual_revenue_signed_off) : 0,
     annual_revenue_forecast: formData.annual_revenue_forecast ? Number(formData.annual_revenue_forecast) : 0,
-    // Ensure numeric fields are properly converted with null fallback
     annual_revenue: formData.annual_revenue ? Number(formData.annual_revenue) : null,
     project_revenue: formData.project_revenue ? Number(formData.project_revenue) : null,
     likelihood: formData.likelihood ? Number(formData.likelihood) : null

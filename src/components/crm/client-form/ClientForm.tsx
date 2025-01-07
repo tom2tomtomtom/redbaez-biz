@@ -7,6 +7,8 @@ import { NextStepsSection } from './NextStepsSection';
 import { CompanySection } from './CompanySection';
 import { useClientFormState } from './useClientFormState';
 import { useClientFormSubmit } from './useClientFormSubmit';
+import { RevenueFormSection } from './revenue/RevenueFormSection';
+import { useRevenueState } from './hooks/useRevenueState';
 
 interface Contact {
   firstName: string;
@@ -41,22 +43,17 @@ export const ClientForm = ({
   isEditing = false,
 }: ClientFormProps) => {
   const formState = useClientFormState({ initialData, isEditing });
+  const revenueState = useRevenueState(initialData);
   
   const resetForm = () => {
     formState.setCompanyName('');
     formState.setStatus('');
     formState.setLikelihood('');
-    formState.setProjectRevenue('');
-    formState.setRevenue('');
     formState.setType('business');
     formState.setIndustry('');
     formState.setCompanySize('');
     formState.setWebsite('');
     formState.setBackground('');
-    formState.setProjectRevenueSignedOff(false);
-    formState.setProjectRevenueForecast(false);
-    formState.setAnnualRevenueSignedOff('');
-    formState.setAnnualRevenueForecast('');
     onContactsChange([{ 
       firstName: '', 
       lastName: '', 
@@ -78,10 +75,10 @@ export const ClientForm = ({
 
   const onSubmit = () => {
     console.log('Form submission with state:', {
-      projectRevenueSignedOff: formState.projectRevenueSignedOff,
-      projectRevenueForecast: formState.projectRevenueForecast,
-      annualRevenueSignedOff: formState.annualRevenueSignedOff,
-      annualRevenueForecast: formState.annualRevenueForecast
+      projectRevenueSignedOff: revenueState.projectRevenueSignedOff,
+      projectRevenueForecast: revenueState.projectRevenueForecast,
+      annualRevenueSignedOff: revenueState.annualRevenueSignedOff,
+      annualRevenueForecast: revenueState.annualRevenueForecast
     });
 
     const formData = {
@@ -90,17 +87,17 @@ export const ClientForm = ({
       industry: formState.industry,
       company_size: formState.companySize,
       status: formState.status,
-      annual_revenue: Number(formState.revenue) || null,
-      project_revenue: Number(formState.projectRevenue) || null,
+      annual_revenue: Number(revenueState.annualRevenue) || null,
+      project_revenue: Number(revenueState.projectRevenue) || null,
       website: formState.website,
       notes: nextSteps,
       background: formState.background,
       likelihood: Number(formState.likelihood) || null,
       next_due_date: nextDueDate,
-      project_revenue_signed_off: formState.projectRevenueSignedOff,
-      project_revenue_forecast: formState.projectRevenueForecast,
-      annual_revenue_signed_off: Number(formState.annualRevenueSignedOff) || 0,
-      annual_revenue_forecast: Number(formState.annualRevenueForecast) || 0,
+      project_revenue_signed_off: revenueState.projectRevenueSignedOff,
+      project_revenue_forecast: revenueState.projectRevenueForecast,
+      annual_revenue_signed_off: Number(revenueState.annualRevenueSignedOff) || 0,
+      annual_revenue_forecast: Number(revenueState.annualRevenueForecast) || 0,
     };
 
     console.log('Submitting form data:', formData);
@@ -129,31 +126,31 @@ export const ClientForm = ({
           <StatusSection
             status={formState.status}
             likelihood={formState.likelihood}
-            projectRevenue={formState.projectRevenue}
-            revenue={formState.revenue}
             type={formState.type}
             industry={formState.industry}
             companySize={formState.companySize}
             website={formState.website}
             background={formState.background}
-            projectRevenueSignedOff={formState.projectRevenueSignedOff}
-            projectRevenueForecast={formState.projectRevenueForecast}
-            annualRevenueSignedOff={formState.annualRevenueSignedOff}
-            annualRevenueForecast={formState.annualRevenueForecast}
             onStatusChange={formState.setStatus}
             onLikelihoodChange={formState.setLikelihood}
-            onProjectRevenueChange={formState.setProjectRevenue}
-            onRevenueChange={formState.setRevenue}
             onTypeChange={formState.setType}
             onIndustryChange={formState.setIndustry}
             onCompanySizeChange={formState.setCompanySize}
             onWebsiteChange={formState.setWebsite}
             onBackgroundChange={formState.setBackground}
-            onProjectRevenueSignedOffChange={formState.setProjectRevenueSignedOff}
-            onProjectRevenueForecastChange={formState.setProjectRevenueForecast}
-            onAnnualRevenueSignedOffChange={formState.setAnnualRevenueSignedOff}
-            onAnnualRevenueForecastChange={formState.setAnnualRevenueForecast}
           />
+
+          <div className="col-span-2">
+            <RevenueFormSection
+              {...revenueState}
+              onProjectRevenueChange={revenueState.setProjectRevenue}
+              onAnnualRevenueChange={revenueState.setAnnualRevenue}
+              onProjectRevenueSignedOffChange={revenueState.setProjectRevenueSignedOff}
+              onProjectRevenueForecastChange={revenueState.setProjectRevenueForecast}
+              onAnnualRevenueSignedOffChange={revenueState.setAnnualRevenueSignedOff}
+              onAnnualRevenueForecastChange={revenueState.setAnnualRevenueForecast}
+            />
+          </div>
 
           <NextStepsSection
             nextSteps={nextSteps}
