@@ -32,7 +32,7 @@ interface UpdateClientData {
   contacts: Contact[];
 }
 
-const formatContacts = (contacts: Contact[]): { primaryContact: Contact; formattedAdditionalContacts: Json[] } => {
+const formatContacts = (contacts: Contact[]): { primaryContact: Contact; formattedAdditionalContacts: Json } => {
   const [primaryContact, ...additionalContacts] = contacts;
   
   const formattedAdditionalContacts = additionalContacts.map(contact => ({
@@ -42,11 +42,11 @@ const formatContacts = (contacts: Contact[]): { primaryContact: Contact; formatt
     email: contact.email,
     address: contact.address,
     phone: contact.phone
-  })) as Json[];
+  }));
 
   return {
     primaryContact,
-    formattedAdditionalContacts
+    formattedAdditionalContacts: formattedAdditionalContacts as Json
   };
 };
 
@@ -60,6 +60,8 @@ const prepareClientData = async (clientId: string, formData: any, contacts: Cont
     .eq('id', clientId)
     .single();
 
+  console.log('Preparing client data with formData:', formData);
+
   return {
     ...formData,
     notes: formData.notes || existingClient?.notes,
@@ -67,11 +69,11 @@ const prepareClientData = async (clientId: string, formData: any, contacts: Cont
     contact_name: `${primaryContact.firstName} ${primaryContact.lastName}`.trim(),
     contact_email: primaryContact.email,
     contact_phone: primaryContact.phone,
-    additional_contacts: formattedAdditionalContacts.length > 0 ? formattedAdditionalContacts as Json : null,
-    project_revenue_signed_off: formData.project_revenue_signed_off || false,
-    project_revenue_forecast: formData.project_revenue_forecast || false,
-    annual_revenue_signed_off: formData.annual_revenue_signed_off || 0,
-    annual_revenue_forecast: formData.annual_revenue_forecast || 0
+    additional_contacts: contacts.length > 1 ? formattedAdditionalContacts : null,
+    project_revenue_signed_off: Boolean(formData.project_revenue_signed_off),
+    project_revenue_forecast: Boolean(formData.project_revenue_forecast),
+    annual_revenue_signed_off: Number(formData.annual_revenue_signed_off) || 0,
+    annual_revenue_forecast: Number(formData.annual_revenue_forecast) || 0
   };
 };
 
@@ -82,7 +84,9 @@ export const useClientUpdate = (clientId: string | undefined, onSuccess?: () => 
     mutationFn: async ({ formData, contacts }: UpdateClientData) => {
       if (!clientId) throw new Error('Client ID is required');
 
-      console.log('Updating client with contacts:', contacts);
+      console.log('Updating client with formData:', formData);
+      console.log('Contacts:', contacts);
+      
       const clientData = await prepareClientData(clientId, formData, contacts);
       console.log('Prepared client data:', clientData);
 
