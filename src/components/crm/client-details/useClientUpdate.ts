@@ -32,10 +32,10 @@ export const useClientUpdate = (id: string | undefined, onSuccess?: () => void) 
       // Prepare the update data with contact information
       const dataToUpdate = {
         ...formData,
-        contact_name: primaryContact ? `${primaryContact.firstName} ${primaryContact.lastName}`.trim() : null,
-        contact_email: primaryContact?.email || null,
-        contact_phone: primaryContact?.phone || null,
-        // Store additional contacts as JSONB, only if there are any
+        contact_name: `${primaryContact.firstName} ${primaryContact.lastName}`.trim(),
+        contact_email: primaryContact.email,
+        contact_phone: primaryContact.phone,
+        // Store additional contacts as JSONB array
         additional_contacts: additionalContacts.length > 0 ? additionalContacts : null
       };
 
@@ -67,7 +67,7 @@ export const useClientUpdate = (id: string | undefined, onSuccess?: () => void) 
       console.error('Error in update mutation:', error);
       toast({
         title: "Error",
-        description: "Failed to update client information. Please check the console for details.",
+        description: "Failed to update client information. Please try again.",
         variant: "destructive",
       });
     },
