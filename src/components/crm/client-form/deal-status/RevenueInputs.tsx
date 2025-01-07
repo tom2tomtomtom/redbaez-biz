@@ -32,10 +32,12 @@ export const RevenueInputs = ({
   onAnnualRevenueForecastChange,
 }: RevenueInputsProps) => {
   return (
-    <>
-      <div className="space-y-4">
+    <div className="space-y-6">
+      {/* Project Revenue Section */}
+      <div className="space-y-4 p-4 bg-gray-50 rounded-lg">
+        <h3 className="font-medium text-gray-900">Project Revenue</h3>
         <div>
-          <Label>Project Revenue ($)</Label>
+          <Label>Total Amount ($)</Label>
           <Input 
             type="number" 
             placeholder="Enter project revenue" 
@@ -66,9 +68,11 @@ export const RevenueInputs = ({
         </div>
       </div>
 
-      <div className="space-y-4">
+      {/* Annual Revenue Section */}
+      <div className="space-y-4 p-4 bg-gray-50 rounded-lg">
+        <h3 className="font-medium text-gray-900">Annual Revenue</h3>
         <div>
-          <Label>Annual Revenue ($)</Label>
+          <Label>Total Amount ($)</Label>
           <Input 
             type="number" 
             placeholder="Enter annual revenue" 
@@ -78,8 +82,8 @@ export const RevenueInputs = ({
           />
         </div>
         
-        <div className="space-y-2">
-          <div>
+        <div className="space-y-4">
+          <div className="flex items-center space-x-4">
             <Label>Signed Off Amount ($)</Label>
             <Input 
               type="number" 
@@ -90,7 +94,7 @@ export const RevenueInputs = ({
             />
           </div>
           
-          <div>
+          <div className="flex items-center space-x-4">
             <Label>Forecast Amount ($)</Label>
             <Input 
               type="number" 
@@ -102,6 +106,6 @@ export const RevenueInputs = ({
           </div>
         </div>
       </div>
-    </>
+    </div>
   );
 };

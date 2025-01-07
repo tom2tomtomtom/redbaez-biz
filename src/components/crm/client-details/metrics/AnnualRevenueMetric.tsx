@@ -1,4 +1,3 @@
-import { Card } from '@/components/ui/card';
 import { CheckCircle2, XCircle } from 'lucide-react';
 
 interface AnnualRevenueMetricProps {
