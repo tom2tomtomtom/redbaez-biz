@@ -66,14 +66,19 @@ export const ClientDetails = () => {
     updateMutation.mutate({ formData, contacts });
   };
 
-  const revenueData = [
-    { month: 'Jan', value: client.annual_revenue ? client.annual_revenue / 12 : 0 },
-    { month: 'Feb', value: client.annual_revenue ? client.annual_revenue / 12 : 0 },
-    { month: 'Mar', value: client.annual_revenue ? client.annual_revenue / 12 : 0 },
-    { month: 'Apr', value: client.annual_revenue ? client.annual_revenue / 12 : 0 },
-    { month: 'May', value: client.annual_revenue ? client.annual_revenue / 12 : 0 },
-    { month: 'Jun', value: client.annual_revenue ? client.annual_revenue / 12 : 0 }
-  ];
+  // Generate monthly revenue data including forecasts
+  const currentDate = new Date();
+  const revenueData = Array.from({ length: 12 }, (_, i) => {
+    const date = new Date(currentDate.getFullYear(), currentDate.getMonth() + i);
+    const month = date.toLocaleString('default', { month: 'short' });
+    return {
+      month,
+      value: client.annual_revenue ? client.annual_revenue / 12 : 0
+    };
+  });
+
+  // Parse monthly forecasts from client data
+  const monthlyForecasts = client.monthly_revenue_forecasts || [];
 
   if (isEditing) {
     return (
@@ -132,6 +137,7 @@ export const ClientDetails = () => {
           projectRevenueForecast={client.project_revenue_forecast}
           annualRevenueSignedOff={client.annual_revenue_signed_off}
           annualRevenueForecast={client.annual_revenue_forecast}
+          monthlyForecasts={monthlyForecasts}
         />
 
         <ContactInfoCard 

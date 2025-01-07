@@ -25,6 +25,7 @@ export type Database = {
           industry: string | null
           likelihood: number | null
           missing_fields: string[] | null
+          monthly_revenue_forecasts: Json | null
           name: string
           next_due_date: string | null
           notes: string | null
@@ -50,6 +51,7 @@ export type Database = {
           industry?: string | null
           likelihood?: number | null
           missing_fields?: string[] | null
+          monthly_revenue_forecasts?: Json | null
           name: string
           next_due_date?: string | null
           notes?: string | null
@@ -75,6 +77,7 @@ export type Database = {
           industry?: string | null
           likelihood?: number | null
           missing_fields?: string[] | null
+          monthly_revenue_forecasts?: Json | null
           name?: string
           next_due_date?: string | null
           notes?: string | null
