@@ -12,29 +12,43 @@ export const AnnualRevenueMetric = ({
   annualRevenueForecast,
 }: AnnualRevenueMetricProps) => {
   return (
-    <div className="p-4 bg-primary/5 rounded-lg transition-all duration-300 hover:bg-primary/10">
-      <p className="text-sm text-primary font-medium">Annual Revenue</p>
-      <p className="text-2xl font-semibold text-primary">
-        ${annualRevenue?.toLocaleString() || 'N/A'}
+    <div className="p-4 bg-blue-50/50 rounded-lg transition-all duration-300 hover:bg-blue-50">
+      <p className="text-lg text-blue-600 font-medium">Annual Revenue</p>
+      <p className="text-3xl font-bold text-blue-600 mb-4">
+        ${annualRevenue?.toLocaleString() || '0'}
       </p>
-      <div className="mt-2 space-y-1">
+      <div className="space-y-2">
         <div className="flex items-center justify-between">
-          <p className="text-sm text-gray-600">Signed Off:</p>
-          <p className="text-sm font-medium">
-            ${annualRevenueSignedOff?.toLocaleString() || '0'}
+          <p className="text-gray-600">Signed Off:</p>
+          <div className="flex items-center gap-2">
+            <span className="font-medium">
+              ${annualRevenueSignedOff?.toLocaleString() || '0'}
+            </span>
             {annualRevenueSignedOff ? (
-              <span className="ml-2 text-xs text-green-600">(Confirmed)</span>
-            ) : null}
-          </p>
+              <CheckCircle2 className="h-4 w-4 text-green-500" />
+            ) : (
+              <XCircle className="h-4 w-4 text-red-500" />
+            )}
+            <span className="text-sm text-gray-500">
+              {annualRevenueSignedOff ? 'Confirmed' : 'Pending'}
+            </span>
+          </div>
         </div>
         <div className="flex items-center justify-between">
-          <p className="text-sm text-gray-600">Forecast:</p>
-          <p className="text-sm font-medium">
-            ${annualRevenueForecast?.toLocaleString() || '0'}
+          <p className="text-gray-600">Forecast:</p>
+          <div className="flex items-center gap-2">
+            <span className="font-medium">
+              ${annualRevenueForecast?.toLocaleString() || '0'}
+            </span>
             {annualRevenueForecast ? (
-              <span className="ml-2 text-xs text-blue-600">(Projected)</span>
-            ) : null}
-          </p>
+              <CheckCircle2 className="h-4 w-4 text-blue-500" />
+            ) : (
+              <XCircle className="h-4 w-4 text-gray-500" />
+            )}
+            <span className="text-sm text-gray-500">
+              {annualRevenueForecast ? 'Projected' : 'Not Set'}
+            </span>
+          </div>
         </div>
       </div>
     </div>
