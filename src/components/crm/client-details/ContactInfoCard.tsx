@@ -1,6 +1,5 @@
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Mail, Phone, Star, Plus } from 'lucide-react';
+import { Mail, Phone, Star } from 'lucide-react';
 
 interface ContactInfoCardProps {
   contactName: string | null;
@@ -17,12 +16,8 @@ export const ContactInfoCard = ({
 }: ContactInfoCardProps) => {
   return (
     <Card className="col-span-12 lg:col-span-8 transition-all duration-300 hover:shadow-lg">
-      <CardHeader className="flex flex-row items-center justify-between">
+      <CardHeader>
         <CardTitle className="text-lg font-medium">Contact Information</CardTitle>
-        <Button variant="outline" size="sm" className="transition-all duration-300">
-          <Plus className="mr-2 h-4 w-4" />
-          Add Contact
-        </Button>
       </CardHeader>
       <CardContent>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -32,9 +27,7 @@ export const ContactInfoCard = ({
                 <h3 className="font-medium text-gray-900">{contactName || 'No contact name'}</h3>
                 <p className="text-sm text-gray-500">{companySize || 'Company size not specified'}</p>
               </div>
-              <Button variant="ghost" size="sm" className="transition-all duration-300">
-                <Star size={16} />
-              </Button>
+              <Star size={16} className="text-gray-400" />
             </div>
             <div className="mt-4 space-y-2">
               <div className="flex items-center text-sm text-gray-600">
