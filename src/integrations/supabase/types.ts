@@ -19,6 +19,7 @@ export type Database = {
           created_at: string
           id: number
           industry: string | null
+          likelihood: number | null
           missing_fields: string[] | null
           name: string
           notes: string | null
@@ -35,6 +36,7 @@ export type Database = {
           created_at?: string
           id?: number
           industry?: string | null
+          likelihood?: number | null
           missing_fields?: string[] | null
           name: string
           notes?: string | null
@@ -51,6 +53,7 @@ export type Database = {
           created_at?: string
           id?: number
           industry?: string | null
+          likelihood?: number | null
           missing_fields?: string[] | null
           name?: string
           notes?: string | null
