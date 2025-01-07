@@ -1,4 +1,4 @@
-import { toast } from "@/hooks/use-toast";
+import { toast } from "@/components/ui/toast";
 import { supabase } from "@/integrations/supabase/client";
 
 interface UseClientFormSubmitProps {
@@ -30,20 +30,26 @@ export const useClientFormSubmit = ({
         name: formData.name,
         type: formData.type,
         industry: formData.industry || null,
-        company_size: formData.companySize || null,
+        company_size: formData.company_size || null,
         status: formData.status || 'prospect',
-        annual_revenue: formData.revenue ? parseFloat(formData.revenue) : null,
-        project_revenue: formData.projectRevenue ? parseFloat(formData.projectRevenue) : null,
+        // Ensure all revenue fields are properly mapped and converted to numbers
+        annual_revenue: formData.annual_revenue ? parseFloat(formData.annual_revenue) : null,
+        project_revenue: formData.project_revenue ? parseFloat(formData.project_revenue) : null,
         website: formData.website || null,
         notes: formData.notes,
         background: formData.background || null,
         likelihood: formData.likelihood ? parseFloat(formData.likelihood) : null,
-        next_due_date: formData.nextDueDate || null,
-        project_revenue_signed_off: formData.projectRevenueSignedOff || false,
-        project_revenue_forecast: formData.projectRevenueForecast || false,
-        annual_revenue_signed_off: formData.annualRevenueSignedOff ? parseFloat(formData.annualRevenueSignedOff) : 0,
-        annual_revenue_forecast: formData.annualRevenueForecast ? parseFloat(formData.annualRevenueForecast) : 0,
+        next_due_date: formData.next_due_date || null,
+        // Ensure boolean fields are properly converted
+        project_revenue_signed_off: Boolean(formData.project_revenue_signed_off),
+        project_revenue_forecast: Boolean(formData.project_revenue_forecast),
+        // Ensure numeric fields are properly converted with fallback to 0
+        annual_revenue_signed_off: formData.annual_revenue_signed_off ? parseFloat(formData.annual_revenue_signed_off) : 0,
+        annual_revenue_forecast: formData.annual_revenue_forecast ? parseFloat(formData.annual_revenue_forecast) : 0,
       };
+
+      console.log('Saving client with form data:', formData);
+      console.log('Transformed client data for database:', clientData);
 
       if (isEditing && onSave) {
         await onSave(clientData);
