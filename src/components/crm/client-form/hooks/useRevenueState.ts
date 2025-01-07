@@ -1,4 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+
+// Helper function to parse numeric values
+const parseNumericValue = (value: string | number | null): string => {
+  if (value === null || value === '') return '';
+  return typeof value === 'string' ? value : value.toString();
+};
 
 export interface RevenueState {
   projectRevenue: string;
@@ -10,25 +16,39 @@ export interface RevenueState {
 }
 
 export const useRevenueState = (initialData?: any) => {
-  // Convert numeric values to strings for form inputs
+  console.log('useRevenueState initialData:', initialData);
+
   const [projectRevenue, setProjectRevenue] = useState(
-    initialData?.project_revenue?.toString() || ''
+    parseNumericValue(initialData?.project_revenue)
   );
   const [annualRevenue, setAnnualRevenue] = useState(
-    initialData?.annual_revenue?.toString() || ''
+    parseNumericValue(initialData?.annual_revenue)
   );
   const [projectRevenueSignedOff, setProjectRevenueSignedOff] = useState(
-    initialData?.project_revenue_signed_off || false
+    Boolean(initialData?.project_revenue_signed_off)
   );
   const [projectRevenueForecast, setProjectRevenueForecast] = useState(
-    initialData?.project_revenue_forecast || false
+    Boolean(initialData?.project_revenue_forecast)
   );
   const [annualRevenueSignedOff, setAnnualRevenueSignedOff] = useState(
-    initialData?.annual_revenue_signed_off?.toString() || '0'
+    parseNumericValue(initialData?.annual_revenue_signed_off)
   );
   const [annualRevenueForecast, setAnnualRevenueForecast] = useState(
-    initialData?.annual_revenue_forecast?.toString() || '0'
+    parseNumericValue(initialData?.annual_revenue_forecast)
   );
+
+  // Update state when initialData changes
+  useEffect(() => {
+    if (initialData) {
+      console.log('Updating revenue state with:', initialData);
+      setProjectRevenue(parseNumericValue(initialData.project_revenue));
+      setAnnualRevenue(parseNumericValue(initialData.annual_revenue));
+      setProjectRevenueSignedOff(Boolean(initialData.project_revenue_signed_off));
+      setProjectRevenueForecast(Boolean(initialData.project_revenue_forecast));
+      setAnnualRevenueSignedOff(parseNumericValue(initialData.annual_revenue_signed_off));
+      setAnnualRevenueForecast(parseNumericValue(initialData.annual_revenue_forecast));
+    }
+  }, [initialData]);
 
   return {
     projectRevenue,

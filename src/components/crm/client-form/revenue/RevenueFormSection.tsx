@@ -36,6 +36,13 @@ export const RevenueFormSection: React.FC<RevenueFormSectionProps> = ({
     annualRevenueForecast,
   });
 
+  const handleNumericInput = (value: string, onChange: (value: string) => void) => {
+    // Allow empty string or valid numbers
+    if (value === '' || !isNaN(Number(value))) {
+      onChange(value);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="space-y-4 p-4 bg-gray-50 rounded-lg">
@@ -46,7 +53,7 @@ export const RevenueFormSection: React.FC<RevenueFormSectionProps> = ({
             type="number" 
             placeholder="Enter project revenue" 
             value={projectRevenue}
-            onChange={(e) => onProjectRevenueChange(e.target.value)}
+            onChange={(e) => handleNumericInput(e.target.value, onProjectRevenueChange)}
             className="transition-all duration-300" 
           />
         </div>
@@ -80,7 +87,7 @@ export const RevenueFormSection: React.FC<RevenueFormSectionProps> = ({
             type="number" 
             placeholder="Enter annual revenue" 
             value={annualRevenue}
-            onChange={(e) => onAnnualRevenueChange(e.target.value)}
+            onChange={(e) => handleNumericInput(e.target.value, onAnnualRevenueChange)}
             className="transition-all duration-300" 
           />
         </div>
@@ -92,7 +99,7 @@ export const RevenueFormSection: React.FC<RevenueFormSectionProps> = ({
               type="number" 
               placeholder="Enter signed off amount" 
               value={annualRevenueSignedOff}
-              onChange={(e) => onAnnualRevenueSignedOffChange(e.target.value)}
+              onChange={(e) => handleNumericInput(e.target.value, onAnnualRevenueSignedOffChange)}
               className="transition-all duration-300" 
             />
           </div>
@@ -103,7 +110,7 @@ export const RevenueFormSection: React.FC<RevenueFormSectionProps> = ({
               type="number" 
               placeholder="Enter forecast amount" 
               value={annualRevenueForecast}
-              onChange={(e) => onAnnualRevenueForecastChange(e.target.value)}
+              onChange={(e) => handleNumericInput(e.target.value, onAnnualRevenueForecastChange)}
               className="transition-all duration-300" 
             />
           </div>
