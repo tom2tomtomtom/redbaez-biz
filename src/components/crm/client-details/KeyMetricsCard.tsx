@@ -37,12 +37,24 @@ export const KeyMetricsCard = ({
                 ${annualRevenue?.toLocaleString() || 'N/A'}
               </p>
               <div className="mt-2 space-y-1">
-                <p className="text-sm text-gray-600">
-                  Signed Off: ${annualRevenueSignedOff?.toLocaleString() || '0'}
-                </p>
-                <p className="text-sm text-gray-600">
-                  Forecast: ${annualRevenueForecast?.toLocaleString() || '0'}
-                </p>
+                <div className="flex items-center justify-between">
+                  <p className="text-sm text-gray-600">Signed Off:</p>
+                  <p className="text-sm font-medium">
+                    ${annualRevenueSignedOff?.toLocaleString() || '0'}
+                    {annualRevenueSignedOff ? (
+                      <span className="ml-2 text-xs text-green-600">(Confirmed)</span>
+                    ) : null}
+                  </p>
+                </div>
+                <div className="flex items-center justify-between">
+                  <p className="text-sm text-gray-600">Forecast:</p>
+                  <p className="text-sm font-medium">
+                    ${annualRevenueForecast?.toLocaleString() || '0'}
+                    {annualRevenueForecast ? (
+                      <span className="ml-2 text-xs text-blue-600">(Projected)</span>
+                    ) : null}
+                  </p>
+                </div>
               </div>
             </div>
             <div className="p-4 bg-primary/5 rounded-lg transition-all duration-300 hover:bg-primary/10">
@@ -51,21 +63,37 @@ export const KeyMetricsCard = ({
                 ${projectRevenue?.toLocaleString() || 'N/A'}
               </p>
               <div className="mt-2 space-y-1">
-                <div className="flex items-center space-x-1">
+                <div className="flex items-center justify-between">
                   <span className="text-sm text-gray-600">Signed Off:</span>
-                  {projectRevenueSignedOff ? (
-                    <CheckCircle2 className="h-4 w-4 text-green-500" />
-                  ) : (
-                    <XCircle className="h-4 w-4 text-red-500" />
-                  )}
+                  <div className="flex items-center">
+                    {projectRevenueSignedOff ? (
+                      <>
+                        <CheckCircle2 className="h-4 w-4 text-green-500" />
+                        <span className="ml-1 text-xs text-green-600">Confirmed</span>
+                      </>
+                    ) : (
+                      <>
+                        <XCircle className="h-4 w-4 text-red-500" />
+                        <span className="ml-1 text-xs text-red-600">Pending</span>
+                      </>
+                    )}
+                  </div>
                 </div>
-                <div className="flex items-center space-x-1">
+                <div className="flex items-center justify-between">
                   <span className="text-sm text-gray-600">Forecast:</span>
-                  {projectRevenueForecast ? (
-                    <CheckCircle2 className="h-4 w-4 text-green-500" />
-                  ) : (
-                    <XCircle className="h-4 w-4 text-red-500" />
-                  )}
+                  <div className="flex items-center">
+                    {projectRevenueForecast ? (
+                      <>
+                        <CheckCircle2 className="h-4 w-4 text-blue-500" />
+                        <span className="ml-1 text-xs text-blue-600">Projected</span>
+                      </>
+                    ) : (
+                      <>
+                        <XCircle className="h-4 w-4 text-gray-500" />
+                        <span className="ml-1 text-xs text-gray-600">Not Set</span>
+                      </>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
