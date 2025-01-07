@@ -1,15 +1,30 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, BarChart, Bar } from 'recharts';
-import { Calendar, Mail, Phone, Star, Edit, MoreHorizontal, Plus, ArrowLeft } from 'lucide-react';
+import { Calendar, Mail, Phone, Star, Edit, MoreHorizontal, Plus, ArrowLeft, Save, X } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { useToast } from "@/components/ui/use-toast";
+import { ClientForm } from './client-form/ClientForm';
 
 export const ClientDetails = () => {
   const navigate = useNavigate();
   const { id } = useParams();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const [isEditing, setIsEditing] = useState(false);
+  const [contacts, setContacts] = useState([{ 
+    firstName: '', 
+    lastName: '', 
+    title: '', 
+    email: '', 
+    address: '', 
+    phone: '' 
+  }]);
+  const [nextSteps, setNextSteps] = useState('');
+  const [nextDueDate, setNextDueDate] = useState('');
   
   const { data: client, isLoading, error } = useQuery({
     queryKey: ['client', id],
@@ -22,6 +37,33 @@ export const ClientDetails = () => {
       
       if (error) throw error;
       return data;
+    },
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: async (updatedData: any) => {
+      const { error } = await supabase
+        .from('clients')
+        .update(updatedData)
+        .eq('id', id);
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['client', id] });
+      setIsEditing(false);
+      toast({
+        title: "Success",
+        description: "Client information updated successfully",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: "Failed to update client information",
+        variant: "destructive",
+      });
+      console.error('Error updating client:', error);
     },
   });
 
@@ -38,6 +80,10 @@ export const ClientDetails = () => {
     );
   }
 
+  const handleSave = async (formData: any) => {
+    updateMutation.mutate(formData);
+  };
+
   // Sample revenue data - in a real app, this would come from a separate table
   const revenueData = [
     { month: 'Jan', value: client.annual_revenue ? client.annual_revenue / 12 : 0 },
@@ -47,6 +93,34 @@ export const ClientDetails = () => {
     { month: 'May', value: client.annual_revenue ? client.annual_revenue / 12 : 0 },
     { month: 'Jun', value: client.annual_revenue ? client.annual_revenue / 12 : 0 }
   ];
+
+  if (isEditing) {
+    return (
+      <div className="p-8 w-full max-w-7xl mx-auto bg-gray-50/50">
+        <div className="flex justify-between items-center mb-6">
+          <Button
+            variant="ghost"
+            className="flex items-center gap-2"
+            onClick={() => setIsEditing(false)}
+          >
+            <X size={16} />
+            Cancel Editing
+          </Button>
+        </div>
+        <ClientForm
+          initialData={client}
+          onSave={handleSave}
+          isEditing={true}
+          contacts={contacts}
+          nextSteps={nextSteps}
+          nextDueDate={nextDueDate}
+          onContactsChange={setContacts}
+          onNextStepsChange={setNextSteps}
+          onNextDueDateChange={setNextDueDate}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col space-y-6 p-8 w-full max-w-7xl mx-auto bg-gray-50/50 animate-fade-in">
@@ -70,7 +144,11 @@ export const ClientDetails = () => {
           <p className="text-gray-500 mt-1">Client since {new Date(client.created_at).getFullYear()} · ID: {client.id}</p>
         </div>
         <div className="flex space-x-3 mt-4 md:mt-0">
-          <Button variant="outline" className="flex items-center gap-2 transition-all duration-300">
+          <Button 
+            variant="outline" 
+            className="flex items-center gap-2 transition-all duration-300"
+            onClick={() => setIsEditing(true)}
+          >
             <Edit size={16} />
             Edit
           </Button>

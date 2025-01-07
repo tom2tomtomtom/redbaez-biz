@@ -2,7 +2,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ContactsList } from './ContactsList';
 import { StatusSection } from './StatusSection';
 import { NextStepsSection } from './NextStepsSection';
@@ -24,6 +24,9 @@ interface ClientFormProps {
   onContactsChange: (contacts: Contact[]) => void;
   onNextStepsChange: (steps: string) => void;
   onNextDueDateChange: (date: string) => void;
+  initialData?: any;
+  onSave?: (data: any) => void;
+  isEditing?: boolean;
 }
 
 export const ClientForm = ({
@@ -33,6 +36,9 @@ export const ClientForm = ({
   onContactsChange,
   onNextStepsChange,
   onNextDueDateChange,
+  initialData,
+  onSave,
+  isEditing = false,
 }: ClientFormProps) => {
   const { toast } = useToast();
   const [companyName, setCompanyName] = useState('');
@@ -46,6 +52,34 @@ export const ClientForm = ({
   const [website, setWebsite] = useState('');
   const [background, setBackground] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    if (initialData && isEditing) {
+      setCompanyName(initialData.name || '');
+      setStatus(initialData.status || '');
+      setLikelihood(initialData.likelihood?.toString() || '');
+      setRevenue(initialData.annual_revenue?.toString() || '');
+      setType(initialData.type || 'business');
+      setIndustry(initialData.industry || '');
+      setCompanySize(initialData.company_size || '');
+      setWebsite(initialData.website || '');
+      setBackground(initialData.background || '');
+      
+      if (initialData.contact_name || initialData.contact_email || initialData.contact_phone) {
+        const [firstName = '', lastName = ''] = (initialData.contact_name || '').split(' ');
+        onContactsChange([{
+          firstName,
+          lastName,
+          title: '',
+          email: initialData.contact_email || '',
+          address: '',
+          phone: initialData.contact_phone || '',
+        }]);
+      }
+      
+      onNextStepsChange(initialData.notes || '');
+    }
+  }, [initialData, isEditing]);
 
   const resetForm = () => {
     setCompanyName('');
@@ -91,33 +125,38 @@ export const ClientForm = ({
         phone: '' 
       };
       
-      const { error } = await supabase
-        .from('clients')
-        .insert({
-          name: companyName,
-          type: type,
-          industry: industry || null,
-          contact_name: `${primaryContact.firstName} ${primaryContact.lastName}`.trim(),
-          contact_email: primaryContact.email,
-          contact_phone: primaryContact.phone,
-          company_size: companySize || null,
-          status: status || 'prospect',
-          annual_revenue: revenue ? parseFloat(revenue) : null,
-          website: website || null,
-          notes: nextSteps,
-          background: background || null,
-          missing_fields: [],
+      const clientData = {
+        name: companyName,
+        type: type,
+        industry: industry || null,
+        contact_name: `${primaryContact.firstName} ${primaryContact.lastName}`.trim(),
+        contact_email: primaryContact.email,
+        contact_phone: primaryContact.phone,
+        company_size: companySize || null,
+        status: status || 'prospect',
+        annual_revenue: revenue ? parseFloat(revenue) : null,
+        website: website || null,
+        notes: nextSteps,
+        background: background || null,
+        missing_fields: [],
+      };
+
+      if (isEditing && onSave) {
+        await onSave(clientData);
+      } else {
+        const { error } = await supabase
+          .from('clients')
+          .insert(clientData);
+
+        if (error) throw error;
+
+        toast({
+          title: "Success",
+          description: "Client information saved successfully",
         });
 
-      if (error) throw error;
-
-      toast({
-        title: "Success",
-        description: "Client information saved successfully",
-      });
-
-      resetForm();
-
+        resetForm();
+      }
     } catch (error) {
       console.error('Error saving client:', error);
       toast({
@@ -133,7 +172,7 @@ export const ClientForm = ({
   return (
     <Card className="transition-all duration-300 hover:shadow-lg">
       <CardHeader>
-        <CardTitle>New Client Information</CardTitle>
+        <CardTitle>{isEditing ? 'Edit Client Information' : 'New Client Information'}</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -184,7 +223,7 @@ export const ClientForm = ({
             onClick={handleSave}
             disabled={isLoading}
           >
-            {isLoading ? 'Saving...' : 'Save Client Information'}
+            {isLoading ? 'Saving...' : isEditing ? 'Update Client Information' : 'Save Client Information'}
           </Button>
         </div>
       </CardContent>
