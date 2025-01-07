@@ -37,8 +37,17 @@ export const useClientUpdate = (clientId: string | undefined, onSuccess?: () => 
         phone: contact.phone
       }));
 
+      // Preserve existing notes and next_due_date if they're not included in formData
+      const { data: existingClient } = await supabase
+        .from('clients')
+        .select('notes, next_due_date')
+        .eq('id', clientId)
+        .single();
+
       const dataToUpdate = {
         ...formData,
+        notes: formData.notes || existingClient?.notes,
+        next_due_date: formData.next_due_date || existingClient?.next_due_date,
         contact_name: `${primaryContact.firstName} ${primaryContact.lastName}`.trim(),
         contact_email: primaryContact.email,
         contact_phone: primaryContact.phone,
