@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, Navigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { KeyMetricsCard } from './client-details/KeyMetricsCard';
@@ -20,6 +20,12 @@ export const ClientDetails = () => {
   const [nextSteps, setNextSteps] = useState('');
   const [nextDueDate, setNextDueDate] = useState('');
 
+  // Validate id parameter
+  if (!id || isNaN(Number(id))) {
+    console.error('Invalid client ID:', id);
+    return <Navigate to="/" replace />;
+  }
+
   const { data: client, isLoading, error } = useQuery({
     queryKey: ['client', id],
     queryFn: async () => {
@@ -28,9 +34,11 @@ export const ClientDetails = () => {
         .from('clients')
         .select('*')
         .eq('id', id)
-        .single();
+        .maybeSingle();
       
       if (error) throw error;
+      if (!data) throw new Error('Client not found');
+      
       console.log('Received client data:', data);
       return data;
     },
