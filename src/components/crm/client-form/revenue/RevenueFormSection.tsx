@@ -2,6 +2,7 @@ import React from 'react';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
+import { MonthlyForecast } from '../../client-details/types/MonthlyForecast';
 
 interface RevenueFormSectionProps {
   projectRevenue: string;
@@ -16,6 +17,7 @@ interface RevenueFormSectionProps {
   onProjectRevenueForecastChange: (value: boolean) => void;
   onAnnualRevenueSignedOffChange: (value: number) => void;
   onAnnualRevenueForecastChange: (value: number) => void;
+  onMonthlyForecastsChange?: (forecasts: MonthlyForecast[]) => void;
 }
 
 export const RevenueFormSection: React.FC<RevenueFormSectionProps> = ({
@@ -31,6 +33,7 @@ export const RevenueFormSection: React.FC<RevenueFormSectionProps> = ({
   onProjectRevenueForecastChange,
   onAnnualRevenueSignedOffChange,
   onAnnualRevenueForecastChange,
+  onMonthlyForecastsChange,
 }) => {
   return (
     <div className="space-y-6">
