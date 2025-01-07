@@ -39,6 +39,7 @@ export const ClientForm = ({
   const [companyName, setCompanyName] = useState('');
   const [status, setStatus] = useState('');
   const [likelihood, setLikelihood] = useState('');
+  const [projectRevenue, setProjectRevenue] = useState('');
   const [revenue, setRevenue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
@@ -88,6 +89,7 @@ export const ClientForm = ({
       setCompanyName('');
       setStatus('');
       setLikelihood('');
+      setProjectRevenue('');
       setRevenue('');
       onContactsChange([{ 
         firstName: '', 
@@ -140,9 +142,11 @@ export const ClientForm = ({
           <StatusSection
             status={status}
             likelihood={likelihood}
+            projectRevenue={projectRevenue}
             revenue={revenue}
             onStatusChange={setStatus}
             onLikelihoodChange={setLikelihood}
+            onProjectRevenueChange={setProjectRevenue}
             onRevenueChange={setRevenue}
           />
 
