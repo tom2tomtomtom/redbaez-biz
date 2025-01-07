@@ -8,14 +8,14 @@ interface RevenueFormSectionProps {
   annualRevenue: string;
   projectRevenueSignedOff: boolean;
   projectRevenueForecast: boolean;
-  annualRevenueSignedOff: string;
-  annualRevenueForecast: string;
+  annualRevenueSignedOff: number;
+  annualRevenueForecast: number;
   onProjectRevenueChange: (value: string) => void;
   onAnnualRevenueChange: (value: string) => void;
   onProjectRevenueSignedOffChange: (value: boolean) => void;
   onProjectRevenueForecastChange: (value: boolean) => void;
-  onAnnualRevenueSignedOffChange: (value: string) => void;
-  onAnnualRevenueForecastChange: (value: string) => void;
+  onAnnualRevenueSignedOffChange: (value: number) => void;
+  onAnnualRevenueForecastChange: (value: number) => void;
 }
 
 export const RevenueFormSection: React.FC<RevenueFormSectionProps> = ({
@@ -34,10 +34,10 @@ export const RevenueFormSection: React.FC<RevenueFormSectionProps> = ({
 }) => {
   return (
     <div className="space-y-6">
-      <div className="space-y-4 p-4 bg-gray-50 rounded-lg">
-        <h3 className="font-medium text-gray-900">Project Revenue</h3>
+      <div className="space-y-4">
+        <h3 className="text-lg font-semibold">Project Revenue</h3>
         <div>
-          <Label>Total Amount ($)</Label>
+          <Label>Amount ($)</Label>
           <Input 
             type="number" 
             placeholder="Enter project revenue" 
@@ -62,10 +62,10 @@ export const RevenueFormSection: React.FC<RevenueFormSectionProps> = ({
         </div>
       </div>
 
-      <div className="space-y-4 p-4 bg-gray-50 rounded-lg">
-        <h3 className="font-medium text-gray-900">Annual Revenue</h3>
+      <div className="space-y-4">
+        <h3 className="text-lg font-semibold">Annual Revenue</h3>
         <div>
-          <Label>Total Amount ($)</Label>
+          <Label>Amount ($)</Label>
           <Input 
             type="number" 
             placeholder="Enter annual revenue" 
@@ -80,7 +80,7 @@ export const RevenueFormSection: React.FC<RevenueFormSectionProps> = ({
             type="number" 
             placeholder="Enter signed off amount" 
             value={annualRevenueSignedOff}
-            onChange={(e) => onAnnualRevenueSignedOffChange(e.target.value)}
+            onChange={(e) => onAnnualRevenueSignedOffChange(Number(e.target.value))}
             className="transition-all duration-300" 
           />
         </div>
@@ -90,7 +90,7 @@ export const RevenueFormSection: React.FC<RevenueFormSectionProps> = ({
             type="number" 
             placeholder="Enter forecast amount" 
             value={annualRevenueForecast}
-            onChange={(e) => onAnnualRevenueForecastChange(e.target.value)}
+            onChange={(e) => onAnnualRevenueForecastChange(Number(e.target.value))}
             className="transition-all duration-300" 
           />
         </div>
