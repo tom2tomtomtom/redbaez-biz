@@ -1,5 +1,5 @@
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 
 interface RevenueChartProps {
   revenueData: Array<{ month: string; value: number }>;
@@ -15,7 +15,8 @@ export const RevenueChart = ({
   isEditing = false 
 }: RevenueChartProps) => {
   const [isDragging, setIsDragging] = useState(false);
-  const [activeIndex, setActiveIndex] = useState<number | null>(null);
+  const [activeMonth, setActiveMonth] = useState<string | null>(null);
+  const chartRef = useRef<HTMLDivElement>(null);
 
   console.log('RevenueChart isEditing:', isEditing);
   console.log('RevenueChart monthlyForecasts:', monthlyForecasts);
@@ -30,22 +31,18 @@ export const RevenueChart = ({
     };
   });
 
-  const handleMouseDown = useCallback((data: any, index: number) => {
+  const handleMouseDown = useCallback((data: any) => {
     if (!isEditing) return;
     setIsDragging(true);
-    setActiveIndex(index);
+    setActiveMonth(data.month);
   }, [isEditing]);
 
-  const handleMouseMove = useCallback((e: any) => {
-    if (!isDragging || !isEditing || activeIndex === null || !onForecastUpdate) return;
+  const handleMouseMove = useCallback((e: React.MouseEvent) => {
+    if (!isDragging || !isEditing || !activeMonth || !onForecastUpdate || !chartRef.current) return;
 
-    const chartData = combinedData[activeIndex];
-    if (!chartData) return;
-
-    const svgElement = e.currentTarget;
-    const svgRect = svgElement.getBoundingClientRect();
-    const mouseY = e.nativeEvent.clientY - svgRect.top;
-    const chartHeight = svgRect.height - 40; // Adjust for padding
+    const chartRect = chartRef.current.getBoundingClientRect();
+    const mouseY = e.clientY - chartRect.top;
+    const chartHeight = chartRect.height - 40; // Adjust for padding
     
     // Convert mouse position to value (invert Y axis)
     const maxValue = Math.max(...combinedData.map(d => Math.max(d.value, d.forecast))) * 1.2;
@@ -54,32 +51,28 @@ export const RevenueChart = ({
     // Round to nearest 1000
     const roundedValue = Math.round(newValue / 1000) * 1000;
     
-    onForecastUpdate(chartData.month, roundedValue);
-  }, [isDragging, isEditing, activeIndex, combinedData, onForecastUpdate]);
+    onForecastUpdate(activeMonth, roundedValue);
+  }, [isDragging, isEditing, activeMonth, combinedData, onForecastUpdate]);
 
-  const handleMouseUp = useCallback(() => {
+  const stopDragging = useCallback(() => {
     setIsDragging(false);
-    setActiveIndex(null);
-  }, []);
-
-  const handleMouseLeave = useCallback(() => {
-    setIsDragging(false);
-    setActiveIndex(null);
+    setActiveMonth(null);
   }, []);
 
   return (
-    <div className="h-48">
+    <div 
+      className="h-48" 
+      ref={chartRef}
+      onMouseMove={handleMouseMove}
+      onMouseUp={stopDragging}
+      onMouseLeave={stopDragging}
+    >
       <p className="text-sm text-gray-600 mb-2">
         Monthly Revenue & Forecast
         {isEditing && <span className="text-xs ml-2 text-muted-foreground">(Click and drag forecast bars to adjust)</span>}
       </p>
       <ResponsiveContainer width="100%" height="100%">
-        <BarChart 
-          data={combinedData}
-          onMouseMove={handleMouseMove}
-          onMouseUp={handleMouseUp}
-          onMouseLeave={handleMouseLeave}
-        >
+        <BarChart data={combinedData}>
           <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
           <XAxis dataKey="month" stroke="#666" />
           <YAxis stroke="#666" />
@@ -101,7 +94,7 @@ export const RevenueChart = ({
             fill="hsl(var(--primary)/0.5)" 
             name="Forecast"
             cursor={isEditing ? 'ns-resize' : undefined}
-            onMouseDown={(data, index) => handleMouseDown(data, index)}
+            onMouseDown={(data) => handleMouseDown(data)}
             className={isEditing ? 'cursor-ns-resize' : ''}
           />
         </BarChart>
