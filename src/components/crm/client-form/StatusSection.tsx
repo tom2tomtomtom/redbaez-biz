@@ -1,5 +1,6 @@
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import {
   Select,
   SelectContent,
@@ -17,6 +18,7 @@ interface StatusSectionProps {
   industry: string;
   companySize: string;
   website: string;
+  background: string;
   onStatusChange: (value: string) => void;
   onLikelihoodChange: (value: string) => void;
   onProjectRevenueChange: (value: string) => void;
@@ -25,6 +27,7 @@ interface StatusSectionProps {
   onIndustryChange: (value: string) => void;
   onCompanySizeChange: (value: string) => void;
   onWebsiteChange: (value: string) => void;
+  onBackgroundChange: (value: string) => void;
 }
 
 export const StatusSection = ({
@@ -36,6 +39,7 @@ export const StatusSection = ({
   industry,
   companySize,
   website,
+  background,
   onStatusChange,
   onLikelihoodChange,
   onProjectRevenueChange,
@@ -44,6 +48,7 @@ export const StatusSection = ({
   onIndustryChange,
   onCompanySizeChange,
   onWebsiteChange,
+  onBackgroundChange,
 }: StatusSectionProps) => {
   return (
     <>
@@ -107,6 +112,16 @@ export const StatusSection = ({
           value={website}
           onChange={(e) => onWebsiteChange(e.target.value)}
           className="transition-all duration-300" 
+        />
+      </div>
+
+      <div className="col-span-2">
+        <Label>Background</Label>
+        <Textarea 
+          placeholder="Enter company background" 
+          value={background}
+          onChange={(e) => onBackgroundChange(e.target.value)}
+          className="transition-all duration-300 min-h-[100px]" 
         />
       </div>
 

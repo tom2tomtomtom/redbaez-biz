@@ -44,6 +44,7 @@ export const ClientForm = ({
   const [industry, setIndustry] = useState('');
   const [companySize, setCompanySize] = useState('');
   const [website, setWebsite] = useState('');
+  const [background, setBackground] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
   const resetForm = () => {
@@ -56,6 +57,7 @@ export const ClientForm = ({
     setIndustry('');
     setCompanySize('');
     setWebsite('');
+    setBackground('');
     onContactsChange([{ 
       firstName: '', 
       lastName: '', 
@@ -103,6 +105,7 @@ export const ClientForm = ({
           annual_revenue: revenue ? parseFloat(revenue) : null,
           website: website || null,
           notes: nextSteps,
+          background: background || null,
           missing_fields: [],
         });
 
@@ -155,6 +158,7 @@ export const ClientForm = ({
             industry={industry}
             companySize={companySize}
             website={website}
+            background={background}
             onStatusChange={setStatus}
             onLikelihoodChange={setLikelihood}
             onProjectRevenueChange={setProjectRevenue}
@@ -163,6 +167,7 @@ export const ClientForm = ({
             onIndustryChange={setIndustry}
             onCompanySizeChange={setCompanySize}
             onWebsiteChange={setWebsite}
+            onBackgroundChange={setBackground}
           />
 
           <NextStepsSection
