@@ -8,7 +8,12 @@ interface RevenueChartProps {
   isEditing?: boolean;
 }
 
-export const RevenueChart = ({ revenueData, monthlyForecasts, onForecastUpdate, isEditing = false }: RevenueChartProps) => {
+export const RevenueChart = ({ 
+  revenueData, 
+  monthlyForecasts, 
+  onForecastUpdate,
+  isEditing = false 
+}: RevenueChartProps) => {
   const [isDragging, setIsDragging] = useState(false);
 
   // Combine regular revenue data with forecasts
