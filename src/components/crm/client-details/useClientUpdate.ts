@@ -34,7 +34,7 @@ export const useClientUpdate = (id: string | undefined, onSuccess?: () => void) 
         contact_name: `${primaryContact.firstName} ${primaryContact.lastName}`.trim(),
         contact_email: primaryContact.email,
         contact_phone: primaryContact.phone,
-        // Store up to 5 additional contacts
+        // Store additional contacts (up to 5) as JSONB
         additional_contacts: additionalContacts.slice(0, 5)
       };
 
