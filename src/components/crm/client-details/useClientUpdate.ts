@@ -59,22 +59,19 @@ const parseNumericValue = (value: string | number | null): number | null => {
 };
 
 const prepareClientData = async (clientId: string, formData: any, contacts: Contact[]): Promise<ClientData> => {
-  console.log('Preparing client data with form data:', formData);
-  
   const { primaryContact, formattedAdditionalContacts } = formatContacts(contacts);
 
-  // Parse numeric values
-  const projectRevenue = parseNumericValue(formData.project_revenue || formData.projectRevenue);
-  const annualRevenue = parseNumericValue(formData.annual_revenue || formData.annualRevenue);
+  // Ensure we get the values from the form data, handling both camelCase and snake_case
+  const projectRevenue = parseNumericValue(formData.projectRevenue || formData.project_revenue);
+  const annualRevenue = parseNumericValue(formData.annualRevenue || formData.annual_revenue);
+  const annualRevenueSignedOff = parseNumericValue(formData.annualRevenueSignedOff || formData.annual_revenue_signed_off) ?? 0;
+  const annualRevenueForecast = parseNumericValue(formData.annualRevenueForecast || formData.annual_revenue_forecast) ?? 0;
   
   // Convert boolean values explicitly
-  const projectRevenueSignedOff = Boolean(formData.project_revenue_signed_off || formData.projectRevenueSignedOff);
-  const projectRevenueForecast = Boolean(formData.project_revenue_forecast || formData.projectRevenueForecast);
-  
-  // Parse numeric values for signed off and forecast amounts
-  const annualRevenueSignedOff = parseNumericValue(formData.annual_revenue_signed_off || formData.annualRevenueSignedOff) ?? 0;
-  const annualRevenueForecast = parseNumericValue(formData.annual_revenue_forecast || formData.annualRevenueForecast) ?? 0;
+  const projectRevenueSignedOff = Boolean(formData.projectRevenueSignedOff || formData.project_revenue_signed_off);
+  const projectRevenueForecast = Boolean(formData.projectRevenueForecast || formData.project_revenue_forecast);
 
+  console.log('Form data received:', formData);
   console.log('Parsed revenue values:', {
     projectRevenue,
     annualRevenue,
@@ -99,7 +96,7 @@ const prepareClientData = async (clientId: string, formData: any, contacts: Cont
     likelihood: formData.likelihood ? Number(formData.likelihood) : null
   };
 
-  console.log('Final client data for update:', clientData);
+  console.log('Prepared client data:', clientData);
   return clientData;
 };
 
@@ -109,12 +106,9 @@ export const useClientUpdate = (clientId: string | undefined, onSuccess?: () => 
   return useMutation({
     mutationFn: async ({ formData, contacts }: UpdateClientData) => {
       if (!clientId) throw new Error('Client ID is required');
-
-      console.log('Raw form data received:', formData);
-      console.log('Contacts:', contacts);
       
       const clientData = await prepareClientData(clientId, formData, contacts);
-
+      
       console.log('Executing Supabase update with data:', clientData);
       const { error, data } = await supabase
         .from('clients')
@@ -126,7 +120,6 @@ export const useClientUpdate = (clientId: string | undefined, onSuccess?: () => 
         throw error;
       }
 
-      console.log('Supabase update response:', data);
       return { success: true };
     },
     onSuccess: () => {
