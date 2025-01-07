@@ -173,4 +173,3 @@ export const ClientDetails = () => {
     </div>
   );
 };
-
