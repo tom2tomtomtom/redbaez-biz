@@ -120,6 +120,10 @@ export const ClientDetails = () => {
           projectRevenue={client.project_revenue}
           likelihood={client.likelihood}
           revenueData={revenueData}
+          projectRevenueSignedOff={client.project_revenue_signed_off}
+          projectRevenueForecast={client.project_revenue_forecast}
+          annualRevenueSignedOff={client.annual_revenue_signed_off}
+          annualRevenueForecast={client.annual_revenue_forecast}
         />
 
         <ContactInfoCard 
