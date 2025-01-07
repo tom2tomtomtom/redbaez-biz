@@ -25,6 +25,15 @@ export const KeyMetricsCard = ({
   annualRevenueSignedOff,
   annualRevenueForecast
 }: KeyMetricsCardProps) => {
+  console.log('KeyMetricsCard received props:', {
+    annualRevenue,
+    projectRevenue,
+    projectRevenueSignedOff,
+    projectRevenueForecast,
+    annualRevenueSignedOff,
+    annualRevenueForecast
+  });
+
   return (
     <Card className="col-span-12 lg:col-span-4 transition-all duration-300 hover:shadow-lg">
       <CardHeader>
