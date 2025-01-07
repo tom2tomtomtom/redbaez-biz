@@ -28,13 +28,31 @@ export const useClientInitialization = (clientData: any) => {
       const primaryContact: Contact = {
         firstName,
         lastName,
-        title: clientData.contact_title || '',
+        title: '',
         email: clientData.contact_email || '',
-        address: clientData.contact_address || '',
+        address: '',
         phone: clientData.contact_phone || ''
       };
 
-      setContacts([primaryContact]);
+      // Initialize additional contacts from the JSONB field
+      const additionalContacts = clientData.additional_contacts || [];
+      console.log('Loading additional contacts:', additionalContacts);
+
+      // Combine primary contact with any additional contacts
+      const allContacts = [
+        primaryContact,
+        ...additionalContacts.map((contact: any) => ({
+          firstName: contact.firstName || '',
+          lastName: contact.lastName || '',
+          title: contact.title || '',
+          email: contact.email || '',
+          address: contact.address || '',
+          phone: contact.phone || ''
+        }))
+      ];
+
+      console.log('Setting all contacts:', allContacts);
+      setContacts(allContacts);
     }
   }, [clientData]);
 
