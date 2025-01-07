@@ -18,7 +18,6 @@ interface UpdateClientData {
 
 const formatContacts = (contacts: Contact[]) => {
   const [primaryContact, ...additionalContacts] = contacts;
-  
   return {
     primaryContact,
     additionalContacts: additionalContacts.length > 0 ? additionalContacts : null
