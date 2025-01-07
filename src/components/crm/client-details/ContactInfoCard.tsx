@@ -1,0 +1,54 @@
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Mail, Phone, Star, Plus } from 'lucide-react';
+
+interface ContactInfoCardProps {
+  contactName: string | null;
+  companySize: string | null;
+  contactEmail: string | null;
+  contactPhone: string | null;
+}
+
+export const ContactInfoCard = ({ 
+  contactName, 
+  companySize, 
+  contactEmail, 
+  contactPhone 
+}: ContactInfoCardProps) => {
+  return (
+    <Card className="col-span-12 lg:col-span-8 transition-all duration-300 hover:shadow-lg">
+      <CardHeader className="flex flex-row items-center justify-between">
+        <CardTitle className="text-lg font-medium">Contact Information</CardTitle>
+        <Button variant="outline" size="sm" className="transition-all duration-300">
+          <Plus className="mr-2 h-4 w-4" />
+          Add Contact
+        </Button>
+      </CardHeader>
+      <CardContent>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="p-4 border border-gray-100 rounded-lg hover:border-primary/20 hover:shadow-sm transition-all duration-300">
+            <div className="flex items-start justify-between">
+              <div>
+                <h3 className="font-medium text-gray-900">{contactName || 'No contact name'}</h3>
+                <p className="text-sm text-gray-500">{companySize || 'Company size not specified'}</p>
+              </div>
+              <Button variant="ghost" size="sm" className="transition-all duration-300">
+                <Star size={16} />
+              </Button>
+            </div>
+            <div className="mt-4 space-y-2">
+              <div className="flex items-center text-sm text-gray-600">
+                <Mail size={14} className="mr-2" />
+                {contactEmail || 'No email provided'}
+              </div>
+              <div className="flex items-center text-sm text-gray-600">
+                <Phone size={14} className="mr-2" />
+                {contactPhone || 'No phone provided'}
+              </div>
+            </div>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+};

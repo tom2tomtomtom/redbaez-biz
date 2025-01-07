@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, BarChart, Bar } from 'recharts';
-import { Calendar, Mail, Phone, Star, Edit, MoreHorizontal, Plus, ArrowLeft, Save, X } from 'lucide-react';
+import { Edit, MoreHorizontal, ArrowLeft, X } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from "@/components/ui/use-toast";
 import { ClientForm } from './client-form/ClientForm';
+import { KeyMetricsCard } from './client-details/KeyMetricsCard';
+import { ContactInfoCard } from './client-details/ContactInfoCard';
+import { AdditionalInfoCard } from './client-details/AdditionalInfoCard';
 
 export const ClientDetails = () => {
   const navigate = useNavigate();
@@ -84,7 +85,6 @@ export const ClientDetails = () => {
     updateMutation.mutate(formData);
   };
 
-  // Sample revenue data - in a real app, this would come from a separate table
   const revenueData = [
     { month: 'Jan', value: client.annual_revenue ? client.annual_revenue / 12 : 0 },
     { month: 'Feb', value: client.annual_revenue ? client.annual_revenue / 12 : 0 },
@@ -123,7 +123,7 @@ export const ClientDetails = () => {
   }
 
   return (
-    <div className="flex flex-col space-y-6 p-8 w-full max-w-7xl mx-auto bg-gray-50/50 animate-fade-in">
+    <div className="flex flex-col space-y-6 p-8 w-full max-w-7xl mx-auto bg-gray-50/50 animate-fade-in overflow-y-auto min-h-screen">
       <Button
         variant="ghost"
         className="w-fit flex items-center gap-2"
@@ -159,104 +159,24 @@ export const ClientDetails = () => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        <Card className="col-span-12 lg:col-span-4 transition-all duration-300 hover:shadow-lg">
-          <CardHeader>
-            <CardTitle className="text-lg font-medium">Key Metrics</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="p-4 bg-primary/5 rounded-lg transition-all duration-300 hover:bg-primary/10">
-                <p className="text-sm text-primary font-medium">Annual Revenue</p>
-                <p className="text-2xl font-semibold text-primary">
-                  ${client.annual_revenue?.toLocaleString() || 'N/A'}
-                </p>
-              </div>
-              <div className="h-48">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={revenueData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                    <XAxis dataKey="month" stroke="#666" />
-                    <YAxis stroke="#666" />
-                    <Tooltip 
-                      contentStyle={{ 
-                        backgroundColor: 'white',
-                        border: 'none',
-                        borderRadius: '8px',
-                        boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'
-                      }}
-                    />
-                    <Bar dataKey="value" fill="hsl(var(--primary))" />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        <KeyMetricsCard 
+          annualRevenue={client.annual_revenue}
+          revenueData={revenueData}
+        />
 
-        <Card className="col-span-12 lg:col-span-8 transition-all duration-300 hover:shadow-lg">
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="text-lg font-medium">Contact Information</CardTitle>
-            <Button variant="outline" size="sm" className="transition-all duration-300">
-              <Plus className="mr-2 h-4 w-4" />
-              Add Contact
-            </Button>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="p-4 border border-gray-100 rounded-lg hover:border-primary/20 hover:shadow-sm transition-all duration-300">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <h3 className="font-medium text-gray-900">{client.contact_name || 'No contact name'}</h3>
-                    <p className="text-sm text-gray-500">{client.company_size || 'Company size not specified'}</p>
-                  </div>
-                  <Button variant="ghost" size="sm" className="transition-all duration-300">
-                    <Star size={16} />
-                  </Button>
-                </div>
-                <div className="mt-4 space-y-2">
-                  <div className="flex items-center text-sm text-gray-600">
-                    <Mail size={14} className="mr-2" />
-                    {client.contact_email || 'No email provided'}
-                  </div>
-                  <div className="flex items-center text-sm text-gray-600">
-                    <Phone size={14} className="mr-2" />
-                    {client.contact_phone || 'No phone provided'}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        <ContactInfoCard 
+          contactName={client.contact_name}
+          companySize={client.company_size}
+          contactEmail={client.contact_email}
+          contactPhone={client.contact_phone}
+        />
 
-        <Card className="col-span-12 transition-all duration-300 hover:shadow-lg">
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="text-lg font-medium">Additional Information</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <p className="text-sm font-medium text-gray-500">Industry</p>
-                  <p className="mt-1">{client.industry || 'Not specified'}</p>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-500">Website</p>
-                  <p className="mt-1">
-                    {client.website ? (
-                      <a href={client.website} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
-                        {client.website}
-                      </a>
-                    ) : 'Not specified'}
-                  </p>
-                </div>
-                <div className="md:col-span-2">
-                  <p className="text-sm font-medium text-gray-500">Notes</p>
-                  <p className="mt-1">{client.notes || 'No notes available'}</p>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        <AdditionalInfoCard 
+          industry={client.industry}
+          website={client.website}
+          notes={client.notes}
+          background={client.background}
+        />
       </div>
     </div>
   );
