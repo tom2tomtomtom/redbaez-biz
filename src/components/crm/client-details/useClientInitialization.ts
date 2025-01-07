@@ -21,49 +21,20 @@ export const useClientInitialization = (clientData: any) => {
   
   useEffect(() => {
     if (clientData) {
-      console.log('Initializing contacts with client data:', clientData);
+      console.log('Initializing client data:', clientData);
       
       // Initialize primary contact from main client fields
       const [firstName = '', lastName = ''] = (clientData.contact_name || '').split(' ');
       const primaryContact: Contact = {
         firstName,
         lastName,
-        title: '',
+        title: clientData.contact_title || '',
         email: clientData.contact_email || '',
-        address: '',
+        address: clientData.contact_address || '',
         phone: clientData.contact_phone || ''
       };
 
-      // Get additional contacts from the database
-      let additionalContacts: Contact[] = [];
-      if (clientData.additional_contacts) {
-        try {
-          // Handle both string and array formats
-          const parsedContacts = typeof clientData.additional_contacts === 'string'
-            ? JSON.parse(clientData.additional_contacts)
-            : clientData.additional_contacts;
-
-          if (Array.isArray(parsedContacts)) {
-            additionalContacts = parsedContacts.map((contact: any): Contact => ({
-              firstName: contact.firstName || '',
-              lastName: contact.lastName || '',
-              title: contact.title || '',
-              email: contact.email || '',
-              address: contact.address || '',
-              phone: contact.phone || ''
-            }));
-          }
-          
-          console.log('Parsed additional contacts:', additionalContacts);
-        } catch (error) {
-          console.error('Error parsing additional contacts:', error);
-        }
-      }
-
-      // Combine primary and additional contacts (up to 5 additional)
-      const allContacts = [primaryContact, ...additionalContacts.slice(0, 5)];
-      console.log('Setting all contacts:', allContacts);
-      setContacts(allContacts);
+      setContacts([primaryContact]);
     }
   }, [clientData]);
 
