@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/components/ui/use-toast';
+import { MonthlyForecast } from './types/MonthlyForecast';
 
 interface Contact {
   firstName: string;
@@ -24,6 +25,21 @@ const formatContacts = (contacts: Contact[]) => {
   };
 };
 
+const monthToColumnMap: Record<string, string> = {
+  'Jan': 'forecast_jan',
+  'Feb': 'forecast_feb',
+  'Mar': 'forecast_mar',
+  'Apr': 'forecast_apr',
+  'May': 'forecast_may',
+  'Jun': 'forecast_jun',
+  'Jul': 'forecast_jul',
+  'Aug': 'forecast_aug',
+  'Sep': 'forecast_sep',
+  'Oct': 'forecast_oct',
+  'Nov': 'forecast_nov',
+  'Dec': 'forecast_dec'
+};
+
 export const useClientUpdate = (clientId: string | undefined, onSuccess?: () => void) => {
   const queryClient = useQueryClient();
 
@@ -38,19 +54,18 @@ export const useClientUpdate = (clientId: string | undefined, onSuccess?: () => 
         ...contact
       })) : null;
 
-      // Ensure monthly forecasts are properly formatted and calculate total annual revenue
-      const monthlyForecasts = formData.monthly_revenue_forecasts 
-        ? Array.isArray(formData.monthly_revenue_forecasts) 
-          ? formData.monthly_revenue_forecasts.map((forecast: any) => ({
-              month: String(forecast.month),
-              amount: Number(forecast.amount)
-            }))
-          : []
-        : [];
+      // Convert monthly forecasts array to individual column values
+      const monthlyForecasts = formData.monthly_revenue_forecasts || [];
+      const forecastColumns = Object.keys(monthToColumnMap).reduce((acc, month) => {
+        const forecast = monthlyForecasts.find((f: MonthlyForecast) => f.month === month);
+        const columnName = monthToColumnMap[month];
+        acc[columnName] = forecast ? Number(forecast.amount) : 0;
+        return acc;
+      }, {} as Record<string, number>);
 
       // Calculate total annual revenue from monthly forecasts
-      const calculatedAnnualRevenue = monthlyForecasts.reduce((total, forecast) => 
-        total + Number(forecast.amount), 0
+      const calculatedAnnualRevenue = Object.values(forecastColumns).reduce((total, amount) => 
+        total + Number(amount), 0
       );
 
       console.log('Calculated annual revenue from forecasts:', calculatedAnnualRevenue);
@@ -61,7 +76,7 @@ export const useClientUpdate = (clientId: string | undefined, onSuccess?: () => 
         industry: formData.industry || null,
         company_size: formData.company_size || null,
         status: formData.status || 'prospect',
-        annual_revenue: calculatedAnnualRevenue, // Use calculated total from monthly forecasts
+        annual_revenue: calculatedAnnualRevenue,
         project_revenue: formData.project_revenue ? Number(formData.project_revenue) : null,
         website: formData.website || null,
         notes: formData.notes,
@@ -76,7 +91,7 @@ export const useClientUpdate = (clientId: string | undefined, onSuccess?: () => 
         project_revenue_forecast: Boolean(formData.project_revenue_forecast),
         annual_revenue_signed_off: Number(formData.annual_revenue_signed_off || 0),
         annual_revenue_forecast: Number(formData.annual_revenue_forecast || 0),
-        monthly_revenue_forecasts: monthlyForecasts,
+        ...forecastColumns, // Spread the monthly forecast columns
       };
 
       console.log('Updating client with data:', clientData);

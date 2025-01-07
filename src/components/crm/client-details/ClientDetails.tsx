@@ -76,13 +76,21 @@ export const ClientDetails = () => {
     };
   });
 
-  // Parse monthly forecasts from client data with type checking
-  const monthlyForecasts: MonthlyForecast[] = Array.isArray(client.monthly_revenue_forecasts) 
-    ? client.monthly_revenue_forecasts.map((forecast: any) => ({
-        month: String(forecast.month),
-        amount: Number(forecast.amount)
-      }))
-    : [];
+  // Convert monthly forecast columns to array format
+  const monthlyForecasts: MonthlyForecast[] = [
+    { month: 'Jan', amount: client.forecast_jan || 0 },
+    { month: 'Feb', amount: client.forecast_feb || 0 },
+    { month: 'Mar', amount: client.forecast_mar || 0 },
+    { month: 'Apr', amount: client.forecast_apr || 0 },
+    { month: 'May', amount: client.forecast_may || 0 },
+    { month: 'Jun', amount: client.forecast_jun || 0 },
+    { month: 'Jul', amount: client.forecast_jul || 0 },
+    { month: 'Aug', amount: client.forecast_aug || 0 },
+    { month: 'Sep', amount: client.forecast_sep || 0 },
+    { month: 'Oct', amount: client.forecast_oct || 0 },
+    { month: 'Nov', amount: client.forecast_nov || 0 },
+    { month: 'Dec', amount: client.forecast_dec || 0 },
+  ];
 
   const handleForecastUpdate = async (forecasts: MonthlyForecast[]) => {
     console.log('Updating forecasts:', forecasts);

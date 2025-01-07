@@ -19,7 +19,7 @@ export const RevenueChart = ({
   onForecastUpdate
 }: RevenueChartProps) => {
   const [showTable, setShowTable] = useState(false);
-  const [localForecasts, setLocalForecasts] = useState<Array<{ month: string; amount: number }>>([]);
+  const [localForecasts, setLocalForecasts] = useState<MonthlyForecast[]>([]);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [chartData, setChartData] = useState(revenueData);
 
@@ -37,7 +37,7 @@ export const RevenueChart = ({
     updateChartData(initialForecasts);
   }, [monthlyForecasts, revenueData]);
 
-  const updateChartData = (forecasts: Array<{ month: string; amount: number }>) => {
+  const updateChartData = (forecasts: MonthlyForecast[]) => {
     const newChartData = revenueData.map(item => {
       const forecast = forecasts.find(f => f.month === item.month);
       return {

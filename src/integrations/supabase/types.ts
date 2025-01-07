@@ -21,6 +21,18 @@ export type Database = {
           contact_name: string | null
           contact_phone: string | null
           created_at: string
+          forecast_apr: number | null
+          forecast_aug: number | null
+          forecast_dec: number | null
+          forecast_feb: number | null
+          forecast_jan: number | null
+          forecast_jul: number | null
+          forecast_jun: number | null
+          forecast_mar: number | null
+          forecast_may: number | null
+          forecast_nov: number | null
+          forecast_oct: number | null
+          forecast_sep: number | null
           id: number
           industry: string | null
           likelihood: number | null
@@ -47,6 +59,18 @@ export type Database = {
           contact_name?: string | null
           contact_phone?: string | null
           created_at?: string
+          forecast_apr?: number | null
+          forecast_aug?: number | null
+          forecast_dec?: number | null
+          forecast_feb?: number | null
+          forecast_jan?: number | null
+          forecast_jul?: number | null
+          forecast_jun?: number | null
+          forecast_mar?: number | null
+          forecast_may?: number | null
+          forecast_nov?: number | null
+          forecast_oct?: number | null
+          forecast_sep?: number | null
           id?: number
           industry?: string | null
           likelihood?: number | null
@@ -73,6 +97,18 @@ export type Database = {
           contact_name?: string | null
           contact_phone?: string | null
           created_at?: string
+          forecast_apr?: number | null
+          forecast_aug?: number | null
+          forecast_dec?: number | null
+          forecast_feb?: number | null
+          forecast_jan?: number | null
+          forecast_jul?: number | null
+          forecast_jun?: number | null
+          forecast_mar?: number | null
+          forecast_may?: number | null
+          forecast_nov?: number | null
+          forecast_oct?: number | null
+          forecast_sep?: number | null
           id?: number
           industry?: string | null
           likelihood?: number | null
