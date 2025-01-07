@@ -96,8 +96,8 @@ export const ClientForm = ({
       next_due_date: nextDueDate,
       project_revenue_signed_off: revenueState.projectRevenueSignedOff,
       project_revenue_forecast: revenueState.projectRevenueForecast,
-      annual_revenue_signed_off: revenueState.annualRevenueSignedOff,
-      annual_revenue_forecast: revenueState.annualRevenueForecast,
+      annual_revenue_signed_off: parseFloat(revenueState.annualRevenueSignedOff) || 0,
+      annual_revenue_forecast: parseFloat(revenueState.annualRevenueForecast) || 0,
     };
 
     console.log('Submitting form data:', formData);
