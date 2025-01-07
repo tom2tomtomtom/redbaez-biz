@@ -6,15 +6,17 @@ interface ContactInfoCardProps {
   companySize: string | null;
   contactEmail: string | null;
   contactPhone: string | null;
+  additionalContacts?: any[] | null;
 }
 
 export const ContactInfoCard = ({ 
   contactName, 
   companySize, 
   contactEmail, 
-  contactPhone 
+  contactPhone,
+  additionalContacts 
 }: ContactInfoCardProps) => {
-  console.log('ContactInfoCard received props:', { contactName, companySize, contactEmail, contactPhone });
+  console.log('ContactInfoCard received props:', { contactName, companySize, contactEmail, contactPhone, additionalContacts });
   
   return (
     <Card className="col-span-12 lg:col-span-8 transition-all duration-300 hover:shadow-lg">
@@ -45,7 +47,7 @@ export const ContactInfoCard = ({
           </div>
           
           {/* Additional Contacts */}
-          {client?.additional_contacts?.map((contact: any, index: number) => (
+          {additionalContacts?.map((contact: any, index: number) => (
             <div key={index} className="p-4 border border-gray-100 rounded-lg hover:border-primary/20 hover:shadow-sm transition-all duration-300">
               <div className="flex items-start justify-between">
                 <div>
