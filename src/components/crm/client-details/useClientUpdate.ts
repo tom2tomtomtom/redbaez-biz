@@ -20,12 +20,12 @@ interface ClientData {
   additional_contacts: Json | null;
   notes?: string;
   next_due_date?: string;
+  project_revenue: number | null;
+  annual_revenue: number | null;
   project_revenue_signed_off: boolean;
   project_revenue_forecast: boolean;
   annual_revenue_signed_off: number;
   annual_revenue_forecast: number;
-  annual_revenue: number | null;
-  project_revenue: number | null;
   [key: string]: any;
 }
 
@@ -34,7 +34,7 @@ interface UpdateClientData {
   contacts: Contact[];
 }
 
-const formatContacts = (contacts: Contact[]): { primaryContact: Contact; formattedAdditionalContacts: Json } => {
+const formatContacts = (contacts: Contact[]) => {
   const [primaryContact, ...additionalContacts] = contacts;
   
   const formattedAdditionalContacts = additionalContacts.map(contact => ({
@@ -52,45 +52,23 @@ const formatContacts = (contacts: Contact[]): { primaryContact: Contact; formatt
   };
 };
 
-const prepareClientData = async (clientId: string, formData: any, contacts: Contact[]): Promise<ClientData> => {
+const prepareClientData = (formData: any, contacts: Contact[]): ClientData => {
   const { primaryContact, formattedAdditionalContacts } = formatContacts(contacts);
 
-  // Convert string values to numbers, handling both formats
-  const projectRevenue = formData.projectRevenue ? Number(formData.projectRevenue) : null;
-  const annualRevenue = formData.annualRevenue ? Number(formData.annualRevenue) : null;
-  const annualRevenueSignedOff = formData.annualRevenueSignedOff ? Number(formData.annualRevenueSignedOff) : 0;
-  const annualRevenueForecast = formData.annualRevenueForecast ? Number(formData.annualRevenueForecast) : 0;
-
-  // Convert checkbox values to booleans
-  const projectRevenueSignedOff = Boolean(formData.projectRevenueSignedOff);
-  const projectRevenueForecast = Boolean(formData.projectRevenueForecast);
-
-  console.log('Processing form data:', {
-    projectRevenue,
-    annualRevenue,
-    projectRevenueSignedOff,
-    projectRevenueForecast,
-    annualRevenueSignedOff,
-    annualRevenueForecast
-  });
-
-  const clientData = {
+  return {
     ...formData,
     contact_name: `${primaryContact.firstName} ${primaryContact.lastName}`.trim(),
     contact_email: primaryContact.email,
     contact_phone: primaryContact.phone,
     additional_contacts: contacts.length > 1 ? formattedAdditionalContacts : null,
-    project_revenue: projectRevenue,
-    annual_revenue: annualRevenue,
-    project_revenue_signed_off: projectRevenueSignedOff,
-    project_revenue_forecast: projectRevenueForecast,
-    annual_revenue_signed_off: annualRevenueSignedOff,
-    annual_revenue_forecast: annualRevenueForecast,
+    project_revenue: formData.projectRevenue ? Number(formData.projectRevenue) : null,
+    annual_revenue: formData.annualRevenue ? Number(formData.annualRevenue) : null,
+    project_revenue_signed_off: Boolean(formData.projectRevenueSignedOff),
+    project_revenue_forecast: Boolean(formData.projectRevenueForecast),
+    annual_revenue_signed_off: formData.annualRevenueSignedOff ? Number(formData.annualRevenueSignedOff) : 0,
+    annual_revenue_forecast: formData.annualRevenueForecast ? Number(formData.annualRevenueForecast) : 0,
     likelihood: formData.likelihood ? Number(formData.likelihood) : null
   };
-
-  console.log('Prepared client data for update:', clientData);
-  return clientData;
 };
 
 export const useClientUpdate = (clientId: string | undefined, onSuccess?: () => void) => {
@@ -100,23 +78,18 @@ export const useClientUpdate = (clientId: string | undefined, onSuccess?: () => 
     mutationFn: async ({ formData, contacts }: UpdateClientData) => {
       if (!clientId) throw new Error('Client ID is required');
       
-      const clientData = await prepareClientData(clientId, formData, contacts);
+      const clientData = prepareClientData(formData, contacts);
+      console.log('Updating client with data:', clientData);
       
-      console.log('Sending update to Supabase:', clientData);
       const { error } = await supabase
         .from('clients')
         .update(clientData)
         .eq('id', clientId);
 
-      if (error) {
-        console.error('Error updating client:', error);
-        throw error;
-      }
-
+      if (error) throw error;
       return { success: true };
     },
     onSuccess: () => {
-      console.log('Client updated successfully');
       queryClient.invalidateQueries({ queryKey: ['client'] });
       toast({
         title: "Success",

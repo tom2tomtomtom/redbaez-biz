@@ -1,11 +1,6 @@
 import { useState, useEffect } from 'react';
 
-const parseNumericValue = (value: string | number | null): string => {
-  if (value === null || value === '') return '';
-  return value.toString();
-};
-
-export interface RevenueState {
+interface RevenueState {
   projectRevenue: string;
   annualRevenue: string;
   projectRevenueSignedOff: boolean;
@@ -24,13 +19,12 @@ export const useRevenueState = (initialData?: any) => {
 
   useEffect(() => {
     if (initialData) {
-      console.log('Initializing revenue state with:', initialData);
-      setProjectRevenue(parseNumericValue(initialData.project_revenue));
-      setAnnualRevenue(parseNumericValue(initialData.annual_revenue));
-      setProjectRevenueSignedOff(initialData.project_revenue_signed_off === true);
-      setProjectRevenueForecast(initialData.project_revenue_forecast === true);
-      setAnnualRevenueSignedOff(parseNumericValue(initialData.annual_revenue_signed_off));
-      setAnnualRevenueForecast(parseNumericValue(initialData.annual_revenue_forecast));
+      setProjectRevenue(initialData.project_revenue?.toString() || '');
+      setAnnualRevenue(initialData.annual_revenue?.toString() || '');
+      setProjectRevenueSignedOff(initialData.project_revenue_signed_off || false);
+      setProjectRevenueForecast(initialData.project_revenue_forecast || false);
+      setAnnualRevenueSignedOff(initialData.annual_revenue_signed_off?.toString() || '');
+      setAnnualRevenueForecast(initialData.annual_revenue_forecast?.toString() || '');
     }
   }, [initialData]);
 
