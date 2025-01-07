@@ -11,6 +11,7 @@ export type Database = {
     Tables: {
       clients: {
         Row: {
+          additional_contacts: Json | null
           annual_revenue: number | null
           background: string | null
           company_size: string | null
@@ -31,6 +32,7 @@ export type Database = {
           website: string | null
         }
         Insert: {
+          additional_contacts?: Json | null
           annual_revenue?: number | null
           background?: string | null
           company_size?: string | null
@@ -51,6 +53,7 @@ export type Database = {
           website?: string | null
         }
         Update: {
+          additional_contacts?: Json | null
           annual_revenue?: number | null
           background?: string | null
           company_size?: string | null

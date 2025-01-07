@@ -52,8 +52,12 @@ export const ClientDetails = () => {
 
         // Add additional contacts if they exist
         try {
-          const additionalContacts = data.additional_contacts ? JSON.parse(data.additional_contacts) : [];
-          setContacts([...initialContacts, ...additionalContacts]);
+          if (data.additional_contacts) {
+            const additionalContacts = JSON.parse(data.additional_contacts);
+            setContacts([...initialContacts, ...(Array.isArray(additionalContacts) ? additionalContacts : [])]);
+          } else {
+            setContacts(initialContacts);
+          }
         } catch (e) {
           console.error('Error parsing additional contacts:', e);
           setContacts(initialContacts);
