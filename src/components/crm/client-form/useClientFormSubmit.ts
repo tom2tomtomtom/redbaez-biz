@@ -1,4 +1,4 @@
-import { useToast } from "@/components/ui/use-toast";
+import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
 interface UseClientFormSubmitProps {
@@ -14,8 +14,6 @@ export const useClientFormSubmit = ({
   setIsLoading,
   resetForm,
 }: UseClientFormSubmitProps) => {
-  const { toast } = useToast();
-
   const handleSubmit = async (formData: any) => {
     if (!formData.name) {
       toast({
