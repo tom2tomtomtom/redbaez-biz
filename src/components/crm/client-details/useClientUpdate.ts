@@ -9,7 +9,6 @@ interface UpdateClientData {
     lastName: string;
     email: string;
     phone: string;
-    title?: string;
   }>;
 }
 
@@ -27,8 +26,7 @@ export const useClientUpdate = (clientId: string | undefined, onSuccess?: () => 
         ...formData,
         contact_name: `${primaryContact.firstName} ${primaryContact.lastName}`.trim(),
         contact_email: primaryContact.email,
-        contact_phone: primaryContact.phone,
-        contact_title: primaryContact.title
+        contact_phone: primaryContact.phone
       };
 
       console.log('Updating client with data:', dataToUpdate);
