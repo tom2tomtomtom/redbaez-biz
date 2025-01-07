@@ -3,41 +3,53 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, BarChart, Bar } from 'recharts';
 import { Calendar, Mail, Phone, Star, Edit, MoreHorizontal, Plus, ArrowLeft } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 
 export const ClientDetails = () => {
   const navigate = useNavigate();
+  const { id } = useParams();
   
-  // Dummy data - will be replaced with real data later
-  const clientData = {
-    id: "CL-2024-001",
-    name: "TechCorp Solutions",
-    status: "Active Client",
-    yearStarted: 2022,
-    revenueYTD: "$450,000",
-    contacts: [
-      { name: "Sarah Chen", title: "CTO", email: "schen@techcorp.com", phone: "415-555-0123" },
-      { name: "Michael Ross", title: "Procurement Manager", email: "mross@techcorp.com", phone: "415-555-0124" }
-    ],
-    interactions: [
-      { date: "2024-01-05", type: "Meeting", description: "Quarterly review - Discussed new project timeline", team: "Alex, Sarah" },
-      { date: "2023-12-20", type: "Email", description: "Sent proposal for Q1 2024 projects", team: "Sarah" },
-      { date: "2023-12-15", type: "Call", description: "Technical requirements discussion", team: "Alex, John" }
-    ]
-  };
+  const { data: client, isLoading, error } = useQuery({
+    queryKey: ['client', id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('clients')
+        .select('*')
+        .eq('id', id)
+        .single();
+      
+      if (error) throw error;
+      return data;
+    },
+  });
 
+  if (isLoading) {
+    return <div className="flex items-center justify-center h-screen">Loading...</div>;
+  }
+
+  if (error || !client) {
+    return (
+      <div className="flex flex-col items-center justify-center h-screen">
+        <p className="text-red-500 mb-4">Error loading client details</p>
+        <Button onClick={() => navigate('/')}>Back to Home</Button>
+      </div>
+    );
+  }
+
+  // Sample revenue data - in a real app, this would come from a separate table
   const revenueData = [
-    { month: 'Jan', value: 45000 },
-    { month: 'Feb', value: 52000 },
-    { month: 'Mar', value: 48000 },
-    { month: 'Apr', value: 51000 },
-    { month: 'May', value: 53000 },
-    { month: 'Jun', value: 60000 }
+    { month: 'Jan', value: client.annual_revenue ? client.annual_revenue / 12 : 0 },
+    { month: 'Feb', value: client.annual_revenue ? client.annual_revenue / 12 : 0 },
+    { month: 'Mar', value: client.annual_revenue ? client.annual_revenue / 12 : 0 },
+    { month: 'Apr', value: client.annual_revenue ? client.annual_revenue / 12 : 0 },
+    { month: 'May', value: client.annual_revenue ? client.annual_revenue / 12 : 0 },
+    { month: 'Jun', value: client.annual_revenue ? client.annual_revenue / 12 : 0 }
   ];
 
   return (
     <div className="flex flex-col space-y-6 p-8 w-full max-w-7xl mx-auto bg-gray-50/50 animate-fade-in">
-      {/* Back Button */}
       <Button
         variant="ghost"
         className="w-fit flex items-center gap-2"
@@ -47,16 +59,15 @@ export const ClientDetails = () => {
         Back to Home
       </Button>
 
-      {/* Header Section */}
       <div className="flex flex-col md:flex-row justify-between items-start bg-white p-6 rounded-xl shadow-sm transition-all duration-300 hover:shadow-md">
         <div>
           <div className="flex items-center space-x-4">
-            <h1 className="text-2xl font-semibold text-gray-800">{clientData.name}</h1>
+            <h1 className="text-2xl font-semibold text-gray-800">{client.name}</h1>
             <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm">
-              {clientData.status}
+              {client.status || 'New Client'}
             </span>
           </div>
-          <p className="text-gray-500 mt-1">Client since {clientData.yearStarted} · ID: {clientData.id}</p>
+          <p className="text-gray-500 mt-1">Client since {new Date(client.created_at).getFullYear()} · ID: {client.id}</p>
         </div>
         <div className="flex space-x-3 mt-4 md:mt-0">
           <Button variant="outline" className="flex items-center gap-2 transition-all duration-300">
@@ -70,7 +81,6 @@ export const ClientDetails = () => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* Key Metrics */}
         <Card className="col-span-12 lg:col-span-4 transition-all duration-300 hover:shadow-lg">
           <CardHeader>
             <CardTitle className="text-lg font-medium">Key Metrics</CardTitle>
@@ -78,8 +88,10 @@ export const ClientDetails = () => {
           <CardContent>
             <div className="space-y-4">
               <div className="p-4 bg-primary/5 rounded-lg transition-all duration-300 hover:bg-primary/10">
-                <p className="text-sm text-primary font-medium">Revenue YTD</p>
-                <p className="text-2xl font-semibold text-primary">{clientData.revenueYTD}</p>
+                <p className="text-sm text-primary font-medium">Annual Revenue</p>
+                <p className="text-2xl font-semibold text-primary">
+                  ${client.annual_revenue?.toLocaleString() || 'N/A'}
+                </p>
               </div>
               <div className="h-48">
                 <ResponsiveContainer width="100%" height="100%">
@@ -103,10 +115,9 @@ export const ClientDetails = () => {
           </CardContent>
         </Card>
 
-        {/* Contacts */}
         <Card className="col-span-12 lg:col-span-8 transition-all duration-300 hover:shadow-lg">
           <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="text-lg font-medium">Contacts</CardTitle>
+            <CardTitle className="text-lg font-medium">Contact Information</CardTitle>
             <Button variant="outline" size="sm" className="transition-all duration-300">
               <Plus className="mr-2 h-4 w-4" />
               Add Contact
@@ -114,61 +125,57 @@ export const ClientDetails = () => {
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {clientData.contacts.map((contact, index) => (
-                <div key={index} className="p-4 border border-gray-100 rounded-lg hover:border-primary/20 hover:shadow-sm transition-all duration-300">
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <h3 className="font-medium text-gray-900">{contact.name}</h3>
-                      <p className="text-sm text-gray-500">{contact.title}</p>
-                    </div>
-                    <Button variant="ghost" size="sm" className="transition-all duration-300">
-                      <Star size={16} />
-                    </Button>
+              <div className="p-4 border border-gray-100 rounded-lg hover:border-primary/20 hover:shadow-sm transition-all duration-300">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <h3 className="font-medium text-gray-900">{client.contact_name || 'No contact name'}</h3>
+                    <p className="text-sm text-gray-500">{client.company_size || 'Company size not specified'}</p>
                   </div>
-                  <div className="mt-4 space-y-2">
-                    <div className="flex items-center text-sm text-gray-600">
-                      <Mail size={14} className="mr-2" />
-                      {contact.email}
-                    </div>
-                    <div className="flex items-center text-sm text-gray-600">
-                      <Phone size={14} className="mr-2" />
-                      {contact.phone}
-                    </div>
+                  <Button variant="ghost" size="sm" className="transition-all duration-300">
+                    <Star size={16} />
+                  </Button>
+                </div>
+                <div className="mt-4 space-y-2">
+                  <div className="flex items-center text-sm text-gray-600">
+                    <Mail size={14} className="mr-2" />
+                    {client.contact_email || 'No email provided'}
+                  </div>
+                  <div className="flex items-center text-sm text-gray-600">
+                    <Phone size={14} className="mr-2" />
+                    {client.contact_phone || 'No phone provided'}
                   </div>
                 </div>
-              ))}
+              </div>
             </div>
           </CardContent>
         </Card>
 
-        {/* Interaction History */}
         <Card className="col-span-12 transition-all duration-300 hover:shadow-lg">
           <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="text-lg font-medium">Recent Interactions</CardTitle>
-            <Button variant="outline" size="sm" className="transition-all duration-300">
-              <Plus className="mr-2 h-4 w-4" />
-              Log Interaction
-            </Button>
+            <CardTitle className="text-lg font-medium">Additional Information</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {clientData.interactions.map((interaction, index) => (
-                <div key={index} className="flex items-start space-x-4 p-4 border-b last:border-b-0 hover:bg-gray-50/50 transition-all duration-300">
-                  <div className="flex-shrink-0">
-                    <Calendar size={20} className="text-primary" />
-                  </div>
-                  <div className="flex-grow">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="font-medium text-gray-900">{interaction.type}</p>
-                        <p className="text-sm text-gray-500">{interaction.date}</p>
-                      </div>
-                      <span className="text-sm text-gray-500">Team: {interaction.team}</span>
-                    </div>
-                    <p className="mt-2 text-gray-600">{interaction.description}</p>
-                  </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <p className="text-sm font-medium text-gray-500">Industry</p>
+                  <p className="mt-1">{client.industry || 'Not specified'}</p>
                 </div>
-              ))}
+                <div>
+                  <p className="text-sm font-medium text-gray-500">Website</p>
+                  <p className="mt-1">
+                    {client.website ? (
+                      <a href={client.website} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+                        {client.website}
+                      </a>
+                    ) : 'Not specified'}
+                  </p>
+                </div>
+                <div className="md:col-span-2">
+                  <p className="text-sm font-medium text-gray-500">Notes</p>
+                  <p className="mt-1">{client.notes || 'No notes available'}</p>
+                </div>
+              </div>
             </div>
           </CardContent>
         </Card>
