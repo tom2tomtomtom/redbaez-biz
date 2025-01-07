@@ -28,21 +28,25 @@ export const RevenueChart = ({
     })
   );
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [chartData, setChartData] = useState(revenueData);
 
   // Calculate total annual revenue from monthly forecasts
   const calculateAnnualRevenue = () => {
     return localForecasts.reduce((total, forecast) => total + (forecast.amount || 0), 0);
   };
 
-  // Combine regular revenue data with forecasts
-  const combinedData = revenueData.map(item => {
-    const forecast = localForecasts.find(f => f.month === item.month);
-    return {
-      month: item.month,
-      value: item.value,
-      forecast: forecast ? forecast.amount : item.value
-    };
-  });
+  // Update chart data when local forecasts change
+  useEffect(() => {
+    const newChartData = revenueData.map(item => {
+      const forecast = localForecasts.find(f => f.month === item.month);
+      return {
+        month: item.month,
+        value: item.value,
+        forecast: forecast ? forecast.amount : item.value
+      };
+    });
+    setChartData(newChartData);
+  }, [localForecasts, revenueData]);
 
   const handleForecastChange = (month: string, value: string) => {
     // Convert empty string to 0, otherwise parse the number
@@ -63,12 +67,11 @@ export const RevenueChart = ({
 
   const handleSaveChanges = () => {
     console.log('Saving all forecast changes');
-    // Update each month's forecast
-    localForecasts.forEach(forecast => {
-      if (onForecastUpdate) {
+    if (onForecastUpdate) {
+      localForecasts.forEach(forecast => {
         onForecastUpdate(forecast.month, forecast.amount);
-      }
-    });
+      });
+    }
     setHasUnsavedChanges(false);
   };
 
@@ -108,7 +111,7 @@ export const RevenueChart = ({
       {showTable && isEditing ? (
         <div className="border rounded-lg overflow-hidden">
           <div className="grid grid-cols-4 gap-4 p-4 bg-gray-50">
-            {combinedData.map((item) => {
+            {revenueData.map((item) => {
               const forecast = localForecasts.find(f => f.month === item.month);
               return (
                 <div key={item.month} className="space-y-2">
@@ -130,7 +133,7 @@ export const RevenueChart = ({
       ) : (
         <div className="h-48">
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={combinedData} margin={{ top: 10, right: 0, left: 0, bottom: 0 }}>
+            <BarChart data={chartData} margin={{ top: 10, right: 0, left: 0, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="month" />
               <YAxis />
