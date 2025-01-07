@@ -37,10 +37,14 @@ export const RevenueFormSection: React.FC<RevenueFormSectionProps> = ({
   });
 
   const handleNumericInput = (value: string, onChange: (value: string) => void) => {
-    // Allow empty string or valid numbers
     if (value === '' || !isNaN(Number(value))) {
       onChange(value);
     }
+  };
+
+  const handleCheckboxChange = (checked: boolean, onChange: (checked: boolean) => void) => {
+    console.log('Checkbox changed:', checked);
+    onChange(checked);
   };
 
   return (
@@ -63,7 +67,10 @@ export const RevenueFormSection: React.FC<RevenueFormSectionProps> = ({
             <Checkbox
               id="projectRevenueSignedOff"
               checked={projectRevenueSignedOff}
-              onCheckedChange={onProjectRevenueSignedOffChange}
+              onCheckedChange={(checked) => 
+                handleCheckboxChange(checked as boolean, onProjectRevenueSignedOffChange)
+              }
+              className="data-[state=checked]:bg-green-500"
             />
             <Label htmlFor="projectRevenueSignedOff">Signed Off</Label>
           </div>
@@ -72,7 +79,10 @@ export const RevenueFormSection: React.FC<RevenueFormSectionProps> = ({
             <Checkbox
               id="projectRevenueForecast"
               checked={projectRevenueForecast}
-              onCheckedChange={onProjectRevenueForecastChange}
+              onCheckedChange={(checked) => 
+                handleCheckboxChange(checked as boolean, onProjectRevenueForecastChange)
+              }
+              className="data-[state=checked]:bg-blue-500"
             />
             <Label htmlFor="projectRevenueForecast">Forecast</Label>
           </div>

@@ -68,8 +68,9 @@ const prepareClientData = async (clientId: string, formData: any, contacts: Cont
     .single();
 
   console.log('Preparing client data with formData:', formData);
+  console.log('Project revenue signed off:', formData.project_revenue_signed_off);
+  console.log('Project revenue forecast:', formData.project_revenue_forecast);
 
-  // Handle revenue fields with proper type conversion
   const clientData = {
     ...formData,
     notes: formData.notes || existingClient?.notes,
@@ -78,7 +79,6 @@ const prepareClientData = async (clientId: string, formData: any, contacts: Cont
     contact_email: primaryContact.email,
     contact_phone: primaryContact.phone,
     additional_contacts: contacts.length > 1 ? formattedAdditionalContacts : null,
-    // Convert revenue fields with proper parsing
     project_revenue: parseNumericValue(formData.project_revenue),
     annual_revenue: parseNumericValue(formData.annual_revenue),
     project_revenue_signed_off: Boolean(formData.project_revenue_signed_off),
