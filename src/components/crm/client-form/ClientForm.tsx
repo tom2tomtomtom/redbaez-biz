@@ -9,6 +9,7 @@ import { useClientFormState } from './useClientFormState';
 import { useClientFormSubmit } from './useClientFormSubmit';
 import { RevenueFormSection } from './revenue/RevenueFormSection';
 import { useRevenueState } from './hooks/useRevenueState';
+import { MonthlyForecast } from '../client-details/types/MonthlyForecast';
 
 interface Contact {
   firstName: string;
@@ -29,6 +30,8 @@ interface ClientFormProps {
   initialData?: any;
   onSave?: (data: any) => void;
   isEditing?: boolean;
+  onCancel?: () => void;
+  onMonthlyForecastsChange?: (forecasts: MonthlyForecast[]) => void;
 }
 
 export const ClientForm = ({
@@ -41,6 +44,8 @@ export const ClientForm = ({
   initialData,
   onSave,
   isEditing = false,
+  onCancel,
+  onMonthlyForecastsChange,
 }: ClientFormProps) => {
   const formState = useClientFormState({ initialData, isEditing });
   const revenueState = useRevenueState(initialData);
@@ -81,7 +86,6 @@ export const ClientForm = ({
       annualRevenueForecast: revenueState.annualRevenueForecast
     });
 
-    // Ensure proper type conversion for all numeric and boolean values
     const formData = {
       name: formState.companyName,
       type: formState.type,
@@ -95,10 +99,8 @@ export const ClientForm = ({
       background: formState.background,
       likelihood: Number(formState.likelihood) || null,
       next_due_date: nextDueDate || null,
-      // Explicitly convert to boolean and ensure they're not undefined
       project_revenue_signed_off: Boolean(revenueState.projectRevenueSignedOff),
       project_revenue_forecast: Boolean(revenueState.projectRevenueForecast),
-      // Ensure numeric values
       annual_revenue_signed_off: parseFloat(revenueState.annualRevenueSignedOff) || 0,
       annual_revenue_forecast: parseFloat(revenueState.annualRevenueForecast) || 0,
     };
@@ -152,6 +154,7 @@ export const ClientForm = ({
               onProjectRevenueForecastChange={revenueState.setProjectRevenueForecast}
               onAnnualRevenueSignedOffChange={revenueState.setAnnualRevenueSignedOff}
               onAnnualRevenueForecastChange={revenueState.setAnnualRevenueForecast}
+              onMonthlyForecastsChange={onMonthlyForecastsChange}
             />
           </div>
 
@@ -163,7 +166,16 @@ export const ClientForm = ({
           />
         </div>
 
-        <div className="mt-6 border-t pt-6">
+        <div className="mt-6 border-t pt-6 flex gap-4">
+          {onCancel && (
+            <Button 
+              variant="outline"
+              className="w-full py-6 text-lg font-medium"
+              onClick={onCancel}
+            >
+              Cancel
+            </Button>
+          )}
           <Button 
             className="w-full py-6 text-lg font-medium transition-all duration-300 hover:scale-[1.01]"
             onClick={onSubmit}
