@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { CRMNavigation } from './navigation/CRMNavigation';
 import { ClientForm } from './client-form/ClientForm';
 import { IntelSearch } from './intel-search/IntelSearch';
+import { ClientSearch } from './client-search/ClientSearch';
 import { PriorityActions } from './priority-actions/PriorityActions';
 
 export const CRMDashboard = () => {
@@ -35,6 +36,7 @@ export const CRMDashboard = () => {
         </div>
 
         <div className="lg:col-span-4 space-y-4">
+          <ClientSearch />
           <IntelSearch
             searchInput={searchInput}
             onSearchInputChange={setSearchInput}
