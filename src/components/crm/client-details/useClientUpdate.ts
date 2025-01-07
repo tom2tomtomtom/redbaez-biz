@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/components/ui/use-toast';
+import { Json } from '@/integrations/supabase/types';
 
 interface Contact {
   firstName: string;
@@ -16,7 +17,7 @@ interface ClientData {
   contact_name: string;
   contact_email: string;
   contact_phone: string;
-  additional_contacts: Contact[] | null;
+  additional_contacts: Json | null;
   notes?: string;
   next_due_date?: string;
   project_revenue_signed_off: boolean;
@@ -31,19 +32,21 @@ interface UpdateClientData {
   contacts: Contact[];
 }
 
-const formatContacts = (contacts: Contact[]) => {
+const formatContacts = (contacts: Contact[]): { primaryContact: Contact; formattedAdditionalContacts: Json[] } => {
   const [primaryContact, ...additionalContacts] = contacts;
   
+  const formattedAdditionalContacts = additionalContacts.map(contact => ({
+    firstName: contact.firstName,
+    lastName: contact.lastName,
+    title: contact.title,
+    email: contact.email,
+    address: contact.address,
+    phone: contact.phone
+  })) as Json[];
+
   return {
     primaryContact,
-    formattedAdditionalContacts: additionalContacts.map(contact => ({
-      firstName: contact.firstName,
-      lastName: contact.lastName,
-      title: contact.title,
-      email: contact.email,
-      address: contact.address,
-      phone: contact.phone
-    }))
+    formattedAdditionalContacts
   };
 };
 
@@ -64,7 +67,7 @@ const prepareClientData = async (clientId: string, formData: any, contacts: Cont
     contact_name: `${primaryContact.firstName} ${primaryContact.lastName}`.trim(),
     contact_email: primaryContact.email,
     contact_phone: primaryContact.phone,
-    additional_contacts: formattedAdditionalContacts.length > 0 ? formattedAdditionalContacts : null,
+    additional_contacts: formattedAdditionalContacts.length > 0 ? formattedAdditionalContacts as Json : null,
     project_revenue_signed_off: formData.project_revenue_signed_off || false,
     project_revenue_forecast: formData.project_revenue_forecast || false,
     annual_revenue_signed_off: formData.annual_revenue_signed_off || 0,
