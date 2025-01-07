@@ -18,7 +18,7 @@ export const RevenueChart = ({
 
   // Combine regular revenue data with forecasts
   const combinedData = revenueData.map(item => {
-    const forecast = monthlyForecasts?.find(f => f.month.endsWith(item.month));
+    const forecast = monthlyForecasts?.find(f => f.month === item.month);
     return {
       month: item.month,
       value: item.value,
@@ -27,27 +27,25 @@ export const RevenueChart = ({
   });
 
   const handleMouseMove = useCallback((e: any) => {
-    if (isDragging && isEditing && e.activeTooltipIndex !== undefined) {
-      const chartData = combinedData[e.activeTooltipIndex];
-      if (!chartData) return;
+    if (!isDragging || !isEditing || !e.activeTooltipIndex || !onForecastUpdate) return;
 
-      // Calculate new forecast value based on mouse position
-      const svgElement = e.currentTarget.container;
-      const svgRect = svgElement.getBoundingClientRect();
-      const mouseY = e.mouseY - svgRect.top;
-      const chartHeight = svgRect.height - 40; // Adjust for padding
-      
-      // Convert mouse position to value
-      const maxValue = Math.max(...combinedData.map(d => Math.max(d.value, d.forecast))) * 1.2;
-      const newValue = Math.max(0, maxValue * (1 - mouseY / chartHeight));
-      
-      // Round to nearest 1000
-      const roundedValue = Math.round(newValue / 1000) * 1000;
-      
-      if (onForecastUpdate) {
-        onForecastUpdate(chartData.month, roundedValue);
-      }
-    }
+    const chartData = combinedData[e.activeTooltipIndex];
+    if (!chartData) return;
+
+    // Calculate new forecast value based on mouse position
+    const svgElement = e.currentTarget;
+    const svgRect = svgElement.getBoundingClientRect();
+    const mouseY = e.nativeEvent.clientY - svgRect.top;
+    const chartHeight = svgRect.height - 40; // Adjust for padding
+    
+    // Convert mouse position to value (invert Y axis)
+    const maxValue = Math.max(...combinedData.map(d => Math.max(d.value, d.forecast))) * 1.2;
+    const newValue = Math.max(0, maxValue * (1 - mouseY / chartHeight));
+    
+    // Round to nearest 1000
+    const roundedValue = Math.round(newValue / 1000) * 1000;
+    
+    onForecastUpdate(chartData.month, roundedValue);
   }, [isDragging, isEditing, combinedData, onForecastUpdate]);
 
   return (
