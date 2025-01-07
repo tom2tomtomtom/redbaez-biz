@@ -41,6 +41,7 @@ export const ClientDetails = () => {
 
       if (data) {
         console.log('Received client data:', data);
+        // Initialize contacts from client data
         const [firstName = '', lastName = ''] = (data.contact_name || '').split(' ');
         setContacts([{
           firstName,
@@ -60,12 +61,23 @@ export const ClientDetails = () => {
 
   const updateMutation = useMutation({
     mutationFn: async (updatedData: any) => {
-      // Log the data being sent to the update
-      console.log('Updating client with data:', updatedData);
+      // Get the primary contact from the contacts array
+      const primaryContact = contacts[0];
+      console.log('Primary contact for update:', primaryContact);
+
+      // Prepare the update data with contact information
+      const dataToUpdate = {
+        ...updatedData,
+        contact_name: primaryContact ? `${primaryContact.firstName} ${primaryContact.lastName}`.trim() : null,
+        contact_email: primaryContact?.email || null,
+        contact_phone: primaryContact?.phone || null,
+      };
+
+      console.log('Updating client with data:', dataToUpdate);
       
       const { data, error } = await supabase
         .from('clients')
-        .update(updatedData)
+        .update(dataToUpdate)
         .eq('id', id)
         .select();
       
@@ -86,12 +98,12 @@ export const ClientDetails = () => {
       });
     },
     onError: (error) => {
+      console.error('Error in update mutation:', error);
       toast({
         title: "Error",
-        description: "Failed to update client information",
+        description: "Failed to update client information. Please check the console for details.",
         variant: "destructive",
       });
-      console.error('Error updating client:', error);
     },
   });
 
@@ -109,26 +121,9 @@ export const ClientDetails = () => {
   }
 
   const handleSave = async (formData: any) => {
-    // Get the primary contact from the contacts array
-    const primaryContact = contacts[0] || {
-      firstName: '',
-      lastName: '',
-      email: '',
-      phone: ''
-    };
-
-    console.log('Primary contact for update:', primaryContact);
-
-    // Prepare the update data with contact information
-    const updateData = {
-      ...formData,
-      contact_name: `${primaryContact.firstName} ${primaryContact.lastName}`.trim(),
-      contact_email: primaryContact.email,
-      contact_phone: primaryContact.phone,
-    };
-
-    console.log('Saving client with data:', updateData);
-    updateMutation.mutate(updateData);
+    console.log('Form data received:', formData);
+    console.log('Current contacts state:', contacts);
+    updateMutation.mutate(formData);
   };
 
   const revenueData = [
