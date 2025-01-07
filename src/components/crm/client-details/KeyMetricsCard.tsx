@@ -9,10 +9,6 @@ interface KeyMetricsCardProps {
   projectRevenue?: number | null;
   likelihood?: number | null;
   revenueData: Array<{ month: string; value: number }>;
-  projectRevenueSignedOff?: boolean;
-  projectRevenueForecast?: boolean;
-  annualRevenueSignedOff?: number | null;
-  annualRevenueForecast?: number | null;
 }
 
 export const KeyMetricsCard = ({ 
@@ -20,20 +16,7 @@ export const KeyMetricsCard = ({
   projectRevenue, 
   likelihood,
   revenueData,
-  projectRevenueSignedOff,
-  projectRevenueForecast,
-  annualRevenueSignedOff,
-  annualRevenueForecast
 }: KeyMetricsCardProps) => {
-  console.log('KeyMetricsCard received props:', {
-    annualRevenue,
-    projectRevenue,
-    projectRevenueSignedOff,
-    projectRevenueForecast,
-    annualRevenueSignedOff,
-    annualRevenueForecast
-  });
-
   return (
     <Card className="col-span-12 lg:col-span-4 transition-all duration-300 hover:shadow-lg">
       <CardHeader>
@@ -42,16 +25,8 @@ export const KeyMetricsCard = ({
       <CardContent>
         <div className="space-y-4">
           <div className="grid grid-cols-1 gap-4">
-            <AnnualRevenueMetric 
-              annualRevenue={annualRevenue}
-              annualRevenueSignedOff={annualRevenueSignedOff}
-              annualRevenueForecast={annualRevenueForecast}
-            />
-            <ProjectRevenueMetric 
-              projectRevenue={projectRevenue}
-              projectRevenueSignedOff={projectRevenueSignedOff}
-              projectRevenueForecast={projectRevenueForecast}
-            />
+            <AnnualRevenueMetric annualRevenue={annualRevenue} />
+            <ProjectRevenueMetric projectRevenue={projectRevenue} />
           </div>
           
           <DealLikelihood likelihood={likelihood} />
