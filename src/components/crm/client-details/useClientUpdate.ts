@@ -33,15 +33,24 @@ export const useClientUpdate = (clientId: string | undefined, onSuccess?: () => 
       
       const { primaryContact, additionalContacts } = formatContacts(contacts);
 
-      // Ensure all revenue fields are properly typed and transformed
+      // Transform the data exactly like we do in client creation
       const clientData = {
-        ...formData,
+        name: formData.name,
+        type: formData.type,
+        industry: formData.industry || null,
+        company_size: formData.company_size || null,
+        status: formData.status || 'prospect',
+        annual_revenue: formData.annual_revenue ? Number(formData.annual_revenue) : null,
+        project_revenue: formData.project_revenue ? Number(formData.project_revenue) : null,
+        website: formData.website || null,
+        notes: formData.notes,
+        background: formData.background || null,
+        likelihood: formData.likelihood ? Number(formData.likelihood) : null,
+        next_due_date: formData.next_due_date || null,
         contact_name: `${primaryContact.firstName} ${primaryContact.lastName}`.trim(),
         contact_email: primaryContact.email,
         contact_phone: primaryContact.phone,
         additional_contacts: additionalContacts,
-        project_revenue: formData.projectRevenue ? Number(formData.projectRevenue) : null,
-        annual_revenue: formData.annualRevenue ? Number(formData.annualRevenue) : null,
         project_revenue_signed_off: Boolean(formData.project_revenue_signed_off),
         project_revenue_forecast: Boolean(formData.project_revenue_forecast),
         annual_revenue_signed_off: Number(formData.annual_revenue_signed_off || 0),

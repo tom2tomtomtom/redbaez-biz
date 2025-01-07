@@ -9,6 +9,10 @@ interface KeyMetricsCardProps {
   projectRevenue?: number | null;
   likelihood?: number | null;
   revenueData: Array<{ month: string; value: number }>;
+  projectRevenueSignedOff?: boolean;
+  projectRevenueForecast?: boolean;
+  annualRevenueSignedOff?: number;
+  annualRevenueForecast?: number;
 }
 
 export const KeyMetricsCard = ({ 
@@ -16,6 +20,10 @@ export const KeyMetricsCard = ({
   projectRevenue, 
   likelihood,
   revenueData,
+  projectRevenueSignedOff,
+  projectRevenueForecast,
+  annualRevenueSignedOff,
+  annualRevenueForecast,
 }: KeyMetricsCardProps) => {
   return (
     <Card className="col-span-12 lg:col-span-4 transition-all duration-300 hover:shadow-lg">
@@ -25,8 +33,16 @@ export const KeyMetricsCard = ({
       <CardContent>
         <div className="space-y-4">
           <div className="grid grid-cols-1 gap-4">
-            <AnnualRevenueMetric annualRevenue={annualRevenue} />
-            <ProjectRevenueMetric projectRevenue={projectRevenue} />
+            <AnnualRevenueMetric 
+              annualRevenue={annualRevenue}
+              annualRevenueSignedOff={annualRevenueSignedOff}
+              annualRevenueForecast={annualRevenueForecast}
+            />
+            <ProjectRevenueMetric 
+              projectRevenue={projectRevenue}
+              projectRevenueSignedOff={projectRevenueSignedOff}
+              projectRevenueForecast={projectRevenueForecast}
+            />
           </div>
           
           <DealLikelihood likelihood={likelihood} />
