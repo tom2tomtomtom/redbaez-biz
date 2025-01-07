@@ -4,14 +4,14 @@ import { ArrowLeft } from 'lucide-react';
 import { useNavigate, useParams, Navigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { KeyMetricsCard } from '@/components/crm/client-details/KeyMetricsCard';
-import { ContactInfoCard, Contact } from '@/components/crm/client-details/ContactInfoCard';
-import { AdditionalInfoCard } from '@/components/crm/client-details/AdditionalInfoCard';
-import { useClientUpdate } from '@/components/crm/client-details/useClientUpdate';
-import { useClientInitialization } from '@/components/crm/client-details/useClientInitialization';
-import { ClientHeader } from '@/components/crm/client-details/ClientHeader';
-import { ClientEditMode } from '@/components/crm/client-details/ClientEditMode';
-import { MonthlyForecast } from '@/components/crm/client-details/types/MonthlyForecast';
+import { Contact } from './ContactInfoCard';
+import { useClientUpdate } from './useClientUpdate';
+import { useClientInitialization } from './useClientInitialization';
+import { ClientHeader } from './ClientHeader';
+import { ClientEditMode } from './ClientEditMode';
+import { ClientContent } from './ClientContent';
+import { MonthlyForecast } from './types/MonthlyForecast';
+import { createForecastFormData } from './utils/forecastUtils';
 
 export const ClientDetails = () => {
   const navigate = useNavigate();
@@ -21,7 +21,6 @@ export const ClientDetails = () => {
   const [nextDueDate, setNextDueDate] = useState('');
   const [currentForecasts, setCurrentForecasts] = useState<MonthlyForecast[]>([]);
 
-  // Validate id parameter
   if (!id || isNaN(Number(id))) {
     console.error('Invalid client ID:', id);
     return <Navigate to="/" replace />;
@@ -65,52 +64,11 @@ export const ClientDetails = () => {
     console.log('Saving client with form data:', formData);
     console.log('Current contacts:', contacts);
     
-    // Include the current forecasts in the form data
-    const formDataWithForecasts = {
-      ...formData,
-      forecast_jan: currentForecasts.find(f => f.month === 'Jan')?.amount || client.forecast_jan || 0,
-      forecast_feb: currentForecasts.find(f => f.month === 'Feb')?.amount || client.forecast_feb || 0,
-      forecast_mar: currentForecasts.find(f => f.month === 'Mar')?.amount || client.forecast_mar || 0,
-      forecast_apr: currentForecasts.find(f => f.month === 'Apr')?.amount || client.forecast_apr || 0,
-      forecast_may: currentForecasts.find(f => f.month === 'May')?.amount || client.forecast_may || 0,
-      forecast_jun: currentForecasts.find(f => f.month === 'Jun')?.amount || client.forecast_jun || 0,
-      forecast_jul: currentForecasts.find(f => f.month === 'Jul')?.amount || client.forecast_jul || 0,
-      forecast_aug: currentForecasts.find(f => f.month === 'Aug')?.amount || client.forecast_aug || 0,
-      forecast_sep: currentForecasts.find(f => f.month === 'Sep')?.amount || client.forecast_sep || 0,
-      forecast_oct: currentForecasts.find(f => f.month === 'Oct')?.amount || client.forecast_oct || 0,
-      forecast_nov: currentForecasts.find(f => f.month === 'Nov')?.amount || client.forecast_nov || 0,
-      forecast_dec: currentForecasts.find(f => f.month === 'Dec')?.amount || client.forecast_dec || 0,
-    };
+    const formDataWithForecasts = createForecastFormData(formData, currentForecasts, client);
     
     console.log('Saving all data together:', formDataWithForecasts);
     updateMutation.mutate({ formData: formDataWithForecasts, contacts });
   };
-
-  // Generate monthly revenue data including forecasts
-  const revenueData = Array.from({ length: 12 }, (_, i) => {
-    const date = new Date(new Date().getFullYear(), new Date().getMonth() + i);
-    const month = date.toLocaleString('default', { month: 'short' });
-    return {
-      month,
-      value: client.annual_revenue ? client.annual_revenue / 12 : 0
-    };
-  });
-
-  // Convert monthly forecast columns to array format
-  const monthlyForecasts: MonthlyForecast[] = [
-    { month: 'Jan', amount: client.forecast_jan || 0 },
-    { month: 'Feb', amount: client.forecast_feb || 0 },
-    { month: 'Mar', amount: client.forecast_mar || 0 },
-    { month: 'Apr', amount: client.forecast_apr || 0 },
-    { month: 'May', amount: client.forecast_may || 0 },
-    { month: 'Jun', amount: client.forecast_jun || 0 },
-    { month: 'Jul', amount: client.forecast_jul || 0 },
-    { month: 'Aug', amount: client.forecast_aug || 0 },
-    { month: 'Sep', amount: client.forecast_sep || 0 },
-    { month: 'Oct', amount: client.forecast_oct || 0 },
-    { month: 'Nov', amount: client.forecast_nov || 0 },
-    { month: 'Dec', amount: client.forecast_dec || 0 },
-  ];
 
   const handleForecastUpdate = (forecasts: MonthlyForecast[]) => {
     console.log('Updating forecasts:', forecasts);
@@ -165,36 +123,12 @@ export const ClientDetails = () => {
         onEditClick={() => setIsEditing(true)}
       />
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        <KeyMetricsCard 
-          annualRevenue={client.annual_revenue}
-          projectRevenue={client.project_revenue}
-          likelihood={client.likelihood}
-          revenueData={revenueData}
-          projectRevenueSignedOff={client.project_revenue_signed_off}
-          projectRevenueForecast={client.project_revenue_forecast}
-          annualRevenueSignedOff={client.annual_revenue_signed_off}
-          annualRevenueForecast={client.annual_revenue_forecast}
-          monthlyForecasts={monthlyForecasts}
-          isEditing={isEditing}
-          onForecastUpdate={handleForecastUpdate}
-        />
-
-        <ContactInfoCard 
-          contactName={client.contact_name}
-          companySize={client.company_size}
-          contactEmail={client.contact_email}
-          contactPhone={client.contact_phone}
-          additionalContacts={parsedAdditionalContacts}
-        />
-
-        <AdditionalInfoCard 
-          industry={client.industry}
-          website={client.website}
-          notes={client.notes}
-          background={client.background}
-        />
-      </div>
+      <ClientContent 
+        client={client}
+        isEditing={isEditing}
+        parsedAdditionalContacts={parsedAdditionalContacts}
+        onForecastUpdate={handleForecastUpdate}
+      />
     </div>
   );
 };
