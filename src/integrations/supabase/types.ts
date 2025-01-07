@@ -23,6 +23,7 @@ export type Database = {
           likelihood: number | null
           missing_fields: string[] | null
           name: string
+          next_due_date: string | null
           notes: string | null
           project_revenue: number | null
           status: string | null
@@ -42,6 +43,7 @@ export type Database = {
           likelihood?: number | null
           missing_fields?: string[] | null
           name: string
+          next_due_date?: string | null
           notes?: string | null
           project_revenue?: number | null
           status?: string | null
@@ -61,6 +63,7 @@ export type Database = {
           likelihood?: number | null
           missing_fields?: string[] | null
           name?: string
+          next_due_date?: string | null
           notes?: string | null
           project_revenue?: number | null
           status?: string | null
