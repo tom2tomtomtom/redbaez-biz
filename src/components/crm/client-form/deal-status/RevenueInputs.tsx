@@ -31,6 +31,15 @@ export const RevenueInputs = ({
   onAnnualRevenueSignedOffChange,
   onAnnualRevenueForecastChange,
 }: RevenueInputsProps) => {
+  console.log('RevenueInputs render with props:', {
+    projectRevenue,
+    revenue,
+    projectRevenueSignedOff,
+    projectRevenueForecast,
+    annualRevenueSignedOff,
+    annualRevenueForecast
+  });
+
   return (
     <div className="space-y-6">
       {/* Project Revenue Section */}
@@ -42,7 +51,10 @@ export const RevenueInputs = ({
             type="number" 
             placeholder="Enter project revenue" 
             value={projectRevenue}
-            onChange={(e) => onProjectRevenueChange(e.target.value)}
+            onChange={(e) => {
+              console.log('Project revenue changed:', e.target.value);
+              onProjectRevenueChange(e.target.value);
+            }}
             className="transition-all duration-300" 
           />
         </div>
@@ -52,7 +64,10 @@ export const RevenueInputs = ({
             <Checkbox
               id="projectRevenueSignedOff"
               checked={projectRevenueSignedOff}
-              onCheckedChange={onProjectRevenueSignedOffChange}
+              onCheckedChange={(checked) => {
+                console.log('Project revenue signed off changed:', checked);
+                onProjectRevenueSignedOffChange(checked as boolean);
+              }}
             />
             <Label htmlFor="projectRevenueSignedOff">Signed Off</Label>
           </div>
@@ -61,7 +76,10 @@ export const RevenueInputs = ({
             <Checkbox
               id="projectRevenueForecast"
               checked={projectRevenueForecast}
-              onCheckedChange={onProjectRevenueForecastChange}
+              onCheckedChange={(checked) => {
+                console.log('Project revenue forecast changed:', checked);
+                onProjectRevenueForecastChange(checked as boolean);
+              }}
             />
             <Label htmlFor="projectRevenueForecast">Forecast</Label>
           </div>
@@ -77,7 +95,10 @@ export const RevenueInputs = ({
             type="number" 
             placeholder="Enter annual revenue" 
             value={revenue}
-            onChange={(e) => onRevenueChange(e.target.value)}
+            onChange={(e) => {
+              console.log('Annual revenue changed:', e.target.value);
+              onRevenueChange(e.target.value);
+            }}
             className="transition-all duration-300" 
           />
         </div>
@@ -89,7 +110,10 @@ export const RevenueInputs = ({
               type="number" 
               placeholder="Enter signed off amount" 
               value={annualRevenueSignedOff}
-              onChange={(e) => onAnnualRevenueSignedOffChange(e.target.value)}
+              onChange={(e) => {
+                console.log('Annual revenue signed off changed:', e.target.value);
+                onAnnualRevenueSignedOffChange(e.target.value);
+              }}
               className="transition-all duration-300" 
             />
           </div>
@@ -100,7 +124,10 @@ export const RevenueInputs = ({
               type="number" 
               placeholder="Enter forecast amount" 
               value={annualRevenueForecast}
-              onChange={(e) => onAnnualRevenueForecastChange(e.target.value)}
+              onChange={(e) => {
+                console.log('Annual revenue forecast changed:', e.target.value);
+                onAnnualRevenueForecastChange(e.target.value);
+              }}
               className="transition-all duration-300" 
             />
           </div>

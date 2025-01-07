@@ -71,15 +71,15 @@ const prepareClientData = async (clientId: string, formData: any, contacts: Cont
     contact_email: primaryContact.email,
     contact_phone: primaryContact.phone,
     additional_contacts: contacts.length > 1 ? formattedAdditionalContacts : null,
-    // Convert revenue fields to proper types
-    project_revenue_signed_off: Boolean(formData.project_revenue_signed_off),
-    project_revenue_forecast: Boolean(formData.project_revenue_forecast),
-    annual_revenue_signed_off: Number(formData.annual_revenue_signed_off) || 0,
-    annual_revenue_forecast: Number(formData.annual_revenue_forecast) || 0,
-    // Ensure numeric fields are properly converted
-    annual_revenue: Number(formData.annual_revenue) || null,
-    project_revenue: Number(formData.project_revenue) || null,
-    likelihood: Number(formData.likelihood) || null
+    // Convert revenue fields to proper types with explicit type checking
+    project_revenue_signed_off: formData.project_revenue_signed_off === true,
+    project_revenue_forecast: formData.project_revenue_forecast === true,
+    annual_revenue_signed_off: formData.annual_revenue_signed_off ? Number(formData.annual_revenue_signed_off) : 0,
+    annual_revenue_forecast: formData.annual_revenue_forecast ? Number(formData.annual_revenue_forecast) : 0,
+    // Ensure numeric fields are properly converted with null fallback
+    annual_revenue: formData.annual_revenue ? Number(formData.annual_revenue) : null,
+    project_revenue: formData.project_revenue ? Number(formData.project_revenue) : null,
+    likelihood: formData.likelihood ? Number(formData.likelihood) : null
   };
 
   console.log('Prepared client data:', clientData);
