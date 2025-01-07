@@ -112,18 +112,9 @@ export const ClientDetails = () => {
     { month: 'Dec', amount: client.forecast_dec || 0 },
   ];
 
-  const handleForecastUpdate = (month: string, amount: number) => {
-    console.log('Updating forecast for month:', month, 'with amount:', amount);
-    const updatedForecasts = [...(currentForecasts.length ? currentForecasts : monthlyForecasts)];
-    const forecastIndex = updatedForecasts.findIndex(f => f.month === month);
-    
-    if (forecastIndex >= 0) {
-      updatedForecasts[forecastIndex] = { month, amount };
-    } else {
-      updatedForecasts.push({ month, amount });
-    }
-    
-    setCurrentForecasts(updatedForecasts);
+  const handleForecastUpdate = (forecasts: MonthlyForecast[]) => {
+    console.log('Updating forecasts:', forecasts);
+    setCurrentForecasts(forecasts);
   };
 
   if (isEditing) {
