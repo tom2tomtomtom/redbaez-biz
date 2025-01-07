@@ -27,12 +27,22 @@ export const useClientUpdate = (clientId: string | undefined, onSuccess?: () => 
       console.log('Updating client with primary contact:', primaryContact);
       console.log('Additional contacts:', additionalContacts);
 
+      // Format additional contacts to match database schema
+      const formattedAdditionalContacts = additionalContacts.map(contact => ({
+        firstName: contact.firstName,
+        lastName: contact.lastName,
+        title: contact.title,
+        email: contact.email,
+        address: contact.address,
+        phone: contact.phone
+      }));
+
       const dataToUpdate = {
         ...formData,
         contact_name: `${primaryContact.firstName} ${primaryContact.lastName}`.trim(),
         contact_email: primaryContact.email,
         contact_phone: primaryContact.phone,
-        additional_contacts: additionalContacts.length > 0 ? additionalContacts : null
+        additional_contacts: additionalContacts.length > 0 ? formattedAdditionalContacts : null
       };
 
       console.log('Updating client with data:', dataToUpdate);
