@@ -60,36 +60,28 @@ const parseNumericValue = (value: string | number | null): number | null => {
 
 const prepareClientData = async (clientId: string, formData: any, contacts: Contact[]): Promise<ClientData> => {
   console.log('Preparing client data with form data:', formData);
-  console.log('Revenue fields before processing:', {
-    projectRevenueSignedOff: formData.project_revenue_signed_off,
-    projectRevenueForecast: formData.project_revenue_forecast,
-    annualRevenueSignedOff: formData.annual_revenue_signed_off,
-    annualRevenueForecast: formData.annual_revenue_forecast,
-    projectRevenue: formData.project_revenue,
-    annualRevenue: formData.annual_revenue
-  });
   
   const { primaryContact, formattedAdditionalContacts } = formatContacts(contacts);
 
-  // Parse numeric values - IMPORTANT: Use the revenue state values directly
-  const projectRevenue = parseNumericValue(formData.project_revenue);
-  const annualRevenue = parseNumericValue(formData.annual_revenue);
+  // Parse numeric values
+  const projectRevenue = parseNumericValue(formData.project_revenue || formData.projectRevenue);
+  const annualRevenue = parseNumericValue(formData.annual_revenue || formData.annualRevenue);
   
   // Convert boolean values explicitly
-  const projectRevenueSignedOff = Boolean(formData.project_revenue_signed_off);
-  const projectRevenueForecast = Boolean(formData.project_revenue_forecast);
+  const projectRevenueSignedOff = Boolean(formData.project_revenue_signed_off || formData.projectRevenueSignedOff);
+  const projectRevenueForecast = Boolean(formData.project_revenue_forecast || formData.projectRevenueForecast);
   
   // Parse numeric values for signed off and forecast amounts
-  const annualRevenueSignedOff = parseNumericValue(formData.annual_revenue_signed_off) ?? 0;
-  const annualRevenueForecast = parseNumericValue(formData.annual_revenue_forecast) ?? 0;
+  const annualRevenueSignedOff = parseNumericValue(formData.annual_revenue_signed_off || formData.annualRevenueSignedOff) ?? 0;
+  const annualRevenueForecast = parseNumericValue(formData.annual_revenue_forecast || formData.annualRevenueForecast) ?? 0;
 
-  console.log('Parsed values:', {
+  console.log('Parsed revenue values:', {
+    projectRevenue,
+    annualRevenue,
     projectRevenueSignedOff,
     projectRevenueForecast,
     annualRevenueSignedOff,
-    annualRevenueForecast,
-    projectRevenue,
-    annualRevenue
+    annualRevenueForecast
   });
 
   const clientData = {
