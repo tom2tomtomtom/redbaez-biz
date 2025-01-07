@@ -62,12 +62,19 @@ export const ClientDetails = () => {
   const updateMutation = useMutation({
     mutationFn: async (updatedData: any) => {
       console.log('Updating client with data:', updatedData);
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('clients')
         .update(updatedData)
-        .eq('id', id);
+        .eq('id', id)
+        .select();
       
-      if (error) throw error;
+      if (error) {
+        console.error('Error updating client:', error);
+        throw error;
+      }
+      
+      console.log('Update response:', data);
+      return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['client', id] });
