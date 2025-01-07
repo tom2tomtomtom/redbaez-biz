@@ -2,19 +2,17 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Edit, MoreHorizontal, ArrowLeft, X } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from "@/components/ui/use-toast";
 import { ClientForm } from './client-form/ClientForm';
 import { KeyMetricsCard } from './client-details/KeyMetricsCard';
 import { ContactInfoCard } from './client-details/ContactInfoCard';
 import { AdditionalInfoCard } from './client-details/AdditionalInfoCard';
+import { useClientUpdate } from './client-details/useClientUpdate';
 
 export const ClientDetails = () => {
   const navigate = useNavigate();
   const { id } = useParams();
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
   const [isEditing, setIsEditing] = useState(false);
   const [contacts, setContacts] = useState([{ 
     firstName: '', 
@@ -43,14 +41,24 @@ export const ClientDetails = () => {
         console.log('Received client data:', data);
         // Initialize contacts from client data
         const [firstName = '', lastName = ''] = (data.contact_name || '').split(' ');
-        setContacts([{
+        const initialContacts = [{
           firstName,
           lastName,
           title: '',
           email: data.contact_email || '',
           address: '',
           phone: data.contact_phone || ''
-        }]);
+        }];
+
+        // Add additional contacts if they exist
+        try {
+          const additionalContacts = data.additional_contacts ? JSON.parse(data.additional_contacts) : [];
+          setContacts([...initialContacts, ...additionalContacts]);
+        } catch (e) {
+          console.error('Error parsing additional contacts:', e);
+          setContacts(initialContacts);
+        }
+
         setNextSteps(data.notes || '');
         setNextDueDate(data.next_due_date || '');
       }
@@ -59,53 +67,7 @@ export const ClientDetails = () => {
     },
   });
 
-  const updateMutation = useMutation({
-    mutationFn: async (updatedData: any) => {
-      // Get the primary contact from the contacts array
-      const primaryContact = contacts[0];
-      console.log('Primary contact for update:', primaryContact);
-
-      // Prepare the update data with contact information
-      const dataToUpdate = {
-        ...updatedData,
-        contact_name: primaryContact ? `${primaryContact.firstName} ${primaryContact.lastName}`.trim() : null,
-        contact_email: primaryContact?.email || null,
-        contact_phone: primaryContact?.phone || null,
-      };
-
-      console.log('Updating client with data:', dataToUpdate);
-      
-      const { data, error } = await supabase
-        .from('clients')
-        .update(dataToUpdate)
-        .eq('id', id)
-        .select();
-      
-      if (error) {
-        console.error('Error updating client:', error);
-        throw error;
-      }
-      
-      console.log('Update response:', data);
-      return data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['client', id] });
-      setIsEditing(false);
-      toast({
-        title: "Success",
-        description: "Client information updated successfully",
-      });
-    },
-    onError: (error) => {
-      console.error('Error in update mutation:', error);
-      toast({
-        title: "Error",
-        description: "Failed to update client information. Please check the console for details.",
-        variant: "destructive",
-      });
-    },
-  });
+  const updateMutation = useClientUpdate(id, () => setIsEditing(false));
 
   if (isLoading) {
     return <div className="flex items-center justify-center h-screen">Loading...</div>;
@@ -123,7 +85,7 @@ export const ClientDetails = () => {
   const handleSave = async (formData: any) => {
     console.log('Form data received:', formData);
     console.log('Current contacts state:', contacts);
-    updateMutation.mutate(formData);
+    updateMutation.mutate({ formData, contacts });
   };
 
   const revenueData = [
@@ -223,4 +185,3 @@ export const ClientDetails = () => {
       </div>
     </div>
   );
-};
