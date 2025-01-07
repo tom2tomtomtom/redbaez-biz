@@ -19,6 +19,8 @@ export const useClientUpdate = (id: string | undefined, onSuccess?: () => void) 
     mutationFn: async ({ formData, contacts }: { formData: any; contacts: Contact[] }) => {
       if (!id) throw new Error('Client ID is required');
 
+      console.log('All contacts before update:', contacts);
+
       // Get the primary contact from the contacts array
       const primaryContact = contacts[0];
       console.log('Primary contact for update:', primaryContact);

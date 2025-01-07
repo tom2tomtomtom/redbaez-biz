@@ -48,9 +48,9 @@ export const ClientDetails = () => {
 
       if (data) {
         console.log('Received client data:', data);
-        // Initialize contacts from client data
+        // Initialize contacts array with primary contact
         const [firstName = '', lastName = ''] = (data.contact_name || '').split(' ');
-        const initialContacts = [{
+        const initialContacts: Contact[] = [{
           firstName,
           lastName,
           title: '',
@@ -60,18 +60,15 @@ export const ClientDetails = () => {
         }];
 
         // Add additional contacts if they exist
-        if (data.additional_contacts) {
-          // Ensure additional_contacts is properly typed and validated
-          const additionalContacts = Array.isArray(data.additional_contacts) 
-            ? data.additional_contacts.map((contact: any): Contact => ({
-                firstName: contact.firstName || '',
-                lastName: contact.lastName || '',
-                title: contact.title || '',
-                email: contact.email || '',
-                address: contact.address || '',
-                phone: contact.phone || ''
-              }))
-            : [];
+        if (data.additional_contacts && Array.isArray(data.additional_contacts)) {
+          const additionalContacts = data.additional_contacts.map((contact: any): Contact => ({
+            firstName: contact.firstName || '',
+            lastName: contact.lastName || '',
+            title: contact.title || '',
+            email: contact.email || '',
+            address: contact.address || '',
+            phone: contact.phone || ''
+          }));
           
           setContacts([...initialContacts, ...additionalContacts]);
         } else {
