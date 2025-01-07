@@ -72,8 +72,8 @@ const prepareClientData = async (clientId: string, formData: any, contacts: Cont
     contact_phone: primaryContact.phone,
     additional_contacts: contacts.length > 1 ? formattedAdditionalContacts : null,
     // Convert revenue fields to proper types with explicit type checking
-    project_revenue_signed_off: formData.project_revenue_signed_off === true,
-    project_revenue_forecast: formData.project_revenue_forecast === true,
+    project_revenue_signed_off: Boolean(formData.project_revenue_signed_off),
+    project_revenue_forecast: Boolean(formData.project_revenue_forecast),
     annual_revenue_signed_off: formData.annual_revenue_signed_off ? Number(formData.annual_revenue_signed_off) : 0,
     annual_revenue_forecast: formData.annual_revenue_forecast ? Number(formData.annual_revenue_forecast) : 0,
     // Ensure numeric fields are properly converted with null fallback
