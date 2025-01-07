@@ -1,6 +1,4 @@
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -8,6 +6,7 @@ import { useState } from 'react';
 import { ContactsList } from './ContactsList';
 import { StatusSection } from './StatusSection';
 import { NextStepsSection } from './NextStepsSection';
+import { CompanySection } from './CompanySection';
 
 interface Contact {
   firstName: string;
@@ -42,6 +41,24 @@ export const ClientForm = ({
   const [projectRevenue, setProjectRevenue] = useState('');
   const [revenue, setRevenue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+
+  const resetForm = () => {
+    setCompanyName('');
+    setStatus('');
+    setLikelihood('');
+    setProjectRevenue('');
+    setRevenue('');
+    onContactsChange([{ 
+      firstName: '', 
+      lastName: '', 
+      title: '', 
+      email: '', 
+      address: '', 
+      phone: '' 
+    }]);
+    onNextStepsChange('');
+    onNextDueDateChange('');
+  };
 
   const handleSave = async () => {
     if (!companyName) {
@@ -85,22 +102,7 @@ export const ClientForm = ({
         description: "Client information saved successfully",
       });
 
-      // Reset form
-      setCompanyName('');
-      setStatus('');
-      setLikelihood('');
-      setProjectRevenue('');
-      setRevenue('');
-      onContactsChange([{ 
-        firstName: '', 
-        lastName: '', 
-        title: '', 
-        email: '', 
-        address: '', 
-        phone: '' 
-      }]);
-      onNextStepsChange('');
-      onNextDueDateChange('');
+      resetForm();
 
     } catch (error) {
       console.error('Error saving client:', error);
@@ -121,18 +123,12 @@ export const ClientForm = ({
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="col-span-2">
-            <Label>Company Name</Label>
-            <Input 
-              placeholder="Enter company name" 
-              value={companyName}
-              onChange={(e) => setCompanyName(e.target.value)}
-              className="transition-all duration-300" 
-            />
-          </div>
+          <CompanySection 
+            companyName={companyName}
+            onCompanyNameChange={setCompanyName}
+          />
 
           <div className="col-span-2">
-            <Label>Contacts</Label>
             <ContactsList 
               contacts={contacts}
               onContactsChange={onContactsChange}
