@@ -13,6 +13,11 @@ import { Contact } from './client-details/ContactInfoCard';
 import { ClientHeader } from './client-details/ClientHeader';
 import { ClientEditMode } from './client-details/ClientEditMode';
 
+interface MonthlyForecast {
+  month: string;
+  amount: number;
+}
+
 export const ClientDetails = () => {
   const navigate = useNavigate();
   const { id } = useParams();
@@ -77,8 +82,13 @@ export const ClientDetails = () => {
     };
   });
 
-  // Parse monthly forecasts from client data
-  const monthlyForecasts = client.monthly_revenue_forecasts || [];
+  // Parse monthly forecasts from client data with type checking
+  const monthlyForecasts: MonthlyForecast[] = Array.isArray(client.monthly_revenue_forecasts) 
+    ? client.monthly_revenue_forecasts.map((forecast: any) => ({
+        month: String(forecast.month),
+        amount: Number(forecast.amount)
+      }))
+    : [];
 
   if (isEditing) {
     return (
