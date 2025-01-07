@@ -15,9 +15,10 @@ export const RevenueChart = ({
   isEditing = false 
 }: RevenueChartProps) => {
   const [isDragging, setIsDragging] = useState(false);
+  const [activeIndex, setActiveIndex] = useState<number | null>(null);
 
-  console.log('RevenueChart isEditing:', isEditing); // Debug log
-  console.log('RevenueChart monthlyForecasts:', monthlyForecasts); // Debug log
+  console.log('RevenueChart isEditing:', isEditing);
+  console.log('RevenueChart monthlyForecasts:', monthlyForecasts);
 
   // Combine regular revenue data with forecasts
   const combinedData = revenueData.map(item => {
@@ -29,13 +30,18 @@ export const RevenueChart = ({
     };
   });
 
-  const handleMouseMove = useCallback((e: any) => {
-    if (!isDragging || !isEditing || !e.activeTooltipIndex || !onForecastUpdate) return;
+  const handleMouseDown = useCallback((data: any, index: number) => {
+    if (!isEditing) return;
+    setIsDragging(true);
+    setActiveIndex(index);
+  }, [isEditing]);
 
-    const chartData = combinedData[e.activeTooltipIndex];
+  const handleMouseMove = useCallback((e: any) => {
+    if (!isDragging || !isEditing || activeIndex === null || !onForecastUpdate) return;
+
+    const chartData = combinedData[activeIndex];
     if (!chartData) return;
 
-    // Calculate new forecast value based on mouse position
     const svgElement = e.currentTarget;
     const svgRect = svgElement.getBoundingClientRect();
     const mouseY = e.nativeEvent.clientY - svgRect.top;
@@ -49,21 +55,30 @@ export const RevenueChart = ({
     const roundedValue = Math.round(newValue / 1000) * 1000;
     
     onForecastUpdate(chartData.month, roundedValue);
-  }, [isDragging, isEditing, combinedData, onForecastUpdate]);
+  }, [isDragging, isEditing, activeIndex, combinedData, onForecastUpdate]);
+
+  const handleMouseUp = useCallback(() => {
+    setIsDragging(false);
+    setActiveIndex(null);
+  }, []);
+
+  const handleMouseLeave = useCallback(() => {
+    setIsDragging(false);
+    setActiveIndex(null);
+  }, []);
 
   return (
     <div className="h-48">
       <p className="text-sm text-gray-600 mb-2">
         Monthly Revenue & Forecast
-        {isEditing && <span className="text-xs ml-2 text-muted-foreground">(Drag forecast bars to adjust)</span>}
+        {isEditing && <span className="text-xs ml-2 text-muted-foreground">(Click and drag forecast bars to adjust)</span>}
       </p>
       <ResponsiveContainer width="100%" height="100%">
         <BarChart 
           data={combinedData}
           onMouseMove={handleMouseMove}
-          onMouseDown={() => isEditing && setIsDragging(true)}
-          onMouseUp={() => setIsDragging(false)}
-          onMouseLeave={() => setIsDragging(false)}
+          onMouseUp={handleMouseUp}
+          onMouseLeave={handleMouseLeave}
         >
           <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
           <XAxis dataKey="month" stroke="#666" />
@@ -86,6 +101,8 @@ export const RevenueChart = ({
             fill="hsl(var(--primary)/0.5)" 
             name="Forecast"
             cursor={isEditing ? 'ns-resize' : undefined}
+            onMouseDown={(data, index) => handleMouseDown(data, index)}
+            className={isEditing ? 'cursor-ns-resize' : ''}
           />
         </BarChart>
       </ResponsiveContainer>
