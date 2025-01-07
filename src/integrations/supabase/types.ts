@@ -13,6 +13,8 @@ export type Database = {
         Row: {
           additional_contacts: Json | null
           annual_revenue: number | null
+          annual_revenue_forecast: number | null
+          annual_revenue_signed_off: number | null
           background: string | null
           company_size: string | null
           contact_email: string | null
@@ -27,6 +29,8 @@ export type Database = {
           next_due_date: string | null
           notes: string | null
           project_revenue: number | null
+          project_revenue_forecast: boolean | null
+          project_revenue_signed_off: boolean | null
           status: string | null
           type: string
           website: string | null
@@ -34,6 +38,8 @@ export type Database = {
         Insert: {
           additional_contacts?: Json | null
           annual_revenue?: number | null
+          annual_revenue_forecast?: number | null
+          annual_revenue_signed_off?: number | null
           background?: string | null
           company_size?: string | null
           contact_email?: string | null
@@ -48,6 +54,8 @@ export type Database = {
           next_due_date?: string | null
           notes?: string | null
           project_revenue?: number | null
+          project_revenue_forecast?: boolean | null
+          project_revenue_signed_off?: boolean | null
           status?: string | null
           type: string
           website?: string | null
@@ -55,6 +63,8 @@ export type Database = {
         Update: {
           additional_contacts?: Json | null
           annual_revenue?: number | null
+          annual_revenue_forecast?: number | null
+          annual_revenue_signed_off?: number | null
           background?: string | null
           company_size?: string | null
           contact_email?: string | null
@@ -69,6 +79,8 @@ export type Database = {
           next_due_date?: string | null
           notes?: string | null
           project_revenue?: number | null
+          project_revenue_forecast?: boolean | null
+          project_revenue_signed_off?: boolean | null
           status?: string | null
           type?: string
           website?: string | null

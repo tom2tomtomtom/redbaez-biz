@@ -17,6 +17,10 @@ export const useClientFormState = ({ initialData, isEditing }: UseClientFormStat
   const [website, setWebsite] = useState('');
   const [background, setBackground] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [projectRevenueSignedOff, setProjectRevenueSignedOff] = useState(false);
+  const [projectRevenueForecast, setProjectRevenueForecast] = useState(false);
+  const [annualRevenueSignedOff, setAnnualRevenueSignedOff] = useState('');
+  const [annualRevenueForecast, setAnnualRevenueForecast] = useState('');
 
   useEffect(() => {
     if (initialData && isEditing) {
@@ -30,6 +34,10 @@ export const useClientFormState = ({ initialData, isEditing }: UseClientFormStat
       setCompanySize(initialData.company_size || '');
       setWebsite(initialData.website || '');
       setBackground(initialData.background || '');
+      setProjectRevenueSignedOff(initialData.project_revenue_signed_off || false);
+      setProjectRevenueForecast(initialData.project_revenue_forecast || false);
+      setAnnualRevenueSignedOff(initialData.annual_revenue_signed_off?.toString() || '');
+      setAnnualRevenueForecast(initialData.annual_revenue_forecast?.toString() || '');
     }
   }, [initialData, isEditing]);
 
@@ -56,5 +64,13 @@ export const useClientFormState = ({ initialData, isEditing }: UseClientFormStat
     setBackground,
     isLoading,
     setIsLoading,
+    projectRevenueSignedOff,
+    setProjectRevenueSignedOff,
+    projectRevenueForecast,
+    setProjectRevenueForecast,
+    annualRevenueSignedOff,
+    setAnnualRevenueSignedOff,
+    annualRevenueForecast,
+    setAnnualRevenueForecast,
   };
 };

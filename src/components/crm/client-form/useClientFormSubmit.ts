@@ -41,6 +41,10 @@ export const useClientFormSubmit = ({
         background: formData.background || null,
         likelihood: formData.likelihood ? parseFloat(formData.likelihood) : null,
         next_due_date: formData.nextDueDate || null,
+        project_revenue_signed_off: formData.projectRevenueSignedOff || false,
+        project_revenue_forecast: formData.projectRevenueForecast || false,
+        annual_revenue_signed_off: formData.annualRevenueSignedOff ? parseFloat(formData.annualRevenueSignedOff) : 0,
+        annual_revenue_forecast: formData.annualRevenueForecast ? parseFloat(formData.annualRevenueForecast) : 0,
       };
 
       if (isEditing && onSave) {
