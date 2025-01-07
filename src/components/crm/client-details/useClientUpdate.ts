@@ -33,7 +33,11 @@ export const useClientUpdate = (clientId: string | undefined, onSuccess?: () => 
       
       const { primaryContact, additionalContacts } = formatContacts(contacts);
 
-      // Transform the data exactly like we do in client creation
+      // Transform contacts to a JSON-compatible format
+      const formattedAdditionalContacts = additionalContacts ? additionalContacts.map(contact => ({
+        ...contact
+      })) : null;
+
       const clientData = {
         name: formData.name,
         type: formData.type,
@@ -50,7 +54,7 @@ export const useClientUpdate = (clientId: string | undefined, onSuccess?: () => 
         contact_name: `${primaryContact.firstName} ${primaryContact.lastName}`.trim(),
         contact_email: primaryContact.email,
         contact_phone: primaryContact.phone,
-        additional_contacts: additionalContacts,
+        additional_contacts: formattedAdditionalContacts,
         project_revenue_signed_off: Boolean(formData.project_revenue_signed_off),
         project_revenue_forecast: Boolean(formData.project_revenue_forecast),
         annual_revenue_signed_off: Number(formData.annual_revenue_signed_off || 0),
