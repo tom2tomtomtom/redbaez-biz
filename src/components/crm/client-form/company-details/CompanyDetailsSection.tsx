@@ -67,6 +67,8 @@ export const CompanyDetailsSection = ({
             <SelectItem value="real-estate">Real Estate</SelectItem>
             <SelectItem value="energy">Energy</SelectItem>
             <SelectItem value="transportation">Transportation</SelectItem>
+            <SelectItem value="media">Media</SelectItem>
+            <SelectItem value="advertising">Advertising</SelectItem>
             <SelectItem value="other">Other</SelectItem>
           </SelectContent>
         </Select>
