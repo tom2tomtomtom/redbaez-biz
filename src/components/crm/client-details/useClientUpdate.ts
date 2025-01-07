@@ -33,6 +33,7 @@ export const useClientUpdate = (clientId: string | undefined, onSuccess?: () => 
       
       const { primaryContact, additionalContacts } = formatContacts(contacts);
 
+      // Ensure all revenue fields are properly typed and transformed
       const clientData = {
         ...formData,
         contact_name: `${primaryContact.firstName} ${primaryContact.lastName}`.trim(),
@@ -41,6 +42,10 @@ export const useClientUpdate = (clientId: string | undefined, onSuccess?: () => 
         additional_contacts: additionalContacts,
         project_revenue: formData.projectRevenue ? Number(formData.projectRevenue) : null,
         annual_revenue: formData.annualRevenue ? Number(formData.annualRevenue) : null,
+        project_revenue_signed_off: Boolean(formData.project_revenue_signed_off),
+        project_revenue_forecast: Boolean(formData.project_revenue_forecast),
+        annual_revenue_signed_off: Number(formData.annual_revenue_signed_off || 0),
+        annual_revenue_forecast: Number(formData.annual_revenue_forecast || 0),
       };
 
       console.log('Updating client with data:', clientData);
