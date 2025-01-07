@@ -26,9 +26,7 @@ export const PriorityActionItem = ({ client }: PriorityActionItemProps) => {
             <div>
               <span className="font-medium">{client.name}</span>
               <p className="text-sm text-gray-600 mt-1">
-                {client.missing_fields?.length 
-                  ? `Missing: ${client.missing_fields.join(', ')}` 
-                  : 'All fields complete'}
+                Next Step: {client.notes || 'No next steps defined'}
               </p>
             </div>
           </div>
