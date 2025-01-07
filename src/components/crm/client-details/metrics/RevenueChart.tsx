@@ -1,5 +1,5 @@
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { useState, useCallback, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 interface RevenueChartProps {
   revenueData: Array<{ month: string; value: number }>;
@@ -16,10 +16,7 @@ export const RevenueChart = ({
 }: RevenueChartProps) => {
   const [isDragging, setIsDragging] = useState(false);
   const [activeMonth, setActiveMonth] = useState<string | null>(null);
-  const chartRef = useRef<HTMLDivElement>(null);
-
-  console.log('RevenueChart isEditing:', isEditing);
-  console.log('RevenueChart monthlyForecasts:', monthlyForecasts);
+  const chartContainerRef = useRef<HTMLDivElement>(null);
 
   // Combine regular revenue data with forecasts
   const combinedData = revenueData.map(item => {
@@ -31,41 +28,55 @@ export const RevenueChart = ({
     };
   });
 
-  const handleMouseDown = useCallback((data: any) => {
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!isDragging || !isEditing || !activeMonth || !onForecastUpdate || !chartContainerRef.current) return;
+
+      const chartRect = chartContainerRef.current.getBoundingClientRect();
+      const mouseY = e.clientY - chartRect.top;
+      const chartHeight = chartRect.height;
+      
+      // Calculate the relative position (0 to 1)
+      const relativePosition = Math.max(0, Math.min(1, 1 - (mouseY / chartHeight)));
+      
+      // Get the maximum value for scaling
+      const maxValue = Math.max(...combinedData.map(d => Math.max(d.value, d.forecast))) * 1.2;
+      
+      // Convert relative position to value
+      let newValue = maxValue * relativePosition;
+      
+      // Round to nearest 1000
+      newValue = Math.max(0, Math.round(newValue / 1000) * 1000);
+      
+      onForecastUpdate(activeMonth, newValue);
+    };
+
+    const handleMouseUp = () => {
+      setIsDragging(false);
+      setActiveMonth(null);
+    };
+
+    if (isDragging) {
+      window.addEventListener('mousemove', handleMouseMove);
+      window.addEventListener('mouseup', handleMouseUp);
+    }
+
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [isDragging, isEditing, activeMonth, onForecastUpdate, combinedData]);
+
+  const handleBarMouseDown = (data: any) => {
     if (!isEditing) return;
     setIsDragging(true);
     setActiveMonth(data.month);
-  }, [isEditing]);
-
-  const handleMouseMove = useCallback((e: React.MouseEvent) => {
-    if (!isDragging || !isEditing || !activeMonth || !onForecastUpdate || !chartRef.current) return;
-
-    const chartRect = chartRef.current.getBoundingClientRect();
-    const mouseY = e.clientY - chartRect.top;
-    const chartHeight = chartRect.height - 40; // Adjust for padding
-    
-    // Convert mouse position to value (invert Y axis)
-    const maxValue = Math.max(...combinedData.map(d => Math.max(d.value, d.forecast))) * 1.2;
-    const newValue = Math.max(0, maxValue * (1 - mouseY / chartHeight));
-    
-    // Round to nearest 1000
-    const roundedValue = Math.round(newValue / 1000) * 1000;
-    
-    onForecastUpdate(activeMonth, roundedValue);
-  }, [isDragging, isEditing, activeMonth, combinedData, onForecastUpdate]);
-
-  const stopDragging = useCallback(() => {
-    setIsDragging(false);
-    setActiveMonth(null);
-  }, []);
+  };
 
   return (
     <div 
-      className="h-48" 
-      ref={chartRef}
-      onMouseMove={handleMouseMove}
-      onMouseUp={stopDragging}
-      onMouseLeave={stopDragging}
+      ref={chartContainerRef}
+      className="h-48 relative"
     >
       <p className="text-sm text-gray-600 mb-2">
         Monthly Revenue & Forecast
@@ -94,7 +105,7 @@ export const RevenueChart = ({
             fill="hsl(var(--primary)/0.5)" 
             name="Forecast"
             cursor={isEditing ? 'ns-resize' : undefined}
-            onMouseDown={(data) => handleMouseDown(data)}
+            onMouseDown={(data) => handleBarMouseDown(data)}
             className={isEditing ? 'cursor-ns-resize' : ''}
           />
         </BarChart>
