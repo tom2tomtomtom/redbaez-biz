@@ -1,16 +1,17 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Edit, MoreHorizontal, ArrowLeft, X } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { ClientForm } from './client-form/ClientForm';
 import { KeyMetricsCard } from './client-details/KeyMetricsCard';
 import { ContactInfoCard } from './client-details/ContactInfoCard';
 import { AdditionalInfoCard } from './client-details/AdditionalInfoCard';
 import { useClientUpdate } from './client-details/useClientUpdate';
 import { useClientInitialization } from './client-details/useClientInitialization';
 import { Contact } from './client-details/ContactInfoCard';
+import { ClientHeader } from './client-details/ClientHeader';
+import { ClientEditMode } from './client-details/ClientEditMode';
 
 export const ClientDetails = () => {
   const navigate = useNavigate();
@@ -68,29 +69,17 @@ export const ClientDetails = () => {
 
   if (isEditing) {
     return (
-      <div className="p-8 w-full max-w-7xl mx-auto bg-gray-50/50">
-        <div className="flex justify-between items-center mb-6">
-          <Button
-            variant="ghost"
-            className="flex items-center gap-2"
-            onClick={() => setIsEditing(false)}
-          >
-            <X size={16} />
-            Cancel Editing
-          </Button>
-        </div>
-        <ClientForm
-          initialData={client}
-          onSave={handleSave}
-          isEditing={true}
-          contacts={contacts}
-          nextSteps={nextSteps}
-          nextDueDate={nextDueDate}
-          onContactsChange={setContacts}
-          onNextStepsChange={setNextSteps}
-          onNextDueDateChange={setNextDueDate}
-        />
-      </div>
+      <ClientEditMode
+        client={client}
+        contacts={contacts}
+        nextSteps={nextSteps}
+        nextDueDate={nextDueDate}
+        onCancel={() => setIsEditing(false)}
+        onSave={handleSave}
+        onContactsChange={setContacts}
+        onNextStepsChange={setNextSteps}
+        onNextDueDateChange={setNextDueDate}
+      />
     );
   }
 
@@ -120,30 +109,10 @@ export const ClientDetails = () => {
         Back to Home
       </Button>
 
-      <div className="flex flex-col md:flex-row justify-between items-start bg-white p-6 rounded-xl shadow-sm transition-all duration-300 hover:shadow-md">
-        <div>
-          <div className="flex items-center space-x-4">
-            <h1 className="text-2xl font-semibold text-gray-800">{client.name}</h1>
-            <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm">
-              {client.status || 'New Client'}
-            </span>
-          </div>
-          <p className="text-gray-500 mt-1">Client since {new Date(client.created_at).getFullYear()} · ID: {client.id}</p>
-        </div>
-        <div className="flex space-x-3 mt-4 md:mt-0">
-          <Button 
-            variant="outline" 
-            className="flex items-center gap-2 transition-all duration-300"
-            onClick={() => setIsEditing(true)}
-          >
-            <Edit size={16} />
-            Edit
-          </Button>
-          <Button variant="outline" className="flex items-center gap-2 transition-all duration-300">
-            <MoreHorizontal size={16} />
-          </Button>
-        </div>
-      </div>
+      <ClientHeader 
+        client={client}
+        onEditClick={() => setIsEditing(true)}
+      />
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         <KeyMetricsCard 
