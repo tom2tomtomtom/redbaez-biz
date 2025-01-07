@@ -47,6 +47,8 @@ export const KeyMetricsCard = ({
     onForecastUpdate(updatedForecasts);
   };
 
+  console.log('KeyMetricsCard isEditing:', isEditing); // Debug log
+
   return (
     <Card className="col-span-1 lg:col-span-12 p-6">
       <div className="grid gap-6 md:grid-cols-3">

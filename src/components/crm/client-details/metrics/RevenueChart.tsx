@@ -10,11 +10,14 @@ interface RevenueChartProps {
 
 export const RevenueChart = ({ 
   revenueData, 
-  monthlyForecasts, 
+  monthlyForecasts = [], 
   onForecastUpdate,
   isEditing = false 
 }: RevenueChartProps) => {
   const [isDragging, setIsDragging] = useState(false);
+
+  console.log('RevenueChart isEditing:', isEditing); // Debug log
+  console.log('RevenueChart monthlyForecasts:', monthlyForecasts); // Debug log
 
   // Combine regular revenue data with forecasts
   const combinedData = revenueData.map(item => {
@@ -73,7 +76,11 @@ export const RevenueChart = ({
               boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'
             }}
           />
-          <Bar dataKey="value" fill="hsl(var(--primary))" name="Revenue" />
+          <Bar 
+            dataKey="value" 
+            fill="hsl(var(--primary))" 
+            name="Revenue" 
+          />
           <Bar 
             dataKey="forecast" 
             fill="hsl(var(--primary)/0.5)" 
