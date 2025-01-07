@@ -18,10 +18,11 @@ export const RevenueChart = ({
   onForecastUpdate
 }: RevenueChartProps) => {
   const [showTable, setShowTable] = useState(false);
+  const [localForecasts, setLocalForecasts] = useState(monthlyForecasts);
 
   // Combine regular revenue data with forecasts
   const combinedData = revenueData.map(item => {
-    const forecast = monthlyForecasts.find(f => f.month === item.month);
+    const forecast = localForecasts.find(f => f.month === item.month);
     return {
       month: item.month,
       value: item.value,
@@ -38,6 +39,18 @@ export const RevenueChart = ({
     // Only update if it's a valid number
     if (!isNaN(numericValue)) {
       console.log('Updating forecast for month:', month, 'with value:', numericValue);
+      
+      // Update local state first
+      const updatedForecasts = localForecasts.map(f => 
+        f.month === month ? { ...f, amount: numericValue } : f
+      );
+      
+      // If the month doesn't exist in localForecasts, add it
+      if (!localForecasts.find(f => f.month === month)) {
+        updatedForecasts.push({ month, amount: numericValue });
+      }
+      
+      setLocalForecasts(updatedForecasts);
       onForecastUpdate(month, numericValue);
     }
   };
@@ -62,20 +75,23 @@ export const RevenueChart = ({
       {showTable && isEditing ? (
         <div className="border rounded-lg overflow-hidden">
           <div className="grid grid-cols-4 gap-4 p-4 bg-gray-50">
-            {combinedData.map((item) => (
-              <div key={item.month} className="space-y-2">
-                <label className="text-sm font-medium text-gray-700">
-                  {item.month}
-                </label>
-                <Input
-                  type="number"
-                  value={item.forecast}
-                  onChange={(e) => handleForecastChange(item.month, e.target.value)}
-                  className="w-full"
-                  placeholder="Enter forecast"
-                />
-              </div>
-            ))}
+            {combinedData.map((item) => {
+              const forecast = localForecasts.find(f => f.month === item.month);
+              return (
+                <div key={item.month} className="space-y-2">
+                  <label className="text-sm font-medium text-gray-700">
+                    {item.month}
+                  </label>
+                  <Input
+                    type="number"
+                    value={forecast ? forecast.amount : item.value}
+                    onChange={(e) => handleForecastChange(item.month, e.target.value)}
+                    className="w-full"
+                    placeholder="Enter forecast"
+                  />
+                </div>
+              );
+            })}
           </div>
         </div>
       ) : (
