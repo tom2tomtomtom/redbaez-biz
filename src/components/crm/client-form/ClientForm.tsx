@@ -1,3 +1,4 @@
+import React from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ContactsList } from './ContactsList';
@@ -76,24 +77,33 @@ export const ClientForm = ({
   });
 
   const onSubmit = () => {
+    console.log('Form submission with state:', {
+      projectRevenueSignedOff: formState.projectRevenueSignedOff,
+      projectRevenueForecast: formState.projectRevenueForecast,
+      annualRevenueSignedOff: formState.annualRevenueSignedOff,
+      annualRevenueForecast: formState.annualRevenueForecast
+    });
+
     const formData = {
       name: formState.companyName,
       type: formState.type,
       industry: formState.industry,
-      companySize: formState.companySize,
+      company_size: formState.companySize,
       status: formState.status,
-      revenue: formState.revenue,
-      projectRevenue: formState.projectRevenue,
+      annual_revenue: Number(formState.revenue) || null,
+      project_revenue: Number(formState.projectRevenue) || null,
       website: formState.website,
       notes: nextSteps,
       background: formState.background,
-      likelihood: formState.likelihood,
-      nextDueDate: nextDueDate,
+      likelihood: Number(formState.likelihood) || null,
+      next_due_date: nextDueDate,
       project_revenue_signed_off: formState.projectRevenueSignedOff,
       project_revenue_forecast: formState.projectRevenueForecast,
-      annual_revenue_signed_off: formState.annualRevenueSignedOff,
-      annual_revenue_forecast: formState.annualRevenueForecast,
+      annual_revenue_signed_off: Number(formState.annualRevenueSignedOff) || 0,
+      annual_revenue_forecast: Number(formState.annualRevenueForecast) || 0,
     };
+
+    console.log('Submitting form data:', formData);
     handleSubmit(formData);
   };
 
