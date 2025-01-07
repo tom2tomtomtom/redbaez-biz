@@ -109,6 +109,7 @@ export const ClientDetails = () => {
       forecast_nov: forecasts.find(f => f.month === 'Nov')?.amount || 0,
       forecast_dec: forecasts.find(f => f.month === 'Dec')?.amount || 0,
     };
+    console.log('Sending forecast data to update:', formDataWithForecasts);
     updateMutation.mutate({ formData: formDataWithForecasts, contacts });
   };
 
