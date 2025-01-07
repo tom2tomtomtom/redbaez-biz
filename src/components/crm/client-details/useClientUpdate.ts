@@ -68,7 +68,8 @@ export const useClientUpdate = (clientId: string | undefined, onSuccess?: () => 
         total + Number(amount), 0
       );
 
-      console.log('Calculated annual revenue from forecasts:', calculatedAnnualRevenue);
+      console.log('Monthly forecasts being saved:', forecastColumns);
+      console.log('Calculated annual revenue:', calculatedAnnualRevenue);
 
       const clientData = {
         name: formData.name,
@@ -77,7 +78,7 @@ export const useClientUpdate = (clientId: string | undefined, onSuccess?: () => 
         company_size: formData.company_size || null,
         status: formData.status || 'prospect',
         annual_revenue: calculatedAnnualRevenue,
-        project_revenue: formData.project_revenue ? Number(formData.project_revenue) : null,
+        project_revenue: formData.project_revenue ? parseFloat(formData.project_revenue) : null,
         website: formData.website || null,
         notes: formData.notes,
         background: formData.background || null,
