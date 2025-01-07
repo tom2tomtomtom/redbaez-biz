@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ContactsList } from './ContactsList';
@@ -81,26 +81,29 @@ export const ClientForm = ({
       annualRevenueForecast: revenueState.annualRevenueForecast
     });
 
+    // Ensure proper type conversion for all numeric and boolean values
     const formData = {
       name: formState.companyName,
       type: formState.type,
       industry: formState.industry,
-      company_size: formState.companySize,
+      company_size: formState.companySize || null,
       status: formState.status,
-      annual_revenue: revenueState.annualRevenue,
-      project_revenue: revenueState.projectRevenue,
+      annual_revenue: revenueState.annualRevenue ? parseFloat(revenueState.annualRevenue) : null,
+      project_revenue: revenueState.projectRevenue ? parseFloat(revenueState.projectRevenue) : null,
       website: formState.website,
       notes: nextSteps,
       background: formState.background,
       likelihood: Number(formState.likelihood) || null,
-      next_due_date: nextDueDate,
-      project_revenue_signed_off: revenueState.projectRevenueSignedOff,
-      project_revenue_forecast: revenueState.projectRevenueForecast,
+      next_due_date: nextDueDate || null,
+      // Explicitly convert to boolean
+      project_revenue_signed_off: Boolean(revenueState.projectRevenueSignedOff),
+      project_revenue_forecast: Boolean(revenueState.projectRevenueForecast),
+      // Ensure numeric values
       annual_revenue_signed_off: parseFloat(revenueState.annualRevenueSignedOff) || 0,
       annual_revenue_forecast: parseFloat(revenueState.annualRevenueForecast) || 0,
     };
 
-    console.log('Submitting form data:', formData);
+    console.log('Submitting form data with explicit type conversion:', formData);
     handleSubmit(formData);
   };
 
