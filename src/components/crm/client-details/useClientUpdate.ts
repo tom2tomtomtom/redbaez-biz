@@ -1,7 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/components/ui/use-toast';
-import { MonthlyForecast } from './types/MonthlyForecast';
 
 interface Contact {
   firstName: string;
@@ -25,21 +24,6 @@ const formatContacts = (contacts: Contact[]) => {
   };
 };
 
-const monthToColumnMap: Record<string, string> = {
-  'Jan': 'forecast_jan',
-  'Feb': 'forecast_feb',
-  'Mar': 'forecast_mar',
-  'Apr': 'forecast_apr',
-  'May': 'forecast_may',
-  'Jun': 'forecast_jun',
-  'Jul': 'forecast_jul',
-  'Aug': 'forecast_aug',
-  'Sep': 'forecast_sep',
-  'Oct': 'forecast_oct',
-  'Nov': 'forecast_nov',
-  'Dec': 'forecast_dec'
-};
-
 export const useClientUpdate = (clientId: string | undefined, onSuccess?: () => void) => {
   const queryClient = useQueryClient();
 
@@ -54,21 +38,27 @@ export const useClientUpdate = (clientId: string | undefined, onSuccess?: () => 
         ...contact
       })) : null;
 
-      // Convert monthly forecasts array to individual column values
-      const monthlyForecasts = formData.monthly_revenue_forecasts || [];
-      const forecastColumns = Object.keys(monthToColumnMap).reduce((acc, month) => {
-        const forecast = monthlyForecasts.find((f: MonthlyForecast) => f.month === month);
-        const columnName = monthToColumnMap[month];
-        acc[columnName] = forecast ? Number(forecast.amount) : 0;
-        return acc;
-      }, {} as Record<string, number>);
-
       // Calculate total annual revenue from monthly forecasts
-      const calculatedAnnualRevenue = Object.values(forecastColumns).reduce((total, amount) => 
+      const monthlyForecasts = [
+        formData.forecast_jan || 0,
+        formData.forecast_feb || 0,
+        formData.forecast_mar || 0,
+        formData.forecast_apr || 0,
+        formData.forecast_may || 0,
+        formData.forecast_jun || 0,
+        formData.forecast_jul || 0,
+        formData.forecast_aug || 0,
+        formData.forecast_sep || 0,
+        formData.forecast_oct || 0,
+        formData.forecast_nov || 0,
+        formData.forecast_dec || 0
+      ];
+
+      const calculatedAnnualRevenue = monthlyForecasts.reduce((total, amount) => 
         total + Number(amount), 0
       );
 
-      console.log('Monthly forecasts being saved:', forecastColumns);
+      console.log('Monthly forecasts being saved:', monthlyForecasts);
       console.log('Calculated annual revenue:', calculatedAnnualRevenue);
 
       const clientData = {
@@ -92,7 +82,19 @@ export const useClientUpdate = (clientId: string | undefined, onSuccess?: () => 
         project_revenue_forecast: Boolean(formData.project_revenue_forecast),
         annual_revenue_signed_off: Number(formData.annual_revenue_signed_off || 0),
         annual_revenue_forecast: Number(formData.annual_revenue_forecast || 0),
-        ...forecastColumns, // Spread the monthly forecast columns
+        // Add individual monthly forecast columns
+        forecast_jan: Number(formData.forecast_jan || 0),
+        forecast_feb: Number(formData.forecast_feb || 0),
+        forecast_mar: Number(formData.forecast_mar || 0),
+        forecast_apr: Number(formData.forecast_apr || 0),
+        forecast_may: Number(formData.forecast_may || 0),
+        forecast_jun: Number(formData.forecast_jun || 0),
+        forecast_jul: Number(formData.forecast_jul || 0),
+        forecast_aug: Number(formData.forecast_aug || 0),
+        forecast_sep: Number(formData.forecast_sep || 0),
+        forecast_oct: Number(formData.forecast_oct || 0),
+        forecast_nov: Number(formData.forecast_nov || 0),
+        forecast_dec: Number(formData.forecast_dec || 0),
       };
 
       console.log('Updating client with data:', clientData);
