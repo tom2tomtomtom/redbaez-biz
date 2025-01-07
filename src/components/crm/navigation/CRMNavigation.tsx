@@ -16,13 +16,6 @@ export const CRMNavigation = ({ activeTab, setActiveTab }: CRMNavigationProps) =
         New Client Entry
       </Button>
       <Button 
-        onClick={() => setActiveTab('search')}
-        variant={activeTab === 'search' ? 'default' : 'outline'}
-        className="transition-all duration-300"
-      >
-        Client Search
-      </Button>
-      <Button 
         onClick={() => setActiveTab('priorities')}
         variant={activeTab === 'priorities' ? 'default' : 'outline'}
         className="transition-all duration-300"
