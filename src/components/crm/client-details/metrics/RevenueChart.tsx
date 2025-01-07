@@ -31,8 +31,13 @@ export const RevenueChart = ({
 
   const handleForecastChange = (month: string, value: string) => {
     if (!onForecastUpdate) return;
+    
+    // Convert empty string to 0, otherwise parse the number
     const numericValue = value === '' ? 0 : Number(value);
+    
+    // Only update if it's a valid number
     if (!isNaN(numericValue)) {
+      console.log('Updating forecast for month:', month, 'with value:', numericValue);
       onForecastUpdate(month, numericValue);
     }
   };
@@ -57,7 +62,7 @@ export const RevenueChart = ({
       {showTable && isEditing ? (
         <div className="border rounded-lg overflow-hidden">
           <div className="grid grid-cols-4 gap-4 p-4 bg-gray-50">
-            {combinedData.map((item, index) => (
+            {combinedData.map((item) => (
               <div key={item.month} className="space-y-2">
                 <label className="text-sm font-medium text-gray-700">
                   {item.month}
