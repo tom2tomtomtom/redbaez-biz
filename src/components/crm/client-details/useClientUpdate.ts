@@ -60,6 +60,14 @@ const parseNumericValue = (value: string | number | null): number | null => {
 
 const prepareClientData = async (clientId: string, formData: any, contacts: Contact[]): Promise<ClientData> => {
   console.log('Preparing client data with form data:', formData);
+  console.log('Revenue fields before processing:', {
+    projectRevenueSignedOff: formData.project_revenue_signed_off,
+    projectRevenueForecast: formData.project_revenue_forecast,
+    annualRevenueSignedOff: formData.annual_revenue_signed_off,
+    annualRevenueForecast: formData.annual_revenue_forecast,
+    projectRevenue: formData.project_revenue,
+    annualRevenue: formData.annual_revenue
+  });
   
   const { primaryContact, formattedAdditionalContacts } = formatContacts(contacts);
 
@@ -113,7 +121,8 @@ export const useClientUpdate = (clientId: string | undefined, onSuccess?: () => 
       
       const clientData = await prepareClientData(clientId, formData, contacts);
 
-      const { error } = await supabase
+      console.log('Executing Supabase update with data:', clientData);
+      const { error, data } = await supabase
         .from('clients')
         .update(clientData)
         .eq('id', clientId);
@@ -123,6 +132,7 @@ export const useClientUpdate = (clientId: string | undefined, onSuccess?: () => 
         throw error;
       }
 
+      console.log('Supabase update response:', data);
       return { success: true };
     },
     onSuccess: () => {
