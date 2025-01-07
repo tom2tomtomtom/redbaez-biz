@@ -65,6 +65,7 @@ export const ClientForm = ({
       setWebsite(initialData.website || '');
       setBackground(initialData.background || '');
       
+      // Initialize contacts if they exist
       if (initialData.contact_name || initialData.contact_email || initialData.contact_phone) {
         const [firstName = '', lastName = ''] = (initialData.contact_name || '').split(' ');
         onContactsChange([{
@@ -77,32 +78,10 @@ export const ClientForm = ({
         }]);
       }
       
+      // Initialize next steps from notes
       onNextStepsChange(initialData.notes || '');
     }
-  }, [initialData, isEditing]);
-
-  const resetForm = () => {
-    setCompanyName('');
-    setStatus('');
-    setLikelihood('');
-    setProjectRevenue('');
-    setRevenue('');
-    setType('business');
-    setIndustry('');
-    setCompanySize('');
-    setWebsite('');
-    setBackground('');
-    onContactsChange([{ 
-      firstName: '', 
-      lastName: '', 
-      title: '', 
-      email: '', 
-      address: '', 
-      phone: '' 
-    }]);
-    onNextStepsChange('');
-    onNextDueDateChange('');
-  };
+  }, [initialData, isEditing, onContactsChange, onNextStepsChange]);
 
   const handleSave = async () => {
     if (!companyName) {
@@ -138,11 +117,15 @@ export const ClientForm = ({
         website: website || null,
         notes: nextSteps,
         background: background || null,
-        missing_fields: [],
+        likelihood: likelihood ? parseFloat(likelihood) : null,
       };
 
       if (isEditing && onSave) {
         await onSave(clientData);
+        toast({
+          title: "Success",
+          description: "Client information updated successfully",
+        });
       } else {
         const { error } = await supabase
           .from('clients')
@@ -154,8 +137,6 @@ export const ClientForm = ({
           title: "Success",
           description: "Client information saved successfully",
         });
-
-        resetForm();
       }
     } catch (error) {
       console.error('Error saving client:', error);
