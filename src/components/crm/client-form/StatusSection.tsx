@@ -11,6 +11,10 @@ interface StatusSectionProps {
   companySize: string;
   website: string;
   background: string;
+  projectRevenueSignedOff: boolean;
+  projectRevenueForecast: boolean;
+  annualRevenueSignedOff: string;
+  annualRevenueForecast: string;
   onStatusChange: (value: string) => void;
   onLikelihoodChange: (value: string) => void;
   onProjectRevenueChange: (value: string) => void;
@@ -20,6 +24,10 @@ interface StatusSectionProps {
   onCompanySizeChange: (value: string) => void;
   onWebsiteChange: (value: string) => void;
   onBackgroundChange: (value: string) => void;
+  onProjectRevenueSignedOffChange: (checked: boolean) => void;
+  onProjectRevenueForecastChange: (checked: boolean) => void;
+  onAnnualRevenueSignedOffChange: (value: string) => void;
+  onAnnualRevenueForecastChange: (value: string) => void;
 }
 
 export const StatusSection = ({
@@ -32,6 +40,10 @@ export const StatusSection = ({
   companySize,
   website,
   background,
+  projectRevenueSignedOff,
+  projectRevenueForecast,
+  annualRevenueSignedOff,
+  annualRevenueForecast,
   onStatusChange,
   onLikelihoodChange,
   onProjectRevenueChange,
@@ -41,6 +53,10 @@ export const StatusSection = ({
   onCompanySizeChange,
   onWebsiteChange,
   onBackgroundChange,
+  onProjectRevenueSignedOffChange,
+  onProjectRevenueForecastChange,
+  onAnnualRevenueSignedOffChange,
+  onAnnualRevenueForecastChange,
 }: StatusSectionProps) => {
   return (
     <>
@@ -62,10 +78,18 @@ export const StatusSection = ({
         likelihood={likelihood}
         projectRevenue={projectRevenue}
         revenue={revenue}
+        projectRevenueSignedOff={projectRevenueSignedOff}
+        projectRevenueForecast={projectRevenueForecast}
+        annualRevenueSignedOff={annualRevenueSignedOff}
+        annualRevenueForecast={annualRevenueForecast}
         onStatusChange={onStatusChange}
         onLikelihoodChange={onLikelihoodChange}
         onProjectRevenueChange={onProjectRevenueChange}
         onRevenueChange={onRevenueChange}
+        onProjectRevenueSignedOffChange={onProjectRevenueSignedOffChange}
+        onProjectRevenueForecastChange={onProjectRevenueForecastChange}
+        onAnnualRevenueSignedOffChange={onAnnualRevenueSignedOffChange}
+        onAnnualRevenueForecastChange={onAnnualRevenueForecastChange}
       />
     </>
   );
