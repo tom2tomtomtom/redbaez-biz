@@ -9,7 +9,7 @@ const fetchPriorityClients = async () => {
   const { data, error } = await supabase
     .from('clients')
     .select('*')
-    .order('created_at', { ascending: false })
+    .order('next_due_date', { ascending: true })
     .limit(2);
     
   if (error) throw error;
@@ -95,7 +95,9 @@ export const PriorityActions = () => {
                 </div>
                 <div className="mt-2 text-sm flex items-center gap-2">
                   <Calendar size={14} />
-                  Added: {new Date(client.created_at).toLocaleDateString()}
+                  Due: {client.next_due_date 
+                    ? new Date(client.next_due_date).toLocaleDateString()
+                    : 'No deadline set'}
                 </div>
               </div>
             </Link>
