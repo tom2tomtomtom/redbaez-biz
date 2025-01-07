@@ -5,19 +5,13 @@ import { useNavigate, useParams, Navigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { KeyMetricsCard } from '@/components/crm/client-details/KeyMetricsCard';
-import { ContactInfoCard } from '@/components/crm/client-details/ContactInfoCard';
+import { ContactInfoCard, Contact } from '@/components/crm/client-details/ContactInfoCard';
 import { AdditionalInfoCard } from '@/components/crm/client-details/AdditionalInfoCard';
 import { useClientUpdate } from '@/components/crm/client-details/useClientUpdate';
 import { useClientInitialization } from '@/components/crm/client-details/useClientInitialization';
-import { Contact } from '@/components/crm/client-details/ContactInfoCard';
 import { ClientHeader } from '@/components/crm/client-details/ClientHeader';
 import { ClientEditMode } from '@/components/crm/client-details/ClientEditMode';
 import { MonthlyForecast } from '@/components/crm/client-details/types/MonthlyForecast';
-
-interface MonthlyForecast {
-  month: string;
-  amount: number;
-}
 
 export const ClientDetails = () => {
   const navigate = useNavigate();
@@ -73,9 +67,8 @@ export const ClientDetails = () => {
   };
 
   // Generate monthly revenue data including forecasts
-  const currentDate = new Date();
   const revenueData = Array.from({ length: 12 }, (_, i) => {
-    const date = new Date(currentDate.getFullYear(), currentDate.getMonth() + i);
+    const date = new Date(new Date().getFullYear(), new Date().getMonth() + i);
     const month = date.toLocaleString('default', { month: 'short' });
     return {
       month,
@@ -91,6 +84,14 @@ export const ClientDetails = () => {
       }))
     : [];
 
+  const handleForecastUpdate = async (forecasts: MonthlyForecast[]) => {
+    console.log('Updating forecasts:', forecasts);
+    updateMutation.mutate({ 
+      formData: { ...client, monthly_revenue_forecasts: forecasts },
+      contacts 
+    });
+  };
+
   if (isEditing) {
     return (
       <ClientEditMode
@@ -103,6 +104,7 @@ export const ClientDetails = () => {
         onContactsChange={setContacts}
         onNextStepsChange={setNextSteps}
         onNextDueDateChange={setNextDueDate}
+        onMonthlyForecastsChange={handleForecastUpdate}
       />
     );
   }
@@ -149,6 +151,8 @@ export const ClientDetails = () => {
           annualRevenueSignedOff={client.annual_revenue_signed_off}
           annualRevenueForecast={client.annual_revenue_forecast}
           monthlyForecasts={monthlyForecasts}
+          isEditing={isEditing}
+          onForecastUpdate={handleForecastUpdate}
         />
 
         <ContactInfoCard 

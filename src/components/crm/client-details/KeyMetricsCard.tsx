@@ -32,33 +32,18 @@ export const KeyMetricsCard = ({
   isEditing = false,
   onForecastUpdate
 }: KeyMetricsCardProps) => {
-  const handleForecastUpdate = (month: string, amount: number) => {
-    if (!onForecastUpdate) return;
-
-    const updatedForecasts = [...monthlyForecasts];
-    const existingIndex = updatedForecasts.findIndex(f => f.month.endsWith(month));
-    
-    if (existingIndex >= 0) {
-      updatedForecasts[existingIndex] = { ...updatedForecasts[existingIndex], amount };
-    } else {
-      updatedForecasts.push({ month: `2024-${month}`, amount });
-    }
-
-    onForecastUpdate(updatedForecasts);
-  };
-
   return (
     <Card className="col-span-1 lg:col-span-12 p-6">
       <div className="grid gap-6 md:grid-cols-3">
         <AnnualRevenueMetric 
-          value={annualRevenue} 
-          signedOffValue={annualRevenueSignedOff}
-          forecastValue={annualRevenueForecast}
+          annualRevenue={annualRevenue} 
+          annualRevenueSignedOff={annualRevenueSignedOff}
+          annualRevenueForecast={annualRevenueForecast}
         />
         <ProjectRevenueMetric 
-          value={projectRevenue}
-          isSignedOff={projectRevenueSignedOff}
-          isForecast={projectRevenueForecast}
+          projectRevenue={projectRevenue}
+          projectRevenueSignedOff={projectRevenueSignedOff}
+          projectRevenueForecast={projectRevenueForecast}
         />
         <DealLikelihood likelihood={likelihood} />
       </div>
@@ -67,7 +52,7 @@ export const KeyMetricsCard = ({
           revenueData={revenueData} 
           monthlyForecasts={monthlyForecasts}
           isEditing={isEditing}
-          onForecastUpdate={handleForecastUpdate}
+          onForecastUpdate={onForecastUpdate}
         />
       </div>
     </Card>

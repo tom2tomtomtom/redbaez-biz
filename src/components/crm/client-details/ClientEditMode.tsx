@@ -13,6 +13,7 @@ interface ClientEditModeProps {
   onNextStepsChange: (steps: string) => void;
   onNextDueDateChange: (date: string) => void;
   onMonthlyForecastsChange?: (forecasts: MonthlyForecast[]) => void;
+  onCancel: () => void;
 }
 
 export const ClientEditMode: React.FC<ClientEditModeProps> = ({
@@ -24,27 +25,22 @@ export const ClientEditMode: React.FC<ClientEditModeProps> = ({
   onContactsChange,
   onNextStepsChange,
   onNextDueDateChange,
-  onMonthlyForecastsChange
+  onMonthlyForecastsChange,
+  onCancel
 }) => {
-  const handleSave = (formData: any) => {
-    onSave({
-      ...formData,
-      monthly_revenue_forecasts: client.monthly_revenue_forecasts
-    });
-  };
-
   return (
     <ClientForm
       initialData={client}
       contacts={contacts}
       nextSteps={nextSteps}
       nextDueDate={nextDueDate}
-      onSubmit={handleSave}
+      onSubmit={onSave}
       onContactsChange={onContactsChange}
       onNextStepsChange={onNextStepsChange}
       onNextDueDateChange={onNextDueDateChange}
       onMonthlyForecastsChange={onMonthlyForecastsChange}
       isEditing={true}
+      onCancel={onCancel}
     />
   );
 };

@@ -2,8 +2,8 @@ import React from 'react';
 
 interface AnnualRevenueMetricProps {
   annualRevenue: number | null;
-  annualRevenueSignedOff?: number;
-  annualRevenueForecast?: number;
+  annualRevenueSignedOff: number;
+  annualRevenueForecast: number;
 }
 
 export const AnnualRevenueMetric = ({
@@ -17,12 +17,8 @@ export const AnnualRevenueMetric = ({
       <p className="text-3xl font-bold text-blue-600">
         ${annualRevenue?.toLocaleString() || '0'}
       </p>
-      {annualRevenueSignedOff !== undefined && (
-        <p className="text-sm text-blue-500">Signed Off: ${annualRevenueSignedOff?.toLocaleString()}</p>
-      )}
-      {annualRevenueForecast !== undefined && (
-        <p className="text-sm text-blue-500">Forecast: ${annualRevenueForecast?.toLocaleString()}</p>
-      )}
+      <p className="text-sm text-blue-500">Signed Off: ${annualRevenueSignedOff?.toLocaleString()}</p>
+      <p className="text-sm text-blue-500">Forecast: ${annualRevenueForecast?.toLocaleString()}</p>
     </div>
   );
 };

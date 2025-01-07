@@ -2,8 +2,8 @@ import React from 'react';
 
 interface ProjectRevenueMetricProps {
   projectRevenue: number | null;
-  projectRevenueSignedOff?: boolean;
-  projectRevenueForecast?: boolean;
+  projectRevenueSignedOff: boolean;
+  projectRevenueForecast: boolean;
 }
 
 export const ProjectRevenueMetric = ({
@@ -17,12 +17,8 @@ export const ProjectRevenueMetric = ({
       <p className="text-3xl font-bold text-blue-600">
         ${projectRevenue?.toLocaleString() || '0'}
       </p>
-      {projectRevenueSignedOff !== undefined && (
-        <p className="text-sm text-blue-500">Status: {projectRevenueSignedOff ? 'Signed Off' : 'Not Signed Off'}</p>
-      )}
-      {projectRevenueForecast !== undefined && (
-        <p className="text-sm text-blue-500">Forecast: {projectRevenueForecast ? 'Yes' : 'No'}</p>
-      )}
+      <p className="text-sm text-blue-500">Status: {projectRevenueSignedOff ? 'Signed Off' : 'Not Signed Off'}</p>
+      <p className="text-sm text-blue-500">Forecast: {projectRevenueForecast ? 'Yes' : 'No'}</p>
     </div>
   );
 };
