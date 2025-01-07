@@ -9,28 +9,12 @@ import { KeyMetricsCard } from './client-details/KeyMetricsCard';
 import { ContactInfoCard } from './client-details/ContactInfoCard';
 import { AdditionalInfoCard } from './client-details/AdditionalInfoCard';
 import { useClientUpdate } from './client-details/useClientUpdate';
-
-interface Contact {
-  firstName: string;
-  lastName: string;
-  title: string;
-  email: string;
-  address: string;
-  phone: string;
-}
+import { useClientInitialization } from './client-details/useClientInitialization';
 
 export const ClientDetails = () => {
   const navigate = useNavigate();
   const { id } = useParams();
   const [isEditing, setIsEditing] = useState(false);
-  const [contacts, setContacts] = useState<Contact[]>([{ 
-    firstName: '', 
-    lastName: '', 
-    title: '', 
-    email: '', 
-    address: '', 
-    phone: '' 
-  }]);
   const [nextSteps, setNextSteps] = useState('');
   const [nextDueDate, setNextDueDate] = useState('');
 
@@ -45,44 +29,12 @@ export const ClientDetails = () => {
         .single();
       
       if (error) throw error;
-
-      if (data) {
-        console.log('Received client data:', data);
-        // Initialize contacts array with primary contact
-        const [firstName = '', lastName = ''] = (data.contact_name || '').split(' ');
-        const initialContacts: Contact[] = [{
-          firstName,
-          lastName,
-          title: '',
-          email: data.contact_email || '',
-          address: '',
-          phone: data.contact_phone || ''
-        }];
-
-        // Add additional contacts if they exist
-        if (data.additional_contacts && Array.isArray(data.additional_contacts)) {
-          const additionalContacts = data.additional_contacts.map((contact: any): Contact => ({
-            firstName: contact.firstName || '',
-            lastName: contact.lastName || '',
-            title: contact.title || '',
-            email: contact.email || '',
-            address: contact.address || '',
-            phone: contact.phone || ''
-          }));
-          
-          setContacts([...initialContacts, ...additionalContacts]);
-        } else {
-          setContacts(initialContacts);
-        }
-
-        setNextSteps(data.notes || '');
-        setNextDueDate(data.next_due_date || '');
-      }
-      
+      console.log('Received client data:', data);
       return data;
     },
   });
 
+  const { contacts, setContacts } = useClientInitialization(client);
   const updateMutation = useClientUpdate(id, () => setIsEditing(false));
 
   if (isLoading) {
@@ -99,8 +51,8 @@ export const ClientDetails = () => {
   }
 
   const handleSave = async (formData: any) => {
-    console.log('Form data received:', formData);
-    console.log('Current contacts state:', contacts);
+    console.log('Saving client with form data:', formData);
+    console.log('Current contacts:', contacts);
     updateMutation.mutate({ formData, contacts });
   };
 

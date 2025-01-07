@@ -19,26 +19,26 @@ export const useClientUpdate = (id: string | undefined, onSuccess?: () => void) 
     mutationFn: async ({ formData, contacts }: { formData: any; contacts: Contact[] }) => {
       if (!id) throw new Error('Client ID is required');
 
-      console.log('Starting update with all data:', { formData, contacts });
+      console.log('Starting client update with:', { formData, contacts });
 
-      // Get the primary contact from the contacts array
-      const primaryContact = contacts[0];
-      console.log('Primary contact:', primaryContact);
+      // Separate primary contact and additional contacts
+      const [primaryContact, ...additionalContacts] = contacts;
+      
+      if (!primaryContact) {
+        throw new Error('At least one primary contact is required');
+      }
 
-      // Get additional contacts (all contacts except the primary one)
-      const additionalContacts = contacts.slice(1);
-      console.log('Additional contacts:', additionalContacts);
-
-      // Prepare the update data with all information
+      // Prepare the update data
       const dataToUpdate = {
         ...formData,
         contact_name: `${primaryContact.firstName} ${primaryContact.lastName}`.trim(),
         contact_email: primaryContact.email,
         contact_phone: primaryContact.phone,
-        additional_contacts: additionalContacts.length > 0 ? additionalContacts : null
+        // Store up to 5 additional contacts
+        additional_contacts: additionalContacts.slice(0, 5)
       };
 
-      console.log('Final data to update:', dataToUpdate);
+      console.log('Updating client with data:', dataToUpdate);
       
       const { data, error } = await supabase
         .from('clients')
@@ -51,7 +51,7 @@ export const useClientUpdate = (id: string | undefined, onSuccess?: () => void) 
         throw error;
       }
       
-      console.log('Update response:', data);
+      console.log('Update successful:', data);
       return data;
     },
     onSuccess: (data) => {
