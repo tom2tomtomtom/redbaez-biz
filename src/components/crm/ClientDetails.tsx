@@ -94,7 +94,22 @@ export const ClientDetails = () => {
 
   const handleForecastUpdate = async (forecasts: MonthlyForecast[]) => {
     console.log('Updating forecasts:', forecasts);
-    updateMutation.mutate({ formData: { ...client }, contacts });
+    const formDataWithForecasts = {
+      ...client,
+      forecast_jan: forecasts.find(f => f.month === 'Jan')?.amount || 0,
+      forecast_feb: forecasts.find(f => f.month === 'Feb')?.amount || 0,
+      forecast_mar: forecasts.find(f => f.month === 'Mar')?.amount || 0,
+      forecast_apr: forecasts.find(f => f.month === 'Apr')?.amount || 0,
+      forecast_may: forecasts.find(f => f.month === 'May')?.amount || 0,
+      forecast_jun: forecasts.find(f => f.month === 'Jun')?.amount || 0,
+      forecast_jul: forecasts.find(f => f.month === 'Jul')?.amount || 0,
+      forecast_aug: forecasts.find(f => f.month === 'Aug')?.amount || 0,
+      forecast_sep: forecasts.find(f => f.month === 'Sep')?.amount || 0,
+      forecast_oct: forecasts.find(f => f.month === 'Oct')?.amount || 0,
+      forecast_nov: forecasts.find(f => f.month === 'Nov')?.amount || 0,
+      forecast_dec: forecasts.find(f => f.month === 'Dec')?.amount || 0,
+    };
+    updateMutation.mutate({ formData: formDataWithForecasts, contacts });
   };
 
   if (isEditing) {
