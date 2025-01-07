@@ -23,61 +23,52 @@ export const RevenueChart = ({
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [chartData, setChartData] = useState(revenueData);
 
-  console.log('RevenueChart received monthlyForecasts:', monthlyForecasts); // Debug log
-
   // Initialize local forecasts when monthlyForecasts prop changes
   useEffect(() => {
-    console.log('Initializing local forecasts with:', monthlyForecasts); // Debug log
+    console.log('Initializing local forecasts with:', monthlyForecasts);
     const initialForecasts = revenueData.map(item => {
       const existingForecast = monthlyForecasts.find(f => f.month === item.month);
       return {
         month: item.month,
-        amount: existingForecast ? existingForecast.amount : item.value
+        amount: existingForecast ? existingForecast.amount : 0
       };
     });
     setLocalForecasts(initialForecasts);
-    setChartData(revenueData.map(item => {
-      const forecast = monthlyForecasts.find(f => f.month === item.month);
-      return {
-        month: item.month,
-        value: item.value,
-        forecast: forecast ? forecast.amount : item.value
-      };
-    }));
+    updateChartData(initialForecasts);
   }, [monthlyForecasts, revenueData]);
 
-  // Update chart data when local forecasts change
-  useEffect(() => {
-    console.log('Updating chart data with local forecasts:', localForecasts); // Debug log
+  const updateChartData = (forecasts: Array<{ month: string; amount: number }>) => {
     const newChartData = revenueData.map(item => {
-      const forecast = localForecasts.find(f => f.month === item.month);
+      const forecast = forecasts.find(f => f.month === item.month);
       return {
         month: item.month,
         value: item.value,
-        forecast: forecast ? forecast.amount : item.value
+        forecast: forecast ? forecast.amount : 0
       };
     });
     setChartData(newChartData);
-  }, [localForecasts, revenueData]);
+  };
 
   const handleForecastChange = (month: string, value: string) => {
     const numericValue = value === '' ? 0 : Number(value);
     
     if (!isNaN(numericValue)) {
-      console.log('Updating local forecast for month:', month, 'with value:', numericValue); // Debug log
+      console.log('Updating local forecast for month:', month, 'with value:', numericValue);
       
       const updatedForecasts = localForecasts.map(f => 
         f.month === month ? { ...f, amount: numericValue } : f
       );
       
       setLocalForecasts(updatedForecasts);
+      updateChartData(updatedForecasts);
       setHasUnsavedChanges(true);
     }
   };
 
   const handleSaveChanges = () => {
-    console.log('Saving all forecast changes:', localForecasts); // Debug log
+    console.log('Saving all forecast changes:', localForecasts);
     if (onForecastUpdate) {
+      // Save all forecasts at once
       localForecasts.forEach(forecast => {
         onForecastUpdate(forecast.month, forecast.amount);
       });
@@ -135,7 +126,7 @@ export const RevenueChart = ({
                   </label>
                   <Input
                     type="number"
-                    value={forecast ? forecast.amount : item.value}
+                    value={forecast ? forecast.amount : 0}
                     onChange={(e) => handleForecastChange(item.month, e.target.value)}
                     className="w-full"
                     placeholder="Enter forecast"

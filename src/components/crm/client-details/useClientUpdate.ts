@@ -38,7 +38,7 @@ export const useClientUpdate = (clientId: string | undefined, onSuccess?: () => 
         ...contact
       })) : null;
 
-      // Ensure monthly forecasts are properly formatted
+      // Ensure monthly forecasts are properly formatted and calculate total annual revenue
       const monthlyForecasts = formData.monthly_revenue_forecasts 
         ? Array.isArray(formData.monthly_revenue_forecasts) 
           ? formData.monthly_revenue_forecasts.map((forecast: any) => ({
@@ -46,9 +46,14 @@ export const useClientUpdate = (clientId: string | undefined, onSuccess?: () => 
               amount: Number(forecast.amount)
             }))
           : []
-        : null;
+        : [];
 
-      console.log('Updating monthly forecasts:', monthlyForecasts); // Debug log
+      // Calculate total annual revenue from monthly forecasts
+      const calculatedAnnualRevenue = monthlyForecasts.reduce((total, forecast) => 
+        total + Number(forecast.amount), 0
+      );
+
+      console.log('Calculated annual revenue from forecasts:', calculatedAnnualRevenue);
 
       const clientData = {
         name: formData.name,
@@ -56,7 +61,7 @@ export const useClientUpdate = (clientId: string | undefined, onSuccess?: () => 
         industry: formData.industry || null,
         company_size: formData.company_size || null,
         status: formData.status || 'prospect',
-        annual_revenue: formData.annual_revenue ? Number(formData.annual_revenue) : null,
+        annual_revenue: calculatedAnnualRevenue, // Use calculated total from monthly forecasts
         project_revenue: formData.project_revenue ? Number(formData.project_revenue) : null,
         website: formData.website || null,
         notes: formData.notes,
@@ -74,7 +79,7 @@ export const useClientUpdate = (clientId: string | undefined, onSuccess?: () => 
         monthly_revenue_forecasts: monthlyForecasts,
       };
 
-      console.log('Updating client with data:', clientData); // Debug log
+      console.log('Updating client with data:', clientData);
       
       const { error } = await supabase
         .from('clients')
