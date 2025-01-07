@@ -8,7 +8,6 @@ interface ClientEditModeProps {
   contacts: Contact[];
   nextSteps: string;
   nextDueDate: string;
-  onCancel: () => void;
   onSave: (formData: any) => void;
   onContactsChange: (contacts: Contact[]) => void;
   onNextStepsChange: (steps: string) => void;
@@ -21,7 +20,6 @@ export const ClientEditMode: React.FC<ClientEditModeProps> = ({
   contacts,
   nextSteps,
   nextDueDate,
-  onCancel,
   onSave,
   onContactsChange,
   onNextStepsChange,
@@ -41,8 +39,7 @@ export const ClientEditMode: React.FC<ClientEditModeProps> = ({
       contacts={contacts}
       nextSteps={nextSteps}
       nextDueDate={nextDueDate}
-      onCancel={onCancel}
-      onSave={handleSave}
+      onSubmit={handleSave}
       onContactsChange={onContactsChange}
       onNextStepsChange={onNextStepsChange}
       onNextDueDateChange={onNextDueDateChange}

@@ -51,14 +51,14 @@ export const KeyMetricsCard = ({
     <Card className="col-span-1 lg:col-span-12 p-6">
       <div className="grid gap-6 md:grid-cols-3">
         <AnnualRevenueMetric 
-          annualRevenue={annualRevenue} 
-          signedOff={annualRevenueSignedOff}
-          forecast={annualRevenueForecast}
+          value={annualRevenue} 
+          signedOffValue={annualRevenueSignedOff}
+          forecastValue={annualRevenueForecast}
         />
         <ProjectRevenueMetric 
-          projectRevenue={projectRevenue}
-          signedOff={projectRevenueSignedOff}
-          forecast={projectRevenueForecast}
+          value={projectRevenue}
+          isSignedOff={projectRevenueSignedOff}
+          isForecast={projectRevenueForecast}
         />
         <DealLikelihood likelihood={likelihood} />
       </div>
