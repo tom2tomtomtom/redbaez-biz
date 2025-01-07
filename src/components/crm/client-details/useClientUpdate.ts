@@ -23,16 +23,18 @@ export const useClientUpdate = (id: string | undefined, onSuccess?: () => void) 
       const primaryContact = contacts[0];
       console.log('Primary contact for update:', primaryContact);
 
+      // Get additional contacts (all contacts except the primary one)
+      const additionalContacts = contacts.slice(1);
+      console.log('Additional contacts for update:', additionalContacts);
+
       // Prepare the update data with contact information
       const dataToUpdate = {
         ...formData,
         contact_name: primaryContact ? `${primaryContact.firstName} ${primaryContact.lastName}`.trim() : null,
         contact_email: primaryContact?.email || null,
         contact_phone: primaryContact?.phone || null,
-        // Store additional contacts as JSONB
-        additional_contacts: contacts.length > 1 
-          ? contacts.slice(1)  // Store only additional contacts, not the primary one
-          : null
+        // Store additional contacts as JSONB, only if there are any
+        additional_contacts: additionalContacts.length > 0 ? additionalContacts : null
       };
 
       console.log('Updating client with data:', dataToUpdate);
