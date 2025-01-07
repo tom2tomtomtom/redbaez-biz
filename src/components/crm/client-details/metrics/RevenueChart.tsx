@@ -3,10 +3,11 @@ import { useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Edit2, Save } from 'lucide-react';
+import { MonthlyForecast } from '../types/MonthlyForecast';
 
 interface RevenueChartProps {
   revenueData: Array<{ month: string; value: number }>;
-  monthlyForecasts: Array<{ month: string; amount: number }>;
+  monthlyForecasts: MonthlyForecast[];
   isEditing?: boolean;
   onForecastUpdate?: (month: string, amount: number) => void;
 }
@@ -30,11 +31,6 @@ export const RevenueChart = ({
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [chartData, setChartData] = useState(revenueData);
 
-  // Calculate total annual revenue from monthly forecasts
-  const calculateAnnualRevenue = () => {
-    return localForecasts.reduce((total, forecast) => total + (forecast.amount || 0), 0);
-  };
-
   // Update chart data when local forecasts change
   useEffect(() => {
     const newChartData = revenueData.map(item => {
@@ -49,10 +45,8 @@ export const RevenueChart = ({
   }, [localForecasts, revenueData]);
 
   const handleForecastChange = (month: string, value: string) => {
-    // Convert empty string to 0, otherwise parse the number
     const numericValue = value === '' ? 0 : Number(value);
     
-    // Only update if it's a valid number
     if (!isNaN(numericValue)) {
       console.log('Updating local forecast for month:', month, 'with value:', numericValue);
       
@@ -73,6 +67,11 @@ export const RevenueChart = ({
       });
     }
     setHasUnsavedChanges(false);
+  };
+
+  // Calculate total annual revenue from monthly forecasts
+  const calculateAnnualRevenue = () => {
+    return localForecasts.reduce((total, forecast) => total + (forecast.amount || 0), 0);
   };
 
   return (

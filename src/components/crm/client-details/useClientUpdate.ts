@@ -38,6 +38,13 @@ export const useClientUpdate = (clientId: string | undefined, onSuccess?: () => 
         ...contact
       })) : null;
 
+      // Format monthly forecasts as a JSON array if present
+      const monthlyForecasts = formData.monthly_revenue_forecasts 
+        ? Array.isArray(formData.monthly_revenue_forecasts) 
+          ? formData.monthly_revenue_forecasts 
+          : []
+        : null;
+
       const clientData = {
         name: formData.name,
         type: formData.type,
@@ -59,6 +66,7 @@ export const useClientUpdate = (clientId: string | undefined, onSuccess?: () => 
         project_revenue_forecast: Boolean(formData.project_revenue_forecast),
         annual_revenue_signed_off: Number(formData.annual_revenue_signed_off || 0),
         annual_revenue_forecast: Number(formData.annual_revenue_forecast || 0),
+        monthly_revenue_forecasts: monthlyForecasts,
       };
 
       console.log('Updating client with data:', clientData);
