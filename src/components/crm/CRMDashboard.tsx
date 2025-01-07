@@ -6,7 +6,14 @@ import { PriorityActions } from './priority-actions/PriorityActions';
 
 export const CRMDashboard = () => {
   const [activeTab, setActiveTab] = useState('newClient');
-  const [contacts, setContacts] = useState([{ name: '', title: '' }]);
+  const [contacts, setContacts] = useState([{ 
+    firstName: '', 
+    lastName: '', 
+    title: '', 
+    email: '', 
+    address: '', 
+    phone: '' 
+  }]);
   const [nextSteps, setNextSteps] = useState('');
   const [nextDueDate, setNextDueDate] = useState('');
   const [searchInput, setSearchInput] = useState('');

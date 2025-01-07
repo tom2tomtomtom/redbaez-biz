@@ -10,8 +10,12 @@ import { StatusSection } from './StatusSection';
 import { NextStepsSection } from './NextStepsSection';
 
 interface Contact {
-  name: string;
+  firstName: string;
+  lastName: string;
   title: string;
+  email: string;
+  address: string;
+  phone: string;
 }
 
 interface ClientFormProps {
@@ -49,14 +53,23 @@ export const ClientForm = ({
 
     setIsLoading(true);
     try {
-      const primaryContact = contacts[0] || { name: '', title: '' };
+      const primaryContact = contacts[0] || { 
+        firstName: '', 
+        lastName: '', 
+        title: '', 
+        email: '', 
+        address: '', 
+        phone: '' 
+      };
       
       const { error } = await supabase
         .from('clients')
         .insert({
           name: companyName,
           type: 'business',
-          contact_name: primaryContact.name,
+          contact_name: `${primaryContact.firstName} ${primaryContact.lastName}`.trim(),
+          contact_email: primaryContact.email,
+          contact_phone: primaryContact.phone,
           status: status || 'prospect',
           notes: nextSteps,
           missing_fields: [],
@@ -73,7 +86,14 @@ export const ClientForm = ({
       setCompanyName('');
       setStatus('');
       setLikelihood('');
-      onContactsChange([{ name: '', title: '' }]);
+      onContactsChange([{ 
+        firstName: '', 
+        lastName: '', 
+        title: '', 
+        email: '', 
+        address: '', 
+        phone: '' 
+      }]);
       onNextStepsChange('');
       onNextDueDateChange('');
 
