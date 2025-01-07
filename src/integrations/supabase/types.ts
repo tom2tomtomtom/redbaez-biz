@@ -24,6 +24,7 @@ export type Database = {
           missing_fields: string[] | null
           name: string
           notes: string | null
+          project_revenue: number | null
           status: string | null
           type: string
           website: string | null
@@ -42,6 +43,7 @@ export type Database = {
           missing_fields?: string[] | null
           name: string
           notes?: string | null
+          project_revenue?: number | null
           status?: string | null
           type: string
           website?: string | null
@@ -60,6 +62,7 @@ export type Database = {
           missing_fields?: string[] | null
           name?: string
           notes?: string | null
+          project_revenue?: number | null
           status?: string | null
           type?: string
           website?: string | null

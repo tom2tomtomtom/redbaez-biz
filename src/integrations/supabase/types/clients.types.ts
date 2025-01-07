@@ -14,6 +14,8 @@ export type ClientRow = {
   status: string | null
   type: string
   website: string | null
+  project_revenue: number | null
+  background: string | null
 }
 
 export type ClientInsert = {
@@ -32,6 +34,8 @@ export type ClientInsert = {
   status?: string | null
   type: string
   website?: string | null
+  project_revenue?: number | null
+  background?: string | null
 }
 
 export type ClientUpdate = {
@@ -50,4 +54,6 @@ export type ClientUpdate = {
   status?: string | null
   type?: string
   website?: string | null
+  project_revenue?: number | null
+  background?: string | null
 }
