@@ -37,12 +37,29 @@ export const ClientDetails = () => {
         .single();
       
       if (error) throw error;
+
+      // Initialize contacts from client data
+      if (data) {
+        const [firstName = '', lastName = ''] = (data.contact_name || '').split(' ');
+        setContacts([{
+          firstName,
+          lastName,
+          title: '',
+          email: data.contact_email || '',
+          address: '',
+          phone: data.contact_phone || ''
+        }]);
+        setNextSteps(data.notes || '');
+        setNextDueDate(data.next_due_date || '');
+      }
+      
       return data;
     },
   });
 
   const updateMutation = useMutation({
     mutationFn: async (updatedData: any) => {
+      console.log('Updating client with data:', updatedData);
       const { error } = await supabase
         .from('clients')
         .update(updatedData)
@@ -82,7 +99,24 @@ export const ClientDetails = () => {
   }
 
   const handleSave = async (formData: any) => {
-    updateMutation.mutate(formData);
+    // Get the primary contact from the contacts array
+    const primaryContact = contacts[0] || {
+      firstName: '',
+      lastName: '',
+      email: '',
+      phone: ''
+    };
+
+    // Prepare the update data with contact information
+    const updateData = {
+      ...formData,
+      contact_name: `${primaryContact.firstName} ${primaryContact.lastName}`.trim(),
+      contact_email: primaryContact.email,
+      contact_phone: primaryContact.phone,
+    };
+
+    console.log('Saving client with data:', updateData);
+    updateMutation.mutate(updateData);
   };
 
   const revenueData = [
