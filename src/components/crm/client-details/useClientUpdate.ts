@@ -71,15 +71,17 @@ const prepareClientData = async (clientId: string, formData: any, contacts: Cont
   
   const { primaryContact, formattedAdditionalContacts } = formatContacts(contacts);
 
-  // Parse numeric values
+  // Parse numeric values - IMPORTANT: Use the revenue state values directly
   const projectRevenue = parseNumericValue(formData.project_revenue);
   const annualRevenue = parseNumericValue(formData.annual_revenue);
   
-  // Use the values directly from formData for these fields
-  const projectRevenueSignedOff = formData.project_revenue_signed_off;
-  const projectRevenueForecast = formData.project_revenue_forecast;
-  const annualRevenueSignedOff = parseFloat(formData.annual_revenue_signed_off) || 0;
-  const annualRevenueForecast = parseFloat(formData.annual_revenue_forecast) || 0;
+  // Convert boolean values explicitly
+  const projectRevenueSignedOff = Boolean(formData.project_revenue_signed_off);
+  const projectRevenueForecast = Boolean(formData.project_revenue_forecast);
+  
+  // Parse numeric values for signed off and forecast amounts
+  const annualRevenueSignedOff = parseNumericValue(formData.annual_revenue_signed_off) ?? 0;
+  const annualRevenueForecast = parseNumericValue(formData.annual_revenue_forecast) ?? 0;
 
   console.log('Parsed values:', {
     projectRevenueSignedOff,
