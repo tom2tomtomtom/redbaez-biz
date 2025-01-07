@@ -23,8 +23,11 @@ export const RevenueChart = ({
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [chartData, setChartData] = useState(revenueData);
 
+  console.log('RevenueChart received monthlyForecasts:', monthlyForecasts); // Debug log
+
   // Initialize local forecasts when monthlyForecasts prop changes
   useEffect(() => {
+    console.log('Initializing local forecasts with:', monthlyForecasts); // Debug log
     const initialForecasts = revenueData.map(item => {
       const existingForecast = monthlyForecasts.find(f => f.month === item.month);
       return {
@@ -33,10 +36,19 @@ export const RevenueChart = ({
       };
     });
     setLocalForecasts(initialForecasts);
+    setChartData(revenueData.map(item => {
+      const forecast = monthlyForecasts.find(f => f.month === item.month);
+      return {
+        month: item.month,
+        value: item.value,
+        forecast: forecast ? forecast.amount : item.value
+      };
+    }));
   }, [monthlyForecasts, revenueData]);
 
   // Update chart data when local forecasts change
   useEffect(() => {
+    console.log('Updating chart data with local forecasts:', localForecasts); // Debug log
     const newChartData = revenueData.map(item => {
       const forecast = localForecasts.find(f => f.month === item.month);
       return {
@@ -52,7 +64,7 @@ export const RevenueChart = ({
     const numericValue = value === '' ? 0 : Number(value);
     
     if (!isNaN(numericValue)) {
-      console.log('Updating local forecast for month:', month, 'with value:', numericValue);
+      console.log('Updating local forecast for month:', month, 'with value:', numericValue); // Debug log
       
       const updatedForecasts = localForecasts.map(f => 
         f.month === month ? { ...f, amount: numericValue } : f
@@ -64,7 +76,7 @@ export const RevenueChart = ({
   };
 
   const handleSaveChanges = () => {
-    console.log('Saving all forecast changes');
+    console.log('Saving all forecast changes:', localForecasts); // Debug log
     if (onForecastUpdate) {
       localForecasts.forEach(forecast => {
         onForecastUpdate(forecast.month, forecast.amount);

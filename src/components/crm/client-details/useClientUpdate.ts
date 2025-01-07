@@ -38,12 +38,17 @@ export const useClientUpdate = (clientId: string | undefined, onSuccess?: () => 
         ...contact
       })) : null;
 
-      // Format monthly forecasts as a JSON array if present
+      // Ensure monthly forecasts are properly formatted
       const monthlyForecasts = formData.monthly_revenue_forecasts 
         ? Array.isArray(formData.monthly_revenue_forecasts) 
-          ? formData.monthly_revenue_forecasts 
+          ? formData.monthly_revenue_forecasts.map((forecast: any) => ({
+              month: String(forecast.month),
+              amount: Number(forecast.amount)
+            }))
           : []
         : null;
+
+      console.log('Updating monthly forecasts:', monthlyForecasts); // Debug log
 
       const clientData = {
         name: formData.name,
@@ -69,7 +74,7 @@ export const useClientUpdate = (clientId: string | undefined, onSuccess?: () => 
         monthly_revenue_forecasts: monthlyForecasts,
       };
 
-      console.log('Updating client with data:', clientData);
+      console.log('Updating client with data:', clientData); // Debug log
       
       const { error } = await supabase
         .from('clients')
