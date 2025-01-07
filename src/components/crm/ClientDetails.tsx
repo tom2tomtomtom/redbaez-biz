@@ -39,7 +39,6 @@ export const ClientDetails = () => {
       
       if (error) throw error;
 
-      // Initialize contacts from client data
       if (data) {
         console.log('Received client data:', data);
         const [firstName = '', lastName = ''] = (data.contact_name || '').split(' ');
@@ -61,7 +60,9 @@ export const ClientDetails = () => {
 
   const updateMutation = useMutation({
     mutationFn: async (updatedData: any) => {
+      // Log the data being sent to the update
       console.log('Updating client with data:', updatedData);
+      
       const { data, error } = await supabase
         .from('clients')
         .update(updatedData)
