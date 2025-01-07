@@ -26,7 +26,7 @@ export const ClientDetails = () => {
   }]);
   const [nextSteps, setNextSteps] = useState('');
   const [nextDueDate, setNextDueDate] = useState('');
-  
+
   const { data: client, isLoading, error } = useQuery({
     queryKey: ['client', id],
     queryFn: async () => {
@@ -161,6 +161,8 @@ export const ClientDetails = () => {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         <KeyMetricsCard 
           annualRevenue={client.annual_revenue}
+          projectRevenue={client.project_revenue}
+          likelihood={client.likelihood}
           revenueData={revenueData}
         />
 
