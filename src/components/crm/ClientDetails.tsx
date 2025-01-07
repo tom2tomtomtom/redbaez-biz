@@ -53,8 +53,15 @@ export const ClientDetails = () => {
         // Add additional contacts if they exist
         try {
           if (data.additional_contacts) {
-            const additionalContacts = JSON.parse(data.additional_contacts);
-            setContacts([...initialContacts, ...(Array.isArray(additionalContacts) ? additionalContacts : [])]);
+            const additionalContactsData = typeof data.additional_contacts === 'string' 
+              ? JSON.parse(data.additional_contacts) 
+              : data.additional_contacts;
+            
+            const additionalContacts = Array.isArray(additionalContactsData) 
+              ? additionalContactsData 
+              : [];
+            
+            setContacts([...initialContacts, ...additionalContacts]);
           } else {
             setContacts(initialContacts);
           }
