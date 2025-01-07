@@ -2,7 +2,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import { useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Edit2, Save } from 'lucide-react';
+import { Edit2 } from 'lucide-react';
 import { MonthlyForecast } from '../types/MonthlyForecast';
 
 interface RevenueChartProps {
@@ -20,7 +20,6 @@ export const RevenueChart = ({
 }: RevenueChartProps) => {
   const [showTable, setShowTable] = useState(false);
   const [localForecasts, setLocalForecasts] = useState<MonthlyForecast[]>([]);
-  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [chartData, setChartData] = useState(revenueData);
 
   // Initialize local forecasts when monthlyForecasts prop changes
@@ -61,19 +60,12 @@ export const RevenueChart = ({
       
       setLocalForecasts(updatedForecasts);
       updateChartData(updatedForecasts);
-      setHasUnsavedChanges(true);
+      
+      // Immediately notify parent of changes
+      if (onForecastUpdate) {
+        onForecastUpdate(month, numericValue);
+      }
     }
-  };
-
-  const handleSaveChanges = () => {
-    console.log('Saving all forecast changes:', localForecasts);
-    if (onForecastUpdate) {
-      // Save all forecasts at once
-      localForecasts.forEach(forecast => {
-        onForecastUpdate(forecast.month, forecast.amount);
-      });
-    }
-    setHasUnsavedChanges(false);
   };
 
   // Calculate total annual revenue from monthly forecasts
@@ -89,28 +81,15 @@ export const RevenueChart = ({
           <p className="text-sm text-gray-600">Annual Total: ${calculateAnnualRevenue().toLocaleString()}</p>
         </div>
         {isEditing && (
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowTable(!showTable)}
-              className="flex items-center gap-2"
-            >
-              <Edit2 className="h-4 w-4" />
-              {showTable ? 'Show Chart' : 'Edit Forecasts'}
-            </Button>
-            {showTable && hasUnsavedChanges && (
-              <Button
-                variant="default"
-                size="sm"
-                onClick={handleSaveChanges}
-                className="flex items-center gap-2"
-              >
-                <Save className="h-4 w-4" />
-                Save Changes
-              </Button>
-            )}
-          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setShowTable(!showTable)}
+            className="flex items-center gap-2"
+          >
+            <Edit2 className="h-4 w-4" />
+            {showTable ? 'Show Chart' : 'Edit Forecasts'}
+          </Button>
         )}
       </div>
 

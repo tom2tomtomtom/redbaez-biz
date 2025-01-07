@@ -19,6 +19,7 @@ export const ClientDetails = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [nextSteps, setNextSteps] = useState('');
   const [nextDueDate, setNextDueDate] = useState('');
+  const [currentForecasts, setCurrentForecasts] = useState<MonthlyForecast[]>([]);
 
   // Validate id parameter
   if (!id || isNaN(Number(id))) {
@@ -63,7 +64,26 @@ export const ClientDetails = () => {
   const handleSave = async (formData: any) => {
     console.log('Saving client with form data:', formData);
     console.log('Current contacts:', contacts);
-    updateMutation.mutate({ formData, contacts });
+    
+    // Include the current forecasts in the form data
+    const formDataWithForecasts = {
+      ...formData,
+      forecast_jan: currentForecasts.find(f => f.month === 'Jan')?.amount || client.forecast_jan || 0,
+      forecast_feb: currentForecasts.find(f => f.month === 'Feb')?.amount || client.forecast_feb || 0,
+      forecast_mar: currentForecasts.find(f => f.month === 'Mar')?.amount || client.forecast_mar || 0,
+      forecast_apr: currentForecasts.find(f => f.month === 'Apr')?.amount || client.forecast_apr || 0,
+      forecast_may: currentForecasts.find(f => f.month === 'May')?.amount || client.forecast_may || 0,
+      forecast_jun: currentForecasts.find(f => f.month === 'Jun')?.amount || client.forecast_jun || 0,
+      forecast_jul: currentForecasts.find(f => f.month === 'Jul')?.amount || client.forecast_jul || 0,
+      forecast_aug: currentForecasts.find(f => f.month === 'Aug')?.amount || client.forecast_aug || 0,
+      forecast_sep: currentForecasts.find(f => f.month === 'Sep')?.amount || client.forecast_sep || 0,
+      forecast_oct: currentForecasts.find(f => f.month === 'Oct')?.amount || client.forecast_oct || 0,
+      forecast_nov: currentForecasts.find(f => f.month === 'Nov')?.amount || client.forecast_nov || 0,
+      forecast_dec: currentForecasts.find(f => f.month === 'Dec')?.amount || client.forecast_dec || 0,
+    };
+    
+    console.log('Saving all data together:', formDataWithForecasts);
+    updateMutation.mutate({ formData: formDataWithForecasts, contacts });
   };
 
   // Generate monthly revenue data including forecasts
@@ -92,25 +112,18 @@ export const ClientDetails = () => {
     { month: 'Dec', amount: client.forecast_dec || 0 },
   ];
 
-  const handleForecastUpdate = async (forecasts: MonthlyForecast[]) => {
-    console.log('Updating forecasts:', forecasts);
-    const formDataWithForecasts = {
-      ...client,
-      forecast_jan: forecasts.find(f => f.month === 'Jan')?.amount || 0,
-      forecast_feb: forecasts.find(f => f.month === 'Feb')?.amount || 0,
-      forecast_mar: forecasts.find(f => f.month === 'Mar')?.amount || 0,
-      forecast_apr: forecasts.find(f => f.month === 'Apr')?.amount || 0,
-      forecast_may: forecasts.find(f => f.month === 'May')?.amount || 0,
-      forecast_jun: forecasts.find(f => f.month === 'Jun')?.amount || 0,
-      forecast_jul: forecasts.find(f => f.month === 'Jul')?.amount || 0,
-      forecast_aug: forecasts.find(f => f.month === 'Aug')?.amount || 0,
-      forecast_sep: forecasts.find(f => f.month === 'Sep')?.amount || 0,
-      forecast_oct: forecasts.find(f => f.month === 'Oct')?.amount || 0,
-      forecast_nov: forecasts.find(f => f.month === 'Nov')?.amount || 0,
-      forecast_dec: forecasts.find(f => f.month === 'Dec')?.amount || 0,
-    };
-    console.log('Sending forecast data to update:', formDataWithForecasts);
-    updateMutation.mutate({ formData: formDataWithForecasts, contacts });
+  const handleForecastUpdate = (month: string, amount: number) => {
+    console.log('Updating forecast for month:', month, 'with amount:', amount);
+    const updatedForecasts = [...(currentForecasts.length ? currentForecasts : monthlyForecasts)];
+    const forecastIndex = updatedForecasts.findIndex(f => f.month === month);
+    
+    if (forecastIndex >= 0) {
+      updatedForecasts[forecastIndex] = { month, amount };
+    } else {
+      updatedForecasts.push({ month, amount });
+    }
+    
+    setCurrentForecasts(updatedForecasts);
   };
 
   if (isEditing) {
