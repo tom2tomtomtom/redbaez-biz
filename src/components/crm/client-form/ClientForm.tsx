@@ -40,6 +40,10 @@ export const ClientForm = ({
   const [likelihood, setLikelihood] = useState('');
   const [projectRevenue, setProjectRevenue] = useState('');
   const [revenue, setRevenue] = useState('');
+  const [type, setType] = useState('business');
+  const [industry, setIndustry] = useState('');
+  const [companySize, setCompanySize] = useState('');
+  const [website, setWebsite] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
   const resetForm = () => {
@@ -48,6 +52,10 @@ export const ClientForm = ({
     setLikelihood('');
     setProjectRevenue('');
     setRevenue('');
+    setType('business');
+    setIndustry('');
+    setCompanySize('');
+    setWebsite('');
     onContactsChange([{ 
       firstName: '', 
       lastName: '', 
@@ -85,12 +93,15 @@ export const ClientForm = ({
         .from('clients')
         .insert({
           name: companyName,
-          type: 'business',
+          type: type,
+          industry: industry || null,
           contact_name: `${primaryContact.firstName} ${primaryContact.lastName}`.trim(),
           contact_email: primaryContact.email,
           contact_phone: primaryContact.phone,
+          company_size: companySize || null,
           status: status || 'prospect',
           annual_revenue: revenue ? parseFloat(revenue) : null,
+          website: website || null,
           notes: nextSteps,
           missing_fields: [],
         });
@@ -140,10 +151,18 @@ export const ClientForm = ({
             likelihood={likelihood}
             projectRevenue={projectRevenue}
             revenue={revenue}
+            type={type}
+            industry={industry}
+            companySize={companySize}
+            website={website}
             onStatusChange={setStatus}
             onLikelihoodChange={setLikelihood}
             onProjectRevenueChange={setProjectRevenue}
             onRevenueChange={setRevenue}
+            onTypeChange={setType}
+            onIndustryChange={setIndustry}
+            onCompanySizeChange={setCompanySize}
+            onWebsiteChange={setWebsite}
           />
 
           <NextStepsSection

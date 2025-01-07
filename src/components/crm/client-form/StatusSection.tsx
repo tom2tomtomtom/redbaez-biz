@@ -13,10 +13,18 @@ interface StatusSectionProps {
   likelihood: string;
   projectRevenue: string;
   revenue: string;
+  type: string;
+  industry: string;
+  companySize: string;
+  website: string;
   onStatusChange: (value: string) => void;
   onLikelihoodChange: (value: string) => void;
   onProjectRevenueChange: (value: string) => void;
   onRevenueChange: (value: string) => void;
+  onTypeChange: (value: string) => void;
+  onIndustryChange: (value: string) => void;
+  onCompanySizeChange: (value: string) => void;
+  onWebsiteChange: (value: string) => void;
 }
 
 export const StatusSection = ({
@@ -24,13 +32,73 @@ export const StatusSection = ({
   likelihood,
   projectRevenue,
   revenue,
+  type,
+  industry,
+  companySize,
+  website,
   onStatusChange,
   onLikelihoodChange,
   onProjectRevenueChange,
   onRevenueChange,
+  onTypeChange,
+  onIndustryChange,
+  onCompanySizeChange,
+  onWebsiteChange,
 }: StatusSectionProps) => {
   return (
     <>
+      <div>
+        <Label>Type</Label>
+        <Select value={type} onValueChange={onTypeChange}>
+          <SelectTrigger className="transition-all duration-300">
+            <SelectValue placeholder="Select type" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="business">Business</SelectItem>
+            <SelectItem value="individual">Individual</SelectItem>
+            <SelectItem value="government">Government</SelectItem>
+            <SelectItem value="non-profit">Non-Profit</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div>
+        <Label>Industry</Label>
+        <Input 
+          placeholder="Enter industry" 
+          value={industry}
+          onChange={(e) => onIndustryChange(e.target.value)}
+          className="transition-all duration-300" 
+        />
+      </div>
+
+      <div>
+        <Label>Company Size</Label>
+        <Select value={companySize} onValueChange={onCompanySizeChange}>
+          <SelectTrigger className="transition-all duration-300">
+            <SelectValue placeholder="Select size" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="1-10">1-10 employees</SelectItem>
+            <SelectItem value="11-50">11-50 employees</SelectItem>
+            <SelectItem value="51-200">51-200 employees</SelectItem>
+            <SelectItem value="201-500">201-500 employees</SelectItem>
+            <SelectItem value="501+">501+ employees</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div>
+        <Label>Website</Label>
+        <Input 
+          type="url" 
+          placeholder="Enter website URL" 
+          value={website}
+          onChange={(e) => onWebsiteChange(e.target.value)}
+          className="transition-all duration-300" 
+        />
+      </div>
+
       <div>
         <Label>Status</Label>
         <Select value={status} onValueChange={onStatusChange}>
