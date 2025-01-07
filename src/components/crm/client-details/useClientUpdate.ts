@@ -19,27 +19,26 @@ export const useClientUpdate = (id: string | undefined, onSuccess?: () => void) 
     mutationFn: async ({ formData, contacts }: { formData: any; contacts: Contact[] }) => {
       if (!id) throw new Error('Client ID is required');
 
-      console.log('All contacts before update:', contacts);
+      console.log('Starting update with all data:', { formData, contacts });
 
       // Get the primary contact from the contacts array
       const primaryContact = contacts[0];
-      console.log('Primary contact for update:', primaryContact);
+      console.log('Primary contact:', primaryContact);
 
       // Get additional contacts (all contacts except the primary one)
       const additionalContacts = contacts.slice(1);
-      console.log('Additional contacts for update:', additionalContacts);
+      console.log('Additional contacts:', additionalContacts);
 
-      // Prepare the update data with contact information
+      // Prepare the update data with all information
       const dataToUpdate = {
         ...formData,
         contact_name: `${primaryContact.firstName} ${primaryContact.lastName}`.trim(),
         contact_email: primaryContact.email,
         contact_phone: primaryContact.phone,
-        // Store additional contacts as JSONB array
         additional_contacts: additionalContacts.length > 0 ? additionalContacts : null
       };
 
-      console.log('Updating client with data:', dataToUpdate);
+      console.log('Final data to update:', dataToUpdate);
       
       const { data, error } = await supabase
         .from('clients')

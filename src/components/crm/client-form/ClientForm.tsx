@@ -58,28 +58,15 @@ export const ClientForm = ({
       setCompanyName(initialData.name || '');
       setStatus(initialData.status || '');
       setLikelihood(initialData.likelihood?.toString() || '');
+      setProjectRevenue(initialData.project_revenue?.toString() || '');
       setRevenue(initialData.annual_revenue?.toString() || '');
       setType(initialData.type || 'business');
       setIndustry(initialData.industry || '');
       setCompanySize(initialData.company_size || '');
       setWebsite(initialData.website || '');
       setBackground(initialData.background || '');
-      
-      if (initialData.contact_name || initialData.contact_email || initialData.contact_phone) {
-        const [firstName = '', lastName = ''] = (initialData.contact_name || '').split(' ');
-        onContactsChange([{
-          firstName,
-          lastName,
-          title: '',
-          email: initialData.contact_email || '',
-          address: '',
-          phone: initialData.contact_phone || '',
-        }]);
-      }
-      
-      onNextStepsChange(initialData.notes || '');
     }
-  }, [initialData, isEditing, onContactsChange, onNextStepsChange]);
+  }, [initialData, isEditing]);
 
   const resetForm = () => {
     setCompanyName('');
@@ -105,6 +92,8 @@ export const ClientForm = ({
   };
 
   const handleSave = async () => {
+    console.log('Handling save with contacts:', contacts);
+    
     if (!companyName) {
       toast({
         title: "Error",
@@ -116,25 +105,14 @@ export const ClientForm = ({
 
     setIsLoading(true);
     try {
-      const primaryContact = contacts[0] || { 
-        firstName: '', 
-        lastName: '', 
-        title: '', 
-        email: '', 
-        address: '', 
-        phone: '' 
-      };
-      
       const clientData = {
         name: companyName,
         type: type,
         industry: industry || null,
-        contact_name: `${primaryContact.firstName} ${primaryContact.lastName}`.trim(),
-        contact_email: primaryContact.email,
-        contact_phone: primaryContact.phone,
         company_size: companySize || null,
         status: status || 'prospect',
         annual_revenue: revenue ? parseFloat(revenue) : null,
+        project_revenue: projectRevenue ? parseFloat(projectRevenue) : null,
         website: website || null,
         notes: nextSteps,
         background: background || null,
@@ -143,6 +121,8 @@ export const ClientForm = ({
       };
 
       if (isEditing && onSave) {
+        console.log('Saving edited client with data:', clientData);
+        console.log('Current contacts:', contacts);
         await onSave(clientData);
         toast({
           title: "Success",
@@ -159,7 +139,7 @@ export const ClientForm = ({
           title: "Success",
           description: "Client information saved successfully",
         });
-        resetForm(); // Reset form after successful save
+        resetForm();
       }
     } catch (error) {
       console.error('Error saving client:', error);
