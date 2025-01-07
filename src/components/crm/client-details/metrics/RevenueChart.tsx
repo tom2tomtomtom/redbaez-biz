@@ -1,115 +1,100 @@
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { useState, useEffect, useRef } from 'react';
+import { useState } from 'react';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Edit2 } from 'lucide-react';
 
 interface RevenueChartProps {
   revenueData: Array<{ month: string; value: number }>;
-  monthlyForecasts?: Array<{ month: string; amount: number }>;
-  onForecastUpdate?: (month: string, amount: number) => void;
+  monthlyForecasts: Array<{ month: string; amount: number }>;
   isEditing?: boolean;
+  onForecastUpdate?: (month: string, amount: number) => void;
 }
 
-export const RevenueChart = ({ 
-  revenueData, 
-  monthlyForecasts = [], 
-  onForecastUpdate,
-  isEditing = false 
+export const RevenueChart = ({
+  revenueData,
+  monthlyForecasts,
+  isEditing = false,
+  onForecastUpdate
 }: RevenueChartProps) => {
-  const [isDragging, setIsDragging] = useState(false);
-  const [activeMonth, setActiveMonth] = useState<string | null>(null);
-  const chartContainerRef = useRef<HTMLDivElement>(null);
+  const [showTable, setShowTable] = useState(false);
 
   // Combine regular revenue data with forecasts
   const combinedData = revenueData.map(item => {
-    const forecast = monthlyForecasts?.find(f => f.month === item.month);
+    const forecast = monthlyForecasts.find(f => f.month === item.month);
     return {
       month: item.month,
       value: item.value,
-      forecast: forecast?.amount || 0
+      forecast: forecast ? forecast.amount : item.value
     };
   });
 
-  useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      if (!isDragging || !isEditing || !activeMonth || !onForecastUpdate || !chartContainerRef.current) return;
-
-      const chartRect = chartContainerRef.current.getBoundingClientRect();
-      const mouseY = e.clientY - chartRect.top;
-      const chartHeight = chartRect.height;
-      
-      // Calculate the relative position (0 to 1)
-      const relativePosition = Math.max(0, Math.min(1, 1 - (mouseY / chartHeight)));
-      
-      // Get the maximum value for scaling
-      const maxValue = Math.max(...combinedData.map(d => Math.max(d.value, d.forecast))) * 1.2;
-      
-      // Convert relative position to value
-      let newValue = maxValue * relativePosition;
-      
-      // Round to nearest 1000
-      newValue = Math.max(0, Math.round(newValue / 1000) * 1000);
-      
-      onForecastUpdate(activeMonth, newValue);
-    };
-
-    const handleMouseUp = () => {
-      setIsDragging(false);
-      setActiveMonth(null);
-    };
-
-    if (isDragging) {
-      window.addEventListener('mousemove', handleMouseMove);
-      window.addEventListener('mouseup', handleMouseUp);
+  const handleForecastChange = (month: string, value: string) => {
+    if (!onForecastUpdate) return;
+    const numericValue = value === '' ? 0 : Number(value);
+    if (!isNaN(numericValue)) {
+      onForecastUpdate(month, numericValue);
     }
-
-    return () => {
-      window.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('mouseup', handleMouseUp);
-    };
-  }, [isDragging, isEditing, activeMonth, onForecastUpdate, combinedData]);
-
-  const handleBarMouseDown = (data: any) => {
-    if (!isEditing) return;
-    setIsDragging(true);
-    setActiveMonth(data.month);
   };
 
   return (
-    <div 
-      ref={chartContainerRef}
-      className="h-48 relative"
-    >
-      <p className="text-sm text-gray-600 mb-2">
-        Monthly Revenue & Forecast
-        {isEditing && <span className="text-xs ml-2 text-muted-foreground">(Click and drag forecast bars to adjust)</span>}
-      </p>
-      <ResponsiveContainer width="100%" height="100%">
-        <BarChart data={combinedData}>
-          <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-          <XAxis dataKey="month" stroke="#666" />
-          <YAxis stroke="#666" />
-          <Tooltip 
-            contentStyle={{ 
-              backgroundColor: 'white',
-              border: 'none',
-              borderRadius: '8px',
-              boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'
-            }}
-          />
-          <Bar 
-            dataKey="value" 
-            fill="hsl(var(--primary))" 
-            name="Revenue" 
-          />
-          <Bar 
-            dataKey="forecast" 
-            fill="hsl(var(--primary)/0.5)" 
-            name="Forecast"
-            cursor={isEditing ? 'ns-resize' : undefined}
-            onMouseDown={(data) => handleBarMouseDown(data)}
-            className={isEditing ? 'cursor-ns-resize' : ''}
-          />
-        </BarChart>
-      </ResponsiveContainer>
+    <div className="space-y-4">
+      <div className="flex justify-between items-center">
+        <p className="text-sm text-gray-600">Monthly Revenue & Forecast</p>
+        {isEditing && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setShowTable(!showTable)}
+            className="flex items-center gap-2"
+          >
+            <Edit2 className="h-4 w-4" />
+            {showTable ? 'Show Chart' : 'Edit Forecasts'}
+          </Button>
+        )}
+      </div>
+
+      {showTable && isEditing ? (
+        <div className="border rounded-lg overflow-hidden">
+          <div className="grid grid-cols-4 gap-4 p-4 bg-gray-50">
+            {combinedData.map((item, index) => (
+              <div key={item.month} className="space-y-2">
+                <label className="text-sm font-medium text-gray-700">
+                  {item.month}
+                </label>
+                <Input
+                  type="number"
+                  value={item.forecast}
+                  onChange={(e) => handleForecastChange(item.month, e.target.value)}
+                  className="w-full"
+                  placeholder="Enter forecast"
+                />
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : (
+        <div className="h-48">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={combinedData} margin={{ top: 10, right: 0, left: 0, bottom: 0 }}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="month" />
+              <YAxis />
+              <Tooltip />
+              <Bar 
+                dataKey="value" 
+                fill="hsl(var(--primary))" 
+                name="Actual"
+              />
+              <Bar 
+                dataKey="forecast" 
+                fill="hsl(var(--primary)/0.5)" 
+                name="Forecast"
+              />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      )}
     </div>
   );
 };
