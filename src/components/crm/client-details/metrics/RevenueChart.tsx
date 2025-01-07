@@ -1,8 +1,8 @@
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Edit2 } from 'lucide-react';
+import { Edit2, Save } from 'lucide-react';
 
 interface RevenueChartProps {
   revenueData: Array<{ month: string; value: number }>;
@@ -18,7 +18,21 @@ export const RevenueChart = ({
   onForecastUpdate
 }: RevenueChartProps) => {
   const [showTable, setShowTable] = useState(false);
-  const [localForecasts, setLocalForecasts] = useState(monthlyForecasts);
+  const [localForecasts, setLocalForecasts] = useState<Array<{ month: string; amount: number }>>(
+    revenueData.map(item => {
+      const existingForecast = monthlyForecasts.find(f => f.month === item.month);
+      return {
+        month: item.month,
+        amount: existingForecast ? existingForecast.amount : item.value
+      };
+    })
+  );
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+
+  // Calculate total annual revenue from monthly forecasts
+  const calculateAnnualRevenue = () => {
+    return localForecasts.reduce((total, forecast) => total + (forecast.amount || 0), 0);
+  };
 
   // Combine regular revenue data with forecasts
   const combinedData = revenueData.map(item => {
@@ -31,44 +45,63 @@ export const RevenueChart = ({
   });
 
   const handleForecastChange = (month: string, value: string) => {
-    if (!onForecastUpdate) return;
-    
     // Convert empty string to 0, otherwise parse the number
     const numericValue = value === '' ? 0 : Number(value);
     
     // Only update if it's a valid number
     if (!isNaN(numericValue)) {
-      console.log('Updating forecast for month:', month, 'with value:', numericValue);
+      console.log('Updating local forecast for month:', month, 'with value:', numericValue);
       
-      // Update local state first
       const updatedForecasts = localForecasts.map(f => 
         f.month === month ? { ...f, amount: numericValue } : f
       );
       
-      // If the month doesn't exist in localForecasts, add it
-      if (!localForecasts.find(f => f.month === month)) {
-        updatedForecasts.push({ month, amount: numericValue });
-      }
-      
       setLocalForecasts(updatedForecasts);
-      onForecastUpdate(month, numericValue);
+      setHasUnsavedChanges(true);
     }
+  };
+
+  const handleSaveChanges = () => {
+    console.log('Saving all forecast changes');
+    // Update each month's forecast
+    localForecasts.forEach(forecast => {
+      if (onForecastUpdate) {
+        onForecastUpdate(forecast.month, forecast.amount);
+      }
+    });
+    setHasUnsavedChanges(false);
   };
 
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
-        <p className="text-sm text-gray-600">Monthly Revenue & Forecast</p>
+        <div>
+          <p className="text-sm text-gray-600">Monthly Revenue & Forecast</p>
+          <p className="text-sm text-gray-600">Annual Total: ${calculateAnnualRevenue().toLocaleString()}</p>
+        </div>
         {isEditing && (
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setShowTable(!showTable)}
-            className="flex items-center gap-2"
-          >
-            <Edit2 className="h-4 w-4" />
-            {showTable ? 'Show Chart' : 'Edit Forecasts'}
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowTable(!showTable)}
+              className="flex items-center gap-2"
+            >
+              <Edit2 className="h-4 w-4" />
+              {showTable ? 'Show Chart' : 'Edit Forecasts'}
+            </Button>
+            {showTable && hasUnsavedChanges && (
+              <Button
+                variant="default"
+                size="sm"
+                onClick={handleSaveChanges}
+                className="flex items-center gap-2"
+              >
+                <Save className="h-4 w-4" />
+                Save Changes
+              </Button>
+            )}
+          </div>
         )}
       </div>
 
