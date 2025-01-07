@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { ClientForm } from './client-form/ClientForm';
 import { IntelSearch } from './intel-search/IntelSearch';
 import { ClientSearch } from './client-search/ClientSearch';
-import { PriorityActions } from './priority-actions/PriorityActions';
 import { BusinessSummary } from './business-summary/BusinessSummary';
 
 export const CRMDashboard = () => {
@@ -19,7 +18,7 @@ export const CRMDashboard = () => {
   const [searchInput, setSearchInput] = useState('');
 
   return (
-    <div className="flex flex-col space-y-4 p-4 animate-fade-in">
+    <div className="flex flex-col space-y-4 animate-fade-in">
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
         <div className="lg:col-span-8">
           <ClientForm
@@ -34,12 +33,6 @@ export const CRMDashboard = () => {
 
         <div className="lg:col-span-4 space-y-4">
           <BusinessSummary />
-          <ClientSearch />
-          <IntelSearch
-            searchInput={searchInput}
-            onSearchInputChange={setSearchInput}
-          />
-          <PriorityActions />
         </div>
       </div>
     </div>
