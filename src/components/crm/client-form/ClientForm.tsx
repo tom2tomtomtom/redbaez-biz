@@ -87,8 +87,8 @@ export const ClientForm = ({
       industry: formState.industry,
       company_size: formState.companySize,
       status: formState.status,
-      annual_revenue: Number(revenueState.annualRevenue) || null,
-      project_revenue: Number(revenueState.projectRevenue) || null,
+      annual_revenue: revenueState.annualRevenue,
+      project_revenue: revenueState.projectRevenue,
       website: formState.website,
       notes: nextSteps,
       background: formState.background,
@@ -96,8 +96,8 @@ export const ClientForm = ({
       next_due_date: nextDueDate,
       project_revenue_signed_off: revenueState.projectRevenueSignedOff,
       project_revenue_forecast: revenueState.projectRevenueForecast,
-      annual_revenue_signed_off: Number(revenueState.annualRevenueSignedOff) || 0,
-      annual_revenue_forecast: Number(revenueState.annualRevenueForecast) || 0,
+      annual_revenue_signed_off: revenueState.annualRevenueSignedOff,
+      annual_revenue_forecast: revenueState.annualRevenueForecast,
     };
 
     console.log('Submitting form data:', formData);

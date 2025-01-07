@@ -52,10 +52,15 @@ const formatContacts = (contacts: Contact[]): { primaryContact: Contact; formatt
   };
 };
 
+const parseNumericValue = (value: string | number | null): number | null => {
+  if (value === null || value === '') return null;
+  const parsed = typeof value === 'string' ? parseFloat(value) : value;
+  return isNaN(parsed) ? null : parsed;
+};
+
 const prepareClientData = async (clientId: string, formData: any, contacts: Contact[]): Promise<ClientData> => {
   const { primaryContact, formattedAdditionalContacts } = formatContacts(contacts);
 
-  // Fetch existing client data for preserving values
   const { data: existingClient } = await supabase
     .from('clients')
     .select('notes, next_due_date')
@@ -64,7 +69,7 @@ const prepareClientData = async (clientId: string, formData: any, contacts: Cont
 
   console.log('Preparing client data with formData:', formData);
 
-  // Ensure proper type conversion for revenue fields
+  // Handle revenue fields with proper type conversion
   const clientData = {
     ...formData,
     notes: formData.notes || existingClient?.notes,
@@ -73,13 +78,13 @@ const prepareClientData = async (clientId: string, formData: any, contacts: Cont
     contact_email: primaryContact.email,
     contact_phone: primaryContact.phone,
     additional_contacts: contacts.length > 1 ? formattedAdditionalContacts : null,
-    // Convert revenue fields to proper types with explicit type checking
+    // Convert revenue fields with proper parsing
+    project_revenue: parseNumericValue(formData.project_revenue),
+    annual_revenue: parseNumericValue(formData.annual_revenue),
     project_revenue_signed_off: Boolean(formData.project_revenue_signed_off),
     project_revenue_forecast: Boolean(formData.project_revenue_forecast),
-    annual_revenue_signed_off: formData.annual_revenue_signed_off ? Number(formData.annual_revenue_signed_off) : 0,
-    annual_revenue_forecast: formData.annual_revenue_forecast ? Number(formData.annual_revenue_forecast) : 0,
-    annual_revenue: formData.annual_revenue ? Number(formData.annual_revenue) : null,
-    project_revenue: formData.project_revenue ? Number(formData.project_revenue) : null,
+    annual_revenue_signed_off: parseNumericValue(formData.annual_revenue_signed_off) ?? 0,
+    annual_revenue_forecast: parseNumericValue(formData.annual_revenue_forecast) ?? 0,
     likelihood: formData.likelihood ? Number(formData.likelihood) : null
   };
 
