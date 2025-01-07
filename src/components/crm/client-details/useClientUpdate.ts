@@ -51,7 +51,11 @@ export const useClientUpdate = (clientId: string | undefined, onSuccess?: () => 
         contact_name: `${primaryContact.firstName} ${primaryContact.lastName}`.trim(),
         contact_email: primaryContact.email,
         contact_phone: primaryContact.phone,
-        additional_contacts: additionalContacts.length > 0 ? formattedAdditionalContacts : null
+        additional_contacts: additionalContacts.length > 0 ? formattedAdditionalContacts : null,
+        project_revenue_signed_off: formData.project_revenue_signed_off || false,
+        project_revenue_forecast: formData.project_revenue_forecast || false,
+        annual_revenue_signed_off: formData.annual_revenue_signed_off || 0,
+        annual_revenue_forecast: formData.annual_revenue_forecast || 0
       };
 
       console.log('Updating client with data:', dataToUpdate);
