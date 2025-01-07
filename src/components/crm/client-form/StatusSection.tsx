@@ -11,15 +11,19 @@ import {
 interface StatusSectionProps {
   status: string;
   likelihood: string;
+  revenue: string;
   onStatusChange: (value: string) => void;
   onLikelihoodChange: (value: string) => void;
+  onRevenueChange: (value: string) => void;
 }
 
 export const StatusSection = ({
   status,
   likelihood,
+  revenue,
   onStatusChange,
   onLikelihoodChange,
+  onRevenueChange,
 }: StatusSectionProps) => {
   return (
     <>
@@ -46,6 +50,17 @@ export const StatusSection = ({
           placeholder="Enter %" 
           value={likelihood}
           onChange={(e) => onLikelihoodChange(e.target.value)}
+          className="transition-all duration-300" 
+        />
+      </div>
+
+      <div>
+        <Label>Annual Revenue ($)</Label>
+        <Input 
+          type="number" 
+          placeholder="Enter annual revenue" 
+          value={revenue}
+          onChange={(e) => onRevenueChange(e.target.value)}
           className="transition-all duration-300" 
         />
       </div>

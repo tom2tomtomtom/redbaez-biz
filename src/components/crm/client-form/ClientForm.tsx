@@ -39,6 +39,7 @@ export const ClientForm = ({
   const [companyName, setCompanyName] = useState('');
   const [status, setStatus] = useState('');
   const [likelihood, setLikelihood] = useState('');
+  const [revenue, setRevenue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSave = async () => {
@@ -71,6 +72,7 @@ export const ClientForm = ({
           contact_email: primaryContact.email,
           contact_phone: primaryContact.phone,
           status: status || 'prospect',
+          annual_revenue: revenue ? parseFloat(revenue) : null,
           notes: nextSteps,
           missing_fields: [],
         });
@@ -86,6 +88,7 @@ export const ClientForm = ({
       setCompanyName('');
       setStatus('');
       setLikelihood('');
+      setRevenue('');
       onContactsChange([{ 
         firstName: '', 
         lastName: '', 
@@ -137,8 +140,10 @@ export const ClientForm = ({
           <StatusSection
             status={status}
             likelihood={likelihood}
+            revenue={revenue}
             onStatusChange={setStatus}
             onLikelihoodChange={setLikelihood}
+            onRevenueChange={setRevenue}
           />
 
           <NextStepsSection
