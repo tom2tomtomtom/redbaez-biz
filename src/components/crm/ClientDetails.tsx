@@ -93,6 +93,11 @@ export const ClientDetails = () => {
     );
   }
 
+  // Parse additional_contacts from JSON if it exists
+  const parsedAdditionalContacts = client.additional_contacts ? 
+    (Array.isArray(client.additional_contacts) ? client.additional_contacts : []) : 
+    [];
+
   return (
     <div className="flex flex-col space-y-6 p-8 w-full max-w-7xl mx-auto bg-gray-50/50 animate-fade-in overflow-y-auto min-h-screen">
       <Button
@@ -142,7 +147,7 @@ export const ClientDetails = () => {
           companySize={client.company_size}
           contactEmail={client.contact_email}
           contactPhone={client.contact_phone}
-          additionalContacts={client.additional_contacts}
+          additionalContacts={parsedAdditionalContacts}
         />
 
         <AdditionalInfoCard 

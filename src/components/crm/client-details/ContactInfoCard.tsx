@@ -1,12 +1,22 @@
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Mail, Phone, Star } from 'lucide-react';
+import { Json } from '@/integrations/supabase/types';
+
+interface Contact {
+  firstName: string;
+  lastName: string;
+  title: string;
+  email: string;
+  address: string;
+  phone: string;
+}
 
 interface ContactInfoCardProps {
   contactName: string | null;
   companySize: string | null;
   contactEmail: string | null;
   contactPhone: string | null;
-  additionalContacts?: any[] | null;
+  additionalContacts?: Contact[] | null;
 }
 
 export const ContactInfoCard = ({ 
@@ -47,7 +57,7 @@ export const ContactInfoCard = ({
           </div>
           
           {/* Additional Contacts */}
-          {additionalContacts?.map((contact: any, index: number) => (
+          {additionalContacts?.map((contact: Contact, index: number) => (
             <div key={index} className="p-4 border border-gray-100 rounded-lg hover:border-primary/20 hover:shadow-sm transition-all duration-300">
               <div className="flex items-start justify-between">
                 <div>
