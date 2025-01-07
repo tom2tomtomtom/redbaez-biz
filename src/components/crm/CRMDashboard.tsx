@@ -1,12 +1,10 @@
 import React, { useState } from 'react';
-import { CRMNavigation } from './navigation/CRMNavigation';
 import { ClientForm } from './client-form/ClientForm';
 import { IntelSearch } from './intel-search/IntelSearch';
 import { ClientSearch } from './client-search/ClientSearch';
 import { PriorityActions } from './priority-actions/PriorityActions';
 
 export const CRMDashboard = () => {
-  const [activeTab, setActiveTab] = useState('newClient');
   const [contacts, setContacts] = useState([{ 
     firstName: '', 
     lastName: '', 
@@ -21,8 +19,6 @@ export const CRMDashboard = () => {
 
   return (
     <div className="flex flex-col space-y-4 p-4 animate-fade-in">
-      <CRMNavigation activeTab={activeTab} setActiveTab={setActiveTab} />
-
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
         <div className="lg:col-span-8">
           <ClientForm
