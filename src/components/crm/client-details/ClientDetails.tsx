@@ -2,16 +2,17 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import { useNavigate, useParams, Navigate } from 'react-router-dom';
-import { KeyMetricsCard } from './KeyMetricsCard';
-import { ContactInfoCard } from './ContactInfoCard';
-import { AdditionalInfoCard } from './AdditionalInfoCard';
-import { useClientUpdate } from './useClientUpdate';
-import { useClientInitialization } from './useClientInitialization';
-import { Contact } from './ContactInfoCard';
-import { ClientHeader } from './ClientHeader';
-import { ClientEditMode } from './ClientEditMode';
-import { useClientData } from './hooks/useClientData';
-import { generateRevenueData, parseMonthlyForecasts } from './utils/revenueUtils';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { KeyMetricsCard } from './client-details/KeyMetricsCard';
+import { ContactInfoCard } from './client-details/ContactInfoCard';
+import { AdditionalInfoCard } from './client-details/AdditionalInfoCard';
+import { useClientUpdate } from './client-details/useClientUpdate';
+import { useClientInitialization } from './client-details/useClientInitialization';
+import { Contact } from './client-details/ContactInfoCard';
+import { ClientHeader } from './client-details/ClientHeader';
+import { ClientEditMode } from './client-details/ClientEditMode';
+import { MonthlyForecast } from './client-details/types/MonthlyForecast';
 
 export const ClientDetails = () => {
   const navigate = useNavigate();
@@ -26,7 +27,24 @@ export const ClientDetails = () => {
     return <Navigate to="/" replace />;
   }
 
-  const { data: client, isLoading, error } = useClientData(id);
+  const { data: client, isLoading, error } = useQuery({
+    queryKey: ['client', id],
+    queryFn: async () => {
+      console.log('Fetching client data for ID:', id);
+      const { data, error } = await supabase
+        .from('clients')
+        .select('*')
+        .eq('id', id)
+        .maybeSingle();
+      
+      if (error) throw error;
+      if (!data) throw new Error('Client not found');
+      
+      console.log('Received client data:', data);
+      return data;
+    },
+  });
+
   const { contacts, setContacts } = useClientInitialization(client);
   const updateMutation = useClientUpdate(id, () => setIsEditing(false));
 
@@ -49,8 +67,31 @@ export const ClientDetails = () => {
     updateMutation.mutate({ formData, contacts });
   };
 
-  const revenueData = generateRevenueData(client.annual_revenue);
-  const monthlyForecasts = parseMonthlyForecasts(client.monthly_revenue_forecasts);
+  // Generate monthly revenue data including forecasts
+  const revenueData = Array.from({ length: 12 }, (_, i) => {
+    const date = new Date(new Date().getFullYear(), new Date().getMonth() + i);
+    const month = date.toLocaleString('default', { month: 'short' });
+    return {
+      month,
+      value: client.annual_revenue ? client.annual_revenue / 12 : 0
+    };
+  });
+
+  // Parse monthly forecasts from client data with type checking
+  const monthlyForecasts: MonthlyForecast[] = Array.isArray(client.monthly_revenue_forecasts) 
+    ? client.monthly_revenue_forecasts.map((forecast: any) => ({
+        month: String(forecast.month),
+        amount: Number(forecast.amount)
+      }))
+    : [];
+
+  const handleForecastUpdate = async (forecasts: MonthlyForecast[]) => {
+    console.log('Updating forecasts:', forecasts);
+    updateMutation.mutate({ 
+      formData: { ...client, monthly_revenue_forecasts: forecasts },
+      contacts 
+    });
+  };
 
   if (isEditing) {
     return (
@@ -64,6 +105,7 @@ export const ClientDetails = () => {
         onContactsChange={setContacts}
         onNextStepsChange={setNextSteps}
         onNextDueDateChange={setNextDueDate}
+        onMonthlyForecastsChange={handleForecastUpdate}
       />
     );
   }
@@ -110,6 +152,8 @@ export const ClientDetails = () => {
           annualRevenueSignedOff={client.annual_revenue_signed_off}
           annualRevenueForecast={client.annual_revenue_forecast}
           monthlyForecasts={monthlyForecasts}
+          isEditing={isEditing}
+          onForecastUpdate={handleForecastUpdate}
         />
 
         <ContactInfoCard 

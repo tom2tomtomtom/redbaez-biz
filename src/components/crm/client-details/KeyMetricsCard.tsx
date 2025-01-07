@@ -1,24 +1,27 @@
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { AnnualRevenueMetric } from './metrics/AnnualRevenueMetric';
-import { ProjectRevenueMetric } from './metrics/ProjectRevenueMetric';
-import { DealLikelihood } from './metrics/DealLikelihood';
-import { RevenueChart } from './metrics/RevenueChart';
+import { Card } from "@/components/ui/card";
+import { AnnualRevenueMetric } from "./metrics/AnnualRevenueMetric";
+import { ProjectRevenueMetric } from "./metrics/ProjectRevenueMetric";
+import { DealLikelihood } from "./metrics/DealLikelihood";
+import { RevenueChart } from "./metrics/RevenueChart";
+import { MonthlyForecast } from "./types/MonthlyForecast";
 
 interface KeyMetricsCardProps {
   annualRevenue: number | null;
-  projectRevenue?: number | null;
-  likelihood?: number | null;
+  projectRevenue: number | null;
+  likelihood: number | null;
   revenueData: Array<{ month: string; value: number }>;
-  projectRevenueSignedOff?: boolean;
-  projectRevenueForecast?: boolean;
-  annualRevenueSignedOff?: number;
-  annualRevenueForecast?: number;
-  monthlyForecasts?: Array<{ month: string; amount: number }>;
+  projectRevenueSignedOff: boolean;
+  projectRevenueForecast: boolean;
+  annualRevenueSignedOff: number;
+  annualRevenueForecast: number;
+  monthlyForecasts: MonthlyForecast[];
+  isEditing?: boolean;
+  onForecastUpdate?: (forecasts: MonthlyForecast[]) => void;
 }
 
-export const KeyMetricsCard = ({ 
-  annualRevenue, 
-  projectRevenue, 
+export const KeyMetricsCard = ({
+  annualRevenue,
+  projectRevenue,
   likelihood,
   revenueData,
   projectRevenueSignedOff,
@@ -26,34 +29,47 @@ export const KeyMetricsCard = ({
   annualRevenueSignedOff,
   annualRevenueForecast,
   monthlyForecasts,
+  isEditing = false,
+  onForecastUpdate
 }: KeyMetricsCardProps) => {
+  const handleForecastUpdate = (month: string, amount: number) => {
+    if (!onForecastUpdate) return;
+
+    const updatedForecasts = [...monthlyForecasts];
+    const existingIndex = updatedForecasts.findIndex(f => f.month.endsWith(month));
+    
+    if (existingIndex >= 0) {
+      updatedForecasts[existingIndex] = { ...updatedForecasts[existingIndex], amount };
+    } else {
+      updatedForecasts.push({ month: `2024-${month}`, amount });
+    }
+
+    onForecastUpdate(updatedForecasts);
+  };
+
   return (
-    <Card className="col-span-12 lg:col-span-4 transition-all duration-300 hover:shadow-lg">
-      <CardHeader>
-        <CardTitle className="text-lg font-medium">Key Metrics</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-4">
-          <div className="grid grid-cols-1 gap-4">
-            <AnnualRevenueMetric 
-              annualRevenue={annualRevenue}
-              annualRevenueSignedOff={annualRevenueSignedOff}
-              annualRevenueForecast={annualRevenueForecast}
-            />
-            <ProjectRevenueMetric 
-              projectRevenue={projectRevenue}
-              projectRevenueSignedOff={projectRevenueSignedOff}
-              projectRevenueForecast={projectRevenueForecast}
-            />
-          </div>
-          
-          <DealLikelihood likelihood={likelihood} />
-          <RevenueChart 
-            revenueData={revenueData} 
-            monthlyForecasts={monthlyForecasts}
-          />
-        </div>
-      </CardContent>
+    <Card className="col-span-1 lg:col-span-12 p-6">
+      <div className="grid gap-6 md:grid-cols-3">
+        <AnnualRevenueMetric 
+          annualRevenue={annualRevenue} 
+          signedOff={annualRevenueSignedOff}
+          forecast={annualRevenueForecast}
+        />
+        <ProjectRevenueMetric 
+          projectRevenue={projectRevenue}
+          signedOff={projectRevenueSignedOff}
+          forecast={projectRevenueForecast}
+        />
+        <DealLikelihood likelihood={likelihood} />
+      </div>
+      <div className="mt-6">
+        <RevenueChart 
+          revenueData={revenueData} 
+          monthlyForecasts={monthlyForecasts}
+          isEditing={isEditing}
+          onForecastUpdate={handleForecastUpdate}
+        />
+      </div>
     </Card>
   );
 };
