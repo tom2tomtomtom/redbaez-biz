@@ -52,27 +52,20 @@ const formatContacts = (contacts: Contact[]): { primaryContact: Contact; formatt
   };
 };
 
-const parseNumericValue = (value: string | number | null): number | null => {
-  if (value === null || value === '') return null;
-  const parsed = typeof value === 'string' ? parseFloat(value) : value;
-  return isNaN(parsed) ? null : parsed;
-};
-
 const prepareClientData = async (clientId: string, formData: any, contacts: Contact[]): Promise<ClientData> => {
   const { primaryContact, formattedAdditionalContacts } = formatContacts(contacts);
 
-  // Ensure we get the values from the form data, handling both camelCase and snake_case
-  const projectRevenue = parseNumericValue(formData.projectRevenue || formData.project_revenue);
-  const annualRevenue = parseNumericValue(formData.annualRevenue || formData.annual_revenue);
-  const annualRevenueSignedOff = parseNumericValue(formData.annualRevenueSignedOff || formData.annual_revenue_signed_off) ?? 0;
-  const annualRevenueForecast = parseNumericValue(formData.annualRevenueForecast || formData.annual_revenue_forecast) ?? 0;
-  
-  // Convert boolean values explicitly
-  const projectRevenueSignedOff = Boolean(formData.projectRevenueSignedOff || formData.project_revenue_signed_off);
-  const projectRevenueForecast = Boolean(formData.projectRevenueForecast || formData.project_revenue_forecast);
+  // Convert string values to numbers, handling both formats
+  const projectRevenue = formData.projectRevenue ? Number(formData.projectRevenue) : null;
+  const annualRevenue = formData.annualRevenue ? Number(formData.annualRevenue) : null;
+  const annualRevenueSignedOff = formData.annualRevenueSignedOff ? Number(formData.annualRevenueSignedOff) : 0;
+  const annualRevenueForecast = formData.annualRevenueForecast ? Number(formData.annualRevenueForecast) : 0;
 
-  console.log('Form data received:', formData);
-  console.log('Parsed revenue values:', {
+  // Convert checkbox values to booleans
+  const projectRevenueSignedOff = Boolean(formData.projectRevenueSignedOff);
+  const projectRevenueForecast = Boolean(formData.projectRevenueForecast);
+
+  console.log('Processing form data:', {
     projectRevenue,
     annualRevenue,
     projectRevenueSignedOff,
@@ -96,7 +89,7 @@ const prepareClientData = async (clientId: string, formData: any, contacts: Cont
     likelihood: formData.likelihood ? Number(formData.likelihood) : null
   };
 
-  console.log('Prepared client data:', clientData);
+  console.log('Prepared client data for update:', clientData);
   return clientData;
 };
 
@@ -109,8 +102,8 @@ export const useClientUpdate = (clientId: string | undefined, onSuccess?: () => 
       
       const clientData = await prepareClientData(clientId, formData, contacts);
       
-      console.log('Executing Supabase update with data:', clientData);
-      const { error, data } = await supabase
+      console.log('Sending update to Supabase:', clientData);
+      const { error } = await supabase
         .from('clients')
         .update(clientData)
         .eq('id', clientId);
