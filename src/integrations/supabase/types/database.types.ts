@@ -1,14 +1,6 @@
-import { ClientRow, ClientInsert, ClientUpdate } from './clients.types';
+import { ClientRow, ClientInsert, ClientUpdate } from './client-types';
 import { MessageRow, MessageInsert, MessageUpdate } from './messages.types';
 import { ProfileRow, ProfileInsert, ProfileUpdate } from './profiles.types';
-
-export type Json =
-  | string
-  | number
-  | boolean
-  | null
-  | { [key: string]: Json | undefined }
-  | Json[]
 
 export type Database = {
   public: {
