@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { Calendar } from 'lucide-react';
-import { ClientRow } from '@/integrations/supabase/types';
+import { ClientRow } from '@/integrations/supabase/types/clients.types';
 
 interface PriorityActionItemProps {
   client: ClientRow;
