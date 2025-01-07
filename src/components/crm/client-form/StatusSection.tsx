@@ -64,12 +64,23 @@ export const StatusSection = ({
 
       <div>
         <Label>Industry</Label>
-        <Input 
-          placeholder="Enter industry" 
-          value={industry}
-          onChange={(e) => onIndustryChange(e.target.value)}
-          className="transition-all duration-300" 
-        />
+        <Select value={industry} onValueChange={onIndustryChange}>
+          <SelectTrigger className="transition-all duration-300">
+            <SelectValue placeholder="Select industry" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="technology">Technology</SelectItem>
+            <SelectItem value="healthcare">Healthcare</SelectItem>
+            <SelectItem value="finance">Finance</SelectItem>
+            <SelectItem value="retail">Retail</SelectItem>
+            <SelectItem value="manufacturing">Manufacturing</SelectItem>
+            <SelectItem value="education">Education</SelectItem>
+            <SelectItem value="real-estate">Real Estate</SelectItem>
+            <SelectItem value="energy">Energy</SelectItem>
+            <SelectItem value="transportation">Transportation</SelectItem>
+            <SelectItem value="other">Other</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       <div>
