@@ -65,7 +65,6 @@ export const ClientForm = ({
       setWebsite(initialData.website || '');
       setBackground(initialData.background || '');
       
-      // Initialize contacts if they exist
       if (initialData.contact_name || initialData.contact_email || initialData.contact_phone) {
         const [firstName = '', lastName = ''] = (initialData.contact_name || '').split(' ');
         onContactsChange([{
@@ -78,10 +77,32 @@ export const ClientForm = ({
         }]);
       }
       
-      // Initialize next steps from notes
       onNextStepsChange(initialData.notes || '');
     }
   }, [initialData, isEditing, onContactsChange, onNextStepsChange]);
+
+  const resetForm = () => {
+    setCompanyName('');
+    setStatus('');
+    setLikelihood('');
+    setProjectRevenue('');
+    setRevenue('');
+    setType('business');
+    setIndustry('');
+    setCompanySize('');
+    setWebsite('');
+    setBackground('');
+    onContactsChange([{ 
+      firstName: '', 
+      lastName: '', 
+      title: '', 
+      email: '', 
+      address: '', 
+      phone: '' 
+    }]);
+    onNextStepsChange('');
+    onNextDueDateChange('');
+  };
 
   const handleSave = async () => {
     if (!companyName) {
@@ -118,6 +139,7 @@ export const ClientForm = ({
         notes: nextSteps,
         background: background || null,
         likelihood: likelihood ? parseFloat(likelihood) : null,
+        next_due_date: nextDueDate || null,
       };
 
       if (isEditing && onSave) {
@@ -137,6 +159,7 @@ export const ClientForm = ({
           title: "Success",
           description: "Client information saved successfully",
         });
+        resetForm(); // Reset form after successful save
       }
     } catch (error) {
       console.error('Error saving client:', error);
