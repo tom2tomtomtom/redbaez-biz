@@ -1,12 +1,11 @@
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { useToast } from "@/components/ui/use-toast";
-import { supabase } from "@/integrations/supabase/client";
-import { useState, useEffect } from 'react';
 import { ContactsList } from './ContactsList';
 import { StatusSection } from './StatusSection';
 import { NextStepsSection } from './NextStepsSection';
 import { CompanySection } from './CompanySection';
+import { useClientFormState } from './useClientFormState';
+import { useClientFormSubmit } from './useClientFormSubmit';
 
 interface Contact {
   firstName: string;
@@ -40,45 +39,19 @@ export const ClientForm = ({
   onSave,
   isEditing = false,
 }: ClientFormProps) => {
-  const { toast } = useToast();
-  const [companyName, setCompanyName] = useState('');
-  const [status, setStatus] = useState('');
-  const [likelihood, setLikelihood] = useState('');
-  const [projectRevenue, setProjectRevenue] = useState('');
-  const [revenue, setRevenue] = useState('');
-  const [type, setType] = useState('business');
-  const [industry, setIndustry] = useState('');
-  const [companySize, setCompanySize] = useState('');
-  const [website, setWebsite] = useState('');
-  const [background, setBackground] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-
-  useEffect(() => {
-    if (initialData && isEditing) {
-      setCompanyName(initialData.name || '');
-      setStatus(initialData.status || '');
-      setLikelihood(initialData.likelihood?.toString() || '');
-      setProjectRevenue(initialData.project_revenue?.toString() || '');
-      setRevenue(initialData.annual_revenue?.toString() || '');
-      setType(initialData.type || 'business');
-      setIndustry(initialData.industry || '');
-      setCompanySize(initialData.company_size || '');
-      setWebsite(initialData.website || '');
-      setBackground(initialData.background || '');
-    }
-  }, [initialData, isEditing]);
-
+  const formState = useClientFormState({ initialData, isEditing });
+  
   const resetForm = () => {
-    setCompanyName('');
-    setStatus('');
-    setLikelihood('');
-    setProjectRevenue('');
-    setRevenue('');
-    setType('business');
-    setIndustry('');
-    setCompanySize('');
-    setWebsite('');
-    setBackground('');
+    formState.setCompanyName('');
+    formState.setStatus('');
+    formState.setLikelihood('');
+    formState.setProjectRevenue('');
+    formState.setRevenue('');
+    formState.setType('business');
+    formState.setIndustry('');
+    formState.setCompanySize('');
+    formState.setWebsite('');
+    formState.setBackground('');
     onContactsChange([{ 
       firstName: '', 
       lastName: '', 
@@ -91,66 +64,29 @@ export const ClientForm = ({
     onNextDueDateChange('');
   };
 
-  const handleSave = async () => {
-    console.log('Handling save with contacts:', contacts);
-    
-    if (!companyName) {
-      toast({
-        title: "Error",
-        description: "Company name is required",
-        variant: "destructive",
-      });
-      return;
-    }
+  const { handleSubmit } = useClientFormSubmit({
+    isEditing,
+    onSave,
+    setIsLoading: formState.setIsLoading,
+    resetForm,
+  });
 
-    setIsLoading(true);
-    try {
-      const clientData = {
-        name: companyName,
-        type: type,
-        industry: industry || null,
-        company_size: companySize || null,
-        status: status || 'prospect',
-        annual_revenue: revenue ? parseFloat(revenue) : null,
-        project_revenue: projectRevenue ? parseFloat(projectRevenue) : null,
-        website: website || null,
-        notes: nextSteps,
-        background: background || null,
-        likelihood: likelihood ? parseFloat(likelihood) : null,
-        next_due_date: nextDueDate || null,
-      };
-
-      if (isEditing && onSave) {
-        console.log('Saving edited client with data:', clientData);
-        console.log('Current contacts:', contacts);
-        await onSave(clientData);
-        toast({
-          title: "Success",
-          description: "Client information updated successfully",
-        });
-      } else {
-        const { error } = await supabase
-          .from('clients')
-          .insert(clientData);
-
-        if (error) throw error;
-
-        toast({
-          title: "Success",
-          description: "Client information saved successfully",
-        });
-        resetForm();
-      }
-    } catch (error) {
-      console.error('Error saving client:', error);
-      toast({
-        title: "Error",
-        description: "Failed to save client information",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
+  const onSubmit = () => {
+    const formData = {
+      name: formState.companyName,
+      type: formState.type,
+      industry: formState.industry,
+      companySize: formState.companySize,
+      status: formState.status,
+      revenue: formState.revenue,
+      projectRevenue: formState.projectRevenue,
+      website: formState.website,
+      notes: nextSteps,
+      background: formState.background,
+      likelihood: formState.likelihood,
+      nextDueDate: nextDueDate,
+    };
+    handleSubmit(formData);
   };
 
   return (
@@ -161,8 +97,8 @@ export const ClientForm = ({
       <CardContent className="space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <CompanySection 
-            companyName={companyName}
-            onCompanyNameChange={setCompanyName}
+            companyName={formState.companyName}
+            onCompanyNameChange={formState.setCompanyName}
           />
 
           <div className="col-span-2">
@@ -173,24 +109,24 @@ export const ClientForm = ({
           </div>
 
           <StatusSection
-            status={status}
-            likelihood={likelihood}
-            projectRevenue={projectRevenue}
-            revenue={revenue}
-            type={type}
-            industry={industry}
-            companySize={companySize}
-            website={website}
-            background={background}
-            onStatusChange={setStatus}
-            onLikelihoodChange={setLikelihood}
-            onProjectRevenueChange={setProjectRevenue}
-            onRevenueChange={setRevenue}
-            onTypeChange={setType}
-            onIndustryChange={setIndustry}
-            onCompanySizeChange={setCompanySize}
-            onWebsiteChange={setWebsite}
-            onBackgroundChange={setBackground}
+            status={formState.status}
+            likelihood={formState.likelihood}
+            projectRevenue={formState.projectRevenue}
+            revenue={formState.revenue}
+            type={formState.type}
+            industry={formState.industry}
+            companySize={formState.companySize}
+            website={formState.website}
+            background={formState.background}
+            onStatusChange={formState.setStatus}
+            onLikelihoodChange={formState.setLikelihood}
+            onProjectRevenueChange={formState.setProjectRevenue}
+            onRevenueChange={formState.setRevenue}
+            onTypeChange={formState.setType}
+            onIndustryChange={formState.setIndustry}
+            onCompanySizeChange={formState.setCompanySize}
+            onWebsiteChange={formState.setWebsite}
+            onBackgroundChange={formState.setBackground}
           />
 
           <NextStepsSection
@@ -204,10 +140,10 @@ export const ClientForm = ({
         <div className="mt-6 border-t pt-6">
           <Button 
             className="w-full py-6 text-lg font-medium transition-all duration-300 hover:scale-[1.01]"
-            onClick={handleSave}
-            disabled={isLoading}
+            onClick={onSubmit}
+            disabled={formState.isLoading}
           >
-            {isLoading ? 'Saving...' : isEditing ? 'Update Client Information' : 'Save Client Information'}
+            {formState.isLoading ? 'Saving...' : isEditing ? 'Update Client Information' : 'Save Client Information'}
           </Button>
         </div>
       </CardContent>
