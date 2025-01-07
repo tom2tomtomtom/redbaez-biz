@@ -4,15 +4,14 @@ import { ArrowLeft } from 'lucide-react';
 import { useNavigate, useParams, Navigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { KeyMetricsCard } from './client-details/KeyMetricsCard';
-import { ContactInfoCard } from './client-details/ContactInfoCard';
-import { AdditionalInfoCard } from './client-details/AdditionalInfoCard';
-import { useClientUpdate } from './client-details/useClientUpdate';
-import { useClientInitialization } from './client-details/useClientInitialization';
-import { Contact } from './client-details/ContactInfoCard';
-import { ClientHeader } from './client-details/ClientHeader';
-import { ClientEditMode } from './client-details/ClientEditMode';
-import { MonthlyForecast } from './client-details/types/MonthlyForecast';
+import { KeyMetricsCard } from '@/components/crm/client-details/KeyMetricsCard';
+import { ContactInfoCard, Contact } from '@/components/crm/client-details/ContactInfoCard';
+import { AdditionalInfoCard } from '@/components/crm/client-details/AdditionalInfoCard';
+import { useClientUpdate } from '@/components/crm/client-details/useClientUpdate';
+import { useClientInitialization } from '@/components/crm/client-details/useClientInitialization';
+import { ClientHeader } from '@/components/crm/client-details/ClientHeader';
+import { ClientEditMode } from '@/components/crm/client-details/ClientEditMode';
+import { MonthlyForecast } from '@/components/crm/client-details/types/MonthlyForecast';
 
 export const ClientDetails = () => {
   const navigate = useNavigate();
@@ -174,3 +173,4 @@ export const ClientDetails = () => {
     </div>
   );
 };
+

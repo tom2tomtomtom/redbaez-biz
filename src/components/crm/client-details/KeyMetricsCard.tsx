@@ -32,6 +32,21 @@ export const KeyMetricsCard = ({
   isEditing = false,
   onForecastUpdate
 }: KeyMetricsCardProps) => {
+  const handleForecastUpdate = (month: string, amount: number) => {
+    if (!onForecastUpdate) return;
+    
+    const updatedForecasts = [...monthlyForecasts];
+    const forecastIndex = updatedForecasts.findIndex(f => f.month === month);
+    
+    if (forecastIndex >= 0) {
+      updatedForecasts[forecastIndex] = { month, amount };
+    } else {
+      updatedForecasts.push({ month, amount });
+    }
+    
+    onForecastUpdate(updatedForecasts);
+  };
+
   return (
     <Card className="col-span-1 lg:col-span-12 p-6">
       <div className="grid gap-6 md:grid-cols-3">
@@ -52,7 +67,7 @@ export const KeyMetricsCard = ({
           revenueData={revenueData} 
           monthlyForecasts={monthlyForecasts}
           isEditing={isEditing}
-          onForecastUpdate={onForecastUpdate}
+          onForecastUpdate={handleForecastUpdate}
         />
       </div>
     </Card>
