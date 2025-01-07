@@ -63,19 +63,15 @@ const prepareClientData = async (clientId: string, formData: any, contacts: Cont
   
   const { primaryContact, formattedAdditionalContacts } = formatContacts(contacts);
 
-  const { data: existingClient } = await supabase
-    .from('clients')
-    .select('notes, next_due_date')
-    .eq('id', clientId)
-    .maybeSingle();
-
   // Ensure boolean values are properly handled
   const projectRevenueSignedOff = formData.project_revenue_signed_off === true;
   const projectRevenueForecast = formData.project_revenue_forecast === true;
   
-  // Parse numeric values
+  // Parse numeric values - use 0 as default for signed off and forecast values
   const annualRevenueSignedOff = parseNumericValue(formData.annual_revenue_signed_off) ?? 0;
   const annualRevenueForecast = parseNumericValue(formData.annual_revenue_forecast) ?? 0;
+  
+  // Allow null for revenue values
   const projectRevenue = parseNumericValue(formData.project_revenue);
   const annualRevenue = parseNumericValue(formData.annual_revenue);
 
@@ -90,8 +86,6 @@ const prepareClientData = async (clientId: string, formData: any, contacts: Cont
 
   const clientData = {
     ...formData,
-    notes: formData.notes || existingClient?.notes,
-    next_due_date: formData.next_due_date || existingClient?.next_due_date,
     contact_name: `${primaryContact.firstName} ${primaryContact.lastName}`.trim(),
     contact_email: primaryContact.email,
     contact_phone: primaryContact.phone,
