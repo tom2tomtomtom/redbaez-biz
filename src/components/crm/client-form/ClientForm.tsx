@@ -95,7 +95,7 @@ export const ClientForm = ({
       background: formState.background,
       likelihood: Number(formState.likelihood) || null,
       next_due_date: nextDueDate || null,
-      // Explicitly convert to boolean
+      // Explicitly convert to boolean and ensure they're not undefined
       project_revenue_signed_off: Boolean(revenueState.projectRevenueSignedOff),
       project_revenue_forecast: Boolean(revenueState.projectRevenueForecast),
       // Ensure numeric values
