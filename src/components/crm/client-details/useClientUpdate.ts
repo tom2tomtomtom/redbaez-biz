@@ -35,22 +35,20 @@ export const useClientUpdate = (clientId: string | undefined, onSuccess?: () => 
 
       console.log('Updating client with data:', dataToUpdate);
 
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from('clients')
         .update(dataToUpdate)
-        .eq('id', clientId)
-        .select()
-        .single();
+        .eq('id', clientId);
 
       if (error) {
         console.error('Error updating client:', error);
         throw error;
       }
 
-      return data;
+      return { success: true };
     },
-    onSuccess: (data) => {
-      console.log('Client updated successfully:', data);
+    onSuccess: () => {
+      console.log('Client updated successfully');
       queryClient.invalidateQueries({ queryKey: ['client'] });
       toast({
         title: "Success",
