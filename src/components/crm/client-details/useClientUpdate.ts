@@ -29,10 +29,9 @@ export const useClientUpdate = (id: string | undefined, onSuccess?: () => void) 
         contact_name: primaryContact ? `${primaryContact.firstName} ${primaryContact.lastName}`.trim() : null,
         contact_email: primaryContact?.email || null,
         contact_phone: primaryContact?.phone || null,
-        // Store additional contacts in the notes field for now
-        // In a real application, we would create a separate contacts table
+        // Store additional contacts as JSONB
         additional_contacts: contacts.length > 1 
-          ? JSON.stringify(contacts.slice(1)) 
+          ? contacts.slice(1)  // Store only additional contacts, not the primary one
           : null
       };
 
