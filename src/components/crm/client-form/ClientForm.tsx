@@ -52,6 +52,10 @@ export const ClientForm = ({
     formState.setCompanySize('');
     formState.setWebsite('');
     formState.setBackground('');
+    formState.setProjectRevenueSignedOff(false);
+    formState.setProjectRevenueForecast(false);
+    formState.setAnnualRevenueSignedOff('');
+    formState.setAnnualRevenueForecast('');
     onContactsChange([{ 
       firstName: '', 
       lastName: '', 
@@ -85,6 +89,10 @@ export const ClientForm = ({
       background: formState.background,
       likelihood: formState.likelihood,
       nextDueDate: nextDueDate,
+      project_revenue_signed_off: formState.projectRevenueSignedOff,
+      project_revenue_forecast: formState.projectRevenueForecast,
+      annual_revenue_signed_off: formState.annualRevenueSignedOff,
+      annual_revenue_forecast: formState.annualRevenueForecast,
     };
     handleSubmit(formData);
   };
@@ -118,6 +126,10 @@ export const ClientForm = ({
             companySize={formState.companySize}
             website={formState.website}
             background={formState.background}
+            projectRevenueSignedOff={formState.projectRevenueSignedOff}
+            projectRevenueForecast={formState.projectRevenueForecast}
+            annualRevenueSignedOff={formState.annualRevenueSignedOff}
+            annualRevenueForecast={formState.annualRevenueForecast}
             onStatusChange={formState.setStatus}
             onLikelihoodChange={formState.setLikelihood}
             onProjectRevenueChange={formState.setProjectRevenue}
@@ -127,6 +139,10 @@ export const ClientForm = ({
             onCompanySizeChange={formState.setCompanySize}
             onWebsiteChange={formState.setWebsite}
             onBackgroundChange={formState.setBackground}
+            onProjectRevenueSignedOffChange={formState.setProjectRevenueSignedOff}
+            onProjectRevenueForecastChange={formState.setProjectRevenueForecast}
+            onAnnualRevenueSignedOffChange={formState.setAnnualRevenueSignedOff}
+            onAnnualRevenueForecastChange={formState.setAnnualRevenueForecast}
           />
 
           <NextStepsSection
