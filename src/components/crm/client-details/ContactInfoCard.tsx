@@ -14,6 +14,8 @@ export const ContactInfoCard = ({
   contactEmail, 
   contactPhone 
 }: ContactInfoCardProps) => {
+  console.log('ContactInfoCard received props:', { contactName, companySize, contactEmail, contactPhone });
+  
   return (
     <Card className="col-span-12 lg:col-span-8 transition-all duration-300 hover:shadow-lg">
       <CardHeader>

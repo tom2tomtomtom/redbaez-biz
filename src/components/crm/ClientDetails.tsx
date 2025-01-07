@@ -30,6 +30,7 @@ export const ClientDetails = () => {
   const { data: client, isLoading, error } = useQuery({
     queryKey: ['client', id],
     queryFn: async () => {
+      console.log('Fetching client data for ID:', id);
       const { data, error } = await supabase
         .from('clients')
         .select('*')
@@ -40,6 +41,7 @@ export const ClientDetails = () => {
 
       // Initialize contacts from client data
       if (data) {
+        console.log('Received client data:', data);
         const [firstName = '', lastName = ''] = (data.contact_name || '').split(' ');
         setContacts([{
           firstName,
@@ -106,6 +108,8 @@ export const ClientDetails = () => {
       email: '',
       phone: ''
     };
+
+    console.log('Primary contact for update:', primaryContact);
 
     // Prepare the update data with contact information
     const updateData = {
