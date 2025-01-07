@@ -1,3 +1,7 @@
+import { ClientRow, ClientInsert, ClientUpdate } from './clients.types';
+import { MessageRow, MessageInsert, MessageUpdate } from './messages.types';
+import { ProfileRow, ProfileInsert, ProfileUpdate } from './profiles.types';
+
 export type Json =
   | string
   | number

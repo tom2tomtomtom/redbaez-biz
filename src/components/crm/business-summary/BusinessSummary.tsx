@@ -29,8 +29,8 @@ const fetchClients = async () => {
   return data;
 };
 
-const getLikelihoodColor = (likelihood: string) => {
-  const score = parseInt(likelihood) || 0;
+const getLikelihoodColor = (likelihood: number | null) => {
+  const score = likelihood || 0;
   if (score >= 75) return 'bg-green-100 text-green-800';
   if (score >= 50) return 'bg-yellow-100 text-yellow-800';
   if (score >= 25) return 'bg-orange-100 text-orange-800';
@@ -88,7 +88,7 @@ export const BusinessSummary = () => {
               <TableCell className="font-medium">{client.name}</TableCell>
               <TableCell>{client.status || 'N/A'}</TableCell>
               <TableCell>
-                <span className={`px-2 py-1 rounded-full text-sm ${getLikelihoodColor(client.likelihood || '0')}`}>
+                <span className={`px-2 py-1 rounded-full text-sm ${getLikelihoodColor(client.likelihood)}`}>
                   {client.likelihood || '0'}%
                 </span>
               </TableCell>
