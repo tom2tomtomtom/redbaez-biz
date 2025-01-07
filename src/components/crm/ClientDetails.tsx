@@ -2,9 +2,12 @@ import React from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, BarChart, Bar } from 'recharts';
-import { Calendar, Mail, Phone, Star, Edit, MoreHorizontal, Plus } from 'lucide-react';
+import { Calendar, Mail, Phone, Star, Edit, MoreHorizontal, Plus, ArrowLeft } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 export const ClientDetails = () => {
+  const navigate = useNavigate();
+  
   // Dummy data - will be replaced with real data later
   const clientData = {
     id: "CL-2024-001",
@@ -34,6 +37,16 @@ export const ClientDetails = () => {
 
   return (
     <div className="flex flex-col space-y-6 p-8 w-full max-w-7xl mx-auto bg-gray-50/50 animate-fade-in">
+      {/* Back Button */}
+      <Button
+        variant="ghost"
+        className="w-fit flex items-center gap-2"
+        onClick={() => navigate('/')}
+      >
+        <ArrowLeft size={16} />
+        Back to Home
+      </Button>
+
       {/* Header Section */}
       <div className="flex flex-col md:flex-row justify-between items-start bg-white p-6 rounded-xl shadow-sm transition-all duration-300 hover:shadow-md">
         <div>
