@@ -10,6 +10,7 @@ import { ContactInfoCard } from './client-details/ContactInfoCard';
 import { AdditionalInfoCard } from './client-details/AdditionalInfoCard';
 import { useClientUpdate } from './client-details/useClientUpdate';
 import { useClientInitialization } from './client-details/useClientInitialization';
+import { Contact } from './client-details/ContactInfoCard';
 
 export const ClientDetails = () => {
   const navigate = useNavigate();
@@ -93,9 +94,19 @@ export const ClientDetails = () => {
     );
   }
 
-  // Parse additional_contacts from JSON if it exists
-  const parsedAdditionalContacts = client.additional_contacts ? 
-    (Array.isArray(client.additional_contacts) ? client.additional_contacts : []) : 
+  // Parse and validate additional_contacts from JSON
+  const parsedAdditionalContacts: Contact[] = client.additional_contacts ? 
+    (Array.isArray(client.additional_contacts) ? 
+      client.additional_contacts.map((contact: any) => ({
+        firstName: contact.firstName || '',
+        lastName: contact.lastName || '',
+        title: contact.title || '',
+        email: contact.email || '',
+        address: contact.address || '',
+        phone: contact.phone || ''
+      })) : 
+      []
+    ) : 
     [];
 
   return (

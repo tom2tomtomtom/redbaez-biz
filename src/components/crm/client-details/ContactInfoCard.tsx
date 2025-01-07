@@ -1,8 +1,7 @@
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Mail, Phone, Star } from 'lucide-react';
-import { Json } from '@/integrations/supabase/types';
 
-interface Contact {
+export interface Contact {
   firstName: string;
   lastName: string;
   title: string;
