@@ -3,6 +3,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Calendar, Plus } from 'lucide-react';
+import { useToast } from "@/components/ui/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { useState } from 'react';
 import {
   Select,
   SelectContent,
@@ -33,6 +36,12 @@ export const ClientForm = ({
   onNextStepsChange,
   onNextDueDateChange,
 }: ClientFormProps) => {
+  const { toast } = useToast();
+  const [companyName, setCompanyName] = useState('');
+  const [status, setStatus] = useState('');
+  const [likelihood, setLikelihood] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+
   const addContact = () => {
     onContactsChange([...contacts, { name: '', title: '' }]);
   };
@@ -49,6 +58,58 @@ export const ClientForm = ({
     onContactsChange(newContacts);
   };
 
+  const handleSave = async () => {
+    if (!companyName) {
+      toast({
+        title: "Error",
+        description: "Company name is required",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const primaryContact = contacts[0] || { name: '', title: '' };
+      
+      const { error } = await supabase
+        .from('clients')
+        .insert({
+          name: companyName,
+          type: 'business', // default type
+          contact_name: primaryContact.name,
+          status: status || 'prospect',
+          notes: nextSteps,
+          missing_fields: [],
+        });
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Client information saved successfully",
+      });
+
+      // Reset form
+      setCompanyName('');
+      setStatus('');
+      setLikelihood('');
+      onContactsChange([{ name: '', title: '' }]);
+      onNextStepsChange('');
+      onNextDueDateChange('');
+
+    } catch (error) {
+      console.error('Error saving client:', error);
+      toast({
+        title: "Error",
+        description: "Failed to save client information",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <Card className="transition-all duration-300 hover:shadow-lg">
       <CardHeader>
@@ -58,7 +119,12 @@ export const ClientForm = ({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="col-span-2">
             <Label>Company Name</Label>
-            <Input placeholder="Enter company name" className="transition-all duration-300" />
+            <Input 
+              placeholder="Enter company name" 
+              value={companyName}
+              onChange={(e) => setCompanyName(e.target.value)}
+              className="transition-all duration-300" 
+            />
           </div>
 
           <div className="col-span-2">
@@ -100,7 +166,7 @@ export const ClientForm = ({
 
           <div>
             <Label>Status</Label>
-            <Select>
+            <Select value={status} onValueChange={setStatus}>
               <SelectTrigger className="transition-all duration-300">
                 <SelectValue placeholder="Select status" />
               </SelectTrigger>
@@ -116,7 +182,13 @@ export const ClientForm = ({
 
           <div>
             <Label>Likelihood (%)</Label>
-            <Input type="number" placeholder="Enter %" className="transition-all duration-300" />
+            <Input 
+              type="number" 
+              placeholder="Enter %" 
+              value={likelihood}
+              onChange={(e) => setLikelihood(e.target.value)}
+              className="transition-all duration-300" 
+            />
           </div>
 
           <div className="col-span-2">
@@ -147,11 +219,10 @@ export const ClientForm = ({
         <div className="mt-6 border-t pt-6">
           <Button 
             className="w-full py-6 text-lg font-medium transition-all duration-300 hover:scale-[1.01]"
-            onClick={() => {
-              console.log('Saving client information...');
-            }}
+            onClick={handleSave}
+            disabled={isLoading}
           >
-            Save Client Information
+            {isLoading ? 'Saving...' : 'Save Client Information'}
           </Button>
         </div>
       </CardContent>
