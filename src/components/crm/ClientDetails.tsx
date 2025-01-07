@@ -10,11 +10,20 @@ import { ContactInfoCard } from './client-details/ContactInfoCard';
 import { AdditionalInfoCard } from './client-details/AdditionalInfoCard';
 import { useClientUpdate } from './client-details/useClientUpdate';
 
+interface Contact {
+  firstName: string;
+  lastName: string;
+  title: string;
+  email: string;
+  address: string;
+  phone: string;
+}
+
 export const ClientDetails = () => {
   const navigate = useNavigate();
   const { id } = useParams();
   const [isEditing, setIsEditing] = useState(false);
-  const [contacts, setContacts] = useState([{ 
+  const [contacts, setContacts] = useState<Contact[]>([{ 
     firstName: '', 
     lastName: '', 
     title: '', 
@@ -52,8 +61,16 @@ export const ClientDetails = () => {
 
         // Add additional contacts if they exist
         if (data.additional_contacts) {
+          // Ensure additional_contacts is properly typed and validated
           const additionalContacts = Array.isArray(data.additional_contacts) 
-            ? data.additional_contacts 
+            ? data.additional_contacts.map((contact: any): Contact => ({
+                firstName: contact.firstName || '',
+                lastName: contact.lastName || '',
+                title: contact.title || '',
+                email: contact.email || '',
+                address: contact.address || '',
+                phone: contact.phone || ''
+              }))
             : [];
           
           setContacts([...initialContacts, ...additionalContacts]);
