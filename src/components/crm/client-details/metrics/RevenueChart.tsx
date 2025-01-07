@@ -19,17 +19,21 @@ export const RevenueChart = ({
   onForecastUpdate
 }: RevenueChartProps) => {
   const [showTable, setShowTable] = useState(false);
-  const [localForecasts, setLocalForecasts] = useState<Array<{ month: string; amount: number }>>(
-    revenueData.map(item => {
+  const [localForecasts, setLocalForecasts] = useState<Array<{ month: string; amount: number }>>([]);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [chartData, setChartData] = useState(revenueData);
+
+  // Initialize local forecasts when monthlyForecasts prop changes
+  useEffect(() => {
+    const initialForecasts = revenueData.map(item => {
       const existingForecast = monthlyForecasts.find(f => f.month === item.month);
       return {
         month: item.month,
         amount: existingForecast ? existingForecast.amount : item.value
       };
-    })
-  );
-  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
-  const [chartData, setChartData] = useState(revenueData);
+    });
+    setLocalForecasts(initialForecasts);
+  }, [monthlyForecasts, revenueData]);
 
   // Update chart data when local forecasts change
   useEffect(() => {
