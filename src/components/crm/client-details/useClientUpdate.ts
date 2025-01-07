@@ -34,8 +34,8 @@ export const useClientUpdate = (id: string | undefined, onSuccess?: () => void) 
         contact_name: `${primaryContact.firstName} ${primaryContact.lastName}`.trim(),
         contact_email: primaryContact.email,
         contact_phone: primaryContact.phone,
-        // Store additional contacts (up to 5) as JSONB
-        additional_contacts: additionalContacts.slice(0, 5)
+        // Store additional contacts as a proper JSONB array
+        additional_contacts: additionalContacts.length > 0 ? additionalContacts.slice(0, 5) : null
       };
 
       console.log('Updating client with data:', dataToUpdate);

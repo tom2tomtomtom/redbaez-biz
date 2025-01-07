@@ -38,18 +38,21 @@ export const useClientInitialization = (clientData: any) => {
       let additionalContacts: Contact[] = [];
       if (clientData.additional_contacts) {
         try {
-          const parsedContacts = Array.isArray(clientData.additional_contacts) 
-            ? clientData.additional_contacts 
-            : JSON.parse(clientData.additional_contacts);
-          
-          additionalContacts = parsedContacts.map((contact: any): Contact => ({
-            firstName: contact.firstName || '',
-            lastName: contact.lastName || '',
-            title: contact.title || '',
-            email: contact.email || '',
-            address: contact.address || '',
-            phone: contact.phone || ''
-          }));
+          // Handle both string and array formats
+          const parsedContacts = typeof clientData.additional_contacts === 'string'
+            ? JSON.parse(clientData.additional_contacts)
+            : clientData.additional_contacts;
+
+          if (Array.isArray(parsedContacts)) {
+            additionalContacts = parsedContacts.map((contact: any): Contact => ({
+              firstName: contact.firstName || '',
+              lastName: contact.lastName || '',
+              title: contact.title || '',
+              email: contact.email || '',
+              address: contact.address || '',
+              phone: contact.phone || ''
+            }));
+          }
           
           console.log('Parsed additional contacts:', additionalContacts);
         } catch (error) {
