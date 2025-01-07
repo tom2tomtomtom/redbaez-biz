@@ -59,6 +59,8 @@ const parseNumericValue = (value: string | number | null): number | null => {
 };
 
 const prepareClientData = async (clientId: string, formData: any, contacts: Contact[]): Promise<ClientData> => {
+  console.log('Preparing client data with form data:', formData);
+  
   const { primaryContact, formattedAdditionalContacts } = formatContacts(contacts);
 
   const { data: existingClient } = await supabase
@@ -66,6 +68,25 @@ const prepareClientData = async (clientId: string, formData: any, contacts: Cont
     .select('notes, next_due_date')
     .eq('id', clientId)
     .maybeSingle();
+
+  // Ensure boolean values are properly handled
+  const projectRevenueSignedOff = formData.project_revenue_signed_off === true;
+  const projectRevenueForecast = formData.project_revenue_forecast === true;
+  
+  // Parse numeric values
+  const annualRevenueSignedOff = parseNumericValue(formData.annual_revenue_signed_off) ?? 0;
+  const annualRevenueForecast = parseNumericValue(formData.annual_revenue_forecast) ?? 0;
+  const projectRevenue = parseNumericValue(formData.project_revenue);
+  const annualRevenue = parseNumericValue(formData.annual_revenue);
+
+  console.log('Parsed values:', {
+    projectRevenueSignedOff,
+    projectRevenueForecast,
+    annualRevenueSignedOff,
+    annualRevenueForecast,
+    projectRevenue,
+    annualRevenue
+  });
 
   const clientData = {
     ...formData,
@@ -75,16 +96,16 @@ const prepareClientData = async (clientId: string, formData: any, contacts: Cont
     contact_email: primaryContact.email,
     contact_phone: primaryContact.phone,
     additional_contacts: contacts.length > 1 ? formattedAdditionalContacts : null,
-    project_revenue: parseNumericValue(formData.project_revenue),
-    annual_revenue: parseNumericValue(formData.annual_revenue),
-    project_revenue_signed_off: formData.project_revenue_signed_off === true,
-    project_revenue_forecast: formData.project_revenue_forecast === true,
-    annual_revenue_signed_off: parseNumericValue(formData.annual_revenue_signed_off) ?? 0,
-    annual_revenue_forecast: parseNumericValue(formData.annual_revenue_forecast) ?? 0,
+    project_revenue: projectRevenue,
+    annual_revenue: annualRevenue,
+    project_revenue_signed_off: projectRevenueSignedOff,
+    project_revenue_forecast: projectRevenueForecast,
+    annual_revenue_signed_off: annualRevenueSignedOff,
+    annual_revenue_forecast: annualRevenueForecast,
     likelihood: formData.likelihood ? Number(formData.likelihood) : null
   };
 
-  console.log('Prepared client data for update:', clientData);
+  console.log('Final client data for update:', clientData);
   return clientData;
 };
 
