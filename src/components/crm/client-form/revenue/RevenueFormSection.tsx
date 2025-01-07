@@ -27,26 +27,6 @@ export const RevenueFormSection: React.FC<RevenueFormSectionProps> = ({
   onAnnualRevenueSignedOffChange,
   onAnnualRevenueForecastChange,
 }) => {
-  console.log('RevenueFormSection render with props:', {
-    projectRevenue,
-    annualRevenue,
-    projectRevenueSignedOff,
-    projectRevenueForecast,
-    annualRevenueSignedOff,
-    annualRevenueForecast,
-  });
-
-  const handleNumericInput = (value: string, onChange: (value: string) => void) => {
-    if (value === '' || !isNaN(Number(value))) {
-      onChange(value);
-    }
-  };
-
-  const handleCheckboxChange = (checked: boolean, onChange: (checked: boolean) => void) => {
-    console.log('Checkbox changed:', checked);
-    onChange(checked);
-  };
-
   return (
     <div className="space-y-6">
       <div className="space-y-4 p-4 bg-gray-50 rounded-lg">
@@ -57,7 +37,7 @@ export const RevenueFormSection: React.FC<RevenueFormSectionProps> = ({
             type="number" 
             placeholder="Enter project revenue" 
             value={projectRevenue}
-            onChange={(e) => handleNumericInput(e.target.value, onProjectRevenueChange)}
+            onChange={(e) => onProjectRevenueChange(e.target.value)}
             className="transition-all duration-300" 
           />
         </div>
@@ -67,9 +47,7 @@ export const RevenueFormSection: React.FC<RevenueFormSectionProps> = ({
             <Checkbox
               id="projectRevenueSignedOff"
               checked={projectRevenueSignedOff}
-              onCheckedChange={(checked) => 
-                handleCheckboxChange(checked as boolean, onProjectRevenueSignedOffChange)
-              }
+              onCheckedChange={(checked) => onProjectRevenueSignedOffChange(!!checked)}
               className="data-[state=checked]:bg-green-500"
             />
             <Label htmlFor="projectRevenueSignedOff">Signed Off</Label>
@@ -79,9 +57,7 @@ export const RevenueFormSection: React.FC<RevenueFormSectionProps> = ({
             <Checkbox
               id="projectRevenueForecast"
               checked={projectRevenueForecast}
-              onCheckedChange={(checked) => 
-                handleCheckboxChange(checked as boolean, onProjectRevenueForecastChange)
-              }
+              onCheckedChange={(checked) => onProjectRevenueForecastChange(!!checked)}
               className="data-[state=checked]:bg-blue-500"
             />
             <Label htmlFor="projectRevenueForecast">Forecast</Label>
@@ -97,7 +73,7 @@ export const RevenueFormSection: React.FC<RevenueFormSectionProps> = ({
             type="number" 
             placeholder="Enter annual revenue" 
             value={annualRevenue}
-            onChange={(e) => handleNumericInput(e.target.value, onAnnualRevenueChange)}
+            onChange={(e) => onAnnualRevenueChange(e.target.value)}
             className="transition-all duration-300" 
           />
         </div>
@@ -109,7 +85,7 @@ export const RevenueFormSection: React.FC<RevenueFormSectionProps> = ({
               type="number" 
               placeholder="Enter signed off amount" 
               value={annualRevenueSignedOff}
-              onChange={(e) => handleNumericInput(e.target.value, onAnnualRevenueSignedOffChange)}
+              onChange={(e) => onAnnualRevenueSignedOffChange(e.target.value)}
               className="transition-all duration-300" 
             />
           </div>
@@ -120,7 +96,7 @@ export const RevenueFormSection: React.FC<RevenueFormSectionProps> = ({
               type="number" 
               placeholder="Enter forecast amount" 
               value={annualRevenueForecast}
-              onChange={(e) => handleNumericInput(e.target.value, onAnnualRevenueForecastChange)}
+              onChange={(e) => onAnnualRevenueForecastChange(e.target.value)}
               className="transition-all duration-300" 
             />
           </div>

@@ -65,11 +65,7 @@ const prepareClientData = async (clientId: string, formData: any, contacts: Cont
     .from('clients')
     .select('notes, next_due_date')
     .eq('id', clientId)
-    .single();
-
-  console.log('Preparing client data with formData:', formData);
-  console.log('Project revenue signed off:', formData.project_revenue_signed_off);
-  console.log('Project revenue forecast:', formData.project_revenue_forecast);
+    .maybeSingle();
 
   const clientData = {
     ...formData,
@@ -81,14 +77,14 @@ const prepareClientData = async (clientId: string, formData: any, contacts: Cont
     additional_contacts: contacts.length > 1 ? formattedAdditionalContacts : null,
     project_revenue: parseNumericValue(formData.project_revenue),
     annual_revenue: parseNumericValue(formData.annual_revenue),
-    project_revenue_signed_off: Boolean(formData.project_revenue_signed_off),
-    project_revenue_forecast: Boolean(formData.project_revenue_forecast),
+    project_revenue_signed_off: formData.project_revenue_signed_off === true,
+    project_revenue_forecast: formData.project_revenue_forecast === true,
     annual_revenue_signed_off: parseNumericValue(formData.annual_revenue_signed_off) ?? 0,
     annual_revenue_forecast: parseNumericValue(formData.annual_revenue_forecast) ?? 0,
     likelihood: formData.likelihood ? Number(formData.likelihood) : null
   };
 
-  console.log('Prepared client data:', clientData);
+  console.log('Prepared client data for update:', clientData);
   return clientData;
 };
 
@@ -99,11 +95,10 @@ export const useClientUpdate = (clientId: string | undefined, onSuccess?: () => 
     mutationFn: async ({ formData, contacts }: UpdateClientData) => {
       if (!clientId) throw new Error('Client ID is required');
 
-      console.log('Updating client with formData:', formData);
+      console.log('Raw form data received:', formData);
       console.log('Contacts:', contacts);
       
       const clientData = await prepareClientData(clientId, formData, contacts);
-      console.log('Prepared client data:', clientData);
 
       const { error } = await supabase
         .from('clients')
