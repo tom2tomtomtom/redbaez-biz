@@ -83,7 +83,7 @@ export const RevenueInputs = ({
         </div>
         
         <div className="space-y-4">
-          <div className="flex items-center space-x-4">
+          <div>
             <Label>Signed Off Amount ($)</Label>
             <Input 
               type="number" 
@@ -94,7 +94,7 @@ export const RevenueInputs = ({
             />
           </div>
           
-          <div className="flex items-center space-x-4">
+          <div>
             <Label>Forecast Amount ($)</Label>
             <Input 
               type="number" 
