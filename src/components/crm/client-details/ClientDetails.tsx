@@ -19,7 +19,6 @@ export const ClientDetails = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [nextSteps, setNextSteps] = useState('');
   const [nextDueDate, setNextDueDate] = useState('');
-  const [currentForecasts, setCurrentForecasts] = useState<MonthlyForecast[]>([]);
 
   // Validate id parameter
   if (!id || isNaN(Number(id))) {
@@ -64,27 +63,7 @@ export const ClientDetails = () => {
   const handleSave = async (formData: any) => {
     console.log('Saving client with form data:', formData);
     console.log('Current contacts:', contacts);
-    console.log('Current forecasts:', currentForecasts);
-    
-    // Map the forecasts to the monthly columns
-    const forecastData = {
-      ...formData,
-      forecast_jan: currentForecasts.find(f => f.month === 'Jan')?.amount || 0,
-      forecast_feb: currentForecasts.find(f => f.month === 'Feb')?.amount || 0,
-      forecast_mar: currentForecasts.find(f => f.month === 'Mar')?.amount || 0,
-      forecast_apr: currentForecasts.find(f => f.month === 'Apr')?.amount || 0,
-      forecast_may: currentForecasts.find(f => f.month === 'May')?.amount || 0,
-      forecast_jun: currentForecasts.find(f => f.month === 'Jun')?.amount || 0,
-      forecast_jul: currentForecasts.find(f => f.month === 'Jul')?.amount || 0,
-      forecast_aug: currentForecasts.find(f => f.month === 'Aug')?.amount || 0,
-      forecast_sep: currentForecasts.find(f => f.month === 'Sep')?.amount || 0,
-      forecast_oct: currentForecasts.find(f => f.month === 'Oct')?.amount || 0,
-      forecast_nov: currentForecasts.find(f => f.month === 'Nov')?.amount || 0,
-      forecast_dec: currentForecasts.find(f => f.month === 'Dec')?.amount || 0,
-    };
-    
-    console.log('Sending forecast data to update:', forecastData);
-    updateMutation.mutate({ formData: forecastData, contacts });
+    updateMutation.mutate({ formData, contacts });
   };
 
   // Generate monthly revenue data including forecasts
@@ -115,7 +94,23 @@ export const ClientDetails = () => {
 
   const handleForecastUpdate = async (forecasts: MonthlyForecast[]) => {
     console.log('Updating forecasts:', forecasts);
-    setCurrentForecasts(forecasts);
+    const formDataWithForecasts = {
+      ...client,
+      forecast_jan: forecasts.find(f => f.month === 'Jan')?.amount || 0,
+      forecast_feb: forecasts.find(f => f.month === 'Feb')?.amount || 0,
+      forecast_mar: forecasts.find(f => f.month === 'Mar')?.amount || 0,
+      forecast_apr: forecasts.find(f => f.month === 'Apr')?.amount || 0,
+      forecast_may: forecasts.find(f => f.month === 'May')?.amount || 0,
+      forecast_jun: forecasts.find(f => f.month === 'Jun')?.amount || 0,
+      forecast_jul: forecasts.find(f => f.month === 'Jul')?.amount || 0,
+      forecast_aug: forecasts.find(f => f.month === 'Aug')?.amount || 0,
+      forecast_sep: forecasts.find(f => f.month === 'Sep')?.amount || 0,
+      forecast_oct: forecasts.find(f => f.month === 'Oct')?.amount || 0,
+      forecast_nov: forecasts.find(f => f.month === 'Nov')?.amount || 0,
+      forecast_dec: forecasts.find(f => f.month === 'Dec')?.amount || 0,
+    };
+    console.log('Sending forecast data to update:', formDataWithForecasts);
+    updateMutation.mutate({ formData: formDataWithForecasts, contacts });
   };
 
   if (isEditing) {
@@ -198,4 +193,3 @@ export const ClientDetails = () => {
       </div>
     </div>
   );
-};
