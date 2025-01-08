@@ -102,9 +102,9 @@ export const RevenueChart = ({
                   </label>
                   <Input
                     type="text"
-                    value={forecast?.amount === 0 ? '' : forecast?.amount?.toString()}
+                    value={forecast?.amount ? forecast.amount.toString() : ''}
                     onChange={(e) => handleForecastChange(item.month, e.target.value)}
-                    className="w-full [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                    className="w-full"
                     placeholder="Enter amount"
                   />
                 </div>
