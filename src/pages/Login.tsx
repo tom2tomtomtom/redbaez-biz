@@ -47,8 +47,8 @@ export const Login = () => {
         setError(""); // Clear errors on sign out
       }
 
-      // Handle signup event
-      if (event === "SIGNED_UP") {
+      // Handle new user registration
+      if (event === "USER_CREATED") {
         const email = session?.user?.email;
         if (email) {
           try {
