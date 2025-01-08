@@ -57,12 +57,19 @@ export const Login = () => {
     try {
       const { error } = await supabase.auth.signInWithOtp({
         email: email,
+        options: {
+          emailRedirectTo: window.location.origin,
+          // Set 5 minutes expiry (300 seconds)
+          data: {
+            expiresIn: 300
+          }
+        }
       });
       
       if (error) {
         setError(error.message);
       } else {
-        setError("A new confirmation link has been sent to your email.");
+        setError("A new confirmation link has been sent to your email. This link will expire in 5 minutes.");
       }
     } catch (err) {
       setError("An error occurred while sending the confirmation link.");
