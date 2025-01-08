@@ -47,11 +47,11 @@ export function useClientForecasts(clientId: number) {
       if (fetchError) throw fetchError;
 
       const totalForecast = Object.entries(client)
-        .filter(([key, value]) => key.startsWith('forecast_'))
+        .filter(([key]) => key.startsWith('forecast_'))
         .reduce((sum, [_, value]) => sum + (Number(value) || 0), 0);
 
       const totalActual = Object.entries(client)
-        .filter(([key, value]) => key.startsWith('actual_'))
+        .filter(([key]) => key.startsWith('actual_'))
         .reduce((sum, [_, value]) => sum + (Number(value) || 0), 0);
 
       // Update the client's annual revenue totals

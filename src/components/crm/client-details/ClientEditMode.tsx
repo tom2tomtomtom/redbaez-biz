@@ -26,12 +26,14 @@ export const ClientEditMode: React.FC<ClientEditModeProps> = ({
   onNextDueDateChange,
   onCancel
 }) => {
-  const revenueData = Array.from({ length: 12 }, (_, i) => {
-    const date = new Date(new Date().getFullYear(), new Date().getMonth() + i);
-    const month = date.toLocaleString('default', { month: 'short' });
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  
+  const revenueData = months.map((month) => {
+    const monthLower = month.toLowerCase();
     return {
       month,
-      value: client.annual_revenue ? client.annual_revenue / 12 : 0
+      actual: client[`actual_${monthLower}`] || 0,
+      forecast: client[`forecast_${monthLower}`] || 0
     };
   });
 
