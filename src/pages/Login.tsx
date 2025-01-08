@@ -31,7 +31,7 @@ export const Login = () => {
   }, []);
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event: 'SIGNED_IN' | 'SIGNED_OUT' | 'SIGNED_UP' | 'PASSWORD_RECOVERY', session: Session | null) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       console.log("Auth state change:", event);
       
       if (event === 'SIGNED_IN' && session) {
