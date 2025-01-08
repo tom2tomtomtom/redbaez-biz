@@ -1,56 +1,19 @@
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
-import { PriorityActionItem } from './PriorityActionItem';
-import { GeneralTaskItem } from './GeneralTaskItem';
-import { PriorityActionsSkeleton } from './PriorityActionsSkeleton';
-import { startOfMonth, endOfMonth, isAfter } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { TaskForm } from './TaskForm';
 import { useState } from 'react';
 import { Tables } from '@/integrations/supabase/types';
-
-const fetchPriorityClients = async () => {
-  const startDate = startOfMonth(new Date());
-  const endDate = endOfMonth(new Date());
-
-  const { data, error } = await supabase
-    .from('clients')
-    .select('*')
-    .gte('next_due_date', startDate.toISOString())
-    .lte('next_due_date', endDate.toISOString())
-    .order('next_due_date', { ascending: true });
-    
-  if (error) throw error;
-  return data;
-};
-
-const fetchGeneralTasks = async () => {
-  const { data, error } = await supabase
-    .from('general_tasks')
-    .select('*')
-    .order('next_due_date', { ascending: true, nullsLast: true });
-    
-  if (error) throw error;
-  return data;
-};
+import { useQueryClient } from '@tanstack/react-query';
+import { PriorityActionsSkeleton } from './PriorityActionsSkeleton';
+import { TaskDialog } from './TaskDialog';
+import { PriorityItemsList } from './PriorityItemsList';
+import { usePriorityData } from './hooks/usePriorityData';
 
 export const PriorityActions = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Tables<'general_tasks'> | null>(null);
   const queryClient = useQueryClient();
-
-  const { data: clients, isLoading: isLoadingClients, error: clientsError } = useQuery({
-    queryKey: ['priorityClients'],
-    queryFn: fetchPriorityClients,
-  });
-
-  const { data: tasks, isLoading: isLoadingTasks, error: tasksError } = useQuery({
-    queryKey: ['generalTasks'],
-    queryFn: fetchGeneralTasks,
-  });
+  const { allItems, isLoading, error } = usePriorityData();
 
   const handleTaskSaved = () => {
     queryClient.invalidateQueries({ queryKey: ['generalTasks'] });
@@ -58,11 +21,16 @@ export const PriorityActions = () => {
     setEditingTask(null);
   };
 
-  if (isLoadingClients || isLoadingTasks) {
+  const handleTaskClick = (task: Tables<'general_tasks'>) => {
+    setEditingTask(task);
+    setIsDialogOpen(true);
+  };
+
+  if (isLoading) {
     return <PriorityActionsSkeleton />;
   }
 
-  if (clientsError || tasksError) {
+  if (error) {
     return (
       <Card>
         <CardHeader>
@@ -77,78 +45,33 @@ export const PriorityActions = () => {
     );
   }
 
-  // Combine and sort all items by date
-  const allItems = [
-    ...(tasks?.map(task => ({
-      type: 'task' as const,
-      date: task.next_due_date,
-      data: task
-    })) || []),
-    ...(clients?.map(client => ({
-      type: 'client' as const,
-      date: client.next_due_date,
-      data: client
-    })) || [])
-  ].sort((a, b) => {
-    if (!a.date) return 1;
-    if (!b.date) return -1;
-    return new Date(a.date).getTime() - new Date(b.date).getTime();
-  });
-
-  const hasItems = allItems.length > 0;
-
   return (
     <Card className="transition-all duration-300 hover:shadow-lg">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
         <CardTitle>Priority Actions for {new Date().toLocaleString('default', { month: 'long' })}</CardTitle>
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
-            <Button onClick={() => setEditingTask(null)}>
-              <Plus className="mr-2 h-4 w-4" />
-              Add Task
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>{editingTask ? 'Edit Task' : 'Add New Task'}</DialogTitle>
-            </DialogHeader>
-            <TaskForm 
-              task={editingTask} 
-              onSaved={handleTaskSaved} 
-              onCancel={() => {
-                setIsDialogOpen(false);
-                setEditingTask(null);
-              }} 
-            />
-          </DialogContent>
-        </Dialog>
+        <Button onClick={() => {
+          setEditingTask(null);
+          setIsDialogOpen(true);
+        }}>
+          <Plus className="mr-2 h-4 w-4" />
+          Add Task
+        </Button>
       </CardHeader>
       <CardContent>
-        <div className="space-y-3 max-h-[500px] overflow-y-auto">
-          {allItems.map((item) => (
-            item.type === 'task' ? (
-              <div 
-                key={item.data.id} 
-                onClick={() => {
-                  setEditingTask(item.data);
-                  setIsDialogOpen(true);
-                }} 
-                className="cursor-pointer"
-              >
-                <GeneralTaskItem task={item.data} />
-              </div>
-            ) : (
-              <PriorityActionItem key={item.data.id} client={item.data} />
-            )
-          ))}
-
-          {!hasItems && (
-            <div className="p-3 bg-gray-50 rounded-lg border border-gray-100">
-              <p className="text-gray-600 text-center">No priority actions found for this month</p>
-            </div>
-          )}
+        <div className="max-h-[500px] overflow-y-auto">
+          <PriorityItemsList 
+            items={allItems}
+            onTaskClick={handleTaskClick}
+          />
         </div>
       </CardContent>
+
+      <TaskDialog
+        isOpen={isDialogOpen}
+        onOpenChange={setIsDialogOpen}
+        task={editingTask}
+        onSaved={handleTaskSaved}
+      />
     </Card>
   );
 };
