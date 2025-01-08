@@ -1,15 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/components/ui/use-toast';
-
-interface Contact {
-  firstName: string;
-  lastName: string;
-  title: string;
-  email: string;
-  address: string;
-  phone: string;
-}
+import { Contact } from './ContactInfoCard';
 
 interface UpdateClientData {
   formData: any;
@@ -26,10 +18,11 @@ const formatContacts = (contacts: Contact[]) => {
 
 export const useClientUpdate = (clientId: string | undefined, onSuccess?: () => void) => {
   const queryClient = useQueryClient();
+  const numericId = clientId ? parseInt(clientId, 10) : undefined;
 
   return useMutation({
     mutationFn: async ({ formData, contacts }: UpdateClientData) => {
-      if (!clientId) throw new Error('Client ID is required');
+      if (!numericId) throw new Error('Client ID is required');
       
       const { primaryContact, additionalContacts } = formatContacts(contacts);
 
@@ -102,7 +95,7 @@ export const useClientUpdate = (clientId: string | undefined, onSuccess?: () => 
       const { error } = await supabase
         .from('clients')
         .update(clientData)
-        .eq('id', clientId);
+        .eq('id', numericId);
 
       if (error) throw error;
       return { success: true };
