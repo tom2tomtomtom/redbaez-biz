@@ -48,7 +48,6 @@ export const RevenueChart = ({
   };
 
   const handleForecastChange = (month: string, value: string) => {
-    // Convert empty string to 0, otherwise parse the number
     const numericValue = value === '' ? 0 : parseFloat(value);
     
     if (!isNaN(numericValue)) {
@@ -67,7 +66,6 @@ export const RevenueChart = ({
     }
   };
 
-  // Calculate total annual revenue from monthly forecasts
   const calculateAnnualRevenue = () => {
     return localForecasts.reduce((total, forecast) => total + (forecast.amount || 0), 0);
   };
