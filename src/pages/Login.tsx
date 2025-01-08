@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { AuthError, AuthApiError } from "@supabase/supabase-js";
+import { AuthError, AuthApiError, AuthChangeEvent } from "@supabase/supabase-js";
 
 export const Login = () => {
   const [error, setError] = useState<string>("");
@@ -29,7 +29,7 @@ export const Login = () => {
   }, []);
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event: AuthChangeEvent, session) => {
       console.log("Auth state change:", event);
       if (event === "SIGNED_IN" && session) {
         // Check if the email is from redbaez.com domain
@@ -45,7 +45,7 @@ export const Login = () => {
         setError(""); // Clear errors on sign out
       }
       // Add handling for signup events
-      if (event === "USER_DELETED") {
+      if (event === "PASSWORD_RECOVERY") {
         setError("A confirmation link has been sent to your email. This link will expire in 5 minutes. Please check your inbox.");
       }
       if (event === "USER_UPDATED") {
