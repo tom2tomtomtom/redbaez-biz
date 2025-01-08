@@ -46,6 +46,7 @@ export const ClientEditMode: React.FC<ClientEditModeProps> = ({
         projectRevenueForecast={client.project_revenue_forecast}
         annualRevenueSignedOff={client.annual_revenue_signed_off}
         annualRevenueForecast={client.annual_revenue_forecast}
+        clientId={client.id}
       />
       
       <ClientForm

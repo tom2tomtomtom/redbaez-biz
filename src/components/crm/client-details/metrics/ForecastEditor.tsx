@@ -3,7 +3,7 @@ import { useClientForecasts } from '@/hooks/useClientForecasts';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
-import { format } from 'date-fns';
+import { format, parseISO } from 'date-fns';
 
 interface ForecastEditorProps {
   clientId: number;
@@ -11,7 +11,7 @@ interface ForecastEditorProps {
 
 export const ForecastEditor = ({ clientId }: ForecastEditorProps) => {
   const { forecasts, updateForecast } = useClientForecasts(clientId);
-  const [selectedMonth, setSelectedMonth] = useState<Date>(new Date());
+  const [selectedMonth, setSelectedMonth] = useState<string>(format(new Date(), 'yyyy-MM'));
   const [amount, setAmount] = useState<string>('');
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -19,7 +19,7 @@ export const ForecastEditor = ({ clientId }: ForecastEditorProps) => {
     if (!amount) return;
 
     await updateForecast.mutate({
-      month: selectedMonth,
+      month: selectedMonth + '-01', // Add day to make it a valid date string
       amount: parseFloat(amount)
     });
 
@@ -33,8 +33,8 @@ export const ForecastEditor = ({ clientId }: ForecastEditorProps) => {
         <div>
           <Input
             type="month"
-            value={format(selectedMonth, 'yyyy-MM')}
-            onChange={(e) => setSelectedMonth(new Date(e.target.value))}
+            value={selectedMonth}
+            onChange={(e) => setSelectedMonth(e.target.value)}
             className="w-full"
           />
         </div>
@@ -61,7 +61,7 @@ export const ForecastEditor = ({ clientId }: ForecastEditorProps) => {
         <div className="space-y-2">
           {forecasts?.map((forecast) => (
             <div key={forecast.id} className="flex justify-between items-center">
-              <span>{format(new Date(forecast.month), 'MMMM yyyy')}</span>
+              <span>{format(parseISO(forecast.month), 'MMMM yyyy')}</span>
               <span>${forecast.amount.toLocaleString()}</span>
             </div>
           ))}

@@ -1,13 +1,13 @@
 export interface MonthlyForecast {
   id: string;
   client_id: number;
-  month: Date;
+  month: string;
   amount: number;
-  created_at: Date;
-  updated_at: Date;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface ForecastUpdate {
-  month: Date;
+  month: string;
   amount: number;
 }
