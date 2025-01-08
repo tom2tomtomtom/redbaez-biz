@@ -22,7 +22,6 @@ export const RevenueChart = ({
   const [localForecasts, setLocalForecasts] = useState<MonthlyForecast[]>([]);
   const [chartData, setChartData] = useState(revenueData);
 
-  // Initialize local forecasts when monthlyForecasts prop changes
   useEffect(() => {
     console.log('Initializing local forecasts with:', monthlyForecasts);
     const initialForecasts = revenueData.map(item => {
@@ -49,7 +48,8 @@ export const RevenueChart = ({
   };
 
   const handleForecastChange = (month: string, value: string) => {
-    const numericValue = value === '' ? 0 : Number(value);
+    // Convert empty string to 0, otherwise parse the number
+    const numericValue = value === '' ? 0 : parseFloat(value);
     
     if (!isNaN(numericValue)) {
       console.log('Updating local forecast for month:', month, 'with value:', numericValue);
@@ -61,7 +61,6 @@ export const RevenueChart = ({
       setLocalForecasts(updatedForecasts);
       updateChartData(updatedForecasts);
       
-      // Immediately notify parent of changes
       if (onForecastUpdate) {
         onForecastUpdate(month, numericValue);
       }
@@ -109,6 +108,8 @@ export const RevenueChart = ({
                     onChange={(e) => handleForecastChange(item.month, e.target.value)}
                     className="w-full"
                     placeholder="Enter forecast"
+                    min="0"
+                    step="any"
                   />
                 </div>
               );
