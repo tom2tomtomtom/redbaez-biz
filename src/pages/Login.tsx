@@ -10,12 +10,10 @@ import {
   AuthError, 
   AuthApiError, 
   Session,
-  SupabaseAuthClient
+  AuthChangeEvent
 } from "@supabase/supabase-js";
 import { WelcomeBack } from "@/components/auth/WelcomeBack";
 import { LoginForm } from "@/components/auth/LoginForm";
-
-type AuthEventType = 'SIGNED_IN' | 'SIGNED_OUT' | 'USER_UPDATED' | 'USER_DELETED' | 'PASSWORD_RECOVERY';
 
 export const Login = () => {
   const [error, setError] = useState<string>("");
@@ -44,7 +42,7 @@ export const Login = () => {
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event: AuthEventType, session: Session | null) => {
+      async (event: AuthChangeEvent, session: Session | null) => {
         console.log("Auth state change:", event);
         
         if (event === 'SIGNED_IN' && session) {
