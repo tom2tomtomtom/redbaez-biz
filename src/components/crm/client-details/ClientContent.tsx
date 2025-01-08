@@ -34,11 +34,8 @@ export const ClientContent = ({
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
       <KeyMetricsCard 
         annualRevenue={client.annual_revenue}
-        projectRevenue={client.project_revenue}
         likelihood={client.likelihood}
         revenueData={revenueData}
-        projectRevenueSignedOff={client.project_revenue_signed_off}
-        projectRevenueForecast={client.project_revenue_forecast}
         annualRevenueSignedOff={totalActualRevenue}
         annualRevenueForecast={client.annual_revenue_forecast}
         clientId={client.id}
