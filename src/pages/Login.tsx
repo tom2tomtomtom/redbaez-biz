@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import type { AuthError, AuthApiError } from "@supabase/supabase-js";
+import { AuthError, AuthApiError } from "@supabase/supabase-js";
 
 export const Login = () => {
   const [error, setError] = useState<string>("");
@@ -45,7 +45,7 @@ export const Login = () => {
         setError(""); // Clear errors on sign out
       }
       // Add handling for signup events
-      if (event === "SIGNED_UP") {
+      if (event === "SIGNUP") {
         setError("A confirmation link has been sent to your email. This link will expire in 5 minutes. Please check your inbox.");
       }
       if (event === "USER_UPDATED") {
