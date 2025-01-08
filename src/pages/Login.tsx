@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { AuthError, AuthApiError, AuthChangeEvent } from "@supabase/supabase-js";
+import { AuthError, AuthApiError, Session } from "@supabase/supabase-js";
 import { WelcomeBack } from "@/components/auth/WelcomeBack";
 import { LoginForm } from "@/components/auth/LoginForm";
 
@@ -31,10 +31,10 @@ export const Login = () => {
   }, []);
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event: AuthChangeEvent, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session: Session | null) => {
       console.log("Auth state change:", event);
       
-      if (event === "SIGNED_IN" && session) {
+      if (event === 'SIGNED_IN' && session) {
         const email = session.user.email;
         if (email && !email.endsWith('@redbaez.com')) {
           await supabase.auth.signOut();
@@ -44,11 +44,11 @@ export const Login = () => {
         navigate("/");
       }
       
-      if (event === "SIGNED_OUT") {
+      if (event === 'SIGNED_OUT') {
         setError("");
       }
 
-      if (event === "SIGNED_UP") {
+      if (event === 'SIGNED_UP') {
         const email = session?.user?.email;
         if (email) {
           try {
@@ -73,7 +73,7 @@ export const Login = () => {
         }
       }
 
-      if (event === "PASSWORD_RECOVERY") {
+      if (event === 'PASSWORD_RECOVERY') {
         setError("A confirmation link has been sent to your email. This link will expire in 5 minutes. Please check your inbox.");
       }
     });
