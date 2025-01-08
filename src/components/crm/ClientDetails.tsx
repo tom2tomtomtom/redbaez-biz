@@ -10,8 +10,6 @@ import { useClientInitialization } from './client-details/useClientInitializatio
 import { ClientHeader } from './client-details/ClientHeader';
 import { ClientEditMode } from './client-details/ClientEditMode';
 import { ClientContent } from './client-details/ClientContent';
-import { MonthlyForecast } from './client-details/types/MonthlyForecast';
-import { createForecastFormData } from './client-details/utils/forecastUtils';
 
 export const ClientDetails = () => {
   const navigate = useNavigate();
@@ -19,7 +17,6 @@ export const ClientDetails = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [nextSteps, setNextSteps] = useState('');
   const [nextDueDate, setNextDueDate] = useState('');
-  const [currentForecasts, setCurrentForecasts] = useState<MonthlyForecast[]>([]);
 
   // Validate and convert id parameter
   const numericId = id ? parseInt(id, 10) : null;
@@ -65,16 +62,7 @@ export const ClientDetails = () => {
   const handleSave = async (formData: any) => {
     console.log('Saving client with form data:', formData);
     console.log('Current contacts:', contacts);
-    
-    const formDataWithForecasts = createForecastFormData(formData, currentForecasts, client);
-    
-    console.log('Saving all data together:', formDataWithForecasts);
-    updateMutation.mutate({ formData: formDataWithForecasts, contacts });
-  };
-
-  const handleForecastUpdate = (forecasts: MonthlyForecast[]) => {
-    console.log('Updating forecasts:', forecasts);
-    setCurrentForecasts(forecasts);
+    updateMutation.mutate({ formData, contacts });
   };
 
   if (isEditing) {
@@ -89,7 +77,6 @@ export const ClientDetails = () => {
         onContactsChange={setContacts}
         onNextStepsChange={setNextSteps}
         onNextDueDateChange={setNextDueDate}
-        onMonthlyForecastsChange={handleForecastUpdate}
       />
     );
   }
@@ -129,7 +116,6 @@ export const ClientDetails = () => {
         client={client}
         isEditing={isEditing}
         parsedAdditionalContacts={parsedAdditionalContacts}
-        onForecastUpdate={handleForecastUpdate}
       />
     </div>
   );

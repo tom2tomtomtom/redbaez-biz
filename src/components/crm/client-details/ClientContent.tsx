@@ -2,24 +2,26 @@ import { Contact } from './ContactInfoCard';
 import { KeyMetricsCard } from './KeyMetricsCard';
 import { ContactInfoCard } from './ContactInfoCard';
 import { AdditionalInfoCard } from './AdditionalInfoCard';
-import { MonthlyForecast } from './types/MonthlyForecast';
-import { generateRevenueData, generateMonthlyForecasts } from './utils/forecastUtils';
 
 interface ClientContentProps {
   client: any;
   isEditing: boolean;
   parsedAdditionalContacts: Contact[];
-  onForecastUpdate: (forecasts: MonthlyForecast[]) => void;
 }
 
 export const ClientContent = ({
   client,
   isEditing,
   parsedAdditionalContacts,
-  onForecastUpdate
 }: ClientContentProps) => {
-  const revenueData = generateRevenueData(client.annual_revenue);
-  const monthlyForecasts = generateMonthlyForecasts(client);
+  const revenueData = Array.from({ length: 12 }, (_, i) => {
+    const date = new Date(new Date().getFullYear(), new Date().getMonth() + i);
+    const month = date.toLocaleString('default', { month: 'short' });
+    return {
+      month,
+      value: client.annual_revenue ? client.annual_revenue / 12 : 0
+    };
+  });
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
@@ -32,9 +34,6 @@ export const ClientContent = ({
         projectRevenueForecast={client.project_revenue_forecast}
         annualRevenueSignedOff={client.annual_revenue_signed_off}
         annualRevenueForecast={client.annual_revenue_forecast}
-        monthlyForecasts={monthlyForecasts}
-        isEditing={isEditing}
-        onForecastUpdate={onForecastUpdate}
       />
 
       <ContactInfoCard 

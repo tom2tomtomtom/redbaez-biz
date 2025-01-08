@@ -3,8 +3,6 @@ import { AnnualRevenueMetric } from "./metrics/AnnualRevenueMetric";
 import { ProjectRevenueMetric } from "./metrics/ProjectRevenueMetric";
 import { DealLikelihood } from "./metrics/DealLikelihood";
 import { RevenueChart } from "./metrics/RevenueChart";
-import { TestRevenueInput } from "./metrics/TestRevenueInput";
-import { MonthlyForecast } from "./types/MonthlyForecast";
 
 interface KeyMetricsCardProps {
   annualRevenue: number | null;
@@ -15,9 +13,6 @@ interface KeyMetricsCardProps {
   projectRevenueForecast: boolean;
   annualRevenueSignedOff: number;
   annualRevenueForecast: number;
-  monthlyForecasts: MonthlyForecast[];
-  isEditing?: boolean;
-  onForecastUpdate?: (forecasts: MonthlyForecast[]) => void;
 }
 
 export const KeyMetricsCard = ({
@@ -29,34 +24,9 @@ export const KeyMetricsCard = ({
   projectRevenueForecast,
   annualRevenueSignedOff,
   annualRevenueForecast,
-  monthlyForecasts,
-  isEditing = false,
-  onForecastUpdate
 }: KeyMetricsCardProps) => {
-  console.log('KeyMetricsCard monthlyForecasts:', monthlyForecasts);
-  console.log('KeyMetricsCard isEditing:', isEditing);
-
-  const handleForecastUpdate = (month: string, amount: number) => {
-    if (!onForecastUpdate) return;
-    
-    console.log('KeyMetricsCard handleForecastUpdate:', { month, amount });
-    
-    const updatedForecasts = [...monthlyForecasts];
-    const forecastIndex = updatedForecasts.findIndex(f => f.month === month);
-    
-    if (forecastIndex >= 0) {
-      updatedForecasts[forecastIndex] = { month, amount };
-    } else {
-      updatedForecasts.push({ month, amount });
-    }
-    
-    console.log('KeyMetricsCard updated forecasts:', updatedForecasts);
-    onForecastUpdate(updatedForecasts);
-  };
-
   return (
     <Card className="col-span-1 lg:col-span-12 p-6">
-      {isEditing && <TestRevenueInput />}
       <div className="grid gap-6 md:grid-cols-3">
         <AnnualRevenueMetric 
           annualRevenue={annualRevenue} 
@@ -72,10 +42,7 @@ export const KeyMetricsCard = ({
       </div>
       <div className="mt-6">
         <RevenueChart 
-          revenueData={revenueData} 
-          monthlyForecasts={monthlyForecasts}
-          isEditing={isEditing}
-          onForecastUpdate={handleForecastUpdate}
+          revenueData={revenueData}
         />
       </div>
     </Card>
