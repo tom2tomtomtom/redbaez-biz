@@ -1,10 +1,16 @@
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { PriorityActionItem } from './PriorityActionItem';
 import { GeneralTaskItem } from './GeneralTaskItem';
 import { PriorityActionsSkeleton } from './PriorityActionsSkeleton';
 import { startOfMonth, endOfMonth } from 'date-fns';
+import { Button } from '@/components/ui/button';
+import { Plus } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { TaskForm } from './TaskForm';
+import { useState } from 'react';
+import { Tables } from '@/integrations/supabase/types';
 
 const fetchPriorityClients = async () => {
   const startDate = startOfMonth(new Date());
@@ -32,6 +38,10 @@ const fetchGeneralTasks = async () => {
 };
 
 export const PriorityActions = () => {
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [editingTask, setEditingTask] = useState<Tables<'general_tasks'> | null>(null);
+  const queryClient = useQueryClient();
+
   const { data: clients, isLoading: isLoadingClients, error: clientsError } = useQuery({
     queryKey: ['priorityClients'],
     queryFn: fetchPriorityClients,
@@ -41,6 +51,12 @@ export const PriorityActions = () => {
     queryKey: ['generalTasks'],
     queryFn: fetchGeneralTasks,
   });
+
+  const handleTaskSaved = () => {
+    queryClient.invalidateQueries({ queryKey: ['generalTasks'] });
+    setIsDialogOpen(false);
+    setEditingTask(null);
+  };
 
   if (isLoadingClients || isLoadingTasks) {
     return <PriorityActionsSkeleton />;
@@ -65,13 +81,39 @@ export const PriorityActions = () => {
 
   return (
     <Card className="transition-all duration-300 hover:shadow-lg">
-      <CardHeader>
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
         <CardTitle>Priority Actions for {new Date().toLocaleString('default', { month: 'long' })}</CardTitle>
+        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <DialogTrigger asChild>
+            <Button onClick={() => setEditingTask(null)}>
+              <Plus className="mr-2 h-4 w-4" />
+              Add Task
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>{editingTask ? 'Edit Task' : 'Add New Task'}</DialogTitle>
+            </DialogHeader>
+            <TaskForm 
+              task={editingTask} 
+              onSaved={handleTaskSaved} 
+              onCancel={() => {
+                setIsDialogOpen(false);
+                setEditingTask(null);
+              }} 
+            />
+          </DialogContent>
+        </Dialog>
       </CardHeader>
       <CardContent>
         <div className="space-y-3 max-h-[500px] overflow-y-auto">
           {tasks?.map((task) => (
-            <GeneralTaskItem key={task.id} task={task} />
+            <div key={task.id} onClick={() => {
+              setEditingTask(task);
+              setIsDialogOpen(true);
+            }} className="cursor-pointer">
+              <GeneralTaskItem task={task} />
+            </div>
           ))}
 
           {clients?.map((client) => (
