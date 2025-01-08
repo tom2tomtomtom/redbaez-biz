@@ -1,16 +1,18 @@
 import { useQuery } from '@tanstack/react-query';
 import { CalendarService, Meeting } from '@/integrations/google/calendar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Calendar, Clock } from 'lucide-react';
+import { Calendar, Clock, AlertCircle } from 'lucide-react';
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface CalendarViewProps {
   clientId: string;  // Keep as string since it comes from URL params
 }
 
 export const CalendarView = ({ clientId }: CalendarViewProps) => {
-  const { data: meetings, isLoading } = useQuery({
+  const { data: meetings, isLoading, error } = useQuery({
     queryKey: ['meetings', clientId],
     queryFn: () => CalendarService.getClientMeetings(Number(clientId)),  // Convert to number here
+    retry: 1, // Only retry once to avoid too many failed attempts
   });
 
   if (isLoading) {
@@ -24,6 +26,24 @@ export const CalendarView = ({ clientId }: CalendarViewProps) => {
             <div className="h-12 bg-gray-200 rounded"></div>
             <div className="h-12 bg-gray-200 rounded"></div>
           </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (error) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Calendar Events</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>
+              Failed to load calendar events. Please try again later.
+            </AlertDescription>
+          </Alert>
         </CardContent>
       </Card>
     );

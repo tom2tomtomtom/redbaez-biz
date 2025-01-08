@@ -20,12 +20,20 @@ export interface MeetingInput {
 
 export const CalendarService = {
   async getClientMeetings(clientId: number): Promise<Meeting[]> {  // Changed parameter type to number
+    console.log('Fetching meetings for client:', clientId);
+    
     const { data, error } = await supabase
       .from('calendar_events')
       .select('*')
       .eq('client_id', clientId);
 
-    if (error) throw error;
+    if (error) {
+      console.error('Error fetching meetings:', error);
+      throw error;
+    }
+
+    if (!data) return [];
+
     return data.map(event => ({
       id: event.id,
       clientId: event.client_id,
@@ -38,6 +46,8 @@ export const CalendarService = {
   },
 
   async createMeeting(data: MeetingInput): Promise<Meeting> {
+    console.log('Creating meeting:', data);
+    
     const { data: event, error } = await supabase
       .from('calendar_events')
       .insert({
@@ -50,7 +60,15 @@ export const CalendarService = {
       .select()
       .single();
 
-    if (error) throw error;
+    if (error) {
+      console.error('Error creating meeting:', error);
+      throw error;
+    }
+
+    if (!event) {
+      throw new Error('Failed to create meeting');
+    }
+
     return {
       id: event.id,
       clientId: event.client_id,
