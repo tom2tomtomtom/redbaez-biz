@@ -3,6 +3,7 @@ import { AnnualRevenueMetric } from "./metrics/AnnualRevenueMetric";
 import { ProjectRevenueMetric } from "./metrics/ProjectRevenueMetric";
 import { DealLikelihood } from "./metrics/DealLikelihood";
 import { RevenueChart } from "./metrics/RevenueChart";
+import { TestRevenueInput } from "./metrics/TestRevenueInput";
 import { MonthlyForecast } from "./types/MonthlyForecast";
 
 interface KeyMetricsCardProps {
@@ -51,6 +52,7 @@ export const KeyMetricsCard = ({
 
   return (
     <Card className="col-span-1 lg:col-span-12 p-6">
+      {isEditing && <TestRevenueInput />}
       <div className="grid gap-6 md:grid-cols-3">
         <AnnualRevenueMetric 
           annualRevenue={annualRevenue} 
