@@ -15,14 +15,13 @@ export const Login = () => {
       if (event === "SIGNED_IN" && session) {
         navigate("/");
       }
+      if (event === "SIGNED_OUT") {
+        setError(""); // Clear errors on sign out
+      }
     });
 
     return () => subscription.unsubscribe();
   }, [navigate]);
-
-  const handleError = (error: AuthError) => {
-    setError(error.message);
-  };
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100/50 flex items-center justify-center p-4">
@@ -44,7 +43,6 @@ export const Login = () => {
             appearance={{ theme: ThemeSupa }}
             theme="light"
             providers={[]}
-            onError={handleError}
           />
         </div>
       </div>
