@@ -45,7 +45,7 @@ export const Login = () => {
         setError(""); // Clear errors on sign out
       }
       // Add handling for signup events
-      if (event === "SIGNED_UP") {
+      if (event === "EMAIL_SIGNUP") {
         setError("A confirmation link has been sent to your email. This link will expire in 5 minutes. Please check your inbox.");
       }
       if (event === "USER_UPDATED") {
