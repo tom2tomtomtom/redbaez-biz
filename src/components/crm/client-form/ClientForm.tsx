@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ContactsList } from './ContactsList';
@@ -9,7 +9,6 @@ import { useClientFormState } from './useClientFormState';
 import { useClientFormSubmit } from './useClientFormSubmit';
 import { RevenueFormSection } from './revenue/RevenueFormSection';
 import { useRevenueState } from './hooks/useRevenueState';
-import { MonthlyForecast } from '../client-details/types/MonthlyForecast';
 
 interface Contact {
   firstName: string;
@@ -31,7 +30,6 @@ interface ClientFormProps {
   onSave?: (data: any) => void;
   isEditing?: boolean;
   onCancel?: () => void;
-  onMonthlyForecastsChange?: (forecasts: MonthlyForecast[]) => void;
 }
 
 export const ClientForm = ({
@@ -45,7 +43,6 @@ export const ClientForm = ({
   onSave,
   isEditing = false,
   onCancel,
-  onMonthlyForecastsChange,
 }: ClientFormProps) => {
   const formState = useClientFormState({ initialData, isEditing });
   const revenueState = useRevenueState(initialData);
@@ -79,13 +76,6 @@ export const ClientForm = ({
   });
 
   const onSubmit = () => {
-    console.log('Form submission with state:', {
-      projectRevenueSignedOff: revenueState.projectRevenueSignedOff,
-      projectRevenueForecast: revenueState.projectRevenueForecast,
-      annualRevenueSignedOff: revenueState.annualRevenueSignedOff,
-      annualRevenueForecast: revenueState.annualRevenueForecast
-    });
-
     const formData = {
       name: formState.companyName,
       type: formState.type,
@@ -154,7 +144,6 @@ export const ClientForm = ({
               onProjectRevenueForecastChange={revenueState.setProjectRevenueForecast}
               onAnnualRevenueSignedOffChange={revenueState.setAnnualRevenueSignedOff}
               onAnnualRevenueForecastChange={revenueState.setAnnualRevenueForecast}
-              onMonthlyForecastsChange={onMonthlyForecastsChange}
             />
           </div>
 

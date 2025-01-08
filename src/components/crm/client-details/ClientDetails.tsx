@@ -10,8 +10,6 @@ import { useClientInitialization } from './useClientInitialization';
 import { ClientHeader } from './ClientHeader';
 import { ClientEditMode } from './ClientEditMode';
 import { ClientContent } from './ClientContent';
-import { MonthlyForecast } from './types/MonthlyForecast';
-import { createForecastFormData } from './utils/forecastUtils';
 
 export const ClientDetails = () => {
   const navigate = useNavigate();
@@ -19,7 +17,6 @@ export const ClientDetails = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [nextSteps, setNextSteps] = useState('');
   const [nextDueDate, setNextDueDate] = useState('');
-  const [currentForecasts, setCurrentForecasts] = useState<MonthlyForecast[]>([]);
 
   // Validate and convert id parameter
   const numericId = id ? parseInt(id, 10) : null;
@@ -47,7 +44,7 @@ export const ClientDetails = () => {
   });
 
   const { contacts, setContacts } = useClientInitialization(client);
-  const updateMutation = useClientUpdate(id, () => setIsEditing(false));
+  const updateMutation = useClientUpdate(numericId.toString(), () => setIsEditing(false));
 
   if (isLoading) {
     return <div className="flex items-center justify-center h-screen">Loading...</div>;
@@ -65,17 +62,7 @@ export const ClientDetails = () => {
   const handleSave = async (formData: any) => {
     console.log('Saving client with form data:', formData);
     console.log('Current contacts:', contacts);
-    console.log('Current forecasts before save:', currentForecasts);
-    
-    const formDataWithForecasts = createForecastFormData(formData, currentForecasts, client);
-    
-    console.log('Saving all data together:', formDataWithForecasts);
-    updateMutation.mutate({ formData: formDataWithForecasts, contacts });
-  };
-
-  const handleForecastUpdate = (forecasts: MonthlyForecast[]) => {
-    console.log('Updating forecasts in ClientDetails:', forecasts);
-    setCurrentForecasts(forecasts);
+    updateMutation.mutate({ formData, contacts });
   };
 
   if (isEditing) {
@@ -90,7 +77,6 @@ export const ClientDetails = () => {
         onContactsChange={setContacts}
         onNextStepsChange={setNextSteps}
         onNextDueDateChange={setNextDueDate}
-        onMonthlyForecastsChange={handleForecastUpdate}
       />
     );
   }
@@ -130,7 +116,6 @@ export const ClientDetails = () => {
         client={client}
         isEditing={isEditing}
         parsedAdditionalContacts={parsedAdditionalContacts}
-        onForecastUpdate={handleForecastUpdate}
       />
     </div>
   );
