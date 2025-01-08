@@ -44,7 +44,11 @@ export const RevenueChart = ({
   };
 
   const handleForecastChange = (month: string, value: string) => {
-    const numericValue = value === '' ? 0 : Number(value);
+    console.log('Raw input value:', value);
+    console.log('Input value type:', typeof value);
+    
+    const numericValue = value === '' ? 0 : parseFloat(value);
+    console.log('Parsed number:', numericValue);
     
     if (!isNaN(numericValue)) {
       const updatedForecasts = localForecasts.map(f => 
@@ -55,6 +59,7 @@ export const RevenueChart = ({
       updateChartData(updatedForecasts);
       
       if (onForecastUpdate) {
+        console.log('Updating forecasts:', updatedForecasts);
         onForecastUpdate(month, numericValue);
       }
     }
@@ -64,12 +69,23 @@ export const RevenueChart = ({
     return localForecasts.reduce((total, forecast) => total + (forecast.amount || 0), 0);
   };
 
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(value);
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
         <div>
           <p className="text-sm text-gray-600">Monthly Revenue & Forecast</p>
-          <p className="text-sm text-gray-600">Annual Total: ${calculateAnnualRevenue().toLocaleString()}</p>
+          <p className="text-sm text-gray-600">
+            Annual Total: {formatCurrency(calculateAnnualRevenue())}
+          </p>
         </div>
         {isEditing && (
           <Button
@@ -103,6 +119,9 @@ export const RevenueChart = ({
                     min="0"
                     step="any"
                   />
+                  <div className="text-xs text-gray-500">
+                    {forecast?.amount ? formatCurrency(forecast.amount) : '$0'}
+                  </div>
                 </div>
               );
             })}
