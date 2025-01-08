@@ -9,6 +9,7 @@ import { useClientFormState } from './useClientFormState';
 import { useClientFormSubmit } from './useClientFormSubmit';
 import { RevenueFormSection } from './revenue/RevenueFormSection';
 import { useRevenueState } from './hooks/useRevenueState';
+import { toast } from '@/hooks/use-toast';
 
 interface Contact {
   firstName: string;
@@ -30,6 +31,7 @@ interface ClientFormProps {
   onSave?: (data: any) => void;
   isEditing?: boolean;
   onCancel?: () => void;
+  onClientAdded?: () => void;
 }
 
 export const ClientForm = ({
@@ -43,6 +45,7 @@ export const ClientForm = ({
   onSave,
   isEditing = false,
   onCancel,
+  onClientAdded,
 }: ClientFormProps) => {
   const formState = useClientFormState({ initialData, isEditing });
   const revenueState = useRevenueState(initialData);
@@ -75,7 +78,7 @@ export const ClientForm = ({
     resetForm,
   });
 
-  const onSubmit = () => {
+  const onSubmit = async () => {
     const formData = {
       name: formState.companyName,
       type: formState.type,
@@ -95,8 +98,23 @@ export const ClientForm = ({
       annual_revenue_forecast: parseFloat(revenueState.annualRevenueForecast) || 0,
     };
 
-    console.log('Submitting form data with explicit type conversion:', formData);
-    handleSubmit(formData);
+    try {
+      await handleSubmit(formData);
+      toast({
+        title: isEditing ? "Client Updated" : "Client Added",
+        description: `Successfully ${isEditing ? 'updated' : 'added'} client information.`,
+      });
+      if (onClientAdded) {
+        onClientAdded();
+      }
+    } catch (error) {
+      console.error('Error saving client:', error);
+      toast({
+        title: "Error",
+        description: "Failed to save client information. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   return (

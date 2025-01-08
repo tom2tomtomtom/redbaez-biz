@@ -1,17 +1,25 @@
-import { Suspense } from "react";
+import { Suspense, useState } from "react";
 import { CRMDashboard } from "@/components/crm/CRMDashboard";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PriorityActions } from "@/components/crm/priority-actions/PriorityActions";
 import { ClientSearch } from "@/components/crm/client-search/ClientSearch";
 import { IntelSearch } from "@/components/crm/intel-search/IntelSearch";
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
-import { LogOut } from "lucide-react";
+import { LogOut, Plus } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
 const Index = () => {
   const [searchInput, setSearchInput] = useState('');
+  const [isNewClientOpen, setIsNewClientOpen] = useState(false);
   const navigate = useNavigate();
 
   const handleLogout = async () => {
@@ -24,25 +32,42 @@ const Index = () => {
       <div className="container mx-auto py-8 space-y-8">
         <div className="flex justify-between items-center">
           <h1 className="text-2xl font-bold">Dashboard</h1>
-          <Button variant="outline" onClick={handleLogout}>
-            <LogOut className="mr-2 h-4 w-4" />
-            Sign out
-          </Button>
+          <div className="flex gap-4">
+            <Dialog open={isNewClientOpen} onOpenChange={setIsNewClientOpen}>
+              <DialogTrigger asChild>
+                <Button>
+                  <Plus className="mr-2 h-4 w-4" />
+                  New Client
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+                <DialogHeader>
+                  <DialogTitle>Add New Client</DialogTitle>
+                  <DialogDescription>
+                    Enter the client's information below
+                  </DialogDescription>
+                </DialogHeader>
+                <CRMDashboard onClientAdded={() => setIsNewClientOpen(false)} />
+              </DialogHeader>
+            </Dialog>
+            <Button variant="outline" onClick={handleLogout}>
+              <LogOut className="mr-2 h-4 w-4" />
+              Sign out
+            </Button>
+          </div>
         </div>
 
-        <PriorityActions />
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <ClientSearch />
-          <IntelSearch 
-            searchInput={searchInput}
-            onSearchInputChange={setSearchInput}
-          />
+        <div className="grid grid-cols-1 gap-8">
+          <PriorityActions />
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <ClientSearch />
+            <IntelSearch 
+              searchInput={searchInput}
+              onSearchInputChange={setSearchInput}
+            />
+          </div>
         </div>
-
-        <Suspense fallback={<Skeleton className="w-full h-screen" />}>
-          <CRMDashboard />
-        </Suspense>
       </div>
     </div>
   );
