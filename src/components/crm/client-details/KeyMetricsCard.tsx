@@ -33,8 +33,13 @@ export const KeyMetricsCard = ({
   isEditing = false,
   onForecastUpdate
 }: KeyMetricsCardProps) => {
+  console.log('KeyMetricsCard monthlyForecasts:', monthlyForecasts);
+  console.log('KeyMetricsCard isEditing:', isEditing);
+
   const handleForecastUpdate = (month: string, amount: number) => {
     if (!onForecastUpdate) return;
+    
+    console.log('KeyMetricsCard handleForecastUpdate:', { month, amount });
     
     const updatedForecasts = [...monthlyForecasts];
     const forecastIndex = updatedForecasts.findIndex(f => f.month === month);
@@ -45,10 +50,9 @@ export const KeyMetricsCard = ({
       updatedForecasts.push({ month, amount });
     }
     
+    console.log('KeyMetricsCard updated forecasts:', updatedForecasts);
     onForecastUpdate(updatedForecasts);
   };
-
-  console.log('KeyMetricsCard isEditing:', isEditing); // Debug log
 
   return (
     <Card className="col-span-1 lg:col-span-12 p-6">

@@ -65,6 +65,7 @@ export const ClientDetails = () => {
   const handleSave = async (formData: any) => {
     console.log('Saving client with form data:', formData);
     console.log('Current contacts:', contacts);
+    console.log('Current forecasts before save:', currentForecasts);
     
     const formDataWithForecasts = createForecastFormData(formData, currentForecasts, client);
     
@@ -73,7 +74,7 @@ export const ClientDetails = () => {
   };
 
   const handleForecastUpdate = (forecasts: MonthlyForecast[]) => {
-    console.log('Updating forecasts:', forecasts);
+    console.log('Updating forecasts in ClientDetails:', forecasts);
     setCurrentForecasts(forecasts);
   };
 
