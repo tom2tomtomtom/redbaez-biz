@@ -48,7 +48,14 @@ export const RevenueChart = ({
   };
 
   const handleForecastChange = (month: string, value: string) => {
-    const numericValue = parseFloat(value);
+    // Remove any non-numeric characters except decimal point
+    const sanitizedValue = value.replace(/[^0-9.]/g, '');
+    
+    // Ensure only one decimal point
+    const parts = sanitizedValue.split('.');
+    const cleanValue = parts[0] + (parts.length > 1 ? '.' + parts[1] : '');
+    
+    const numericValue = cleanValue === '' ? 0 : parseFloat(cleanValue);
     
     if (!isNaN(numericValue)) {
       console.log('Updating local forecast for month:', month, 'with value:', numericValue);
@@ -101,10 +108,9 @@ export const RevenueChart = ({
                     {item.month}
                   </label>
                   <Input
-                    type="number"
-                    min="0"
-                    step="any"
-                    value={forecast?.amount || ''}
+                    type="text"
+                    inputMode="decimal"
+                    value={forecast?.amount?.toString() || ''}
                     onChange={(e) => handleForecastChange(item.month, e.target.value)}
                     className="w-full"
                     placeholder="Enter amount"
