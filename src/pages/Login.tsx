@@ -48,7 +48,7 @@ export const Login = () => {
         setError("");
       }
 
-      if (event === "SIGNED_UP") {
+      if (event === "USER_SIGNED_UP") {
         const email = session?.user?.email;
         if (email) {
           try {
