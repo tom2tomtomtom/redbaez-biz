@@ -5,9 +5,11 @@ export interface MonthlyForecast {
   amount: number;
   created_at: string;
   updated_at: string;
+  is_actual: boolean;
 }
 
 export interface ForecastUpdate {
   month: string;
   amount: number;
+  isActual?: boolean;
 }

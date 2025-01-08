@@ -1,7 +1,11 @@
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 
 interface RevenueChartProps {
-  revenueData: Array<{ month: string; value: number }>;
+  revenueData: Array<{ 
+    month: string; 
+    forecast: number;
+    actual: number;
+  }>;
 }
 
 export const RevenueChart = ({
@@ -19,10 +23,16 @@ export const RevenueChart = ({
             <XAxis dataKey="month" />
             <YAxis />
             <Tooltip />
+            <Legend />
             <Bar 
-              dataKey="value" 
+              dataKey="actual" 
               fill="hsl(var(--primary))" 
-              name="Revenue"
+              name="Actual Revenue"
+            />
+            <Bar 
+              dataKey="forecast" 
+              fill="hsl(var(--primary)/0.5)" 
+              name="Forecast Revenue"
             />
           </BarChart>
         </ResponsiveContainer>

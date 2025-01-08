@@ -46,6 +46,18 @@ export type Database = {
       }
       clients: {
         Row: {
+          actual_apr: number | null
+          actual_aug: number | null
+          actual_dec: number | null
+          actual_feb: number | null
+          actual_jan: number | null
+          actual_jul: number | null
+          actual_jun: number | null
+          actual_mar: number | null
+          actual_may: number | null
+          actual_nov: number | null
+          actual_oct: number | null
+          actual_sep: number | null
           additional_contacts: Json | null
           annual_revenue: number | null
           annual_revenue_forecast: number | null
@@ -83,6 +95,18 @@ export type Database = {
           website: string | null
         }
         Insert: {
+          actual_apr?: number | null
+          actual_aug?: number | null
+          actual_dec?: number | null
+          actual_feb?: number | null
+          actual_jan?: number | null
+          actual_jul?: number | null
+          actual_jun?: number | null
+          actual_mar?: number | null
+          actual_may?: number | null
+          actual_nov?: number | null
+          actual_oct?: number | null
+          actual_sep?: number | null
           additional_contacts?: Json | null
           annual_revenue?: number | null
           annual_revenue_forecast?: number | null
@@ -120,6 +144,18 @@ export type Database = {
           website?: string | null
         }
         Update: {
+          actual_apr?: number | null
+          actual_aug?: number | null
+          actual_dec?: number | null
+          actual_feb?: number | null
+          actual_jan?: number | null
+          actual_jul?: number | null
+          actual_jun?: number | null
+          actual_mar?: number | null
+          actual_may?: number | null
+          actual_nov?: number | null
+          actual_oct?: number | null
+          actual_sep?: number | null
           additional_contacts?: Json | null
           annual_revenue?: number | null
           annual_revenue_forecast?: number | null

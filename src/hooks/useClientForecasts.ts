@@ -21,41 +21,50 @@ export function useClientForecasts(clientId: number) {
   });
 
   const updateForecast = useMutation({
-    mutationFn: async ({ month, amount }: ForecastUpdate) => {
-      console.log('Updating forecast:', { clientId, month, amount });
+    mutationFn: async ({ month, amount, isActual }: ForecastUpdate & { isActual: boolean }) => {
+      console.log('Updating revenue:', { clientId, month, amount, isActual });
       
-      // First update the forecast
-      const { error: forecastError } = await supabase
-        .from('client_forecasts')
-        .upsert({
-          client_id: clientId,
-          month,
-          amount,
-        }, {
-          onConflict: 'client_id,month'
-        });
-
-      if (forecastError) throw forecastError;
-
-      // Then calculate and update the annual revenue forecast
-      const { data: allForecasts, error: fetchError } = await supabase
-        .from('client_forecasts')
-        .select('amount')
-        .eq('client_id', clientId);
-
-      if (fetchError) throw fetchError;
-
-      const totalForecast = allForecasts.reduce((sum, forecast) => sum + Number(forecast.amount), 0);
-
-      // Update the client's annual revenue forecast
+      const monthName = format(parseISO(month), 'MMM').toLowerCase();
+      const columnPrefix = isActual ? 'actual' : 'forecast';
+      const columnName = `${columnPrefix}_${monthName}`;
+      
+      // Update the monthly column in clients table
       const { error: updateError } = await supabase
         .from('clients')
-        .update({ annual_revenue_forecast: totalForecast })
+        .update({ [columnName]: amount })
         .eq('id', clientId);
 
       if (updateError) throw updateError;
 
-      return { forecasts: allForecasts, totalForecast };
+      // Calculate and update total forecast and actual revenue
+      const { data: client, error: fetchError } = await supabase
+        .from('clients')
+        .select('*')
+        .eq('id', clientId)
+        .single();
+
+      if (fetchError) throw fetchError;
+
+      const totalForecast = Object.entries(client)
+        .filter(([key, value]) => key.startsWith('forecast_'))
+        .reduce((sum, [_, value]) => sum + (Number(value) || 0), 0);
+
+      const totalActual = Object.entries(client)
+        .filter(([key, value]) => key.startsWith('actual_'))
+        .reduce((sum, [_, value]) => sum + (Number(value) || 0), 0);
+
+      // Update the client's annual revenue totals
+      const { error: totalUpdateError } = await supabase
+        .from('clients')
+        .update({ 
+          annual_revenue_forecast: totalForecast,
+          annual_revenue_signed_off: totalActual
+        })
+        .eq('id', clientId);
+
+      if (totalUpdateError) throw totalUpdateError;
+
+      return { totalForecast, totalActual };
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['client-forecasts', clientId] });

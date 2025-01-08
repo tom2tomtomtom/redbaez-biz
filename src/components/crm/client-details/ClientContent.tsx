@@ -14,14 +14,21 @@ export const ClientContent = ({
   isEditing,
   parsedAdditionalContacts,
 }: ClientContentProps) => {
-  const revenueData = Array.from({ length: 12 }, (_, i) => {
-    const date = new Date(new Date().getFullYear(), new Date().getMonth() + i);
-    const month = date.toLocaleString('default', { month: 'short' });
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  
+  const revenueData = months.map((month, index) => {
+    const monthLower = month.toLowerCase();
     return {
       month,
-      value: client.annual_revenue ? client.annual_revenue / 12 : 0
+      actual: client[`actual_${monthLower}`] || 0,
+      forecast: client[`forecast_${monthLower}`] || 0
     };
   });
+
+  // Calculate total actual revenue
+  const totalActualRevenue = Object.entries(client)
+    .filter(([key, value]) => key.startsWith('actual_'))
+    .reduce((sum, [_, value]) => sum + (Number(value) || 0), 0);
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
@@ -32,7 +39,7 @@ export const ClientContent = ({
         revenueData={revenueData}
         projectRevenueSignedOff={client.project_revenue_signed_off}
         projectRevenueForecast={client.project_revenue_forecast}
-        annualRevenueSignedOff={client.annual_revenue_signed_off}
+        annualRevenueSignedOff={totalActualRevenue}
         annualRevenueForecast={client.annual_revenue_forecast}
         clientId={client.id}
       />
