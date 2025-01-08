@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import type { AuthError } from "@supabase/supabase-js";
+import type { AuthError, AuthApiError } from "@supabase/supabase-js";
 
 export const Login = () => {
   const [error, setError] = useState<string>("");
@@ -45,7 +45,7 @@ export const Login = () => {
         setError(""); // Clear errors on sign out
       }
       // Add handling for signup events
-      if (event === "EMAIL_SIGNUP") {
+      if (event === "SIGNED_UP") {
         setError("A confirmation link has been sent to your email. This link will expire in 5 minutes. Please check your inbox.");
       }
       if (event === "USER_UPDATED") {
@@ -75,7 +75,21 @@ export const Login = () => {
       });
       
       if (error) {
-        setError(error.message);
+        if (error instanceof AuthApiError) {
+          switch (error.status) {
+            case 400:
+              if (error.message.includes("invalid_credentials")) {
+                setError("Invalid email address. Please check your email and try again.");
+              } else {
+                setError(error.message);
+              }
+              break;
+            default:
+              setError(error.message);
+          }
+        } else {
+          setError(error.message);
+        }
       } else {
         setError("A new confirmation link has been sent to your email. This link will expire in 5 minutes.");
       }
