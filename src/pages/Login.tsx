@@ -31,6 +31,7 @@ export const Login = () => {
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event: AuthChangeEvent, session) => {
       console.log("Auth state change:", event);
+      
       if (event === "SIGNED_IN" && session) {
         // Check if the email is from redbaez.com domain
         const email = session.user.email;
@@ -41,13 +42,41 @@ export const Login = () => {
         }
         navigate("/");
       }
+      
       if (event === "SIGNED_OUT") {
         setError(""); // Clear errors on sign out
       }
-      // Add handling for signup events
+
+      // Handle signup event
+      if (event === "SIGNED_UP") {
+        const email = session?.user?.email;
+        if (email) {
+          try {
+            const { error: signInError } = await supabase.auth.signInWithOtp({
+              email,
+              options: {
+                emailRedirectTo: window.location.origin,
+                data: {
+                  expiresIn: 300 // 5 minutes expiry
+                }
+              }
+            });
+            
+            if (signInError) {
+              setError(signInError.message);
+            } else {
+              setError("A confirmation link has been sent to your email. This link will expire in 5 minutes. Please check your inbox.");
+            }
+          } catch (err) {
+            setError("An error occurred while sending the confirmation link.");
+          }
+        }
+      }
+
       if (event === "PASSWORD_RECOVERY") {
         setError("A confirmation link has been sent to your email. This link will expire in 5 minutes. Please check your inbox.");
       }
+
       if (event === "USER_UPDATED") {
         console.log("User updated event received");
       }
@@ -67,7 +96,6 @@ export const Login = () => {
         email: email,
         options: {
           emailRedirectTo: window.location.origin,
-          // Set 5 minutes expiry (300 seconds)
           data: {
             expiresIn: 300
           }
