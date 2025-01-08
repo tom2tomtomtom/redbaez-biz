@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { AuthError, AuthApiError } from "@supabase/supabase-js";
+import { AuthError, AuthApiError, AuthChangeEvent } from "@supabase/supabase-js";
 import { WelcomeBack } from "@/components/auth/WelcomeBack";
 import { LoginForm } from "@/components/auth/LoginForm";
 
@@ -31,7 +31,7 @@ export const Login = () => {
   }, []);
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event: AuthChangeEvent, session) => {
       console.log("Auth state change:", event);
       
       if (event === "SIGNED_IN" && session) {
