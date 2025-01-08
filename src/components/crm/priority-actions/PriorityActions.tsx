@@ -4,7 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { PriorityActionItem } from './PriorityActionItem';
 import { GeneralTaskItem } from './GeneralTaskItem';
 import { PriorityActionsSkeleton } from './PriorityActionsSkeleton';
-import { startOfMonth, endOfMonth } from 'date-fns';
+import { startOfMonth, endOfMonth, isAfter } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
@@ -31,7 +31,7 @@ const fetchGeneralTasks = async () => {
   const { data, error } = await supabase
     .from('general_tasks')
     .select('*')
-    .order('next_due_date', { ascending: true });
+    .order('next_due_date', { ascending: true, nullsLast: true });
     
   if (error) throw error;
   return data;
@@ -77,7 +77,25 @@ export const PriorityActions = () => {
     );
   }
 
-  const hasItems = (clients && clients.length > 0) || (tasks && tasks.length > 0);
+  // Combine and sort all items by date
+  const allItems = [
+    ...(tasks?.map(task => ({
+      type: 'task' as const,
+      date: task.next_due_date,
+      data: task
+    })) || []),
+    ...(clients?.map(client => ({
+      type: 'client' as const,
+      date: client.next_due_date,
+      data: client
+    })) || [])
+  ].sort((a, b) => {
+    if (!a.date) return 1;
+    if (!b.date) return -1;
+    return new Date(a.date).getTime() - new Date(b.date).getTime();
+  });
+
+  const hasItems = allItems.length > 0;
 
   return (
     <Card className="transition-all duration-300 hover:shadow-lg">
@@ -107,17 +125,21 @@ export const PriorityActions = () => {
       </CardHeader>
       <CardContent>
         <div className="space-y-3 max-h-[500px] overflow-y-auto">
-          {tasks?.map((task) => (
-            <div key={task.id} onClick={() => {
-              setEditingTask(task);
-              setIsDialogOpen(true);
-            }} className="cursor-pointer">
-              <GeneralTaskItem task={task} />
-            </div>
-          ))}
-
-          {clients?.map((client) => (
-            <PriorityActionItem key={client.id} client={client} />
+          {allItems.map((item) => (
+            item.type === 'task' ? (
+              <div 
+                key={item.data.id} 
+                onClick={() => {
+                  setEditingTask(item.data);
+                  setIsDialogOpen(true);
+                }} 
+                className="cursor-pointer"
+              >
+                <GeneralTaskItem task={item.data} />
+              </div>
+            ) : (
+              <PriorityActionItem key={item.data.id} client={item.data} />
+            )
           ))}
 
           {!hasItems && (
