@@ -19,20 +19,19 @@ export const RevenueChart = ({
   onForecastUpdate
 }: RevenueChartProps) => {
   const [showTable, setShowTable] = useState(false);
-  const [localForecasts, setLocalForecasts] = useState<MonthlyForecast[]>(monthlyForecasts);
+  const [localForecasts, setLocalForecasts] = useState<{ [key: string]: string }>({});
   const [chartData, setChartData] = useState(revenueData);
 
+  // Initialize local forecasts from props
   useEffect(() => {
-    const initialForecasts = revenueData.map(item => {
-      const existingForecast = monthlyForecasts.find(f => f.month === item.month);
-      return {
-        month: item.month,
-        amount: existingForecast?.amount ?? 0
-      };
-    });
+    const initialForecasts = monthlyForecasts.reduce((acc, forecast) => {
+      acc[forecast.month] = forecast.amount ? forecast.amount.toString() : '';
+      return acc;
+    }, {} as { [key: string]: string });
+    
     setLocalForecasts(initialForecasts);
-    updateChartData(initialForecasts);
-  }, [monthlyForecasts, revenueData]);
+    updateChartData(monthlyForecasts);
+  }, [monthlyForecasts]);
 
   const updateChartData = (forecasts: MonthlyForecast[]) => {
     const newChartData = revenueData.map(item => ({
@@ -47,26 +46,28 @@ export const RevenueChart = ({
     console.log('Raw input value:', value);
     console.log('Input value type:', typeof value);
     
+    // Update local state immediately for responsive UI
+    setLocalForecasts(prev => ({
+      ...prev,
+      [month]: value
+    }));
+
+    // Parse and validate the number
     const numericValue = value === '' ? 0 : parseFloat(value);
     console.log('Parsed number:', numericValue);
-    
+
     if (!isNaN(numericValue)) {
-      const updatedForecasts = localForecasts.map(f => 
-        f.month === month ? { ...f, amount: numericValue } : f
-      );
-      
-      setLocalForecasts(updatedForecasts);
-      updateChartData(updatedForecasts);
-      
       if (onForecastUpdate) {
-        console.log('Updating forecasts:', updatedForecasts);
         onForecastUpdate(month, numericValue);
       }
     }
   };
 
   const calculateAnnualRevenue = () => {
-    return localForecasts.reduce((total, forecast) => total + (forecast.amount || 0), 0);
+    return Object.values(localForecasts).reduce((total, value) => {
+      const amount = parseFloat(value) || 0;
+      return total + amount;
+    }, 0);
   };
 
   const formatCurrency = (value: number) => {
@@ -103,28 +104,27 @@ export const RevenueChart = ({
       {showTable && isEditing ? (
         <div className="border rounded-lg overflow-hidden">
           <div className="grid grid-cols-4 gap-4 p-4 bg-gray-50">
-            {revenueData.map((item) => {
-              const forecast = localForecasts.find(f => f.month === item.month);
-              return (
-                <div key={item.month} className="space-y-2">
-                  <label className="text-sm font-medium text-gray-700">
-                    {item.month}
-                  </label>
-                  <Input
-                    type="number"
-                    value={forecast?.amount ?? ''}
-                    onChange={(e) => handleForecastChange(item.month, e.target.value)}
-                    className="w-full"
-                    placeholder="Enter amount"
-                    min="0"
-                    step="any"
-                  />
-                  <div className="text-xs text-gray-500">
-                    {forecast?.amount ? formatCurrency(forecast.amount) : '$0'}
-                  </div>
+            {revenueData.map((item) => (
+              <div key={item.month} className="space-y-2">
+                <label className="text-sm font-medium text-gray-700">
+                  {item.month}
+                </label>
+                <Input
+                  type="number"
+                  value={localForecasts[item.month] || ''}
+                  onChange={(e) => handleForecastChange(item.month, e.target.value)}
+                  className="w-full"
+                  placeholder="Enter amount"
+                  min="0"
+                  step="any"
+                />
+                <div className="text-xs text-gray-500">
+                  {localForecasts[item.month] ? 
+                    formatCurrency(parseFloat(localForecasts[item.month]) || 0) : 
+                    '$0'}
                 </div>
-              );
-            })}
+              </div>
+            ))}
           </div>
         </div>
       ) : (
