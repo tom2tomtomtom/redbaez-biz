@@ -1,9 +1,21 @@
-import { useEffect, useState } from "react";
+import { 
+  useEffect, 
+  useState 
+} from "react";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
-import { AuthError, AuthApiError, Session } from "@supabase/supabase-js";
+import { 
+  supabase 
+} from "@/integrations/supabase/client";
+import { 
+  AuthError, 
+  AuthApiError, 
+  Session,
+  SupabaseAuthClient
+} from "@supabase/supabase-js";
 import { WelcomeBack } from "@/components/auth/WelcomeBack";
 import { LoginForm } from "@/components/auth/LoginForm";
+
+type AuthEventType = 'SIGNED_IN' | 'SIGNED_OUT' | 'USER_UPDATED' | 'USER_DELETED' | 'PASSWORD_RECOVERY';
 
 export const Login = () => {
   const [error, setError] = useState<string>("");
@@ -31,52 +43,36 @@ export const Login = () => {
   }, []);
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log("Auth state change:", event);
-      
-      if (event === 'SIGNED_IN' && session) {
-        const email = session.user.email;
-        if (email && !email.endsWith('@redbaez.com')) {
-          await supabase.auth.signOut();
-          setError("Only redbaez.com email addresses are allowed.");
-          return;
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event: AuthEventType, session: Session | null) => {
+        console.log("Auth state change:", event);
+        
+        if (event === 'SIGNED_IN' && session) {
+          const email = session.user.email;
+          if (email && !email.endsWith('@redbaez.com')) {
+            await supabase.auth.signOut();
+            setError("Only redbaez.com email addresses are allowed.");
+            return;
+          }
+          navigate("/");
         }
-        navigate("/");
-      }
-      
-      if (event === 'SIGNED_OUT') {
-        setError("");
-      }
+        
+        if (event === 'SIGNED_OUT') {
+          setError("");
+        }
 
-      if (event === 'SIGNED_UP') {
-        const email = session?.user?.email;
-        if (email) {
-          try {
-            const { error: signInError } = await supabase.auth.signInWithOtp({
-              email,
-              options: {
-                emailRedirectTo: window.location.origin,
-                data: {
-                  expiresIn: 300
-                }
-              }
-            });
-            
-            if (signInError) {
-              setError(signInError.message);
-            } else {
-              setError("A confirmation link has been sent to your email. This link will expire in 5 minutes. Please check your inbox.");
-            }
-          } catch (err) {
-            setError("An error occurred while sending the confirmation link.");
+        if (event === 'USER_UPDATED') {
+          const { error } = await supabase.auth.getSession();
+          if (error) {
+            setError(getErrorMessage(error));
           }
         }
-      }
 
-      if (event === 'PASSWORD_RECOVERY') {
-        setError("A confirmation link has been sent to your email. This link will expire in 5 minutes. Please check your inbox.");
+        if (event === 'PASSWORD_RECOVERY') {
+          setError("A confirmation link has been sent to your email. This link will expire in 5 minutes. Please check your inbox.");
+        }
       }
-    });
+    );
 
     return () => subscription.unsubscribe();
   }, [navigate]);
@@ -120,6 +116,24 @@ export const Login = () => {
     } catch (err) {
       setError("An error occurred while sending the confirmation link.");
     }
+  };
+
+  const getErrorMessage = (error: AuthError) => {
+    if (error instanceof AuthApiError) {
+      switch (error.code) {
+        case 'invalid_credentials':
+          return 'Invalid email or password. Please check your credentials and try again.';
+        case 'email_not_confirmed':
+          return 'Please verify your email address before signing in.';
+        case 'user_not_found':
+          return 'No user found with these credentials.';
+        case 'invalid_grant':
+          return 'Invalid login credentials.';
+        default:
+          return error.message;
+      }
+    }
+    return error.message;
   };
 
   if (showReturnMessage) {
