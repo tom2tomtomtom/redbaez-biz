@@ -10,7 +10,7 @@ interface ForecastEditorProps {
 }
 
 export const ForecastEditor = ({ clientId }: ForecastEditorProps) => {
-  const { forecasts, updateForecast } = useClientForecasts(clientId);
+  const { forecasts, updateForecast, totalForecast } = useClientForecasts(clientId);
   const [selectedMonth, setSelectedMonth] = useState<string>(format(new Date(), 'yyyy-MM'));
   const [amount, setAmount] = useState<string>('');
 
@@ -65,6 +65,12 @@ export const ForecastEditor = ({ clientId }: ForecastEditorProps) => {
               <span>${forecast.amount.toLocaleString()}</span>
             </div>
           ))}
+        </div>
+        <div className="mt-4 pt-4 border-t">
+          <div className="flex justify-between items-center font-semibold">
+            <span>Total Annual Forecast:</span>
+            <span>${totalForecast.toLocaleString()}</span>
+          </div>
         </div>
       </div>
     </Card>

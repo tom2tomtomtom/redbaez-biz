@@ -23,7 +23,9 @@ export function useClientForecasts(clientId: number) {
   const updateForecast = useMutation({
     mutationFn: async ({ month, amount }: ForecastUpdate) => {
       console.log('Updating forecast:', { clientId, month, amount });
-      const { data, error } = await supabase
+      
+      // First update the forecast
+      const { error: forecastError } = await supabase
         .from('client_forecasts')
         .upsert({
           client_id: clientId,
@@ -33,17 +35,41 @@ export function useClientForecasts(clientId: number) {
           onConflict: 'client_id,month'
         });
 
-      if (error) throw error;
-      return data;
+      if (forecastError) throw forecastError;
+
+      // Then calculate and update the annual revenue forecast
+      const { data: allForecasts, error: fetchError } = await supabase
+        .from('client_forecasts')
+        .select('amount')
+        .eq('client_id', clientId);
+
+      if (fetchError) throw fetchError;
+
+      const totalForecast = allForecasts.reduce((sum, forecast) => sum + Number(forecast.amount), 0);
+
+      // Update the client's annual revenue forecast
+      const { error: updateError } = await supabase
+        .from('clients')
+        .update({ annual_revenue_forecast: totalForecast })
+        .eq('id', clientId);
+
+      if (updateError) throw updateError;
+
+      return { forecasts: allForecasts, totalForecast };
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['client-forecasts', clientId] });
+      queryClient.invalidateQueries({ queryKey: ['client', clientId] });
     }
   });
+
+  // Calculate total forecast
+  const totalForecast = forecasts?.reduce((sum, forecast) => sum + Number(forecast.amount), 0) || 0;
 
   return {
     forecasts,
     isLoading,
-    updateForecast
+    updateForecast,
+    totalForecast
   };
 }
