@@ -4,10 +4,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
 import type { AuthError } from "@supabase/supabase-js";
 
 export const Login = () => {
   const [error, setError] = useState<string>("");
+  const [email, setEmail] = useState<string>("");
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -46,6 +48,27 @@ export const Login = () => {
     return () => subscription.unsubscribe();
   }, [navigate]);
 
+  const handleResendLink = async () => {
+    if (!email || !email.endsWith('@redbaez.com')) {
+      setError("Please enter a valid redbaez.com email address.");
+      return;
+    }
+
+    try {
+      const { error } = await supabase.auth.signInWithOtp({
+        email: email,
+      });
+      
+      if (error) {
+        setError(error.message);
+      } else {
+        setError("A new confirmation link has been sent to your email.");
+      }
+    } catch (err) {
+      setError("An error occurred while sending the confirmation link.");
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100/50 flex items-center justify-center p-4">
       <div className="w-full max-w-md space-y-4">
@@ -55,8 +78,26 @@ export const Login = () => {
         </div>
         
         {error && (
-          <Alert variant="destructive">
+          <Alert variant="destructive" className="space-y-2">
             <AlertDescription>{error}</AlertDescription>
+            {error.includes('expired') && (
+              <div className="pt-2 flex flex-col gap-2">
+                <input
+                  type="email"
+                  placeholder="Enter your email"
+                  className="w-full px-3 py-2 border rounded-md"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                />
+                <Button 
+                  onClick={handleResendLink}
+                  variant="secondary"
+                  className="w-full"
+                >
+                  Send New Link
+                </Button>
+              </div>
+            )}
           </Alert>
         )}
 
