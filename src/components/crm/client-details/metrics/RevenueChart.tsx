@@ -101,9 +101,8 @@ export const RevenueChart = ({
                     {item.month}
                   </label>
                   <Input
-                    type="text"
-                    inputMode="numeric"
-                    value={forecast?.amount?.toString() || ''}
+                    type="number"
+                    value={forecast?.amount || ''}
                     onChange={(e) => handleForecastChange(item.month, e.target.value)}
                     className="w-full"
                     placeholder="Enter amount"
