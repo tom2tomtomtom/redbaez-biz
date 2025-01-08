@@ -13,7 +13,7 @@ interface TaskFormProps {
   onCancel: () => void;
 }
 
-const CATEGORIES = ['Marketing', 'Product Development', 'Partnerships'] as const;
+const CATEGORIES = ['Marketing', 'Product Development', 'Partnerships', 'Business Admin'] as const;
 
 export const TaskForm = ({ task, onSaved, onCancel }: TaskFormProps) => {
   const { toast } = useToast();
