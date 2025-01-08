@@ -48,10 +48,7 @@ export const RevenueChart = ({
   };
 
   const handleForecastChange = (month: string, value: string) => {
-    // Only allow numeric values
-    if (!/^\d*\.?\d*$/.test(value) && value !== '') return;
-    
-    const numericValue = value === '' ? 0 : parseFloat(value);
+    const numericValue = parseFloat(value);
     
     if (!isNaN(numericValue)) {
       console.log('Updating local forecast for month:', month, 'with value:', numericValue);
@@ -104,9 +101,10 @@ export const RevenueChart = ({
                     {item.month}
                   </label>
                   <Input
-                    type="text"
-                    pattern="[0-9]*"
-                    value={forecast?.amount?.toString() || ''}
+                    type="number"
+                    min="0"
+                    step="any"
+                    value={forecast?.amount || ''}
                     onChange={(e) => handleForecastChange(item.month, e.target.value)}
                     className="w-full"
                     placeholder="Enter amount"
