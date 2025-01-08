@@ -4,14 +4,14 @@ import { ArrowLeft } from 'lucide-react';
 import { useNavigate, useParams, Navigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { Contact } from './ContactInfoCard';
-import { useClientUpdate } from './useClientUpdate';
-import { useClientInitialization } from './useClientInitialization';
-import { ClientHeader } from './ClientHeader';
-import { ClientEditMode } from './ClientEditMode';
-import { ClientContent } from './ClientContent';
-import { MonthlyForecast } from './types/MonthlyForecast';
-import { createForecastFormData } from './utils/forecastUtils';
+import { Contact } from './client-details/ContactInfoCard';
+import { useClientUpdate } from './client-details/useClientUpdate';
+import { useClientInitialization } from './client-details/useClientInitialization';
+import { ClientHeader } from './client-details/ClientHeader';
+import { ClientEditMode } from './client-details/ClientEditMode';
+import { ClientContent } from './client-details/ClientContent';
+import { MonthlyForecast } from './client-details/types/MonthlyForecast';
+import { createForecastFormData } from './client-details/utils/forecastUtils';
 
 export const ClientDetails = () => {
   const navigate = useNavigate();

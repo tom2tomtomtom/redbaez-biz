@@ -1,13 +1,5 @@
 import { useState, useEffect } from 'react';
-
-interface Contact {
-  firstName: string;
-  lastName: string;
-  title: string;
-  email: string;
-  address: string;
-  phone: string;
-}
+import { Contact } from './ContactInfoCard';
 
 export const useClientInitialization = (clientData: any) => {
   const [contacts, setContacts] = useState<Contact[]>([{ 

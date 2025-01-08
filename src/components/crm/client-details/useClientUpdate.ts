@@ -20,17 +20,12 @@ export const useClientUpdate = (clientId: string | undefined, onSuccess?: () => 
     mutationFn: async ({ formData, contacts }: UpdateClientData) => {
       const { primaryContact, additionalContacts } = formatContacts(contacts);
       
-      // Transform contacts to a JSON-compatible format
-      const formattedAdditionalContacts = additionalContacts ? additionalContacts.map(contact => ({
-        ...contact
-      })) : null;
-
       const clientData = {
         ...formData,
         contact_name: `${primaryContact.firstName} ${primaryContact.lastName}`.trim(),
         contact_email: primaryContact.email,
         contact_phone: primaryContact.phone,
-        additional_contacts: formattedAdditionalContacts,
+        additional_contacts: additionalContacts,
       };
 
       console.log('Updating client with data:', clientData);
