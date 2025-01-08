@@ -3,6 +3,7 @@ import { ClientForm } from './client-form/ClientForm';
 import { IntelSearch } from './intel-search/IntelSearch';
 import { ClientSearch } from './client-search/ClientSearch';
 import { BusinessSummary } from './business-summary/BusinessSummary';
+import { CalendarView } from '../calendar/CalendarView';
 
 export const CRMDashboard = () => {
   const [contacts, setContacts] = useState([{ 
@@ -33,6 +34,7 @@ export const CRMDashboard = () => {
 
         <div className="lg:col-span-4 space-y-4">
           <BusinessSummary />
+          <CalendarView clientId="1" />
         </div>
       </div>
     </div>

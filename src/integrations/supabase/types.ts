@@ -9,6 +9,97 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      calendar_events: {
+        Row: {
+          client_id: number | null
+          created_at: string | null
+          description: string | null
+          end_time: string | null
+          google_event_id: string | null
+          id: string
+          start_time: string | null
+          summary: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          client_id?: number | null
+          created_at?: string | null
+          description?: string | null
+          end_time?: string | null
+          google_event_id?: string | null
+          id?: string
+          start_time?: string | null
+          summary?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          client_id?: number | null
+          created_at?: string | null
+          description?: string | null
+          end_time?: string | null
+          google_event_id?: string | null
+          id?: string
+          start_time?: string | null
+          summary?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "calendar_events_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      client_emails: {
+        Row: {
+          client_id: number | null
+          created_at: string | null
+          date: string | null
+          from_email: string | null
+          gmail_id: string | null
+          id: string
+          snippet: string | null
+          subject: string | null
+          thread_id: string | null
+          to_emails: string[] | null
+        }
+        Insert: {
+          client_id?: number | null
+          created_at?: string | null
+          date?: string | null
+          from_email?: string | null
+          gmail_id?: string | null
+          id?: string
+          snippet?: string | null
+          subject?: string | null
+          thread_id?: string | null
+          to_emails?: string[] | null
+        }
+        Update: {
+          client_id?: number | null
+          created_at?: string | null
+          date?: string | null
+          from_email?: string | null
+          gmail_id?: string | null
+          id?: string
+          snippet?: string | null
+          subject?: string | null
+          thread_id?: string | null
+          to_emails?: string[] | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_emails_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       client_forecasts: {
         Row: {
           amount: number
@@ -235,6 +326,50 @@ export type Database = {
           id?: string
         }
         Relationships: []
+      }
+      recommendations: {
+        Row: {
+          action_url: string | null
+          client_id: number | null
+          created_at: string | null
+          description: string | null
+          due_date: string | null
+          id: string
+          priority: number | null
+          status: string | null
+          type: string | null
+        }
+        Insert: {
+          action_url?: string | null
+          client_id?: number | null
+          created_at?: string | null
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          priority?: number | null
+          status?: string | null
+          type?: string | null
+        }
+        Update: {
+          action_url?: string | null
+          client_id?: number | null
+          created_at?: string | null
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          priority?: number | null
+          status?: string | null
+          type?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "recommendations_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       team_members: {
         Row: {
