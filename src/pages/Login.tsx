@@ -42,7 +42,8 @@ export const Login = () => {
             supabaseClient={supabase}
             appearance={{ theme: ThemeSupa }}
             theme="light"
-            providers={[]}
+            providers={["google"]}
+            redirectTo={window.location.origin}
           />
         </div>
       </div>
