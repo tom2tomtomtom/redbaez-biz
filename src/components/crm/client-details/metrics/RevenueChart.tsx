@@ -1,11 +1,13 @@
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 
+interface RevenueData {
+  month: string;
+  actual: number;
+  forecast: number;
+}
+
 interface RevenueChartProps {
-  revenueData: Array<{ 
-    month: string; 
-    forecast: number;
-    actual: number;
-  }>;
+  revenueData: RevenueData[];
 }
 
 export const RevenueChart = ({

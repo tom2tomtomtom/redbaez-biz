@@ -5,11 +5,17 @@ import { DealLikelihood } from "./metrics/DealLikelihood";
 import { RevenueChart } from "./metrics/RevenueChart";
 import { ForecastEditor } from "./metrics/ForecastEditor";
 
+interface RevenueData {
+  month: string;
+  actual: number;
+  forecast: number;
+}
+
 interface KeyMetricsCardProps {
   annualRevenue: number | null;
   projectRevenue: number | null;
   likelihood: number | null;
-  revenueData: Array<{ month: string; value: number }>;
+  revenueData: RevenueData[];
   projectRevenueSignedOff: boolean;
   projectRevenueForecast: boolean;
   annualRevenueSignedOff: number;

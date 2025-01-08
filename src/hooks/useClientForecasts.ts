@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { MonthlyForecast, ForecastUpdate } from '@/types/forecast';
+import { format, parseISO } from 'date-fns';
 
 export function useClientForecasts(clientId: number) {
   const queryClient = useQueryClient();
