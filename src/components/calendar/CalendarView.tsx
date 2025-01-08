@@ -4,13 +4,13 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Calendar, Clock } from 'lucide-react';
 
 interface CalendarViewProps {
-  clientId: string;
+  clientId: string;  // Keep as string since it comes from URL params
 }
 
 export const CalendarView = ({ clientId }: CalendarViewProps) => {
   const { data: meetings, isLoading } = useQuery({
     queryKey: ['meetings', clientId],
-    queryFn: () => CalendarService.getClientMeetings(clientId),
+    queryFn: () => CalendarService.getClientMeetings(Number(clientId)),  // Convert to number here
   });
 
   if (isLoading) {

@@ -2,7 +2,7 @@ import { supabase } from '@/integrations/supabase/client';
 
 export interface Meeting {
   id: string;
-  clientId: string;
+  clientId: number;  // Changed from string to number to match DB schema
   googleEventId: string;
   summary: string;
   description: string;
@@ -11,7 +11,7 @@ export interface Meeting {
 }
 
 export interface MeetingInput {
-  clientId: string;
+  clientId: number;  // Changed from string to number
   summary: string;
   description: string;
   startTime: Date;
@@ -19,7 +19,7 @@ export interface MeetingInput {
 }
 
 export const CalendarService = {
-  async getClientMeetings(clientId: string): Promise<Meeting[]> {
+  async getClientMeetings(clientId: number): Promise<Meeting[]> {  // Changed parameter type to number
     const { data, error } = await supabase
       .from('calendar_events')
       .select('*')
@@ -40,13 +40,13 @@ export const CalendarService = {
   async createMeeting(data: MeetingInput): Promise<Meeting> {
     const { data: event, error } = await supabase
       .from('calendar_events')
-      .insert([{
+      .insert({
         client_id: data.clientId,
         summary: data.summary,
         description: data.description,
-        start_time: data.startTime,
-        end_time: data.endTime
-      }])
+        start_time: data.startTime.toISOString(),
+        end_time: data.endTime.toISOString()
+      })
       .select()
       .single();
 
