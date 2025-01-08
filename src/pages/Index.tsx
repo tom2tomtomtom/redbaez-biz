@@ -48,7 +48,7 @@ const Index = () => {
                   </DialogDescription>
                 </DialogHeader>
                 <CRMDashboard onClientAdded={() => setIsNewClientOpen(false)} />
-              </DialogHeader>
+              </DialogContent>
             </Dialog>
             <Button variant="outline" onClick={handleLogout}>
               <LogOut className="mr-2 h-4 w-4" />
