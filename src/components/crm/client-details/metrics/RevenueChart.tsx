@@ -22,7 +22,6 @@ export const RevenueChart = ({
   const [localForecasts, setLocalForecasts] = useState<{ [key: string]: string }>({});
   const [chartData, setChartData] = useState(revenueData);
 
-  // Initialize local forecasts from props
   useEffect(() => {
     const initialForecasts = monthlyForecasts.reduce((acc, forecast) => {
       acc[forecast.month] = forecast.amount ? forecast.amount.toString() : '';
@@ -56,11 +55,19 @@ export const RevenueChart = ({
     const numericValue = value === '' ? 0 : parseFloat(value);
     console.log('Parsed number:', numericValue);
 
-    if (!isNaN(numericValue)) {
-      if (onForecastUpdate) {
-        onForecastUpdate(month, numericValue);
-      }
+    if (!isNaN(numericValue) && onForecastUpdate) {
+      onForecastUpdate(month, numericValue);
     }
+  };
+
+  const formatCurrency = (value: number | string) => {
+    const numValue = typeof value === 'string' ? parseFloat(value) || 0 : value;
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(numValue);
   };
 
   const calculateAnnualRevenue = () => {
@@ -68,15 +75,6 @@ export const RevenueChart = ({
       const amount = parseFloat(value) || 0;
       return total + amount;
     }, 0);
-  };
-
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(value);
   };
 
   return (
@@ -120,7 +118,7 @@ export const RevenueChart = ({
                 />
                 <div className="text-xs text-gray-500">
                   {localForecasts[item.month] ? 
-                    formatCurrency(parseFloat(localForecasts[item.month]) || 0) : 
+                    formatCurrency(localForecasts[item.month]) : 
                     '$0'}
                 </div>
               </div>
