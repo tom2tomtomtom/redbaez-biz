@@ -9,13 +9,14 @@ export const TestRevenueInput = () => {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     console.log('Raw input value:', e.target.value);
     console.log('Input value type:', typeof e.target.value);
+    console.log('Parsed number:', parseFloat(e.target.value));
     setValue(e.target.value);
   };
 
   return (
-    <Card className="p-4 space-y-4">
+    <Card className="p-4 space-y-4 mb-6">
       <div className="space-y-2">
-        <label className="text-sm font-medium">Test Revenue Input</label>
+        <label className="text-sm font-medium">Revenue Input Test</label>
         <Input
           type="number"
           value={value}
@@ -29,10 +30,11 @@ export const TestRevenueInput = () => {
       
       {showDebug && (
         <div className="text-sm space-y-1 p-2 bg-gray-50 rounded">
-          <p>Current value: {value}</p>
+          <p>Raw value: {value}</p>
           <p>Value type: {typeof value}</p>
-          <p>Parsed as number: {Number(value)}</p>
-          <p>Is valid number: {!isNaN(Number(value)) ? 'Yes' : 'No'}</p>
+          <p>Parsed as float: {parseFloat(value) || 'NaN'}</p>
+          <p>Is valid number: {!isNaN(parseFloat(value)) ? 'Yes' : 'No'}</p>
+          <p>Formatted: ${parseFloat(value).toLocaleString() || '0'}</p>
         </div>
       )}
     </Card>
