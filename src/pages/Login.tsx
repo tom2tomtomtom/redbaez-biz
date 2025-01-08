@@ -30,6 +30,7 @@ export const Login = () => {
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log("Auth state change:", event);
       if (event === "SIGNED_IN" && session) {
         // Check if the email is from redbaez.com domain
         const email = session.user.email;
@@ -42,6 +43,13 @@ export const Login = () => {
       }
       if (event === "SIGNED_OUT") {
         setError(""); // Clear errors on sign out
+      }
+      // Add handling for signup events
+      if (event === "SIGNED_UP") {
+        setError("A confirmation link has been sent to your email. This link will expire in 5 minutes. Please check your inbox.");
+      }
+      if (event === "USER_UPDATED") {
+        console.log("User updated event received");
       }
     });
 
