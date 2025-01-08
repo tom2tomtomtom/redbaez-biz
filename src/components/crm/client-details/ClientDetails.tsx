@@ -21,19 +21,21 @@ export const ClientDetails = () => {
   const [nextDueDate, setNextDueDate] = useState('');
   const [currentForecasts, setCurrentForecasts] = useState<MonthlyForecast[]>([]);
 
-  if (!id || isNaN(Number(id))) {
+  // Validate and convert id parameter
+  const numericId = id ? parseInt(id, 10) : null;
+  if (!numericId || isNaN(numericId)) {
     console.error('Invalid client ID:', id);
     return <Navigate to="/" replace />;
   }
 
   const { data: client, isLoading, error } = useQuery({
-    queryKey: ['client', id],
+    queryKey: ['client', numericId],
     queryFn: async () => {
-      console.log('Fetching client data for ID:', id);
+      console.log('Fetching client data for ID:', numericId);
       const { data, error } = await supabase
         .from('clients')
         .select('*')
-        .eq('id', id)
+        .eq('id', numericId)
         .maybeSingle();
       
       if (error) throw error;

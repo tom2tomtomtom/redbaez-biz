@@ -1,8 +1,12 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
-export const useClientData = (id: string) => {
-  const numericId = parseInt(id, 10);
+export const useClientData = (id: string | undefined) => {
+  const numericId = id ? parseInt(id, 10) : undefined;
+  
+  if (!numericId || isNaN(numericId)) {
+    throw new Error('Invalid client ID');
+  }
   
   return useQuery({
     queryKey: ['client', numericId],
