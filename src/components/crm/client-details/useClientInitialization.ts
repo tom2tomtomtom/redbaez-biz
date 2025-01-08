@@ -1,52 +1,55 @@
 import { useState, useEffect } from 'react';
 import { Contact } from './ContactInfoCard';
 
-export const useClientInitialization = (clientData: any) => {
-  const [contacts, setContacts] = useState<Contact[]>([{ 
-    firstName: '', 
-    lastName: '', 
-    title: '', 
-    email: '', 
-    address: '', 
-    phone: '' 
-  }]);
-  
-  useEffect(() => {
-    if (clientData) {
-      console.log('Initializing client data:', clientData);
-      
-      // Initialize primary contact from main client fields
-      const [firstName = '', lastName = ''] = (clientData.contact_name || '').split(' ');
-      const primaryContact: Contact = {
-        firstName,
-        lastName,
-        title: '',
-        email: clientData.contact_email || '',
-        address: '',
-        phone: clientData.contact_phone || ''
-      };
-
-      // Initialize additional contacts from the JSONB field
-      const additionalContacts = clientData.additional_contacts || [];
-      console.log('Loading additional contacts:', additionalContacts);
-
-      // Combine primary contact with any additional contacts
-      const allContacts = [
-        primaryContact,
-        ...additionalContacts.map((contact: any) => ({
-          firstName: contact.firstName || '',
-          lastName: contact.lastName || '',
-          title: contact.title || '',
-          email: contact.email || '',
-          address: contact.address || '',
-          phone: contact.phone || ''
-        }))
-      ];
-
-      console.log('Setting all contacts:', allContacts);
-      setContacts(allContacts);
+export const useClientInitialization = (client: any) => {
+  const [contacts, setContacts] = useState<Contact[]>([
+    {
+      firstName: '',
+      lastName: '',
+      title: '',
+      email: '',
+      address: '',
+      phone: ''
     }
-  }, [clientData]);
+  ]);
+  const [nextSteps, setNextSteps] = useState('');
+  const [nextDueDate, setNextDueDate] = useState('');
 
-  return { contacts, setContacts };
+  useEffect(() => {
+    if (client) {
+      // Initialize contacts from client data
+      if (client.contact_name || client.contact_email || client.contact_phone) {
+        const [firstName = '', lastName = ''] = (client.contact_name || '').split(' ');
+        const primaryContact = {
+          firstName,
+          lastName,
+          title: '',
+          email: client.contact_email || '',
+          address: '',
+          phone: client.contact_phone || ''
+        };
+
+        const additionalContacts = client.additional_contacts || [];
+        setContacts([primaryContact, ...additionalContacts]);
+      }
+
+      // Initialize next steps and due date
+      setNextSteps(client.notes || '');
+      if (client.next_due_date) {
+        // Format the date to YYYY-MM-DD for the input field
+        const date = new Date(client.next_due_date);
+        const formattedDate = date.toISOString().split('T')[0];
+        setNextDueDate(formattedDate);
+      }
+    }
+  }, [client]);
+
+  return { 
+    contacts, 
+    setContacts,
+    nextSteps,
+    setNextSteps,
+    nextDueDate,
+    setNextDueDate
+  };
 };
