@@ -11,8 +11,15 @@ export const Login = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (event === "SIGNED_IN" && session) {
+        // Check if the email is from redbaez.com domain
+        const email = session.user.email;
+        if (email && !email.endsWith('@redbaez.com')) {
+          await supabase.auth.signOut();
+          setError("Only redbaez.com email addresses are allowed.");
+          return;
+        }
         navigate("/");
       }
       if (event === "SIGNED_OUT") {
@@ -28,7 +35,7 @@ export const Login = () => {
       <div className="w-full max-w-md space-y-4">
         <div className="text-center space-y-2">
           <h1 className="text-2xl font-bold">Welcome Back</h1>
-          <p className="text-gray-500">Sign in to access your dashboard</p>
+          <p className="text-gray-500">Sign in with your redbaez.com email</p>
         </div>
         
         {error && (
@@ -42,7 +49,7 @@ export const Login = () => {
             supabaseClient={supabase}
             appearance={{ theme: ThemeSupa }}
             theme="light"
-            providers={["google"]}
+            providers={[]}
             redirectTo={window.location.origin}
           />
         </div>
