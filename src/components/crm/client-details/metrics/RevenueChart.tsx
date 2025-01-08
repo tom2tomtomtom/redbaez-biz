@@ -19,16 +19,15 @@ export const RevenueChart = ({
   onForecastUpdate
 }: RevenueChartProps) => {
   const [showTable, setShowTable] = useState(false);
-  const [localForecasts, setLocalForecasts] = useState<MonthlyForecast[]>([]);
+  const [localForecasts, setLocalForecasts] = useState<MonthlyForecast[]>(monthlyForecasts);
   const [chartData, setChartData] = useState(revenueData);
 
   useEffect(() => {
-    console.log('Initializing local forecasts with:', monthlyForecasts);
     const initialForecasts = revenueData.map(item => {
       const existingForecast = monthlyForecasts.find(f => f.month === item.month);
       return {
         month: item.month,
-        amount: existingForecast ? existingForecast.amount : 0
+        amount: existingForecast?.amount ?? 0
       };
     });
     setLocalForecasts(initialForecasts);
@@ -36,30 +35,18 @@ export const RevenueChart = ({
   }, [monthlyForecasts, revenueData]);
 
   const updateChartData = (forecasts: MonthlyForecast[]) => {
-    const newChartData = revenueData.map(item => {
-      const forecast = forecasts.find(f => f.month === item.month);
-      return {
-        month: item.month,
-        value: item.value,
-        forecast: forecast ? forecast.amount : 0
-      };
-    });
+    const newChartData = revenueData.map(item => ({
+      month: item.month,
+      value: item.value,
+      forecast: forecasts.find(f => f.month === item.month)?.amount ?? 0
+    }));
     setChartData(newChartData);
   };
 
   const handleForecastChange = (month: string, value: string) => {
-    // Remove any non-numeric characters except decimal point
-    const sanitizedValue = value.replace(/[^0-9.]/g, '');
-    
-    // Ensure only one decimal point
-    const parts = sanitizedValue.split('.');
-    const cleanValue = parts[0] + (parts.length > 1 ? '.' + parts[1] : '');
-    
-    const numericValue = cleanValue === '' ? 0 : parseFloat(cleanValue);
+    const numericValue = value === '' ? 0 : Number(value);
     
     if (!isNaN(numericValue)) {
-      console.log('Updating local forecast for month:', month, 'with value:', numericValue);
-      
       const updatedForecasts = localForecasts.map(f => 
         f.month === month ? { ...f, amount: numericValue } : f
       );
@@ -108,12 +95,13 @@ export const RevenueChart = ({
                     {item.month}
                   </label>
                   <Input
-                    type="text"
-                    inputMode="decimal"
-                    value={forecast?.amount?.toString() || ''}
+                    type="number"
+                    value={forecast?.amount ?? ''}
                     onChange={(e) => handleForecastChange(item.month, e.target.value)}
                     className="w-full"
                     placeholder="Enter amount"
+                    min="0"
+                    step="any"
                   />
                 </div>
               );
