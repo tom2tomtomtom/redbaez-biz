@@ -34,6 +34,7 @@ export const ClientContent = ({
         projectRevenueForecast={client.project_revenue_forecast}
         annualRevenueSignedOff={client.annual_revenue_signed_off}
         annualRevenueForecast={client.annual_revenue_forecast}
+        clientId={client.id}
       />
 
       <ContactInfoCard 
