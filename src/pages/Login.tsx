@@ -11,6 +11,22 @@ export const Login = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    // Check for error parameters in the URL hash
+    const hashParams = new URLSearchParams(window.location.hash.substring(1));
+    const errorCode = hashParams.get('error_code');
+    const errorDescription = hashParams.get('error_description');
+
+    if (errorCode === 'otp_expired') {
+      setError("The confirmation link has expired. Please request a new one by trying to sign in again.");
+      // Clean up the URL
+      window.history.replaceState({}, document.title, window.location.pathname);
+    } else if (errorDescription) {
+      setError(decodeURIComponent(errorDescription));
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+  }, []);
+
+  useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (event === "SIGNED_IN" && session) {
         // Check if the email is from redbaez.com domain
