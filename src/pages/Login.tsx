@@ -10,6 +10,7 @@ import { AuthError, AuthApiError } from "@supabase/supabase-js";
 export const Login = () => {
   const [error, setError] = useState<string>("");
   const [email, setEmail] = useState<string>("");
+  const [showReturnMessage, setShowReturnMessage] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -17,6 +18,11 @@ export const Login = () => {
     const hashParams = new URLSearchParams(window.location.hash.substring(1));
     const errorCode = hashParams.get('error_code');
     const errorDescription = hashParams.get('error_description');
+    const type = hashParams.get('type');
+
+    if (type === 'recovery' || type === 'signup') {
+      setShowReturnMessage(true);
+    }
 
     if (errorCode === 'otp_expired') {
       setError("The confirmation link has expired. Please request a new one by trying to sign in again.");
@@ -125,6 +131,28 @@ export const Login = () => {
       setError("An error occurred while sending the confirmation link.");
     }
   };
+
+  if (showReturnMessage) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100/50 flex items-center justify-center p-4">
+        <div className="w-full max-w-md space-y-4">
+          <div className="bg-white p-6 rounded-lg shadow-sm text-center space-y-4">
+            <h1 className="text-2xl font-bold">Welcome Back!</h1>
+            <p className="text-gray-600">You can now return to the application.</p>
+            <Button 
+              onClick={() => {
+                setShowReturnMessage(false);
+                navigate("/");
+              }}
+              className="w-full"
+            >
+              Return to App
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100/50 flex items-center justify-center p-4">
