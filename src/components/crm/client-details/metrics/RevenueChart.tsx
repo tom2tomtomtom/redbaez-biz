@@ -28,7 +28,7 @@ export const RevenueChart = ({
             <Legend />
             <Bar 
               dataKey="actual" 
-              fill="hsl(var(--primary))" 
+              fill="#1A1F2C"
               name="Actual Revenue"
             />
             <Bar 
