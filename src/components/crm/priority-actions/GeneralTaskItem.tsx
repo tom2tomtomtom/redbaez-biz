@@ -48,9 +48,6 @@ export const GeneralTaskItem = ({ task }: GeneralTaskItemProps) => {
       <div className="flex justify-between items-start">
         <div className="space-y-1">
           <h3 className="font-medium">{task.title}</h3>
-          <p className="text-sm text-gray-500">
-            {task.description || "No description provided"}
-          </p>
         </div>
         <div className={`px-2 py-1 rounded-full text-sm ${getStatusColor(task.status)}`}>
           {task.status || "pending"}
