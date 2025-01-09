@@ -3,6 +3,7 @@ import { GeneralTaskItem } from './GeneralTaskItem';
 import { PriorityActionItem } from './PriorityActionItem';
 import { Tables } from '@/integrations/supabase/types';
 import { Switch } from '@/components/ui/switch';
+import { Checkbox } from '@/components/ui/checkbox';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/components/ui/use-toast';
 import { useQueryClient } from '@tanstack/react-query';
@@ -18,7 +19,6 @@ export const PriorityItemsList = ({ items, onTaskClick }: PriorityItemsListProps
 
   const handleUrgentChange = async (item: PriorityItem, checked: boolean) => {
     try {
-      // Update the item in the database first
       if (item.type === 'task') {
         const { error } = await supabase
           .from('general_tasks')
@@ -33,7 +33,6 @@ export const PriorityItemsList = ({ items, onTaskClick }: PriorityItemsListProps
         if (error) throw error;
       }
 
-      // Invalidate queries to refresh data
       queryClient.invalidateQueries({ queryKey: ['priorityClients'] });
       queryClient.invalidateQueries({ queryKey: ['generalTasks'] });
 
@@ -46,6 +45,39 @@ export const PriorityItemsList = ({ items, onTaskClick }: PriorityItemsListProps
       toast({
         title: "Error",
         description: "Failed to update urgent status",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleCompletedChange = async (item: PriorityItem, checked: boolean) => {
+    try {
+      if (item.type === 'task') {
+        const { error } = await supabase
+          .from('general_tasks')
+          .update({ status: checked ? 'completed' : 'incomplete' })
+          .eq('id', item.data.id);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from('clients')
+          .update({ status: checked ? 'completed' : 'incomplete' })
+          .eq('id', item.data.id);
+        if (error) throw error;
+      }
+
+      queryClient.invalidateQueries({ queryKey: ['priorityClients'] });
+      queryClient.invalidateQueries({ queryKey: ['generalTasks'] });
+
+      toast({
+        title: checked ? "Marked as completed" : "Marked as incomplete",
+        description: `Successfully ${checked ? 'completed' : 'reopened'} the ${item.type}`,
+      });
+    } catch (error) {
+      console.error('Error updating completion status:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update completion status",
         variant: "destructive",
       });
     }
@@ -64,11 +96,18 @@ export const PriorityItemsList = ({ items, onTaskClick }: PriorityItemsListProps
       {items.map((item) => (
         <div key={item.data.id} className="relative">
           <div className="absolute right-3 top-3 z-10 flex items-center gap-2 bg-white/80 backdrop-blur-sm px-2 py-1 rounded-full">
-            <Switch
-              id={`urgent-${item.data.id}`}
-              checked={'urgent' in item.data ? item.data.urgent : false}
-              onCheckedChange={(checked) => handleUrgentChange(item, checked)}
-            />
+            <div className="flex items-center gap-2">
+              <Checkbox
+                id={`completed-${item.data.id}`}
+                checked={item.data.status === 'completed'}
+                onCheckedChange={(checked) => handleCompletedChange(item, checked as boolean)}
+              />
+              <Switch
+                id={`urgent-${item.data.id}`}
+                checked={'urgent' in item.data ? item.data.urgent : false}
+                onCheckedChange={(checked) => handleUrgentChange(item, checked)}
+              />
+            </div>
           </div>
           {item.type === 'task' ? (
             <div 

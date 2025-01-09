@@ -24,6 +24,7 @@ const fetchPriorityClients = async () => {
     .select('*')
     .gte('next_due_date', startDate.toISOString())
     .lte('next_due_date', endDate.toISOString())
+    .neq('status', 'completed')
     .order('next_due_date');
     
   if (error) throw error;
@@ -34,6 +35,7 @@ const fetchGeneralTasks = async () => {
   const { data, error } = await supabase
     .from('general_tasks')
     .select('*')
+    .neq('status', 'completed')
     .order('next_due_date', { ascending: true });
     
   if (error) throw error;
@@ -41,15 +43,12 @@ const fetchGeneralTasks = async () => {
 };
 
 const sortByUrgencyAndDate = (a: PriorityItem, b: PriorityItem) => {
-  // Get urgent status for both items
   const aUrgent = 'urgent' in a.data ? a.data.urgent : false;
   const bUrgent = 'urgent' in b.data ? b.data.urgent : false;
 
-  // If urgency differs, urgent items go first
   if (aUrgent && !bUrgent) return -1;
   if (!aUrgent && bUrgent) return 1;
 
-  // If both have same urgency status, sort by date
   if (!a.date) return 1;
   if (!b.date) return -1;
   return new Date(a.date).getTime() - new Date(b.date).getTime();
