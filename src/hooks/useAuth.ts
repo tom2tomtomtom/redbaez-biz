@@ -16,8 +16,15 @@ export const useAuth = () => {
         if (event === 'SIGNED_IN' && session) {
           const email = session.user.email;
           if (email && !isAllowedDomain(email)) {
-            await supabase.auth.signOut();
-            setError(`Only ${getAllowedDomainsMessage()} email addresses are allowed.`);
+            try {
+              await supabase.auth.signOut();
+              setError(`Only ${getAllowedDomainsMessage()} email addresses are allowed.`);
+            } catch (err) {
+              // Ignore sign out errors when already signed out
+              if (!(err as AuthError).message.includes('session_not_found')) {
+                setError(getErrorMessage(err as AuthError));
+              }
+            }
             return;
           }
           navigate('/');
@@ -25,11 +32,16 @@ export const useAuth = () => {
         
         if (event === 'SIGNED_OUT') {
           setError('');
+          setEmail('');
         }
 
         if (event === 'USER_UPDATED') {
-          const { error } = await supabase.auth.getSession();
-          if (error) setError(getErrorMessage(error));
+          try {
+            const { error } = await supabase.auth.getSession();
+            if (error) setError(getErrorMessage(error));
+          } catch (err) {
+            setError(getErrorMessage(err as AuthError));
+          }
         }
 
         if (event === 'PASSWORD_RECOVERY') {
@@ -69,6 +81,10 @@ export const useAuth = () => {
   };
 
   const getErrorMessage = (error: AuthError): string => {
+    if (error.message.includes('session_not_found')) {
+      return 'Your session has expired. Please sign in again.';
+    }
+    
     switch (error.message) {
       case 'Invalid login credentials':
         return 'Invalid email or password. Please check your credentials and try again.';
