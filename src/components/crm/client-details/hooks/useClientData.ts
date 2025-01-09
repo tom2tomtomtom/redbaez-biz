@@ -1,11 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
-export const useClientData = (clientId: number | null) => {
-  if (!clientId || isNaN(clientId)) {
-    throw new Error('Invalid client ID');
-  }
-
+export const useClientData = (clientId: number) => {
   return useQuery({
     queryKey: ['client', clientId],
     queryFn: async () => {
