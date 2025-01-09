@@ -2,8 +2,9 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/components/ui/use-toast';
 
-export const useClientUpdate = (clientId: string, onSuccess?: () => void) => {
+export const useClientUpdate = (clientId: string | number, onSuccess?: () => void) => {
   const queryClient = useQueryClient();
+  const numericClientId = typeof clientId === 'string' ? parseInt(clientId, 10) : clientId;
 
   return useMutation({
     mutationFn: async ({ formData, contacts }: { formData: any; contacts: any[] }) => {
@@ -12,7 +13,7 @@ export const useClientUpdate = (clientId: string, onSuccess?: () => void) => {
         const { error: historyError } = await supabase
           .from('client_next_steps')
           .insert({
-            client_id: parseInt(clientId),
+            client_id: numericClientId,
             notes: formData.nextSteps,
             due_date: formData.nextDueDate || null
           });
@@ -27,7 +28,7 @@ export const useClientUpdate = (clientId: string, onSuccess?: () => void) => {
           ...formData,
           additional_contacts: contacts
         })
-        .eq('id', clientId)
+        .eq('id', numericClientId)
         .select()
         .single();
 
@@ -35,8 +36,8 @@ export const useClientUpdate = (clientId: string, onSuccess?: () => void) => {
       return data;
     },
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['client', parseInt(clientId)] });
-      queryClient.invalidateQueries({ queryKey: ['client-next-steps', parseInt(clientId)] });
+      queryClient.invalidateQueries({ queryKey: ['client', numericClientId] });
+      queryClient.invalidateQueries({ queryKey: ['client-next-steps', numericClientId] });
       toast({
         title: "Success",
         description: "Client updated successfully",
