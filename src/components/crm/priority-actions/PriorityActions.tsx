@@ -9,7 +9,11 @@ import { TaskDialog } from './TaskDialog';
 import { PriorityItemsList } from './PriorityItemsList';
 import { usePriorityData } from './hooks/usePriorityData';
 
-export const PriorityActions = () => {
+interface PriorityActionsProps {
+  hideAddButton?: boolean;
+}
+
+export const PriorityActions = ({ hideAddButton = false }: PriorityActionsProps) => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Tables<'general_tasks'> | null>(null);
   const queryClient = useQueryClient();
@@ -49,13 +53,15 @@ export const PriorityActions = () => {
     <Card className="transition-all duration-300 hover:shadow-lg">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
         <CardTitle>Priority Actions for {new Date().toLocaleString('default', { month: 'long' })}</CardTitle>
-        <Button onClick={() => {
-          setEditingTask(null);
-          setIsDialogOpen(true);
-        }}>
-          <Plus className="mr-2 h-4 w-4" />
-          Add Task
-        </Button>
+        {!hideAddButton && (
+          <Button onClick={() => {
+            setEditingTask(null);
+            setIsDialogOpen(true);
+          }}>
+            <Plus className="mr-2 h-4 w-4" />
+            Add Task
+          </Button>
+        )}
       </CardHeader>
       <CardContent>
         <div className="max-h-[500px] overflow-y-auto">

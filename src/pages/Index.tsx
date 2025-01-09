@@ -25,10 +25,12 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Link } from "react-router-dom";
+import { TaskDialog } from "@/components/crm/priority-actions/TaskDialog";
 
 const Index = () => {
   const [searchInput, setSearchInput] = useState('');
   const [isNewClientOpen, setIsNewClientOpen] = useState(false);
+  const [isNewTaskOpen, setIsNewTaskOpen] = useState(false);
   const [showClientList, setShowClientList] = useState(false);
   const navigate = useNavigate();
 
@@ -62,6 +64,28 @@ const Index = () => {
               <Users className="mr-2 h-4 w-4" />
               {showClientList ? 'Hide Clients' : 'View All Clients'}
             </Button>
+            <Dialog open={isNewTaskOpen} onOpenChange={setIsNewTaskOpen}>
+              <DialogTrigger asChild>
+                <Button>
+                  <Plus className="mr-2 h-4 w-4" />
+                  Add Task
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+                <DialogHeader>
+                  <DialogTitle>Add New Task</DialogTitle>
+                  <DialogDescription>
+                    Enter the task details below
+                  </DialogDescription>
+                </DialogHeader>
+                <TaskDialog 
+                  isOpen={isNewTaskOpen} 
+                  onOpenChange={setIsNewTaskOpen}
+                  task={null}
+                  onSaved={() => setIsNewTaskOpen(false)}
+                />
+              </DialogContent>
+            </Dialog>
             <Dialog open={isNewClientOpen} onOpenChange={setIsNewClientOpen}>
               <DialogTrigger asChild>
                 <Button>
@@ -135,7 +159,7 @@ const Index = () => {
           </Card>
         ) : (
           <>
-            <PriorityActions />
+            <PriorityActions hideAddButton />
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <ClientSearch />
               <IntelSearch 
