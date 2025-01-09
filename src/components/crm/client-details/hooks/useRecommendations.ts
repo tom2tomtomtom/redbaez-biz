@@ -23,7 +23,10 @@ export const useRecommendations = (clientId: number) => {
     mutationFn: async () => {
       console.log('Starting client analysis for ID:', clientId);
       
-      // First, delete existing recommendations
+      // Immediately set recommendations to empty array in cache
+      queryClient.setQueryData(['recommendations', clientId], []);
+      
+      // Delete existing recommendations
       const { error: deleteError } = await supabase
         .from('client_recommendations')
         .delete()
@@ -33,9 +36,6 @@ export const useRecommendations = (clientId: number) => {
         console.error('Error deleting existing recommendations:', deleteError);
         throw deleteError;
       }
-
-      // Invalidate the query to reflect the deletion
-      await queryClient.invalidateQueries({ queryKey: ['recommendations', clientId] });
       
       // Get client analysis data
       const { data: clientData, error: analysisError } = await supabase
@@ -78,9 +78,12 @@ export const useRecommendations = (clientId: number) => {
         console.error('Error inserting recommendations:', insertError);
         throw insertError;
       }
+
+      return response.data.recommendations;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['recommendations', clientId] });
+    onSuccess: (newRecommendations) => {
+      // Update cache with new recommendations
+      queryClient.setQueryData(['recommendations', clientId], newRecommendations);
       toast({
         title: "Analysis Complete",
         description: "New recommendations have been generated.",
@@ -93,6 +96,8 @@ export const useRecommendations = (clientId: number) => {
         description: "Failed to generate recommendations. Please try again.",
         variant: "destructive",
       });
+      // Refetch to ensure UI is in sync with database
+      queryClient.invalidateQueries({ queryKey: ['recommendations', clientId] });
     }
   });
 
