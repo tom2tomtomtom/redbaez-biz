@@ -1,6 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { ArrowLeft } from 'lucide-react';
 import { useNavigate, useParams, Navigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -10,6 +8,7 @@ import { useClientInitialization } from './client-details/useClientInitializatio
 import { ClientHeader } from './client-details/ClientHeader';
 import { ClientEditMode } from './client-details/ClientEditMode';
 import { ClientContent } from './client-details/ClientContent';
+import { BackButton } from './client-details/components/BackButton';
 
 export const ClientDetails = () => {
   const navigate = useNavigate();
@@ -63,7 +62,7 @@ export const ClientDetails = () => {
     return (
       <div className="flex flex-col items-center justify-center h-screen">
         <p className="text-red-500 mb-4">Error loading client details</p>
-        <Button onClick={() => navigate('/')}>Back to Home</Button>
+        <BackButton />
       </div>
     );
   }
@@ -114,22 +113,13 @@ export const ClientDetails = () => {
 
   return (
     <div className="flex flex-col space-y-6 p-8 w-full max-w-7xl mx-auto bg-gray-50/50 animate-fade-in overflow-y-auto min-h-screen">
-      <Button
-        variant="ghost"
-        className="w-fit flex items-center gap-2"
-        onClick={() => navigate('/')}
-      >
-        <ArrowLeft size={16} />
-        Back to Home
-      </Button>
-
+      <BackButton />
       <ClientHeader 
         clientName={client.name}
         clientId={client.id}
         urgent={client.urgent}
         onEditClick={() => setIsEditing(true)}
       />
-
       <ClientContent 
         client={client}
         isEditing={isEditing}
