@@ -173,6 +173,44 @@ export type Database = {
           },
         ]
       }
+      client_recommendations: {
+        Row: {
+          client_id: number | null
+          created_at: string | null
+          id: string
+          implemented: boolean | null
+          priority: string
+          suggestion: string
+          type: string
+        }
+        Insert: {
+          client_id?: number | null
+          created_at?: string | null
+          id?: string
+          implemented?: boolean | null
+          priority: string
+          suggestion: string
+          type: string
+        }
+        Update: {
+          client_id?: number | null
+          created_at?: string | null
+          id?: string
+          implemented?: boolean | null
+          priority?: string
+          suggestion?: string
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_recommendations_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       clients: {
         Row: {
           actual_apr: number | null
@@ -519,6 +557,12 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_client_analysis_data: {
+        Args: {
+          p_client_id: number
+        }
+        Returns: Json
+      }
       insert_profile_for_authenticated_user: {
         Args: Record<PropertyKey, never>
         Returns: undefined

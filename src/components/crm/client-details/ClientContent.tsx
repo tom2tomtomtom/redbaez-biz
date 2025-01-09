@@ -5,6 +5,7 @@ import { AdditionalInfoCard } from './AdditionalInfoCard';
 import { NextStepsHistory } from './NextStepsHistory';
 import { UrgentFlagToggle } from './components/UrgentFlagToggle';
 import { useRevenueCalculations } from './hooks/useRevenueCalculations';
+import { StrategicRecommendations } from './StrategicRecommendations';
 
 interface ClientContentProps {
   client: any;
@@ -69,6 +70,10 @@ export const ClientContent = ({
           notes={client.notes}
           background={client.background}
         />
+
+        <div className="col-span-12">
+          <StrategicRecommendations clientId={client.id} />
+        </div>
 
         <div className="col-span-12 flex items-center justify-between gap-4 p-4 bg-white rounded-lg shadow-sm">
           <UrgentFlagToggle clientId={client.id} isUrgent={client.urgent || false} />
