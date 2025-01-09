@@ -2,6 +2,7 @@ export * from './client-types';
 export * from './calendar-events.types';
 export * from './client-emails.types';
 export * from './client-forecasts.types';
+export * from './client-next-steps.types';
 export * from './general-tasks.types';
 export * from './recommendations.types';
 export * from './messages.types';
@@ -33,6 +34,11 @@ export type Database = {
         Row: import('./client-forecasts.types').ClientForecastRow
         Insert: import('./client-forecasts.types').ClientForecastInsert
         Update: import('./client-forecasts.types').ClientForecastUpdate
+      }
+      client_next_steps: {
+        Row: import('./client-next-steps.types').ClientNextStepRow
+        Insert: import('./client-next-steps.types').ClientNextStepInsert
+        Update: import('./client-next-steps.types').ClientNextStepUpdate
       }
       clients: {
         Row: import('./client-types').ClientRow

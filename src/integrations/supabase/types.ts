@@ -144,6 +144,7 @@ export type Database = {
           id: string
           notes: string | null
           updated_at: string | null
+          urgent: boolean | null
         }
         Insert: {
           client_id?: number | null
@@ -153,6 +154,7 @@ export type Database = {
           id?: string
           notes?: string | null
           updated_at?: string | null
+          urgent?: boolean | null
         }
         Update: {
           client_id?: number | null
@@ -162,6 +164,7 @@ export type Database = {
           id?: string
           notes?: string | null
           updated_at?: string | null
+          urgent?: boolean | null
         }
         Relationships: [
           {
