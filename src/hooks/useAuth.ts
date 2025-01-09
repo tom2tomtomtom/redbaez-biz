@@ -15,8 +15,15 @@ export const useAuth = () => {
           const email = session.user.email;
           if (email && !isAllowedDomain(email)) {
             try {
-              await supabase.auth.signOut();
-              setError(`Only ${getAllowedDomainsMessage()} email addresses are allowed.`);
+              const { error: signOutError } = await supabase.auth.signOut();
+              if (signOutError) {
+                // Only set error if it's not a session_not_found error
+                if (!signOutError.message.includes('session_not_found')) {
+                  setError(getErrorMessage(signOutError));
+                }
+              } else {
+                setError(`Only ${getAllowedDomainsMessage()} email addresses are allowed.`);
+              }
             } catch (err) {
               if (!(err as AuthError).message.includes('session_not_found')) {
                 setError(getErrorMessage(err as AuthError));
@@ -28,15 +35,25 @@ export const useAuth = () => {
         }
         
         if (event === 'SIGNED_OUT') {
+          // Clear error state on successful sign out
           setError('');
+          // Ensure we're on the login page after sign out
+          if (window.location.pathname !== '/login') {
+            navigate('/login');
+          }
         }
 
         if (event === 'USER_UPDATED') {
           try {
-            const { error } = await supabase.auth.getSession();
-            if (error) setError(getErrorMessage(error));
+            const { error: sessionError } = await supabase.auth.getSession();
+            if (sessionError && !sessionError.message.includes('session_not_found')) {
+              setError(getErrorMessage(sessionError));
+            }
           } catch (err) {
-            setError(getErrorMessage(err as AuthError));
+            const error = err as AuthError;
+            if (!error.message.includes('session_not_found')) {
+              setError(getErrorMessage(error));
+            }
           }
         }
 
