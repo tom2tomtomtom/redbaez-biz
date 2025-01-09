@@ -51,6 +51,7 @@ export const StrategicRecommendations: React.FC<{ clientId: number }> = ({ clien
                 type={rec.type}
                 priority={rec.priority}
                 suggestion={rec.suggestion}
+                clientId={clientId}
               />
             ))}
           </div>
