@@ -20,6 +20,48 @@ export const PriorityItemsList = ({ items, onTaskClick }: PriorityItemsListProps
   const queryClient = useQueryClient();
   const [itemToComplete, setItemToComplete] = useState<PriorityItem | null>(null);
 
+  const handleCompletedChange = async (item: PriorityItem, completed: boolean) => {
+    try {
+      if (item.type === 'task') {
+        const { error } = await supabase
+          .from('general_tasks')
+          .update({ status: completed ? 'completed' : 'incomplete' })
+          .eq('id', item.data.id);
+        if (error) throw error;
+      } else if (item.type === 'client') {
+        const { error } = await supabase
+          .from('clients')
+          .update({ status: completed ? 'completed' : 'incomplete' })
+          .eq('id', item.data.id);
+        if (error) throw error;
+      } else if (item.type === 'next_step') {
+        const { error } = await supabase
+          .from('client_next_steps')
+          .update({ completed_at: completed ? new Date().toISOString() : null })
+          .eq('id', item.data.id);
+        if (error) throw error;
+      }
+
+      queryClient.invalidateQueries({ queryKey: ['priorityClients'] });
+      queryClient.invalidateQueries({ queryKey: ['generalTasks'] });
+      queryClient.invalidateQueries({ queryKey: ['nextSteps'] });
+
+      toast({
+        title: completed ? "Item completed" : "Item reopened",
+        description: `Successfully ${completed ? 'completed' : 'reopened'} the item`,
+      });
+
+      setItemToComplete(null);
+    } catch (error) {
+      console.error('Error updating completion status:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update completion status",
+        variant: "destructive",
+      });
+    }
+  };
+
   const handleUrgentChange = async (item: PriorityItem, checked: boolean) => {
     try {
       if (item.type === 'task') {
