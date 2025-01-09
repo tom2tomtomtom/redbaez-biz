@@ -37,18 +37,30 @@ export const StrategicRecommendations: React.FC<{ clientId: number }> = ({ clien
 
   const analyzeMutation = useMutation({
     mutationFn: async () => {
+      console.log('Starting client analysis for ID:', clientId);
+      
       // First, get client analysis data
       const { data: clientData, error: analysisError } = await supabase
         .rpc('get_client_analysis_data', { p_client_id: clientId });
       
-      if (analysisError) throw analysisError;
+      if (analysisError) {
+        console.error('Error fetching client analysis data:', analysisError);
+        throw analysisError;
+      }
+      
+      console.log('Retrieved client data:', clientData);
       
       // Call the edge function for AI analysis
       const response = await supabase.functions.invoke('analyze-client', {
         body: { clientData }
       });
 
-      if (response.error) throw response.error;
+      if (response.error) {
+        console.error('Error from analyze-client function:', response.error);
+        throw response.error;
+      }
+      
+      console.log('Received recommendations:', response.data);
       
       // Insert the recommendations
       const { error: insertError } = await supabase
@@ -58,7 +70,10 @@ export const StrategicRecommendations: React.FC<{ clientId: number }> = ({ clien
           ...rec
         })));
         
-      if (insertError) throw insertError;
+      if (insertError) {
+        console.error('Error inserting recommendations:', insertError);
+        throw insertError;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['recommendations', clientId] });
