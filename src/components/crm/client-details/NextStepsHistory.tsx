@@ -20,13 +20,13 @@ interface NextStepsHistoryProps {
 
 type HistoryEntry = {
   id: string;
-  client_id: number;
+  client_id: number | null;
   notes: string | null;
   due_date: string | null;
   created_at: string;
   completed_at: string | null;
   created_by: string | null;
-  profiles: {
+  profiles?: {
     full_name: string | null;
   } | null;
 }
@@ -37,7 +37,7 @@ export const NextStepsHistory: React.FC<NextStepsHistoryProps> = ({ clientId }) 
     queryFn: async () => {
       console.log('Fetching history for client:', clientId);
       const { data, error } = await supabase
-        .from('client_next_steps')
+        .from('next_steps_history')
         .select('*, profiles(full_name)')
         .eq('client_id', clientId)
         .order('created_at', { ascending: false });
