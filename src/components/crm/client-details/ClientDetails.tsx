@@ -78,7 +78,9 @@ export const ClientDetails = () => {
     <div className="flex flex-col space-y-6 p-8 w-full max-w-7xl mx-auto bg-gray-50/50 animate-fade-in overflow-y-auto min-h-screen">
       <BackButton />
       <ClientHeader 
-        client={client}
+        clientName={client.name}
+        clientId={client.id}
+        urgent={client.urgent}
         onEditClick={() => setIsEditing(true)}
       />
       <ClientContent 
