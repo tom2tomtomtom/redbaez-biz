@@ -28,8 +28,11 @@ export const PriorityItemsList = ({ items, onTaskClick }: PriorityItemsListProps
       return i;
     }).sort((a, b) => {
       // Sort by urgent status first
-      if (a.data.urgent && !b.data.urgent) return -1;
-      if (!a.data.urgent && b.data.urgent) return 1;
+      const aUrgent = 'urgent' in a.data ? a.data.urgent ?? false : false;
+      const bUrgent = 'urgent' in b.data ? b.data.urgent ?? false : false;
+      
+      if (aUrgent && !bUrgent) return -1;
+      if (!aUrgent && bUrgent) return 1;
       
       // Then sort by date
       if (!a.date) return 1;
@@ -93,7 +96,7 @@ export const PriorityItemsList = ({ items, onTaskClick }: PriorityItemsListProps
           <div className="absolute right-3 top-3 z-10 flex items-center gap-2 bg-white/80 backdrop-blur-sm px-2 py-1 rounded-full">
             <Switch
               id={`urgent-${item.data.id}`}
-              checked={'urgent' in item.data ? item.data.urgent : false}
+              checked={'urgent' in item.data ? item.data.urgent ?? false : false}
               onCheckedChange={(checked) => handleUrgentChange(item, checked)}
             />
             <Label htmlFor={`urgent-${item.data.id}`} className="text-sm">
