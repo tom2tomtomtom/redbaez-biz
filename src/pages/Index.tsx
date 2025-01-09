@@ -64,7 +64,16 @@ const Index = () => {
               <Users className="mr-2 h-4 w-4" />
               {showClientList ? 'Hide Clients' : 'View All Clients'}
             </Button>
-            <Dialog open={isNewClientOpen} onOpenChange={setIsNewClientOpen}>
+            <Dialog 
+              open={isNewClientOpen} 
+              onOpenChange={(open) => {
+                setIsNewClientOpen(open);
+                if (!open) {
+                  // Force a refresh of the clients list when dialog closes
+                  window.location.reload();
+                }
+              }}
+            >
               <DialogTrigger asChild>
                 <Button>
                   <Plus className="mr-2 h-4 w-4" />
