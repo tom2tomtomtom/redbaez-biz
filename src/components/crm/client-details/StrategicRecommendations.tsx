@@ -39,7 +39,18 @@ export const StrategicRecommendations: React.FC<{ clientId: number }> = ({ clien
     mutationFn: async () => {
       console.log('Starting client analysis for ID:', clientId);
       
-      // First, get client analysis data
+      // First, delete existing recommendations
+      const { error: deleteError } = await supabase
+        .from('client_recommendations')
+        .delete()
+        .eq('client_id', clientId);
+        
+      if (deleteError) {
+        console.error('Error deleting existing recommendations:', deleteError);
+        throw deleteError;
+      }
+      
+      // Get client analysis data
       const { data: clientData, error: analysisError } = await supabase
         .rpc('get_client_analysis_data', { p_client_id: clientId });
       
@@ -66,7 +77,7 @@ export const StrategicRecommendations: React.FC<{ clientId: number }> = ({ clien
         throw new Error('Invalid recommendations format received');
       }
 
-      // Insert the recommendations
+      // Insert the new recommendations
       const { error: insertError } = await supabase
         .from('client_recommendations')
         .insert(response.data.recommendations.map((rec: any) => ({
