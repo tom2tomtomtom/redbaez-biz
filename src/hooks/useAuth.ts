@@ -15,8 +15,13 @@ export const useAuth = () => {
           const email = session.user.email;
           if (email && !isAllowedDomain(email)) {
             try {
-              await supabase.auth.signOut();
-              setError(`Only ${getAllowedDomainsMessage()} email addresses are allowed.`);
+              const { error: signOutError } = await supabase.auth.signOut();
+              if (!signOutError || signOutError.message.includes('session_not_found')) {
+                setError(`Only ${getAllowedDomainsMessage()} email addresses are allowed.`);
+                navigate('/login');
+              } else {
+                setError(getErrorMessage(signOutError));
+              }
             } catch (err) {
               const error = err as AuthError;
               if (!error.message.includes('session_not_found')) {
