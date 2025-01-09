@@ -1,14 +1,13 @@
 import { useQuery } from '@tanstack/react-query';
+import { useParams } from 'react-router-dom';
 import { CalendarService, Meeting } from '@/integrations/google/calendar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Calendar, Clock, AlertCircle } from 'lucide-react';
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
-interface CalendarViewProps {
-  clientId?: string;  // Made optional
-}
-
-export const CalendarView = ({ clientId }: CalendarViewProps) => {
+export const CalendarView = () => {
+  const { clientId } = useParams();
+  
   const { data: meetings, isLoading, error } = useQuery({
     queryKey: ['meetings', clientId],
     queryFn: () => clientId ? CalendarService.getClientMeetings(Number(clientId)) : Promise.resolve([]),
