@@ -16,17 +16,15 @@ export const useAuth = () => {
           if (email && !isAllowedDomain(email)) {
             try {
               const { error: signOutError } = await supabase.auth.signOut();
-              if (signOutError) {
-                // Only set error if it's not a session_not_found error
-                if (!signOutError.message.includes('session_not_found')) {
-                  setError(getErrorMessage(signOutError));
-                }
-              } else {
+              // Only set domain restriction error if sign out was successful
+              if (!signOutError) {
                 setError(`Only ${getAllowedDomainsMessage()} email addresses are allowed.`);
               }
             } catch (err) {
-              if (!(err as AuthError).message.includes('session_not_found')) {
-                setError(getErrorMessage(err as AuthError));
+              // Ignore session_not_found errors during sign out
+              const error = err as AuthError;
+              if (!error.message.includes('session_not_found')) {
+                setError(getErrorMessage(error));
               }
             }
             return;
@@ -35,9 +33,8 @@ export const useAuth = () => {
         }
         
         if (event === 'SIGNED_OUT') {
-          // Clear error state on successful sign out
+          // Clear error state and ensure we're on login page
           setError('');
-          // Ensure we're on the login page after sign out
           if (window.location.pathname !== '/login') {
             navigate('/login');
           }
