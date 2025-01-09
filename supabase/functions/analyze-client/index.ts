@@ -58,6 +58,7 @@ Example tasks:
 
     const apiKey = Deno.env.get('PERPLEXITY_API_KEY');
     if (!apiKey) {
+      console.error('Perplexity API key not configured');
       throw new Error('Perplexity API key not configured');
     }
 
@@ -85,8 +86,18 @@ Example tasks:
       }),
     });
 
+    if (!response.ok) {
+      console.error('Error from Perplexity API:', await response.text());
+      throw new Error('Failed to get response from Perplexity API');
+    }
+
     const aiResponse = await response.json();
     console.log('Received AI response:', aiResponse);
+
+    if (!aiResponse?.choices?.[0]?.message?.content) {
+      console.error('Invalid response format from AI:', aiResponse);
+      throw new Error('Invalid response format from AI');
+    }
 
     let recommendations = [];
     try {
@@ -109,6 +120,9 @@ Example tasks:
         if (!rec.type || !rec.priority || !rec.suggestion) {
           throw new Error(`Invalid recommendation format at index ${index}`);
         }
+        // Ensure type and priority are lowercase
+        rec.type = rec.type.toLowerCase();
+        rec.priority = rec.priority.toLowerCase();
       });
       
     } catch (error) {
