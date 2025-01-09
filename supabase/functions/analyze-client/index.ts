@@ -16,25 +16,22 @@ serve(async (req) => {
     const { clientData } = await req.json();
     console.log('Analyzing client data:', clientData);
 
-    // Format the data for analysis
-    const prompt = `
-      Based on this client data, provide 3-4 strategic recommendations in the following JSON format:
-      [
-        {
-          "type": "revenue|engagement|risk|opportunity",
-          "priority": "high|medium|low",
-          "suggestion": "detailed actionable suggestion"
-        }
-      ]
-      
-      Client Data:
-      Revenue Trends: ${JSON.stringify(clientData.revenue_trends)}
-      Recent Interactions: ${JSON.stringify(clientData.interaction_history)}
-      Upcoming Revenue: ${JSON.stringify(clientData.forecasts)}
-      Next Steps: ${JSON.stringify(clientData.next_steps)}
-      
-      Ensure the response is ONLY the JSON array with no additional text or formatting.
-    `;
+    const prompt = `You are a strategic business advisor. Your task is to analyze the client data and provide exactly 3 strategic recommendations.
+
+Return ONLY a JSON array in this exact format, with no additional text, markdown, or explanations:
+[
+  {
+    "type": "revenue|engagement|risk|opportunity",
+    "priority": "high|medium|low",
+    "suggestion": "detailed actionable suggestion"
+  }
+]
+
+Client Data:
+Revenue Trends: ${JSON.stringify(clientData.revenue_trends)}
+Recent Interactions: ${JSON.stringify(clientData.interaction_history)}
+Upcoming Revenue: ${JSON.stringify(clientData.forecasts)}
+Next Steps: ${JSON.stringify(clientData.next_steps)}`;
 
     const apiKey = Deno.env.get('PERPLEXITY_API_KEY');
     if (!apiKey) {
@@ -53,7 +50,7 @@ serve(async (req) => {
         messages: [
           {
             role: 'system',
-            content: 'You are a strategic business advisor. Provide recommendations in the exact JSON format requested, with no additional text or explanations.'
+            content: 'You are a strategic business advisor. Return ONLY a JSON array with exactly 3 recommendations. No additional text or explanations.'
           },
           {
             role: 'user',
@@ -68,13 +65,29 @@ serve(async (req) => {
     const aiResponse = await response.json();
     console.log('Received AI response:', aiResponse);
 
-    // Parse the AI response and extract recommendations
     let recommendations = [];
     try {
       const content = aiResponse.choices[0].message.content;
-      // Clean up the response to ensure it's valid JSON
-      const cleanedContent = content.replace(/```json\n?|\n?```/g, '').trim();
+      // Remove any markdown formatting and clean up the response
+      const cleanedContent = content
+        .replace(/```json\n?|\n?```/g, '')  // Remove markdown code blocks
+        .replace(/^[\s\S]*?\[/, '[')        // Remove any text before the array
+        .replace(/\][\s\S]*$/, ']')         // Remove any text after the array
+        .trim();
+      
       recommendations = JSON.parse(cleanedContent);
+      
+      // Validate the structure of each recommendation
+      if (!Array.isArray(recommendations) || recommendations.length !== 3) {
+        throw new Error('Invalid recommendations format: must be an array of exactly 3 items');
+      }
+      
+      recommendations.forEach((rec, index) => {
+        if (!rec.type || !rec.priority || !rec.suggestion) {
+          throw new Error(`Invalid recommendation format at index ${index}`);
+        }
+      });
+      
     } catch (error) {
       console.error('Error parsing AI response:', error);
       throw new Error('Failed to parse AI recommendations');
