@@ -21,9 +21,28 @@ export const ClientContent = ({
 
   return (
     <div className="space-y-6">
-      {/* Next Steps History moved to top */}
-      <div className="bg-white rounded-lg shadow-sm p-4">
-        <NextStepsHistory clientId={client.id} />
+      {/* Current Next Step and History Section */}
+      <div className="bg-white rounded-lg shadow-sm p-6">
+        <div className="space-y-4">
+          {/* Current Next Step */}
+          <div className="border-b pb-4">
+            <h3 className="text-lg font-semibold mb-2">Current Next Step</h3>
+            <div className="space-y-2">
+              <p className="text-gray-700">{client.notes || 'No next step set'}</p>
+              {client.next_due_date && (
+                <p className="text-sm text-gray-500">
+                  Due: {new Date(client.next_due_date).toLocaleDateString()}
+                </p>
+              )}
+            </div>
+          </div>
+          
+          {/* Next Steps History */}
+          <div>
+            <h3 className="text-lg font-semibold mb-2">Next Steps History</h3>
+            <NextStepsHistory clientId={client.id} />
+          </div>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
