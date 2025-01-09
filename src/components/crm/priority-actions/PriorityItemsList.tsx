@@ -19,6 +19,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useState } from 'react';
+import { NextStepItem } from './NextStepItem';
 
 interface PriorityItemsListProps {
   items: PriorityItem[];
@@ -158,21 +159,25 @@ export const PriorityItemsList = ({ items, onTaskClick }: PriorityItemsListProps
           <div key={item.data.id} className="relative">
             <div className="absolute right-3 top-3 z-10 flex items-center gap-2 bg-white/80 backdrop-blur-sm px-2 py-1 rounded-full">
               <div className="flex items-center gap-2">
-                <button
-                  onClick={() => setItemToComplete(item)}
-                  className={`transition-all duration-300 transform hover:scale-110 active:scale-95 ${
-                    item.data.status === 'completed' ? 'text-green-500' : 'text-gray-400 hover:text-gray-600'
-                  }`}
-                >
-                  <CheckCircle className={`h-5 w-5 transition-all duration-300 ${
-                    item.data.status === 'completed' ? 'animate-scale-in' : ''
-                  }`} />
-                </button>
-                <Switch
-                  id={`urgent-${item.data.id}`}
-                  checked={'urgent' in item.data ? item.data.urgent : false}
-                  onCheckedChange={(checked) => handleUrgentChange(item, checked)}
-                />
+                {item.type !== 'next_step' && (
+                  <button
+                    onClick={() => setItemToComplete(item)}
+                    className={`transition-all duration-300 transform hover:scale-110 active:scale-95 ${
+                      item.data.status === 'completed' ? 'text-green-500' : 'text-gray-400 hover:text-gray-600'
+                    }`}
+                  >
+                    <CheckCircle className={`h-5 w-5 transition-all duration-300 ${
+                      item.data.status === 'completed' ? 'animate-scale-in' : ''
+                    }`} />
+                  </button>
+                )}
+                {item.type !== 'next_step' && (
+                  <Switch
+                    id={`urgent-${item.data.id}`}
+                    checked={'urgent' in item.data ? item.data.urgent : false}
+                    onCheckedChange={(checked) => handleUrgentChange(item, checked)}
+                  />
+                )}
               </div>
             </div>
             {item.type === 'task' ? (
@@ -182,8 +187,10 @@ export const PriorityItemsList = ({ items, onTaskClick }: PriorityItemsListProps
               >
                 <GeneralTaskItem task={item.data as GeneralTaskRow} />
               </div>
+            ) : item.type === 'client' ? (
+              <PriorityActionItem client={item.data as ClientRow} />
             ) : (
-              <PriorityActionItem client={item.data} />
+              <NextStepItem nextStep={item.data} />
             )}
           </div>
         ))}

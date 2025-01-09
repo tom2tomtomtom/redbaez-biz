@@ -13,6 +13,10 @@ export type PriorityItem = {
   type: 'client';
   date: string | null;
   data: ClientRow;
+} | {
+  type: 'next_step';
+  date: string | null;
+  data: Tables<'client_next_steps'> & { client_name?: string };
 };
 
 const fetchPriorityClients = async () => {
@@ -40,6 +44,30 @@ const fetchGeneralTasks = async () => {
     
   if (error) throw error;
   return data;
+};
+
+const fetchNextSteps = async () => {
+  const startDate = startOfMonth(new Date());
+  const endDate = endOfMonth(new Date());
+
+  const { data, error } = await supabase
+    .from('client_next_steps')
+    .select(`
+      *,
+      clients (
+        name
+      )
+    `)
+    .gte('due_date', startDate.toISOString())
+    .lte('due_date', endDate.toISOString())
+    .is('completed_at', null)
+    .order('due_date');
+
+  if (error) throw error;
+  return data?.map(step => ({
+    ...step,
+    client_name: step.clients?.name
+  }));
 };
 
 const sortByUrgencyAndDate = (a: PriorityItem, b: PriorityItem) => {
@@ -73,8 +101,17 @@ export const usePriorityData = () => {
     queryFn: fetchGeneralTasks,
   });
 
-  const isLoading = isLoadingClients || isLoadingTasks;
-  const error = clientsError || tasksError;
+  const {
+    data: nextSteps,
+    isLoading: isLoadingNextSteps,
+    error: nextStepsError
+  } = useQuery({
+    queryKey: ['priorityNextSteps'],
+    queryFn: fetchNextSteps,
+  });
+
+  const isLoading = isLoadingClients || isLoadingTasks || isLoadingNextSteps;
+  const error = clientsError || tasksError || nextStepsError;
 
   const allItems: PriorityItem[] = [
     ...(tasks?.map(task => ({
@@ -86,6 +123,11 @@ export const usePriorityData = () => {
       type: 'client' as const,
       date: client.next_due_date,
       data: client
+    })) || []),
+    ...(nextSteps?.map(step => ({
+      type: 'next_step' as const,
+      date: step.due_date,
+      data: step
     })) || [])
   ].sort(sortByUrgencyAndDate);
 
