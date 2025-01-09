@@ -1,20 +1,15 @@
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { Auth } from "@supabase/auth-ui-react";
+import { ThemeSupa } from "@supabase/auth-ui-shared";
+import { supabase } from "@/integrations/supabase/client";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface LoginFormProps {
   error: string;
-  email: string;
-  onEmailChange: (email: string) => void;
-  onResendLink: () => void;
   allowedDomainsMessage: string;
 }
 
 export const LoginForm = ({
   error,
-  email,
-  onEmailChange,
-  onResendLink,
   allowedDomainsMessage
 }: LoginFormProps) => {
   return (
@@ -31,20 +26,27 @@ export const LoginForm = ({
           </Alert>
         )}
 
-        <div className="space-y-4">
-          <Input
-            type="email"
-            placeholder="Enter your email"
-            value={email}
-            onChange={(e) => onEmailChange(e.target.value)}
-          />
-          <Button 
-            className="w-full" 
-            onClick={onResendLink}
-          >
-            Send Magic Link
-          </Button>
-        </div>
+        <Auth
+          supabaseClient={supabase}
+          appearance={{
+            theme: ThemeSupa,
+            variables: {
+              default: {
+                colors: {
+                  brand: 'rgb(59 130 246)', // bg-blue-500
+                  brandAccent: 'rgb(29 78 216)', // bg-blue-700
+                }
+              }
+            },
+            className: {
+              container: 'space-y-4',
+              button: 'w-full',
+              input: 'w-full'
+            }
+          }}
+          providers={[]}
+          view="magic_link"
+        />
       </div>
     </div>
   );

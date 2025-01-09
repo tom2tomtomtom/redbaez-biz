@@ -5,7 +5,7 @@ import { LoginForm } from "@/components/auth/LoginForm";
 import { getAllowedDomainsMessage } from "@/utils/auth";
 
 export const Login = () => {
-  const { error, email, setEmail, setError, handleResendLink } = useAuth();
+  const { error, setError } = useAuth();
   const [showReturnMessage, setShowReturnMessage] = useState(false);
 
   useEffect(() => {
@@ -34,9 +34,6 @@ export const Login = () => {
   return (
     <LoginForm
       error={error}
-      email={email}
-      onEmailChange={setEmail}
-      onResendLink={handleResendLink}
       allowedDomainsMessage={getAllowedDomainsMessage('or')}
     />
   );
