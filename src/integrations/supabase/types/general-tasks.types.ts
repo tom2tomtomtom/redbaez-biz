@@ -10,5 +10,10 @@ export type GeneralTaskRow = {
   urgent: boolean | null
 }
 
-export type GeneralTaskInsert = Partial<GeneralTaskRow>
-export type GeneralTaskUpdate = Partial<GeneralTaskRow>
+export type GeneralTaskInsert = Omit<GeneralTaskRow, 'id' | 'created_at' | 'updated_at'> & {
+  id?: string
+  created_at?: string
+  updated_at?: string
+}
+
+export type GeneralTaskUpdate = Partial<GeneralTaskInsert>

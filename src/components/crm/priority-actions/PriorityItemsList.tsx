@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/components/ui/use-toast';
 import { useQueryClient } from '@tanstack/react-query';
+import { GeneralTaskRow } from '@/integrations/supabase/types/general-tasks.types';
 
 interface PriorityItemsListProps {
   items: PriorityItem[];
@@ -28,8 +29,10 @@ export const PriorityItemsList = ({ items, onTaskClick }: PriorityItemsListProps
       return i;
     }).sort((a, b) => {
       // Sort by urgent status first
-      if (a.data.urgent && !b.data.urgent) return -1;
-      if (!a.data.urgent && b.data.urgent) return 1;
+      if ('urgent' in a.data && 'urgent' in b.data) {
+        if (a.data.urgent && !b.data.urgent) return -1;
+        if (!a.data.urgent && b.data.urgent) return 1;
+      }
       
       // Then sort by date
       if (!a.date) return 1;
@@ -102,10 +105,10 @@ export const PriorityItemsList = ({ items, onTaskClick }: PriorityItemsListProps
           </div>
           {item.type === 'task' ? (
             <div 
-              onClick={() => onTaskClick(item.data as Tables<'general_tasks'>)}
+              onClick={() => onTaskClick(item.data as GeneralTaskRow)}
               className="cursor-pointer"
             >
-              <GeneralTaskItem task={item.data as Tables<'general_tasks'>} />
+              <GeneralTaskItem task={item.data as GeneralTaskRow} />
             </div>
           ) : (
             <PriorityActionItem client={item.data} />

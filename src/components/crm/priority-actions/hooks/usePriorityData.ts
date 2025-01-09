@@ -3,11 +3,12 @@ import { supabase } from '@/integrations/supabase/client';
 import { startOfMonth, endOfMonth } from 'date-fns';
 import { Tables } from '@/integrations/supabase/types';
 import { ClientRow } from '@/integrations/supabase/types/clients.types';
+import { GeneralTaskRow } from '@/integrations/supabase/types/general-tasks.types';
 
 export type PriorityItem = {
   type: 'task';
   date: string | null;
-  data: Tables<'general_tasks'>;
+  data: GeneralTaskRow;
 } | {
   type: 'client';
   date: string | null;
