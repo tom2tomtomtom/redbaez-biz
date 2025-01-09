@@ -3,7 +3,6 @@ import { GeneralTaskItem } from './GeneralTaskItem';
 import { PriorityActionItem } from './PriorityActionItem';
 import { Tables } from '@/integrations/supabase/types';
 import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/components/ui/use-toast';
 import { useQueryClient } from '@tanstack/react-query';
@@ -99,9 +98,6 @@ export const PriorityItemsList = ({ items, onTaskClick }: PriorityItemsListProps
               checked={'urgent' in item.data ? item.data.urgent : false}
               onCheckedChange={(checked) => handleUrgentChange(item, checked)}
             />
-            <Label htmlFor={`urgent-${item.data.id}`} className="text-sm">
-              Urgent
-            </Label>
           </div>
           {item.type === 'task' ? (
             <div 
