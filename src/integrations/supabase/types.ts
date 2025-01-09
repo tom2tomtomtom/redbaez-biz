@@ -211,6 +211,48 @@ export type Database = {
           },
         ]
       }
+      client_status_history: {
+        Row: {
+          client_id: number | null
+          created_at: string | null
+          created_by: string | null
+          id: string
+          notes: string | null
+          status: string
+        }
+        Insert: {
+          client_id?: number | null
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          notes?: string | null
+          status: string
+        }
+        Update: {
+          client_id?: number | null
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          notes?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_status_history_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_status_history_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       clients: {
         Row: {
           actual_apr: number | null

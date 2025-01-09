@@ -6,6 +6,7 @@ import { NextStepsHistory } from './NextStepsHistory';
 import { UrgentFlagToggle } from './components/UrgentFlagToggle';
 import { useRevenueCalculations } from './hooks/useRevenueCalculations';
 import { StrategicRecommendations } from './StrategicRecommendations';
+import { StatusTab } from './StatusTab';
 
 interface ClientContentProps {
   client: any;
@@ -22,6 +23,12 @@ export const ClientContent = ({
 
   return (
     <div className="space-y-6">
+      {/* Status Section */}
+      <StatusTab 
+        clientId={client.id}
+        currentStatus={client.status}
+      />
+
       {/* Current Next Step and History Section */}
       <div className="bg-white rounded-lg shadow-sm p-6">
         <div className="space-y-4">
