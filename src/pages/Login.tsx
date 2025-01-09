@@ -15,6 +15,8 @@ import {
 import { WelcomeBack } from "@/components/auth/WelcomeBack";
 import { LoginForm } from "@/components/auth/LoginForm";
 
+const ALLOWED_DOMAINS = ['redbaez.com', 'thefamily.network'];
+
 export const Login = () => {
   const [error, setError] = useState<string>("");
   const [email, setEmail] = useState<string>("");
@@ -47,9 +49,9 @@ export const Login = () => {
         
         if (event === 'SIGNED_IN' && session) {
           const email = session.user.email;
-          if (email && !email.endsWith('@redbaez.com')) {
+          if (email && !ALLOWED_DOMAINS.some(domain => email.endsWith(`@${domain}`))) {
             await supabase.auth.signOut();
-            setError("Only redbaez.com email addresses are allowed.");
+            setError(`Only ${ALLOWED_DOMAINS.join(' and ')} email addresses are allowed.`);
             return;
           }
           navigate("/");
@@ -76,8 +78,8 @@ export const Login = () => {
   }, [navigate]);
 
   const handleResendLink = async () => {
-    if (!email || !email.endsWith('@redbaez.com')) {
-      setError("Please enter a valid redbaez.com email address.");
+    if (!email || !ALLOWED_DOMAINS.some(domain => email.endsWith(`@${domain}`))) {
+      setError(`Please enter a valid ${ALLOWED_DOMAINS.join(' or ')} email address.`);
       return;
     }
 

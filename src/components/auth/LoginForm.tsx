@@ -17,7 +17,7 @@ export const LoginForm = ({ error, email, onEmailChange, onResendLink }: LoginFo
       <div className="w-full max-w-md space-y-4">
         <div className="text-center space-y-2">
           <h1 className="text-2xl font-bold">Welcome Back</h1>
-          <p className="text-gray-500">Sign in with your redbaez.com email</p>
+          <p className="text-gray-500">Sign in with your redbaez.com or thefamily.network email</p>
         </div>
         
         {error && (
