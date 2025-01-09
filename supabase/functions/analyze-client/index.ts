@@ -16,22 +16,32 @@ serve(async (req) => {
     const { clientData } = await req.json();
     console.log('Analyzing client data:', clientData);
 
-    const prompt = `You are a strategic business advisor. Your task is to analyze the client data and provide exactly 3 strategic recommendations.
+    const prompt = `You are a practical business advisor focused on immediate, actionable steps. Analyze this client data and provide exactly 3 specific, actionable recommendations that can be implemented within the next 30 days.
 
 Return ONLY a JSON array in this exact format, with no additional text, markdown, or explanations:
 [
   {
     "type": "revenue|engagement|risk|opportunity",
     "priority": "high|medium|low",
-    "suggestion": "detailed actionable suggestion"
+    "suggestion": "specific actionable step"
   }
 ]
 
-Client Data:
-Revenue Trends: ${JSON.stringify(clientData.revenue_trends)}
-Recent Interactions: ${JSON.stringify(clientData.interaction_history)}
-Upcoming Revenue: ${JSON.stringify(clientData.forecasts)}
-Next Steps: ${JSON.stringify(clientData.next_steps)}`;
+Focus on small, concrete actions rather than broad strategic initiatives. Each suggestion should be something that can be started immediately and completed within 30 days.
+
+Client Context:
+Name: ${clientData?.name || 'Unknown'}
+Industry: ${clientData?.industry || 'Unknown'}
+Status: ${clientData?.status || 'Unknown'}
+Current Notes: ${clientData?.notes || 'None'}
+Background: ${clientData?.background || 'None'}
+Next Due Date: ${clientData?.next_due_date || 'None'}
+
+Recent Activity:
+Revenue Trends: ${JSON.stringify(clientData?.revenue_trends)}
+Recent Interactions: ${JSON.stringify(clientData?.interaction_history)}
+Upcoming Revenue: ${JSON.stringify(clientData?.forecasts)}
+Next Steps: ${JSON.stringify(clientData?.next_steps)}`;
 
     const apiKey = Deno.env.get('PERPLEXITY_API_KEY');
     if (!apiKey) {
@@ -50,7 +60,7 @@ Next Steps: ${JSON.stringify(clientData.next_steps)}`;
         messages: [
           {
             role: 'system',
-            content: 'You are a strategic business advisor. Return ONLY a JSON array with exactly 3 recommendations. No additional text or explanations.'
+            content: 'You are a practical business advisor. Return ONLY a JSON array with exactly 3 specific, actionable recommendations that can be implemented within 30 days. No strategic initiatives or long-term plans. Focus on immediate, concrete steps.'
           },
           {
             role: 'user',
