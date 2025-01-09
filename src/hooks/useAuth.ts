@@ -29,12 +29,9 @@ export const useAuth = () => {
         }
 
         if (event === 'USER_UPDATED') {
-          // Only check session if we're not already signed out
-          if (event !== 'SIGNED_OUT') {
-            const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-            if (!session && sessionError && !sessionError.message.includes('session_not_found')) {
-              setError(getErrorMessage(sessionError));
-            }
+          const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+          if (!session && sessionError && !sessionError.message.includes('session_not_found')) {
+            setError(getErrorMessage(sessionError));
           }
         }
 
