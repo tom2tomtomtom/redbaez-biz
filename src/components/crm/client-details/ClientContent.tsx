@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { AlertTriangle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/components/ui/use-toast';
+import { NextStepsHistory } from './NextStepsHistory';
 
 interface ClientContentProps {
   client: any;
@@ -84,18 +85,21 @@ export const ClientContent = ({
         background={client.background}
       />
 
-      <div className="col-span-12 flex items-center gap-4 p-4 bg-white rounded-lg shadow-sm">
-        {client.urgent && (
-          <AlertTriangle className="h-5 w-5 text-red-500" />
-        )}
-        <div className="flex items-center space-x-2">
-          <Switch
-            id="urgent"
-            checked={client.urgent || false}
-            onCheckedChange={handleUrgentChange}
-          />
-          <Label htmlFor="urgent">Mark as Urgent Priority</Label>
+      <div className="col-span-12 flex items-center justify-between gap-4 p-4 bg-white rounded-lg shadow-sm">
+        <div className="flex items-center gap-4">
+          {client.urgent && (
+            <AlertTriangle className="h-5 w-5 text-red-500" />
+          )}
+          <div className="flex items-center space-x-2">
+            <Switch
+              id="urgent"
+              checked={client.urgent || false}
+              onCheckedChange={handleUrgentChange}
+            />
+            <Label htmlFor="urgent">Mark as Urgent Priority</Label>
+          </div>
         </div>
+        <NextStepsHistory clientId={client.id} />
       </div>
     </div>
   );
