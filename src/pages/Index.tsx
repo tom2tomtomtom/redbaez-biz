@@ -64,6 +64,23 @@ const Index = () => {
               <Users className="mr-2 h-4 w-4" />
               {showClientList ? 'Hide Clients' : 'View All Clients'}
             </Button>
+            <Dialog open={isNewClientOpen} onOpenChange={setIsNewClientOpen}>
+              <DialogTrigger asChild>
+                <Button>
+                  <Plus className="mr-2 h-4 w-4" />
+                  New Client
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+                <DialogHeader>
+                  <DialogTitle>Add New Client</DialogTitle>
+                  <DialogDescription>
+                    Enter the client's information below
+                  </DialogDescription>
+                </DialogHeader>
+                <CRMDashboard onClientAdded={() => setIsNewClientOpen(false)} />
+              </DialogContent>
+            </Dialog>
             <Dialog open={isNewTaskOpen} onOpenChange={setIsNewTaskOpen}>
               <DialogTrigger asChild>
                 <Button>
@@ -84,23 +101,6 @@ const Index = () => {
                   task={null}
                   onSaved={() => setIsNewTaskOpen(false)}
                 />
-              </DialogContent>
-            </Dialog>
-            <Dialog open={isNewClientOpen} onOpenChange={setIsNewClientOpen}>
-              <DialogTrigger asChild>
-                <Button>
-                  <Plus className="mr-2 h-4 w-4" />
-                  New Client
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-                <DialogHeader>
-                  <DialogTitle>Add New Client</DialogTitle>
-                  <DialogDescription>
-                    Enter the client's information below
-                  </DialogDescription>
-                </DialogHeader>
-                <CRMDashboard onClientAdded={() => setIsNewClientOpen(false)} />
               </DialogContent>
             </Dialog>
             <Button variant="outline" onClick={handleLogout}>
