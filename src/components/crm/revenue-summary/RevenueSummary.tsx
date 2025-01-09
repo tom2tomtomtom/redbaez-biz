@@ -50,11 +50,22 @@ const fetchMonthlyRevenue = async () => {
     };
   });
 
-  return monthlyData;
+  // Calculate annual totals
+  const annualTotals = clients.reduce((acc: any, client: any) => {
+    return {
+      confirmed: acc.confirmed + (client.annual_revenue_signed_off || 0),
+      forecast: acc.forecast + (client.annual_revenue_forecast || 0)
+    };
+  }, { confirmed: 0, forecast: 0 });
+
+  return {
+    monthlyData,
+    annualTotals
+  };
 };
 
 export const RevenueSummary = () => {
-  const { data: revenueData, isLoading, error } = useQuery({
+  const { data, isLoading, error } = useQuery({
     queryKey: ['monthly-revenue'],
     queryFn: fetchMonthlyRevenue,
   });
@@ -63,7 +74,7 @@ export const RevenueSummary = () => {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Monthly Revenue</CardTitle>
+          <CardTitle>Revenue Overview</CardTitle>
         </CardHeader>
         <CardContent>
           <Skeleton className="h-[300px] w-full" />
@@ -76,7 +87,7 @@ export const RevenueSummary = () => {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Monthly Revenue</CardTitle>
+          <CardTitle>Revenue Overview</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="text-red-500">Error loading revenue data</div>
@@ -85,15 +96,38 @@ export const RevenueSummary = () => {
     );
   }
 
+  const { monthlyData, annualTotals } = data;
+  const totalAnnualRevenue = annualTotals.confirmed + annualTotals.forecast;
+
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Monthly Revenue</CardTitle>
+        <CardTitle>Revenue Overview</CardTitle>
       </CardHeader>
       <CardContent>
+        <div className="mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            <div className="p-4 bg-gray-50 rounded-lg">
+              <p className="text-sm text-gray-600">Total Annual Revenue</p>
+              <p className="text-2xl font-bold">${totalAnnualRevenue.toLocaleString()}</p>
+            </div>
+            <div className="p-4 bg-blue-50 rounded-lg">
+              <p className="text-sm text-blue-600">Confirmed Revenue</p>
+              <p className="text-2xl font-bold text-blue-600">
+                ${annualTotals.confirmed.toLocaleString()}
+              </p>
+            </div>
+            <div className="p-4 bg-green-50 rounded-lg">
+              <p className="text-sm text-green-600">Forecast Revenue</p>
+              <p className="text-2xl font-bold text-green-600">
+                ${annualTotals.forecast.toLocaleString()}
+              </p>
+            </div>
+          </div>
+        </div>
         <div className="h-[300px]">
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={revenueData}>
+            <BarChart data={monthlyData}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="month" />
               <YAxis />
