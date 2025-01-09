@@ -29,33 +29,33 @@ export const useAuth = () => {
             }, 100);
             return;
           }
+          // Clear any existing errors and redirect to home
+          setError('');
           navigate('/');
+          return;
         }
         
         if (event === 'SIGNED_OUT') {
           setError('');
           navigate('/login');
+          return;
         }
 
+        // Handle email confirmation success
         if (event === 'USER_UPDATED') {
-          try {
-            const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-            if (sessionError && sessionError.message !== 'session_not_found') {
-              setError(getErrorMessage(sessionError));
-            }
-            // If session exists after user update, redirect to home
-            if (session) {
-              navigate('/');
-            }
-          } catch (error) {
-            console.error('Error checking session:', error);
+          // Clear any existing errors
+          setError('');
+          // Check if we have a valid session
+          const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+          if (sessionError) {
+            setError(getErrorMessage(sessionError));
+            return;
           }
-        }
-
-        // Handle verification success
-        if (event === 'SIGNED_IN' && session?.user?.email_confirmed_at) {
-          setError('Email confirmed successfully! You can now sign in.');
-          navigate('/login');
+          // If we have a session, redirect to home
+          if (session) {
+            navigate('/');
+            return;
+          }
         }
 
         if (event === 'PASSWORD_RECOVERY') {
