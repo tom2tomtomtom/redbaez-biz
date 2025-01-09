@@ -14,13 +14,16 @@ export const useAuth = () => {
         if (event === 'SIGNED_IN' && session) {
           const email = session.user.email;
           if (email && !isAllowedDomain(email)) {
-            try {
-              await supabase.auth.signOut();
-              setError(`Only ${getAllowedDomainsMessage()} email addresses are allowed.`);
-            } catch (signOutError) {
-              console.error('Error during sign out:', signOutError);
-            }
-            navigate('/login');
+            // Wait a brief moment to ensure session is established
+            setTimeout(async () => {
+              try {
+                await supabase.auth.signOut();
+                setError(`Only ${getAllowedDomainsMessage()} email addresses are allowed.`);
+              } catch (signOutError) {
+                console.error('Error during sign out:', signOutError);
+              }
+              navigate('/login');
+            }, 100);
             return;
           }
           navigate('/');
