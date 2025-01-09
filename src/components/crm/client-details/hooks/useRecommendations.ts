@@ -74,14 +74,27 @@ export const useRecommendations = (clientId: number) => {
   const { data: recommendations, isLoading } = useQuery({
     queryKey: ['recommendations', clientId],
     queryFn: async () => {
-      const { data, error } = await supabase
+      // First, get all recommendations for this client
+      const { data: allRecommendations, error } = await supabase
         .from('client_recommendations')
         .select('*')
         .eq('client_id', clientId)
         .order('created_at', { ascending: false });
       
       if (error) throw error;
-      return data;
+
+      // Create a map to store the latest recommendation for each type
+      const latestRecommendations = new Map();
+      
+      allRecommendations?.forEach(rec => {
+        // Only store if it's the first (latest) occurrence of this type
+        if (!latestRecommendations.has(rec.type)) {
+          latestRecommendations.set(rec.type, rec);
+        }
+      });
+
+      // Convert map values back to array
+      return Array.from(latestRecommendations.values());
     }
   });
 
