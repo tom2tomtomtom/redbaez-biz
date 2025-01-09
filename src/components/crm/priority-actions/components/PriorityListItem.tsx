@@ -5,6 +5,7 @@ import { NextStepItem } from '../NextStepItem';
 import { ItemControls } from './ItemControls';
 import { GeneralTaskRow } from '@/integrations/supabase/types/general-tasks.types';
 import { ClientRow } from '@/integrations/supabase/types/clients.types';
+import { useState, useEffect } from 'react';
 
 interface PriorityListItemProps {
   item: PriorityItem;
@@ -21,9 +22,26 @@ export const PriorityListItem = ({
   onComplete,
   onUrgentChange
 }: PriorityListItemProps) => {
+  const [isReordering, setIsReordering] = useState(false);
+  const [prevUrgent, setPrevUrgent] = useState('urgent' in item.data ? item.data.urgent : false);
+
+  useEffect(() => {
+    const currentUrgent = 'urgent' in item.data ? item.data.urgent : false;
+    if (prevUrgent !== currentUrgent) {
+      setIsReordering(true);
+      const timer = setTimeout(() => {
+        setIsReordering(false);
+      }, 500); // Match the duration of the reorder animation
+      setPrevUrgent(currentUrgent);
+      return () => clearTimeout(timer);
+    }
+  }, [item.data, prevUrgent]);
+
   return (
     <div 
-      className="relative transition-all duration-500 transform animate-fade-in"
+      className={`relative transition-all duration-500 transform ${
+        isReordering ? 'animate-reorder-up' : 'animate-fade-in'
+      }`}
       style={{
         transitionDelay: `${index * 50}ms`,
       }}

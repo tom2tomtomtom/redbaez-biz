@@ -1,6 +1,7 @@
 import { Switch } from "@/components/ui/switch";
 import { CheckCircle } from "lucide-react";
 import { PriorityItem } from "../hooks/usePriorityData";
+import { useState } from "react";
 
 interface ItemControlsProps {
   item: PriorityItem;
@@ -13,20 +14,25 @@ export const ItemControls = ({
   onComplete, 
   onUrgentChange 
 }: ItemControlsProps) => {
+  const [isAnimating, setIsAnimating] = useState(false);
+  
   const isCompleted = item.type === 'next_step' 
     ? item.data.completed_at !== null
     : item.data.status === 'completed';
 
   const handleUrgentChange = async (checked: boolean) => {
-    // Add a small delay to allow the toggle animation to complete
-    // before the item moves in the list
+    setIsAnimating(true);
+    // Add a delay to allow the toggle animation to complete
     setTimeout(() => {
       onUrgentChange(checked);
+      setIsAnimating(false);
     }, 300);
   };
 
   return (
-    <div className="absolute right-3 top-3 z-10 flex items-center gap-2 bg-white/80 backdrop-blur-sm px-2 py-1 rounded-full">
+    <div className={`absolute right-3 top-3 z-10 flex items-center gap-2 bg-white/80 backdrop-blur-sm px-2 py-1 rounded-full transition-all duration-500 ${
+      isAnimating ? 'scale-110' : ''
+    }`}>
       <div className="flex items-center gap-2">
         <button
           onClick={onComplete}
@@ -43,7 +49,9 @@ export const ItemControls = ({
             id={`urgent-${item.data.id}`}
             checked={'urgent' in item.data ? item.data.urgent : false}
             onCheckedChange={handleUrgentChange}
-            className="transition-opacity duration-300"
+            className={`transition-all duration-300 ${
+              isAnimating ? 'animate-slide-right' : ''
+            }`}
           />
         </div>
       </div>
