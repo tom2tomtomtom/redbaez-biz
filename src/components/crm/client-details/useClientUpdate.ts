@@ -22,6 +22,7 @@ export const useClientUpdate = (clientId: string | undefined, onSuccess?: () => 
       
       const clientData = {
         ...formData,
+        name: formData.name, // Ensure name is included in the update
         contact_name: `${primaryContact.firstName} ${primaryContact.lastName}`.trim(),
         contact_email: primaryContact.email,
         contact_phone: primaryContact.phone,
@@ -40,6 +41,7 @@ export const useClientUpdate = (clientId: string | undefined, onSuccess?: () => 
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['client'] });
+      queryClient.invalidateQueries({ queryKey: ['clients'] });
       toast({
         title: "Success",
         description: "Client updated successfully",

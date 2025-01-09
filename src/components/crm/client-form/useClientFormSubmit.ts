@@ -58,11 +58,29 @@ export const useClientFormSubmit = ({
           description: "Client information updated successfully",
         });
       } else {
-        const { error } = await supabase
+        const { data: newClient, error } = await supabase
           .from('clients')
-          .insert(clientData);
+          .insert(clientData)
+          .select()
+          .single();
 
         if (error) throw error;
+
+        // Create next step if notes and due date are provided
+        if (formData.notes && formData.next_due_date && newClient) {
+          const { error: nextStepError } = await supabase
+            .from('client_next_steps')
+            .insert({
+              client_id: newClient.id,
+              notes: formData.notes,
+              due_date: formData.next_due_date,
+              urgent: false
+            });
+
+          if (nextStepError) {
+            console.error('Error creating next step:', nextStepError);
+          }
+        }
 
         // Invalidate all relevant queries to ensure lists are updated
         queryClient.invalidateQueries({ queryKey: ['clients'] });
