@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Calendar } from 'lucide-react';
+import { Calendar, AlertTriangle } from 'lucide-react';
 import { Tables } from '@/integrations/supabase/types';
 
 interface GeneralTaskItemProps {
@@ -21,13 +21,18 @@ export const GeneralTaskItem = ({ task }: GeneralTaskItemProps) => {
   };
 
   return (
-    <div className={`p-3 ${getCategoryColor(task.category)} rounded-lg border`}>
+    <div className={`p-3 ${getCategoryColor(task.category)} rounded-lg border ${task.urgent ? 'ring-2 ring-red-500' : ''}`}>
       <div className="flex justify-between items-start">
-        <div>
-          <span className="font-medium">{task.title}</span>
-          <p className="text-sm text-gray-600 mt-1">
-            {task.description || 'No description provided'}
-          </p>
+        <div className="flex items-start gap-2">
+          {task.urgent && (
+            <AlertTriangle className="h-5 w-5 text-red-500 flex-shrink-0 mt-0.5" />
+          )}
+          <div>
+            <span className="font-medium">{task.title}</span>
+            <p className="text-sm text-gray-600 mt-1">
+              {task.description || 'No description provided'}
+            </p>
+          </div>
         </div>
         <span className="text-sm px-2 py-1 rounded-full bg-opacity-50">
           {task.category}

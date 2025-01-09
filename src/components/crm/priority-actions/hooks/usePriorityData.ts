@@ -73,6 +73,13 @@ export const usePriorityData = () => {
       data: client
     })) || [])
   ].sort((a, b) => {
+    // First, sort by urgent flag (if it exists)
+    if (a.type === 'task' && b.type === 'task') {
+      if (a.data.urgent && !b.data.urgent) return -1;
+      if (!a.data.urgent && b.data.urgent) return 1;
+    }
+    
+    // Then sort by date
     if (!a.date) return 1;
     if (!b.date) return -1;
     return new Date(a.date).getTime() - new Date(b.date).getTime();

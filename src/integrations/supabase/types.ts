@@ -295,6 +295,7 @@ export type Database = {
           status: string | null
           title: string
           updated_at: string | null
+          urgent: boolean | null
         }
         Insert: {
           category: string
@@ -305,6 +306,7 @@ export type Database = {
           status?: string | null
           title: string
           updated_at?: string | null
+          urgent?: boolean | null
         }
         Update: {
           category?: string
@@ -315,6 +317,7 @@ export type Database = {
           status?: string | null
           title?: string
           updated_at?: string | null
+          urgent?: boolean | null
         }
         Relationships: []
       }

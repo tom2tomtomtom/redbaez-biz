@@ -3,6 +3,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 import { supabase } from '@/integrations/supabase/client';
 import { Tables } from '@/integrations/supabase/types';
 import { useToast } from '@/components/ui/use-toast';
@@ -21,6 +23,7 @@ export const TaskForm = ({ task, onSaved, onCancel }: TaskFormProps) => {
   const [description, setDescription] = useState(task?.description || '');
   const [category, setCategory] = useState(task?.category || CATEGORIES[0]);
   const [dueDate, setDueDate] = useState(task?.next_due_date ? new Date(task.next_due_date).toISOString().split('T')[0] : '');
+  const [urgent, setUrgent] = useState(task?.urgent || false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -36,6 +39,7 @@ export const TaskForm = ({ task, onSaved, onCancel }: TaskFormProps) => {
             description,
             category,
             next_due_date: dueDate ? new Date(dueDate).toISOString() : null,
+            urgent,
           })
           .eq('id', task.id);
 
@@ -52,6 +56,7 @@ export const TaskForm = ({ task, onSaved, onCancel }: TaskFormProps) => {
             description,
             category,
             next_due_date: dueDate ? new Date(dueDate).toISOString() : null,
+            urgent,
           });
 
         if (error) throw error;
@@ -130,6 +135,15 @@ export const TaskForm = ({ task, onSaved, onCancel }: TaskFormProps) => {
           value={dueDate}
           onChange={(e) => setDueDate(e.target.value)}
         />
+      </div>
+
+      <div className="flex items-center space-x-2">
+        <Switch
+          id="urgent"
+          checked={urgent}
+          onCheckedChange={setUrgent}
+        />
+        <Label htmlFor="urgent">Mark as Urgent</Label>
       </div>
 
       <div className="flex justify-end space-x-2">
