@@ -14,22 +14,10 @@ export const useAuth = () => {
         if (event === 'SIGNED_IN' && session) {
           const email = session.user.email;
           if (email && !isAllowedDomain(email)) {
-            try {
-              const { error: signOutError } = await supabase.auth.signOut();
-              // If there's no error or if it's just a session_not_found error, proceed with navigation
-              if (!signOutError || signOutError.message.includes('session_not_found')) {
-                setError(`Only ${getAllowedDomainsMessage()} email addresses are allowed.`);
-                navigate('/login');
-              } else {
-                setError(getErrorMessage(signOutError));
-              }
-            } catch (err) {
-              const error = err as AuthError;
-              // Only set error if it's not a session_not_found error
-              if (!error.message.includes('session_not_found')) {
-                setError(getErrorMessage(error));
-              }
-            }
+            // For unauthorized domains, we want to sign out and show the domain restriction message
+            await supabase.auth.signOut();
+            setError(`Only ${getAllowedDomainsMessage()} email addresses are allowed.`);
+            navigate('/login');
             return;
           }
           navigate('/');
@@ -41,9 +29,12 @@ export const useAuth = () => {
         }
 
         if (event === 'USER_UPDATED') {
-          const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-          if (!session && sessionError && !sessionError.message.includes('session_not_found')) {
-            setError(getErrorMessage(sessionError));
+          // Only check session if we're not already signed out
+          if (event !== 'SIGNED_OUT') {
+            const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+            if (!session && sessionError && !sessionError.message.includes('session_not_found')) {
+              setError(getErrorMessage(sessionError));
+            }
           }
         }
 
@@ -57,7 +48,7 @@ export const useAuth = () => {
   }, [navigate]);
 
   const getErrorMessage = (error: AuthError): string => {
-    // Don't show error for session_not_found as it's an expected case during sign-out
+    // Don't show any error for session_not_found as it's an expected case
     if (error.message.includes('session_not_found')) {
       return '';
     }
