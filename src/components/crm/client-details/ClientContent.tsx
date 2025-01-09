@@ -35,14 +35,7 @@ export const ClientContent = ({
         <div className="space-y-4">
           {/* Current Next Step */}
           <div className="border-b pb-4">
-            <div className="flex justify-between items-center mb-2">
-              <h3 className="text-lg font-semibold">Current Next Step</h3>
-              <UpdateNextStepButton 
-                clientId={client.id}
-                currentNotes={client.notes}
-                currentDueDate={client.next_due_date}
-              />
-            </div>
+            <h3 className="text-lg font-semibold mb-2">Current Next Step</h3>
             <div className="space-y-2">
               <p className="text-gray-700">{client.notes || 'No next step set'}</p>
               {client.next_due_date && (
@@ -50,6 +43,13 @@ export const ClientContent = ({
                   Due: {new Date(client.next_due_date).toLocaleDateString()}
                 </p>
               )}
+              <div className="mt-4">
+                <UpdateNextStepButton 
+                  clientId={client.id}
+                  currentNotes={client.notes}
+                  currentDueDate={client.next_due_date}
+                />
+              </div>
             </div>
           </div>
           
