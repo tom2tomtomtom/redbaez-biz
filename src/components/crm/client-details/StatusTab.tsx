@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useQuery } from '@tanstack/react-query';
 
 interface StatusTabProps {
   clientId: number;
@@ -17,6 +18,23 @@ export const StatusTab = ({ clientId, currentStatus }: StatusTabProps) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+
+  // Fetch the latest status history entry
+  const { data: latestStatusHistory } = useQuery({
+    queryKey: ['statusHistory', clientId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('client_status_history')
+        .select('*')
+        .eq('client_id', clientId)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+  });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -51,6 +69,7 @@ export const StatusTab = ({ clientId, currentStatus }: StatusTabProps) => {
       
       // Invalidate queries to refresh data
       queryClient.invalidateQueries({ queryKey: ['client', clientId] });
+      queryClient.invalidateQueries({ queryKey: ['statusHistory', clientId] });
     } catch (error) {
       console.error('Error updating status:', error);
       toast({
@@ -65,7 +84,22 @@ export const StatusTab = ({ clientId, currentStatus }: StatusTabProps) => {
 
   return (
     <div className="space-y-6 bg-white rounded-lg shadow-sm p-6">
-      <h3 className="text-lg font-semibold">Current Status</h3>
+      <div className="space-y-4">
+        <h3 className="text-lg font-semibold">Current Status</h3>
+        
+        {latestStatusHistory && (
+          <div className="bg-gray-50 p-4 rounded-md mb-4">
+            <p className="text-sm text-gray-600 mb-2">Latest Status Update:</p>
+            <p className="font-medium">{latestStatusHistory.status}</p>
+            {latestStatusHistory.notes && (
+              <p className="text-sm text-gray-700 mt-2">{latestStatusHistory.notes}</p>
+            )}
+            <p className="text-xs text-gray-500 mt-2">
+              Updated: {new Date(latestStatusHistory.created_at).toLocaleDateString()}
+            </p>
+          </div>
+        )}
+      </div>
       
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="space-y-2">
