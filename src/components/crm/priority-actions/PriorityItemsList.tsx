@@ -3,12 +3,22 @@ import { GeneralTaskItem } from './GeneralTaskItem';
 import { PriorityActionItem } from './PriorityActionItem';
 import { Tables } from '@/integrations/supabase/types';
 import { Switch } from '@/components/ui/switch';
-import { Checkbox } from '@/components/ui/checkbox';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/components/ui/use-toast';
 import { useQueryClient } from '@tanstack/react-query';
 import { GeneralTaskRow } from '@/integrations/supabase/types/general-tasks.types';
 import { CheckCircle } from 'lucide-react';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { useState } from 'react';
 
 interface PriorityItemsListProps {
   items: PriorityItem[];
@@ -17,6 +27,7 @@ interface PriorityItemsListProps {
 
 export const PriorityItemsList = ({ items, onTaskClick }: PriorityItemsListProps) => {
   const queryClient = useQueryClient();
+  const [itemToComplete, setItemToComplete] = useState<PriorityItem | null>(null);
 
   const handleUrgentChange = async (item: PriorityItem, checked: boolean) => {
     try {
@@ -70,7 +81,6 @@ export const PriorityItemsList = ({ items, onTaskClick }: PriorityItemsListProps
 
     } catch (error) {
       console.error('Error creating history record:', error);
-      // We don't show a toast here as it's a background operation
     }
   };
 
@@ -102,6 +112,8 @@ export const PriorityItemsList = ({ items, onTaskClick }: PriorityItemsListProps
         title: checked ? "Marked as completed" : "Marked as incomplete",
         description: `Successfully ${checked ? 'completed' : 'reopened'} the ${item.type}`,
       });
+      
+      setItemToComplete(null);
     } catch (error) {
       console.error('Error updating completion status:', error);
       toast({
@@ -121,40 +133,61 @@ export const PriorityItemsList = ({ items, onTaskClick }: PriorityItemsListProps
   }
 
   return (
-    <div className="space-y-3">
-      {items.map((item) => (
-        <div key={item.data.id} className="relative">
-          <div className="absolute right-3 top-3 z-10 flex items-center gap-2 bg-white/80 backdrop-blur-sm px-2 py-1 rounded-full">
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => handleCompletedChange(item, item.data.status !== 'completed')}
-                className={`transition-all duration-300 transform hover:scale-110 active:scale-95 ${
-                  item.data.status === 'completed' ? 'text-green-500' : 'text-gray-400 hover:text-gray-600'
-                }`}
-              >
-                <CheckCircle className={`h-5 w-5 transition-all duration-300 ${
-                  item.data.status === 'completed' ? 'animate-scale-in' : ''
-                }`} />
-              </button>
-              <Switch
-                id={`urgent-${item.data.id}`}
-                checked={'urgent' in item.data ? item.data.urgent : false}
-                onCheckedChange={(checked) => handleUrgentChange(item, checked)}
-              />
-            </div>
-          </div>
-          {item.type === 'task' ? (
-            <div 
-              onClick={() => onTaskClick(item.data as GeneralTaskRow)}
-              className="cursor-pointer"
+    <>
+      <AlertDialog open={!!itemToComplete} onOpenChange={(open) => !open && setItemToComplete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Complete Task</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to mark this task as completed? It will be removed from your task list.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={() => itemToComplete && handleCompletedChange(itemToComplete, true)}
             >
-              <GeneralTaskItem task={item.data as GeneralTaskRow} />
+              Complete Task
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <div className="space-y-3">
+        {items.map((item) => (
+          <div key={item.data.id} className="relative">
+            <div className="absolute right-3 top-3 z-10 flex items-center gap-2 bg-white/80 backdrop-blur-sm px-2 py-1 rounded-full">
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setItemToComplete(item)}
+                  className={`transition-all duration-300 transform hover:scale-110 active:scale-95 ${
+                    item.data.status === 'completed' ? 'text-green-500' : 'text-gray-400 hover:text-gray-600'
+                  }`}
+                >
+                  <CheckCircle className={`h-5 w-5 transition-all duration-300 ${
+                    item.data.status === 'completed' ? 'animate-scale-in' : ''
+                  }`} />
+                </button>
+                <Switch
+                  id={`urgent-${item.data.id}`}
+                  checked={'urgent' in item.data ? item.data.urgent : false}
+                  onCheckedChange={(checked) => handleUrgentChange(item, checked)}
+                />
+              </div>
             </div>
-          ) : (
-            <PriorityActionItem client={item.data} />
-          )}
-        </div>
-      ))}
-    </div>
+            {item.type === 'task' ? (
+              <div 
+                onClick={() => onTaskClick(item.data as GeneralTaskRow)}
+                className="cursor-pointer"
+              >
+                <GeneralTaskItem task={item.data as GeneralTaskRow} />
+              </div>
+            ) : (
+              <PriorityActionItem client={item.data} />
+            )}
+          </div>
+        ))}
+      </div>
+    </>
   );
 };
