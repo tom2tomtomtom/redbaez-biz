@@ -1,16 +1,28 @@
 import { Tables } from '@/integrations/supabase/types';
-import { Calendar } from 'lucide-react';
 
 interface NextStepItemProps {
   nextStep: Tables<'client_next_steps'> & { client_name?: string };
 }
 
+const getTypeColor = (type: string) => {
+  switch (type?.toLowerCase()) {
+    case 'product development':
+      return 'bg-blue-50 border-blue-100';
+    case 'marketing':
+      return 'bg-purple-50 border-purple-100';
+    case 'partnerships':
+      return 'bg-green-50 border-green-100';
+    default:
+      return 'bg-orange-50 border-orange-100';
+  }
+};
+
 export const NextStepItem = ({ nextStep }: NextStepItemProps) => {
   return (
-    <div className="p-3 bg-blue-50 border-blue-100 rounded-lg border">
+    <div className={`p-3 rounded-lg border ${getTypeColor(nextStep.client_name || '')}`}>
       <div className="flex justify-between items-start">
         <div className="flex items-start space-x-3">
-          <div className="h-6 w-6 rounded-full bg-blue-500 flex items-center justify-center text-white text-xs font-bold">
+          <div className="h-6 w-6 rounded-full bg-orange-500 flex items-center justify-center text-white text-xs font-bold">
             {nextStep.client_name?.charAt(0).toUpperCase() || '?'}
           </div>
           <div>
