@@ -14,8 +14,12 @@ export const useAuth = () => {
         if (event === 'SIGNED_IN' && session) {
           const email = session.user.email;
           if (email && !isAllowedDomain(email)) {
-            await supabase.auth.signOut();
-            setError(`Only ${getAllowedDomainsMessage()} email addresses are allowed.`);
+            try {
+              await supabase.auth.signOut();
+              setError(`Only ${getAllowedDomainsMessage()} email addresses are allowed.`);
+            } catch (signOutError) {
+              console.error('Error during sign out:', signOutError);
+            }
             navigate('/login');
             return;
           }
@@ -28,9 +32,13 @@ export const useAuth = () => {
         }
 
         if (event === 'USER_UPDATED') {
-          const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-          if (sessionError && !sessionError.message.includes('session_not_found')) {
-            setError(getErrorMessage(sessionError));
+          try {
+            const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+            if (sessionError && sessionError.message !== 'session_not_found') {
+              setError(getErrorMessage(sessionError));
+            }
+          } catch (error) {
+            console.error('Error checking session:', error);
           }
         }
 
@@ -44,7 +52,7 @@ export const useAuth = () => {
   }, [navigate]);
 
   const getErrorMessage = (error: AuthError): string => {
-    if (error.message.includes('session_not_found')) {
+    if (error.message === 'session_not_found') {
       return '';
     }
     
