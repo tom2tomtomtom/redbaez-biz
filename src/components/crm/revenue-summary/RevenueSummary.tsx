@@ -96,6 +96,20 @@ export const RevenueSummary = () => {
     );
   }
 
+  // Add null check for data
+  if (!data || !data.monthlyData || !data.annualTotals) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Revenue Overview</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-yellow-500">No revenue data available</div>
+        </CardContent>
+      </Card>
+    );
+  }
+
   const { monthlyData, annualTotals } = data;
   const totalAnnualRevenue = annualTotals.confirmed + annualTotals.forecast;
 
