@@ -33,6 +33,9 @@ export const useRecommendations = (clientId: number) => {
         console.error('Error deleting existing recommendations:', deleteError);
         throw deleteError;
       }
+
+      // Invalidate the query to reflect the deletion
+      await queryClient.invalidateQueries({ queryKey: ['recommendations', clientId] });
       
       // Get client analysis data
       const { data: clientData, error: analysisError } = await supabase
