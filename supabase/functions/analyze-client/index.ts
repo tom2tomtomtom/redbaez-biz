@@ -54,7 +54,7 @@ Provide 3-5 strategic recommendations in the following JSON format:
         messages: [
           {
             role: 'system',
-            content: 'You are a strategic business advisor analyzing CRM data. Provide specific, actionable recommendations.'
+            content: 'You are a strategic business advisor analyzing CRM data.'
           },
           {
             role: 'user',
@@ -62,8 +62,9 @@ Provide 3-5 strategic recommendations in the following JSON format:
           }
         ],
         temperature: 0.2,
-        max_tokens: 1000,
-      }),
+        top_p: 0.9,
+        max_tokens: 1000
+      })
     });
 
     const aiResponse = await response.json();
