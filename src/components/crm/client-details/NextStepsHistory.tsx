@@ -24,7 +24,7 @@ export const NextStepsHistory: React.FC<NextStepsHistoryProps> = ({ clientId }) 
     queryFn: async () => {
       const { data, error } = await supabase
         .from('next_steps_history')
-        .select('*')
+        .select('*, profiles(full_name)')
         .eq('client_id', clientId)
         .order('created_at', { ascending: false });
 
@@ -55,8 +55,13 @@ export const NextStepsHistory: React.FC<NextStepsHistoryProps> = ({ clientId }) 
               {history.map((entry) => (
                 <Card key={entry.id} className="p-4">
                   <div className="space-y-2">
-                    <div className="text-sm text-gray-500">
-                      {format(new Date(entry.created_at), 'MMM d, yyyy h:mm a')}
+                    <div className="flex justify-between items-start">
+                      <div className="text-sm text-gray-500">
+                        {format(new Date(entry.created_at), 'MMM d, yyyy h:mm a')}
+                      </div>
+                      <div className="text-sm font-medium text-gray-600">
+                        {entry.profiles?.full_name || 'Unknown user'}
+                      </div>
                     </div>
                     <div className="font-medium">Notes:</div>
                     <div className="text-sm">{entry.notes || 'No notes'}</div>
