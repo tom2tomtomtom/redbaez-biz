@@ -83,48 +83,36 @@ const sortByUrgencyAndDate = (a: PriorityItem, b: PriorityItem) => {
 };
 
 export const usePriorityData = () => {
-  const { 
-    data: clients, 
-    isLoading: isLoadingClients, 
-    error: clientsError 
-  } = useQuery({
+  const clientsQuery = useQuery({
     queryKey: ['priorityClients'],
     queryFn: fetchPriorityClients,
   });
 
-  const { 
-    data: tasks, 
-    isLoading: isLoadingTasks, 
-    error: tasksError 
-  } = useQuery({
+  const tasksQuery = useQuery({
     queryKey: ['generalTasks'],
     queryFn: fetchGeneralTasks,
   });
 
-  const {
-    data: nextSteps,
-    isLoading: isLoadingNextSteps,
-    error: nextStepsError
-  } = useQuery({
+  const nextStepsQuery = useQuery({
     queryKey: ['priorityNextSteps'],
     queryFn: fetchNextSteps,
   });
 
-  const isLoading = isLoadingClients || isLoadingTasks || isLoadingNextSteps;
-  const error = clientsError || tasksError || nextStepsError;
+  const isLoading = clientsQuery.isLoading || tasksQuery.isLoading || nextStepsQuery.isLoading;
+  const error = clientsQuery.error || tasksQuery.error || nextStepsQuery.error;
 
   const allItems: PriorityItem[] = [
-    ...(tasks?.map(task => ({
+    ...(tasksQuery.data?.map(task => ({
       type: 'task' as const,
       date: task.next_due_date,
       data: task
     })) || []),
-    ...(clients?.map(client => ({
+    ...(clientsQuery.data?.map(client => ({
       type: 'client' as const,
       date: client.next_due_date,
       data: client
     })) || []),
-    ...(nextSteps?.map(step => ({
+    ...(nextStepsQuery.data?.map(step => ({
       type: 'next_step' as const,
       date: step.due_date,
       data: step

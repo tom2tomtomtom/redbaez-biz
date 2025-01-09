@@ -1,29 +1,19 @@
 import { PriorityItem } from './hooks/usePriorityData';
 import { GeneralTaskItem } from './GeneralTaskItem';
 import { PriorityActionItem } from './PriorityActionItem';
-import { Tables } from '@/integrations/supabase/types';
-import { Switch } from '@/components/ui/switch';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/components/ui/use-toast';
 import { useQueryClient } from '@tanstack/react-query';
 import { GeneralTaskRow } from '@/integrations/supabase/types/general-tasks.types';
-import { CheckCircle } from 'lucide-react';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+import { ClientRow } from '@/integrations/supabase/types/clients.types';
 import { useState } from 'react';
 import { NextStepItem } from './NextStepItem';
+import { CompletionDialog } from './components/CompletionDialog';
+import { ItemControls } from './components/ItemControls';
 
 interface PriorityItemsListProps {
   items: PriorityItem[];
-  onTaskClick: (task: Tables<'general_tasks'>) => void;
+  onTaskClick: (task: GeneralTaskRow) => void;
 }
 
 export const PriorityItemsList = ({ items, onTaskClick }: PriorityItemsListProps) => {
@@ -38,7 +28,7 @@ export const PriorityItemsList = ({ items, onTaskClick }: PriorityItemsListProps
           .update({ urgent: checked })
           .eq('id', item.data.id);
         if (error) throw error;
-      } else {
+      } else if (item.type === 'client') {
         const { error } = await supabase
           .from('clients')
           .update({ urgent: checked })
@@ -66,10 +56,12 @@ export const PriorityItemsList = ({ items, onTaskClick }: PriorityItemsListProps
   const createHistoryRecord = async (item: PriorityItem, completed: boolean) => {
     try {
       const historyEntry = {
-        client_id: item.type === 'client' ? item.data.id : null,
+        client_id: item.type === 'client' ? Number(item.data.id) : null,
         notes: item.type === 'task' 
           ? `Task completed: ${item.data.title}`
-          : `Client action completed: ${item.data.name} - Next steps completed`,
+          : `Client action completed: ${
+              'name' in item.data ? item.data.name : ''
+            } - Next steps completed`,
         completed_at: completed ? new Date().toISOString() : null,
         due_date: item.date
       };
@@ -79,7 +71,6 @@ export const PriorityItemsList = ({ items, onTaskClick }: PriorityItemsListProps
         .insert(historyEntry);
 
       if (error) throw error;
-
     } catch (error) {
       console.error('Error creating history record:', error);
     }
@@ -93,15 +84,14 @@ export const PriorityItemsList = ({ items, onTaskClick }: PriorityItemsListProps
           .update({ status: checked ? 'completed' : 'incomplete' })
           .eq('id', item.data.id);
         if (error) throw error;
-      } else {
+      } else if (item.type === 'client') {
         const { error } = await supabase
           .from('clients')
           .update({ status: checked ? 'completed' : 'incomplete' })
-          .eq('id', item.data.id);
+          .eq('id', Number(item.data.id));
         if (error) throw error;
       }
 
-      // Create history record when marking as completed
       if (checked) {
         await createHistoryRecord(item, checked);
       }
@@ -135,51 +125,20 @@ export const PriorityItemsList = ({ items, onTaskClick }: PriorityItemsListProps
 
   return (
     <>
-      <AlertDialog open={!!itemToComplete} onOpenChange={(open) => !open && setItemToComplete(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Complete Task</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to mark this task as completed? It will be removed from your task list.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction 
-              onClick={() => itemToComplete && handleCompletedChange(itemToComplete, true)}
-            >
-              Complete Task
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <CompletionDialog
+        itemToComplete={itemToComplete}
+        onOpenChange={() => setItemToComplete(null)}
+        onComplete={(item) => handleCompletedChange(item, true)}
+      />
 
       <div className="space-y-3">
         {items.map((item) => (
           <div key={item.data.id} className="relative">
-            <div className="absolute right-3 top-3 z-10 flex items-center gap-2 bg-white/80 backdrop-blur-sm px-2 py-1 rounded-full">
-              <div className="flex items-center gap-2">
-                {item.type !== 'next_step' && (
-                  <button
-                    onClick={() => setItemToComplete(item)}
-                    className={`transition-all duration-300 transform hover:scale-110 active:scale-95 ${
-                      item.data.status === 'completed' ? 'text-green-500' : 'text-gray-400 hover:text-gray-600'
-                    }`}
-                  >
-                    <CheckCircle className={`h-5 w-5 transition-all duration-300 ${
-                      item.data.status === 'completed' ? 'animate-scale-in' : ''
-                    }`} />
-                  </button>
-                )}
-                {item.type !== 'next_step' && (
-                  <Switch
-                    id={`urgent-${item.data.id}`}
-                    checked={'urgent' in item.data ? item.data.urgent : false}
-                    onCheckedChange={(checked) => handleUrgentChange(item, checked)}
-                  />
-                )}
-              </div>
-            </div>
+            <ItemControls
+              item={item}
+              onComplete={() => setItemToComplete(item)}
+              onUrgentChange={(checked) => handleUrgentChange(item, checked)}
+            />
             {item.type === 'task' ? (
               <div 
                 onClick={() => onTaskClick(item.data as GeneralTaskRow)}
