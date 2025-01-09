@@ -33,8 +33,8 @@ export const LoginForm = ({
             variables: {
               default: {
                 colors: {
-                  brand: 'rgb(59 130 246)', // bg-blue-500
-                  brandAccent: 'rgb(29 78 216)', // bg-blue-700
+                  brand: 'rgb(82 183 136)', // Green color matching the image
+                  brandAccent: 'rgb(72 163 116)', // Darker green for hover
                 }
               }
             },
@@ -45,7 +45,7 @@ export const LoginForm = ({
             }
           }}
           providers={[]}
-          view="magic_link"
+          view="sign_in"
         />
       </div>
     </div>

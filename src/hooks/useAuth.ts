@@ -14,7 +14,6 @@ export const useAuth = () => {
         if (event === 'SIGNED_IN' && session) {
           const email = session.user.email;
           if (email && !isAllowedDomain(email)) {
-            // For unauthorized domains, we want to sign out and show the domain restriction message
             await supabase.auth.signOut();
             setError(`Only ${getAllowedDomainsMessage()} email addresses are allowed.`);
             navigate('/login');
@@ -30,7 +29,7 @@ export const useAuth = () => {
 
         if (event === 'USER_UPDATED') {
           const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-          if (!session && sessionError && !sessionError.message.includes('session_not_found')) {
+          if (sessionError && !sessionError.message.includes('session_not_found')) {
             setError(getErrorMessage(sessionError));
           }
         }
@@ -45,7 +44,6 @@ export const useAuth = () => {
   }, [navigate]);
 
   const getErrorMessage = (error: AuthError): string => {
-    // Don't show any error for session_not_found as it's an expected case
     if (error.message.includes('session_not_found')) {
       return '';
     }
