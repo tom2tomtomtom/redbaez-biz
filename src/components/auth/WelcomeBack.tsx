@@ -18,7 +18,7 @@ export const WelcomeBack = ({ onReturn }: WelcomeBackProps) => {
       <div className="w-full max-w-md space-y-4">
         <div className="bg-white p-6 rounded-lg shadow-sm text-center space-y-4">
           <h1 className="text-2xl font-bold">Welcome Back!</h1>
-          <p className="text-gray-600">You can now return to the application.</p>
+          <p className="text-gray-600">Your email has been confirmed. You can now return to the application.</p>
           <Button 
             onClick={handleReturn}
             className="w-full"

@@ -9,13 +9,20 @@ export const Login = () => {
   const [showReturnMessage, setShowReturnMessage] = useState(false);
 
   useEffect(() => {
+    // Parse both hash and search parameters to catch all auth redirects
     const hashParams = new URLSearchParams(window.location.hash.substring(1));
-    const errorCode = hashParams.get('error_code');
-    const errorDescription = hashParams.get('error_description');
-    const type = hashParams.get('type');
+    const searchParams = new URLSearchParams(window.location.search);
+    
+    const errorCode = hashParams.get('error_code') || searchParams.get('error_code');
+    const errorDescription = hashParams.get('error_description') || searchParams.get('error_description');
+    const type = hashParams.get('type') || searchParams.get('type');
+    const accessToken = hashParams.get('access_token');
 
-    if (type === 'recovery' || type === 'signup') {
+    // Show return message for various successful auth scenarios
+    if (type === 'recovery' || type === 'signup' || accessToken) {
       setShowReturnMessage(true);
+      // Clean up URL
+      window.history.replaceState({}, document.title, window.location.pathname);
     }
 
     if (errorCode === 'otp_expired') {
