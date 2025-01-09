@@ -52,8 +52,8 @@ export const useAuth = () => {
           }
         }
 
-        // Handle email confirmation
-        if (event === 'EMAIL_CONFIRMED') {
+        // Handle verification success
+        if (event === 'SIGNED_IN' && session?.user?.email_confirmed_at) {
           setError('Email confirmed successfully! You can now sign in.');
           navigate('/login');
         }
