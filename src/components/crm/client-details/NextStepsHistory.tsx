@@ -18,8 +18,21 @@ interface NextStepsHistoryProps {
   clientId: number;
 }
 
+type HistoryEntry = {
+  id: string;
+  client_id: number | null;
+  notes: string | null;
+  due_date: string | null;
+  created_at: string;
+  completed_at: string | null;
+  created_by: string | null;
+  profiles: {
+    full_name: string | null;
+  } | null;
+}
+
 export const NextStepsHistory: React.FC<NextStepsHistoryProps> = ({ clientId }) => {
-  const { data: history, isLoading } = useQuery({
+  const { data: history, isLoading } = useQuery<HistoryEntry[]>({
     queryKey: ['next-steps-history', clientId],
     queryFn: async () => {
       const { data, error } = await supabase
