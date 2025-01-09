@@ -2,12 +2,26 @@ import { Calendar } from "lucide-react";
 import { format } from "date-fns";
 import { Card } from "@/components/ui/card";
 import { GeneralTaskRow } from "@/integrations/supabase/types/general-tasks.types";
+import { cn } from "@/lib/utils";
 
 interface GeneralTaskItemProps {
   task: GeneralTaskRow;
 }
 
 export const GeneralTaskItem = ({ task }: GeneralTaskItemProps) => {
+  const getCategoryColor = (category: string) => {
+    switch (category.toLowerCase()) {
+      case 'marketing':
+        return 'bg-purple-50 border-purple-100';
+      case 'product development':
+        return 'bg-blue-50 border-blue-100';
+      case 'partnerships':
+        return 'bg-green-50 border-green-100';
+      default:
+        return 'bg-gray-50 border-gray-100';
+    }
+  };
+
   const getStatusColor = (status: string | null) => {
     switch (status) {
       case "completed":
@@ -22,7 +36,13 @@ export const GeneralTaskItem = ({ task }: GeneralTaskItemProps) => {
   };
 
   return (
-    <Card className="p-4 hover:shadow-md transition-shadow">
+    <Card 
+      className={cn(
+        "p-4 hover:shadow-md transition-shadow border-2",
+        getCategoryColor(task.category),
+        task.urgent && "ring-2 ring-red-500"
+      )}
+    >
       <div className="flex justify-between items-start">
         <div className="space-y-1">
           <h3 className="font-medium">{task.title}</h3>
