@@ -20,34 +20,40 @@ export const ClientContent = ({
   const { revenueData, totalActualRevenue } = useRevenueCalculations(client);
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-      <KeyMetricsCard 
-        annualRevenue={client.annual_revenue}
-        likelihood={client.likelihood}
-        revenueData={revenueData}
-        annualRevenueSignedOff={totalActualRevenue}
-        annualRevenueForecast={client.annual_revenue_forecast}
-        clientId={client.id}
-      />
-
-      <ContactInfoCard 
-        contactName={client.contact_name}
-        companySize={client.company_size}
-        contactEmail={client.contact_email}
-        contactPhone={client.contact_phone}
-        additionalContacts={parsedAdditionalContacts}
-      />
-
-      <AdditionalInfoCard 
-        industry={client.industry}
-        website={client.website}
-        notes={client.notes}
-        background={client.background}
-      />
-
-      <div className="col-span-12 flex items-center justify-between gap-4 p-4 bg-white rounded-lg shadow-sm">
-        <UrgentFlagToggle clientId={client.id} isUrgent={client.urgent || false} />
+    <div className="space-y-6">
+      {/* Next Steps History moved to top */}
+      <div className="bg-white rounded-lg shadow-sm p-4">
         <NextStepsHistory clientId={client.id} />
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <KeyMetricsCard 
+          annualRevenue={client.annual_revenue}
+          likelihood={client.likelihood}
+          revenueData={revenueData}
+          annualRevenueSignedOff={totalActualRevenue}
+          annualRevenueForecast={client.annual_revenue_forecast}
+          clientId={client.id}
+        />
+
+        <ContactInfoCard 
+          contactName={client.contact_name}
+          companySize={client.company_size}
+          contactEmail={client.contact_email}
+          contactPhone={client.contact_phone}
+          additionalContacts={parsedAdditionalContacts}
+        />
+
+        <AdditionalInfoCard 
+          industry={client.industry}
+          website={client.website}
+          notes={client.notes}
+          background={client.background}
+        />
+
+        <div className="col-span-12 flex items-center justify-between gap-4 p-4 bg-white rounded-lg shadow-sm">
+          <UrgentFlagToggle clientId={client.id} isUrgent={client.urgent || false} />
+        </div>
       </div>
     </div>
   );
