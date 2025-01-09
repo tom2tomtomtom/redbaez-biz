@@ -8,7 +8,7 @@ export const useClientUpdate = (clientId: string | number, onSuccess?: () => voi
 
   return useMutation({
     mutationFn: async ({ formData, contacts }: { formData: any; contacts: any[] }) => {
-      // Save the next steps to history if they exist
+      // Save next steps to history if they exist
       if (formData.nextSteps) {
         const { error: historyError } = await supabase
           .from('client_next_steps')
@@ -18,10 +18,12 @@ export const useClientUpdate = (clientId: string | number, onSuccess?: () => voi
             due_date: formData.nextDueDate || null
           });
 
-        if (historyError) throw historyError;
+        if (historyError) {
+          throw historyError;
+        }
       }
 
-      // Update the client
+      // Update client
       const { data, error } = await supabase
         .from('clients')
         .update({
@@ -44,7 +46,7 @@ export const useClientUpdate = (clientId: string | number, onSuccess?: () => voi
       });
       if (onSuccess) onSuccess();
     },
-    onError: (error) => {
+    onError: (error: Error) => {
       console.error('Error updating client:', error);
       toast({
         title: "Error",
