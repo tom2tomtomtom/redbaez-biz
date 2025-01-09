@@ -26,21 +26,24 @@ export const CRMDashboard = ({ onClientAdded }: CRMDashboardProps) => {
   const [searchInput, setSearchInput] = useState('');
   const navigate = useNavigate();
 
+  const handleClose = () => {
+    if (onClientAdded) {
+      // If we're in a dialog (indicated by onClientAdded prop), call it to close the dialog
+      onClientAdded();
+    } else {
+      // If we're not in a dialog, navigate to home and force a refresh
+      navigate('/');
+      window.location.reload();
+    }
+  };
+
   return (
     <div className="flex flex-col space-y-4 animate-fade-in relative">
       <Button
         variant="ghost"
         size="icon"
         className="absolute right-2 top-2 rounded-full"
-        onClick={() => {
-          if (onClientAdded) {
-            // If we're in a dialog (indicated by onClientAdded prop), call it to close the dialog
-            onClientAdded();
-          } else {
-            // Otherwise, navigate to home
-            navigate('/');
-          }
-        }}
+        onClick={handleClose}
       >
         <X className="h-4 w-4" />
       </Button>
@@ -52,7 +55,7 @@ export const CRMDashboard = ({ onClientAdded }: CRMDashboardProps) => {
           onContactsChange={setContacts}
           onNextStepsChange={setNextSteps}
           onNextDueDateChange={setNextDueDate}
-          onClientAdded={onClientAdded}
+          onClientAdded={handleClose}
         />
       </div>
     </div>
