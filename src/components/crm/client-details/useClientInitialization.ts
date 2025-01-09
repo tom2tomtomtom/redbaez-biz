@@ -21,9 +21,17 @@ export const useClientInitialization = (client: any) => {
       const additionalContacts: Contact[] = client.additional_contacts || [];
       setContacts([primaryContact, ...additionalContacts]);
 
-      // Initialize next steps and due date
-      setNextSteps(client.notes || '');
-      setNextDueDate(client.next_due_date ? new Date(client.next_due_date).toISOString().split('T')[0] : '');
+      // Initialize next steps from notes field
+      if (client.notes !== undefined) {
+        setNextSteps(client.notes);
+      }
+
+      // Initialize next due date and format it properly
+      if (client.next_due_date) {
+        const date = new Date(client.next_due_date);
+        const formattedDate = date.toISOString().split('T')[0];
+        setNextDueDate(formattedDate);
+      }
     }
   }, [client]);
 
