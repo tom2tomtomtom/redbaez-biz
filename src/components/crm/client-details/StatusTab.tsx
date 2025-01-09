@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -6,6 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useQuery } from '@tanstack/react-query';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface StatusTabProps {
   clientId: number;
@@ -19,17 +20,15 @@ export const StatusTab = ({ clientId, currentStatus }: StatusTabProps) => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Fetch the latest status history entry
-  const { data: latestStatusHistory } = useQuery({
+  // Fetch all status history entries
+  const { data: statusHistory } = useQuery({
     queryKey: ['statusHistory', clientId],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('client_status_history')
         .select('*')
         .eq('client_id', clientId)
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .single();
+        .order('created_at', { ascending: false });
 
       if (error) throw error;
       return data;
@@ -85,20 +84,23 @@ export const StatusTab = ({ clientId, currentStatus }: StatusTabProps) => {
   return (
     <div className="space-y-6 bg-white rounded-lg shadow-sm p-6">
       <div className="space-y-4">
-        <h3 className="text-lg font-semibold">Current Status</h3>
+        <h3 className="text-lg font-semibold">Status History</h3>
         
-        {latestStatusHistory && (
-          <div className="bg-gray-50 p-4 rounded-md mb-4">
-            <p className="text-sm text-gray-600 mb-2">Latest Status Update:</p>
-            <p className="font-medium">{latestStatusHistory.status}</p>
-            {latestStatusHistory.notes && (
-              <p className="text-sm text-gray-700 mt-2">{latestStatusHistory.notes}</p>
-            )}
-            <p className="text-xs text-gray-500 mt-2">
-              Updated: {new Date(latestStatusHistory.created_at).toLocaleDateString()}
-            </p>
-          </div>
-        )}
+        <ScrollArea className="h-[200px] rounded-md border p-4">
+          {statusHistory && statusHistory.map((entry: any) => (
+            <div key={entry.id} className="mb-4 last:mb-0 border-b last:border-0 pb-4 last:pb-0">
+              <div className="flex items-center justify-between mb-2">
+                <span className="font-medium capitalize">{entry.status}</span>
+                <span className="text-xs text-gray-500">
+                  {new Date(entry.created_at).toLocaleDateString()} {new Date(entry.created_at).toLocaleTimeString()}
+                </span>
+              </div>
+              {entry.notes && (
+                <p className="text-sm text-gray-700">{entry.notes}</p>
+              )}
+            </div>
+          ))}
+        </ScrollArea>
       </div>
       
       <form onSubmit={handleSubmit} className="space-y-4">
