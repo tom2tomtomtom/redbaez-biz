@@ -32,7 +32,15 @@ export const UpdateNextStepButton = ({ clientId }: UpdateNextStepButtonProps) =>
           due_date: dueDate || null
         });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error adding next step:', error);
+        toast({
+          title: "Error",
+          description: "Failed to add next step: " + error.message,
+          variant: "destructive",
+        });
+        return;
+      }
 
       toast({
         title: "Success",
@@ -51,7 +59,7 @@ export const UpdateNextStepButton = ({ clientId }: UpdateNextStepButtonProps) =>
       console.error('Error adding next step:', error);
       toast({
         title: "Error",
-        description: "Failed to add next step",
+        description: "Failed to add next step. Please try again.",
         variant: "destructive",
       });
     }
