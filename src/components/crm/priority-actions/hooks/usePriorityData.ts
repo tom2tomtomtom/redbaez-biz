@@ -39,6 +39,21 @@ const fetchGeneralTasks = async () => {
   return data;
 };
 
+const sortByUrgencyAndDate = (a: PriorityItem, b: PriorityItem) => {
+  // Get urgent status for both items
+  const aUrgent = 'urgent' in a.data ? a.data.urgent : false;
+  const bUrgent = 'urgent' in b.data ? b.data.urgent : false;
+
+  // If urgency differs, urgent items go first
+  if (aUrgent && !bUrgent) return -1;
+  if (!aUrgent && bUrgent) return 1;
+
+  // If both have same urgency status, sort by date
+  if (!a.date) return 1;
+  if (!b.date) return -1;
+  return new Date(a.date).getTime() - new Date(b.date).getTime();
+};
+
 export const usePriorityData = () => {
   const { 
     data: clients, 
@@ -72,18 +87,7 @@ export const usePriorityData = () => {
       date: client.next_due_date,
       data: client
     })) || [])
-  ].sort((a, b) => {
-    // First, sort by urgent flag (if it exists)
-    if (a.type === 'task' && b.type === 'task') {
-      if (a.data.urgent && !b.data.urgent) return -1;
-      if (!a.data.urgent && b.data.urgent) return 1;
-    }
-    
-    // Then sort by date
-    if (!a.date) return 1;
-    if (!b.date) return -1;
-    return new Date(a.date).getTime() - new Date(b.date).getTime();
-  });
+  ].sort(sortByUrgencyAndDate);
 
   return {
     allItems,
