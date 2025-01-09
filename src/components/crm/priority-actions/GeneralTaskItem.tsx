@@ -7,7 +7,9 @@ interface GeneralTaskItemProps {
 }
 
 export const GeneralTaskItem = ({ task }: GeneralTaskItemProps) => {
-  const getCategoryColor = (category: string) => {
+  const getCategoryColor = (category: string | null | undefined) => {
+    if (!category) return 'bg-gray-50 border-gray-100 text-gray-600';
+    
     switch (category.toLowerCase()) {
       case 'marketing':
         return 'bg-purple-50 border-purple-100 text-purple-600';
@@ -35,7 +37,7 @@ export const GeneralTaskItem = ({ task }: GeneralTaskItemProps) => {
           </div>
         </div>
         <span className="text-sm px-2 py-1 rounded-full bg-opacity-50">
-          {task.category}
+          {task.category || 'Uncategorized'}
         </span>
       </div>
       <div className="mt-2 text-sm flex items-center gap-2">

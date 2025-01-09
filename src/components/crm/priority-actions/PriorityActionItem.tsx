@@ -7,6 +7,11 @@ interface PriorityActionItemProps {
 }
 
 export const PriorityActionItem = ({ client }: PriorityActionItemProps) => {
+  const getInitial = (name: string | undefined | null) => {
+    if (!name) return '?';
+    return name.charAt(0).toUpperCase();
+  };
+
   return (
     <Link 
       key={client.id} 
@@ -21,10 +26,10 @@ export const PriorityActionItem = ({ client }: PriorityActionItemProps) => {
             <div className={`h-6 w-6 rounded-full ${
               client.status === 'incomplete' ? 'bg-red-500' : 'bg-orange-500'
             } flex items-center justify-center text-white text-xs font-bold`}>
-              {client.name.charAt(0).toUpperCase()}
+              {getInitial(client.name)}
             </div>
             <div>
-              <span className="font-medium">{client.name}</span>
+              <span className="font-medium">{client.name || 'Unnamed Client'}</span>
               <p className="text-sm text-gray-600 mt-1">
                 Next Step: {client.notes || 'No next steps defined'}
               </p>
