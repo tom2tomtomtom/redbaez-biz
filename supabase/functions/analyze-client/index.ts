@@ -15,8 +15,9 @@ serve(async (req) => {
   try {
     const { clientData } = await req.json();
     console.log('Analyzing client data:', clientData);
-
-    const prompt = `You are a practical business advisor focused on immediate, actionable steps. Analyze this client data and provide exactly 3 specific, actionable recommendations that can be implemented within the next 30 days.
+    
+    // First, get client analysis data
+    const prompt = `You are a practical business advisor for Redbaez, an AI-focused creative and marketing solutions company. Analyze this client data and provide exactly 3 specific, actionable recommendations that can be implemented within the next 30 days.
 
 Return ONLY a JSON array in this exact format, with no additional text, markdown, or explanations:
 [
@@ -27,7 +28,12 @@ Return ONLY a JSON array in this exact format, with no additional text, markdown
   }
 ]
 
-Focus on small, concrete actions rather than broad strategic initiatives. Each suggestion should be something that can be started immediately and completed within 30 days.
+Context: Redbaez provides AI training, creative tools, and consulting services to help businesses optimize their marketing and creative workflows. When suggesting actions, focus on:
+1. Gathering key information about the client's AI readiness and needs
+2. Quick wins with AI tools and training
+3. Specific, measurable actions that demonstrate value
+
+If client data is limited, prioritize information gathering tasks that will enable better recommendations.
 
 Client Context:
 Name: ${clientData?.name || 'Unknown'}
@@ -41,7 +47,14 @@ Recent Activity:
 Revenue Trends: ${JSON.stringify(clientData?.revenue_trends)}
 Recent Interactions: ${JSON.stringify(clientData?.interaction_history)}
 Upcoming Revenue: ${JSON.stringify(clientData?.forecasts)}
-Next Steps: ${JSON.stringify(clientData?.next_steps)}`;
+Next Steps: ${JSON.stringify(clientData?.next_steps)}
+
+Example tasks:
+- Schedule a workflow assessment call to identify AI integration opportunities
+- Send personalized AI news digest highlighting relevant case studies
+- Create sample AI-generated ad variations for their current campaign
+- Conduct 30-minute training session on specific AI tool relevant to their needs
+- Document current creative workflow to identify automation opportunities`;
 
     const apiKey = Deno.env.get('PERPLEXITY_API_KEY');
     if (!apiKey) {
@@ -60,7 +73,7 @@ Next Steps: ${JSON.stringify(clientData?.next_steps)}`;
         messages: [
           {
             role: 'system',
-            content: 'You are a practical business advisor. Return ONLY a JSON array with exactly 3 specific, actionable recommendations that can be implemented within 30 days. No strategic initiatives or long-term plans. Focus on immediate, concrete steps.'
+            content: 'You are a practical business advisor for an AI-focused creative and marketing solutions company. Return ONLY a JSON array with exactly 3 specific, actionable recommendations that can be implemented within 30 days. Focus on gathering key information, demonstrating value quickly, and specific measurable actions.'
           },
           {
             role: 'user',
