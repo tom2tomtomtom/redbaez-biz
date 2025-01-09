@@ -20,7 +20,7 @@ export const GeneralTaskItem = ({ task }: GeneralTaskItemProps) => {
       case 'partnerships':
         return 'bg-green-50 border-green-100';
       default:
-        return 'bg-gray-50 border-gray-100';
+        return 'bg-orange-50 border-orange-100';
     }
   };
 
@@ -51,8 +51,11 @@ export const GeneralTaskItem = ({ task }: GeneralTaskItemProps) => {
       )}
     >
       <div className="flex justify-between items-start">
-        <div className="space-y-1">
-          <h3 className="font-medium">{formatTitle(task.title)}</h3>
+        <div className="space-y-2">
+          <h3 className="font-medium text-base">{formatTitle(task.title)}</h3>
+          {task.description && (
+            <p className="text-sm text-gray-600">{task.description}</p>
+          )}
         </div>
         <div className={`px-2 py-1 rounded-full text-sm ${getStatusColor(task.status)}`}>
           {task.status || "pending"}
