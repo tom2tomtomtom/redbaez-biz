@@ -7,6 +7,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useQuery } from '@tanstack/react-query';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Card } from '@/components/ui/card';
 
 interface StatusTabProps {
   clientId: number;
@@ -128,6 +129,16 @@ export const StatusTab = ({ clientId, currentStatus }: StatusTabProps) => {
             className="min-h-[100px]"
           />
         </div>
+
+        {notes && (
+          <Card className="p-4 bg-gray-50">
+            <h4 className="text-sm font-medium mb-2">Preview</h4>
+            <div className="space-y-2">
+              {status && <p className="font-medium capitalize">{status}</p>}
+              <p className="text-sm text-gray-700">{notes}</p>
+            </div>
+          </Card>
+        )}
 
         <Button type="submit" disabled={isSubmitting || !status}>
           {isSubmitting ? "Updating..." : "Update Status"}
