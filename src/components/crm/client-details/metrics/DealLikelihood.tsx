@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
@@ -54,7 +54,7 @@ export const DealLikelihood = ({ likelihood, clientId }: DealLikelihoodProps) =>
   };
 
   // Update local state when prop changes
-  useState(() => {
+  useEffect(() => {
     setValue(likelihood?.toString() || '');
   }, [likelihood]);
 
