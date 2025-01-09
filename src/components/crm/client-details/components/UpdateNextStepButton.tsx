@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "@/components/ui/use-toast";
+import { Switch } from "@/components/ui/switch";
 
 interface UpdateNextStepButtonProps {
   clientId: number;
@@ -18,6 +19,7 @@ export const UpdateNextStepButton = ({ clientId }: UpdateNextStepButtonProps) =>
   const [open, setOpen] = useState(false);
   const [notes, setNotes] = useState('');
   const [dueDate, setDueDate] = useState('');
+  const [isUrgent, setIsUrgent] = useState(false);
   const queryClient = useQueryClient();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -29,7 +31,8 @@ export const UpdateNextStepButton = ({ clientId }: UpdateNextStepButtonProps) =>
         .insert({
           client_id: clientId,
           notes: notes,
-          due_date: dueDate || null
+          due_date: dueDate || null,
+          urgent: isUrgent
         });
 
       if (error) {
@@ -42,6 +45,18 @@ export const UpdateNextStepButton = ({ clientId }: UpdateNextStepButtonProps) =>
         return;
       }
 
+      // If the step is marked as urgent, also update the client's urgent status
+      if (isUrgent) {
+        const { error: clientError } = await supabase
+          .from('clients')
+          .update({ urgent: true })
+          .eq('id', clientId);
+
+        if (clientError) {
+          console.error('Error updating client urgent status:', clientError);
+        }
+      }
+
       toast({
         title: "Success",
         description: "Next step added successfully",
@@ -50,10 +65,13 @@ export const UpdateNextStepButton = ({ clientId }: UpdateNextStepButtonProps) =>
       // Invalidate both queries to refresh the data
       queryClient.invalidateQueries({ queryKey: ['client-next-steps', clientId] });
       queryClient.invalidateQueries({ queryKey: ['next-steps-history', clientId] });
+      queryClient.invalidateQueries({ queryKey: ['client'] });
+      queryClient.invalidateQueries({ queryKey: ['priorityClients'] });
       
       // Reset form and close dialog
       setNotes('');
       setDueDate('');
+      setIsUrgent(false);
       setOpen(false);
     } catch (error) {
       console.error('Error adding next step:', error);
@@ -99,6 +117,15 @@ export const UpdateNextStepButton = ({ clientId }: UpdateNextStepButtonProps) =>
               />
               <Calendar className="absolute right-3 top-2.5 text-gray-400" size={16} />
             </div>
+          </div>
+
+          <div className="flex items-center space-x-2">
+            <Switch
+              id="urgent"
+              checked={isUrgent}
+              onCheckedChange={setIsUrgent}
+            />
+            <Label htmlFor="urgent">Mark as Urgent</Label>
           </div>
 
           <Button type="submit" className="w-full">

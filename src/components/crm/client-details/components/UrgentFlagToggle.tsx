@@ -3,6 +3,7 @@ import { Label } from '@/components/ui/label';
 import { AlertTriangle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/components/ui/use-toast';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface UrgentFlagToggleProps {
   clientId: number;
@@ -10,14 +11,32 @@ interface UrgentFlagToggleProps {
 }
 
 export const UrgentFlagToggle = ({ clientId, isUrgent }: UrgentFlagToggleProps) => {
+  const queryClient = useQueryClient();
+
   const handleUrgentChange = async (checked: boolean) => {
     try {
-      const { error } = await supabase
+      // Update client urgent status
+      const { error: clientError } = await supabase
         .from('clients')
         .update({ urgent: checked })
         .eq('id', clientId);
 
-      if (error) throw error;
+      if (clientError) throw clientError;
+
+      // Update all active next steps for this client to match urgent status
+      const { error: nextStepsError } = await supabase
+        .from('client_next_steps')
+        .update({ urgent: checked })
+        .eq('client_id', clientId)
+        .is('completed_at', null);
+
+      if (nextStepsError) throw nextStepsError;
+
+      // Invalidate relevant queries to refresh the data
+      queryClient.invalidateQueries({ queryKey: ['client'] });
+      queryClient.invalidateQueries({ queryKey: ['client-next-steps'] });
+      queryClient.invalidateQueries({ queryKey: ['priorityClients'] });
+      queryClient.invalidateQueries({ queryKey: ['nextSteps'] });
 
       toast({
         title: checked ? "Marked as urgent" : "Removed urgent flag",
