@@ -14,10 +14,10 @@ interface UpdateNextStepButtonProps {
   currentDueDate?: string;
 }
 
-export const UpdateNextStepButton = ({ clientId, currentNotes, currentDueDate }: UpdateNextStepButtonProps) => {
+export const UpdateNextStepButton = ({ clientId }: UpdateNextStepButtonProps) => {
   const [open, setOpen] = useState(false);
-  const [notes, setNotes] = useState(currentNotes || '');
-  const [dueDate, setDueDate] = useState(currentDueDate ? new Date(currentDueDate).toISOString().split('T')[0] : '');
+  const [notes, setNotes] = useState('');
+  const [dueDate, setDueDate] = useState('');
   const queryClient = useQueryClient();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -25,27 +25,33 @@ export const UpdateNextStepButton = ({ clientId, currentNotes, currentDueDate }:
     
     try {
       const { error } = await supabase
-        .from('clients')
-        .update({
+        .from('client_next_steps')
+        .insert({
+          client_id: clientId,
           notes: notes,
-          next_due_date: dueDate || null
-        })
-        .eq('id', clientId);
+          due_date: dueDate || null
+        });
 
       if (error) throw error;
 
       toast({
         title: "Success",
-        description: "Next steps updated successfully",
+        description: "Next step added successfully",
       });
       
-      queryClient.invalidateQueries({ queryKey: ['client', clientId] });
+      // Invalidate both queries to refresh the data
+      queryClient.invalidateQueries({ queryKey: ['client-next-steps', clientId] });
+      queryClient.invalidateQueries({ queryKey: ['next-steps-history', clientId] });
+      
+      // Reset form and close dialog
+      setNotes('');
+      setDueDate('');
       setOpen(false);
     } catch (error) {
-      console.error('Error updating next steps:', error);
+      console.error('Error adding next step:', error);
       toast({
         title: "Error",
-        description: "Failed to update next steps",
+        description: "Failed to add next step",
         variant: "destructive",
       });
     }
@@ -55,21 +61,22 @@ export const UpdateNextStepButton = ({ clientId, currentNotes, currentDueDate }:
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button variant="default" size="sm">
-          Update Next Step
+          Add Next Step
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Update Next Step</DialogTitle>
+          <DialogTitle>Add Next Step</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label>Next Steps</Label>
+            <Label>Next Step</Label>
             <textarea 
               className="w-full h-24 p-3 rounded-lg border border-gray-200 transition-all duration-300 focus:ring-2 focus:ring-primary focus:border-transparent"
-              placeholder="Enter next steps..."
+              placeholder="Enter next step..."
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
+              required
             />
           </div>
 
@@ -87,7 +94,7 @@ export const UpdateNextStepButton = ({ clientId, currentNotes, currentDueDate }:
           </div>
 
           <Button type="submit" className="w-full">
-            Save Changes
+            Add Step
           </Button>
         </form>
       </DialogContent>

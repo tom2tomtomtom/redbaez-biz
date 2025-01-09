@@ -20,7 +20,7 @@ interface NextStepsHistoryProps {
 
 type HistoryEntry = {
   id: string;
-  client_id: number | null;
+  client_id: number;
   notes: string | null;
   due_date: string | null;
   created_at: string;
@@ -37,7 +37,7 @@ export const NextStepsHistory: React.FC<NextStepsHistoryProps> = ({ clientId }) 
     queryFn: async () => {
       console.log('Fetching history for client:', clientId);
       const { data, error } = await supabase
-        .from('next_steps_history')
+        .from('client_next_steps')
         .select('*, profiles(full_name)')
         .eq('client_id', clientId)
         .order('created_at', { ascending: false });
@@ -90,6 +90,11 @@ export const NextStepsHistory: React.FC<NextStepsHistoryProps> = ({ clientId }) 
                           {format(new Date(entry.due_date), 'MMM d, yyyy')}
                         </div>
                       </>
+                    )}
+                    {entry.completed_at && (
+                      <div className="text-sm text-green-600">
+                        Completed on {format(new Date(entry.completed_at), 'MMM d, yyyy')}
+                      </div>
                     )}
                   </div>
                 </Card>

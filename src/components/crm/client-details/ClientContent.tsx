@@ -8,6 +8,8 @@ import { useRevenueCalculations } from './hooks/useRevenueCalculations';
 import { StrategicRecommendations } from './StrategicRecommendations';
 import { StatusTab } from './StatusTab';
 import { UpdateNextStepButton } from './components/UpdateNextStepButton';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 
 interface ClientContentProps {
   client: any;
@@ -22,6 +24,21 @@ export const ClientContent = ({
 }: ClientContentProps) => {
   const { revenueData, totalActualRevenue } = useRevenueCalculations(client);
 
+  const { data: activeNextSteps } = useQuery({
+    queryKey: ['client-next-steps', client.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('client_next_steps')
+        .select('*')
+        .eq('client_id', client.id)
+        .is('completed_at', null)
+        .order('due_date', { ascending: true });
+
+      if (error) throw error;
+      return data || [];
+    },
+  });
+
   return (
     <div className="space-y-6">
       {/* Status Section */}
@@ -30,26 +47,34 @@ export const ClientContent = ({
         currentStatus={client.status}
       />
 
-      {/* Current Next Step and History Section */}
+      {/* Current Next Steps and History Section */}
       <div className="bg-white rounded-lg shadow-sm p-6">
         <div className="space-y-4">
-          {/* Current Next Step */}
+          {/* Current Next Steps */}
           <div className="border-b pb-4">
-            <h3 className="text-lg font-semibold mb-2">Current Next Step</h3>
-            <div className="space-y-2">
-              <p className="text-gray-700">{client.notes || 'No next step set'}</p>
-              {client.next_due_date && (
-                <p className="text-sm text-gray-500">
-                  Due: {new Date(client.next_due_date).toLocaleDateString()}
-                </p>
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold">Current Next Steps</h3>
+              <UpdateNextStepButton 
+                clientId={client.id}
+                currentNotes=""
+                currentDueDate=""
+              />
+            </div>
+            <div className="space-y-4">
+              {activeNextSteps && activeNextSteps.length > 0 ? (
+                activeNextSteps.map((step) => (
+                  <div key={step.id} className="bg-gray-50 p-4 rounded-lg">
+                    <p className="text-gray-700">{step.notes}</p>
+                    {step.due_date && (
+                      <p className="text-sm text-gray-500 mt-2">
+                        Due: {new Date(step.due_date).toLocaleDateString()}
+                      </p>
+                    )}
+                  </div>
+                ))
+              ) : (
+                <p className="text-gray-500">No active next steps</p>
               )}
-              <div className="mt-4">
-                <UpdateNextStepButton 
-                  clientId={client.id}
-                  currentNotes={client.notes}
-                  currentDueDate={client.next_due_date}
-                />
-              </div>
             </div>
           </div>
           
