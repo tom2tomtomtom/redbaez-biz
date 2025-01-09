@@ -21,11 +21,14 @@ serve(async (req) => {
 Return ONLY a JSON array in this exact format, with no additional text, markdown, or explanations:
 [
   {
-    "type": "revenue|engagement|risk|opportunity",
-    "priority": "high|medium|low",
+    "type": "revenue",
+    "priority": "high",
     "suggestion": "specific actionable step"
   }
 ]
+
+Valid types are ONLY: "revenue", "engagement", "risk", "opportunity"
+Valid priorities are ONLY: "high", "medium", "low"
 
 Context: Redbaez provides AI training, creative tools, and consulting services to help businesses optimize their marketing and creative workflows. When suggesting actions, focus on:
 1. Gathering key information about the client's AI readiness and needs
@@ -71,7 +74,7 @@ Next Steps: ${JSON.stringify(clientData?.next_steps)}`;
         messages: [
           {
             role: 'system',
-            content: 'You are a practical business advisor for an AI-focused creative and marketing solutions company. Return ONLY a JSON array with exactly 3 specific, actionable recommendations that can be implemented within 30 days. Focus on gathering key information, demonstrating value quickly, and specific measurable actions.'
+            content: 'You are a practical business advisor. Return ONLY a JSON array with exactly 3 specific, actionable recommendations. Each recommendation must have a type (revenue/engagement/risk/opportunity), priority (high/medium/low), and a specific suggestion.'
           },
           {
             role: 'user',
@@ -115,24 +118,29 @@ Next Steps: ${JSON.stringify(clientData?.next_steps)}`;
         throw new Error('Invalid recommendations format: must be an array of exactly 3 items');
       }
       
-      recommendations.forEach((rec, index) => {
+      const validTypes = ['revenue', 'engagement', 'risk', 'opportunity'];
+      const validPriorities = ['high', 'medium', 'low'];
+      
+      recommendations = recommendations.map((rec, index) => {
         if (!rec.type || !rec.priority || !rec.suggestion) {
-          throw new Error(`Invalid recommendation format at index ${index}`);
+          throw new Error(`Missing required fields at index ${index}`);
         }
-        // Ensure type and priority are lowercase
-        rec.type = rec.type.toLowerCase();
-        rec.priority = rec.priority.toLowerCase();
         
-        // Validate type and priority values
-        const validTypes = ['revenue', 'engagement', 'risk', 'opportunity'];
-        const validPriorities = ['high', 'medium', 'low'];
+        const type = rec.type.toLowerCase();
+        const priority = rec.priority.toLowerCase();
         
-        if (!validTypes.includes(rec.type)) {
-          throw new Error(`Invalid type at index ${index}: ${rec.type}`);
+        if (!validTypes.includes(type)) {
+          throw new Error(`Invalid type "${type}" at index ${index}. Must be one of: ${validTypes.join(', ')}`);
         }
-        if (!validPriorities.includes(rec.priority)) {
-          throw new Error(`Invalid priority at index ${index}: ${rec.priority}`);
+        if (!validPriorities.includes(priority)) {
+          throw new Error(`Invalid priority "${priority}" at index ${index}. Must be one of: ${validPriorities.join(', ')}`);
         }
+        
+        return {
+          ...rec,
+          type,
+          priority
+        };
       });
       
     } catch (error) {
