@@ -68,16 +68,27 @@ export const ClientDetails = () => {
   const handleSave = async (formData: any) => {
     console.log('Saving client with form data:', formData);
     console.log('Current contacts:', contacts);
-    updateMutation.mutate({ formData, contacts });
+    updateMutation.mutate({ 
+      formData: {
+        ...formData,
+        notes: nextSteps || client.notes,  // Preserve existing notes if no new value
+        next_due_date: nextDueDate || client.next_due_date  // Preserve existing date if no new value
+      }, 
+      contacts 
+    });
   };
 
   if (isEditing) {
     return (
       <ClientEditMode
-        client={client}
+        client={{
+          ...client,
+          notes: client.notes || '',  // Ensure notes is initialized
+          next_due_date: client.next_due_date || ''  // Ensure next_due_date is initialized
+        }}
         contacts={contacts}
-        nextSteps={nextSteps}
-        nextDueDate={nextDueDate}
+        nextSteps={client.notes || ''}  // Initialize with existing notes
+        nextDueDate={client.next_due_date ? new Date(client.next_due_date).toISOString().split('T')[0] : ''}  // Format the date properly
         onCancel={() => setIsEditing(false)}
         onSave={handleSave}
         onContactsChange={setContacts}
