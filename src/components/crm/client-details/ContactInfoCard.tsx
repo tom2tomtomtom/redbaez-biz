@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { Mail, Phone, Star } from 'lucide-react';
+import { Mail, Phone, Star, Plus, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useClientUpdate } from './useClientUpdate';
@@ -29,7 +29,7 @@ export const ContactInfoCard = ({
   companySize, 
   contactEmail, 
   contactPhone,
-  additionalContacts,
+  additionalContacts = [],
   clientId
 }: ContactInfoCardProps) => {
   const [isEditing, setIsEditing] = useState(false);
@@ -37,9 +37,20 @@ export const ContactInfoCard = ({
   const [editedSize, setEditedSize] = useState(companySize || '');
   const [editedEmail, setEditedEmail] = useState(contactEmail || '');
   const [editedPhone, setEditedPhone] = useState(contactPhone || '');
+  const [contacts, setContacts] = useState<Contact[]>(additionalContacts || []);
+  const [showNewContactForm, setShowNewContactForm] = useState(false);
+  const [newContact, setNewContact] = useState<Contact>({
+    firstName: '',
+    lastName: '',
+    title: '',
+    email: '',
+    address: '',
+    phone: ''
+  });
 
   const updateMutation = useClientUpdate(clientId.toString(), () => {
     setIsEditing(false);
+    setShowNewContactForm(false);
     toast({
       title: "Success",
       description: "Contact information updated successfully",
@@ -52,9 +63,53 @@ export const ContactInfoCard = ({
         contact_name: editedName,
         company_size: editedSize,
         contact_email: editedEmail,
-        contact_phone: editedPhone
+        contact_phone: editedPhone,
+        additional_contacts: contacts
       },
       contacts: [] // Maintain existing contacts array structure
+    });
+  };
+
+  const handleAddContact = () => {
+    if (!newContact.firstName || !newContact.lastName) {
+      toast({
+        title: "Error",
+        description: "First name and last name are required",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const updatedContacts = [...contacts, newContact];
+    setContacts(updatedContacts);
+    
+    updateMutation.mutate({
+      formData: {
+        additional_contacts: updatedContacts
+      },
+      contacts: []
+    });
+
+    setNewContact({
+      firstName: '',
+      lastName: '',
+      title: '',
+      email: '',
+      address: '',
+      phone: ''
+    });
+    setShowNewContactForm(false);
+  };
+
+  const handleRemoveContact = (index: number) => {
+    const updatedContacts = contacts.filter((_, i) => i !== index);
+    setContacts(updatedContacts);
+    
+    updateMutation.mutate({
+      formData: {
+        additional_contacts: updatedContacts
+      },
+      contacts: []
     });
   };
 
@@ -149,7 +204,7 @@ export const ContactInfoCard = ({
           </div>
           
           {/* Additional Contacts */}
-          {additionalContacts?.map((contact: Contact, index: number) => (
+          {contacts?.map((contact: Contact, index: number) => (
             <div key={index} className="p-4 border border-gray-100 rounded-lg hover:border-primary/20 hover:shadow-sm transition-all duration-300">
               <div className="flex items-start justify-between">
                 <div>
@@ -158,7 +213,16 @@ export const ContactInfoCard = ({
                   </h3>
                   <p className="text-sm text-gray-500">{contact.title || 'Title not specified'}</p>
                 </div>
-                <Star size={16} className="text-gray-400" />
+                <div className="flex gap-2">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => handleRemoveContact(index)}
+                    className="h-8 w-8"
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
               <div className="mt-4 space-y-2">
                 <div className="flex items-center text-sm text-gray-600">
@@ -172,6 +236,83 @@ export const ContactInfoCard = ({
               </div>
             </div>
           ))}
+
+          {/* Add New Contact Form */}
+          {showNewContactForm && (
+            <div className="p-4 border border-gray-100 rounded-lg hover:border-primary/20 hover:shadow-sm transition-all duration-300">
+              <h3 className="font-medium text-gray-900 mb-4">Add New Contact</h3>
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="text-sm text-gray-500">First Name*</label>
+                    <Input
+                      value={newContact.firstName}
+                      onChange={(e) => setNewContact({...newContact, firstName: e.target.value})}
+                      className="mt-1"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm text-gray-500">Last Name*</label>
+                    <Input
+                      value={newContact.lastName}
+                      onChange={(e) => setNewContact({...newContact, lastName: e.target.value})}
+                      className="mt-1"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="text-sm text-gray-500">Title</label>
+                  <Input
+                    value={newContact.title}
+                    onChange={(e) => setNewContact({...newContact, title: e.target.value})}
+                    className="mt-1"
+                  />
+                </div>
+                <div>
+                  <label className="text-sm text-gray-500">Email</label>
+                  <Input
+                    type="email"
+                    value={newContact.email}
+                    onChange={(e) => setNewContact({...newContact, email: e.target.value})}
+                    className="mt-1"
+                  />
+                </div>
+                <div>
+                  <label className="text-sm text-gray-500">Phone</label>
+                  <Input
+                    type="tel"
+                    value={newContact.phone}
+                    onChange={(e) => setNewContact({...newContact, phone: e.target.value})}
+                    className="mt-1"
+                  />
+                </div>
+                <div className="flex gap-2">
+                  <Button onClick={handleAddContact} className="w-full">
+                    Add Contact
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    onClick={() => setShowNewContactForm(false)}
+                    className="w-full"
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Add Contact Button */}
+          {!showNewContactForm && (
+            <Button
+              variant="outline"
+              onClick={() => setShowNewContactForm(true)}
+              className="h-[200px] w-full flex items-center justify-center border-dashed"
+            >
+              <Plus className="mr-2 h-4 w-4" />
+              Add Contact
+            </Button>
+          )}
         </div>
       </CardContent>
     </Card>
