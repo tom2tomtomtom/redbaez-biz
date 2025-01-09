@@ -37,6 +37,11 @@ export const GeneralTaskItem = ({ task }: GeneralTaskItemProps) => {
     }
   };
 
+  // Remove square brackets from title
+  const formatTitle = (title: string) => {
+    return title.replace(/\[([^\]]+)\]/g, '$1').trim();
+  };
+
   return (
     <Card 
       className={cn(
@@ -47,7 +52,7 @@ export const GeneralTaskItem = ({ task }: GeneralTaskItemProps) => {
     >
       <div className="flex justify-between items-start">
         <div className="space-y-1">
-          <h3 className="font-medium">{task.title}</h3>
+          <h3 className="font-medium">{formatTitle(task.title)}</h3>
         </div>
         <div className={`px-2 py-1 rounded-full text-sm ${getStatusColor(task.status)}`}>
           {task.status || "pending"}
