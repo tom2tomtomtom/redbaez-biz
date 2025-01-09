@@ -116,12 +116,14 @@ export const ClientContent = ({
           contactEmail={client.contact_email}
           contactPhone={client.contact_phone}
           additionalContacts={parsedAdditionalContacts}
+          clientId={client.id}
         />
         <AdditionalInfoCard 
           industry={client.industry}
           website={client.website}
           notes={client.notes}
           background={client.background}
+          clientId={client.id}
         />
       </div>
 
