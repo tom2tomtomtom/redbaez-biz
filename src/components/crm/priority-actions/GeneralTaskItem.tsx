@@ -37,10 +37,15 @@ export const GeneralTaskItem = ({ task }: GeneralTaskItemProps) => {
     }
   };
 
-  // Extract client name from title (assuming format "[ClientName] rest of title")
   const getClientName = (title: string) => {
     const match = title.match(/^\[([^\]]+)\]/);
     return match ? match[1] : 'Unknown Client';
+  };
+
+  const getTaskDescription = (description: string | null) => {
+    if (!description) return 'No description';
+    const colonIndex = description.indexOf(':');
+    return colonIndex !== -1 ? description.slice(colonIndex + 1).trim() : description;
   };
 
   return (
@@ -59,7 +64,7 @@ export const GeneralTaskItem = ({ task }: GeneralTaskItemProps) => {
           <div>
             <span className="font-medium">{getClientName(task.title)}</span>
             <p className="text-sm text-gray-600 mt-1">
-              {task.description || 'No description'}
+              {getTaskDescription(task.description)}
             </p>
           </div>
         </div>
