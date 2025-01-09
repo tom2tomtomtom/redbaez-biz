@@ -27,7 +27,7 @@ serve(async (req) => {
         messages: [
           {
             role: 'system',
-            content: 'You are a helpful assistant that provides business intelligence insights. Be precise and concise.'
+            content: 'You are a helpful assistant that provides business intelligence insights. Format your response as a bulleted list, with each point on a new line starting with a bullet point (-). Be precise and concise.'
           },
           {
             role: 'user',

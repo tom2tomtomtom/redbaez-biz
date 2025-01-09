@@ -27,6 +27,14 @@ export const IntelSearch = ({ searchInput, onSearchInputChange }: IntelSearchPro
     setQuery(searchInput);
   };
 
+  const formatInsight = (text: string) => {
+    // Split by bullet points or numbered lists
+    const points = text.split(/(?:\r?\n|\r)(?:[-•*]|\d+\.)\s+/).filter(Boolean);
+    
+    // Remove any remaining bullet points or numbers from the beginning of each point
+    return points.map(point => point.trim().replace(/^[-•*]\s*|\d+\.\s*/, ''));
+  };
+
   return (
     <Card className="transition-all duration-300 hover:shadow-lg">
       <CardHeader>
@@ -67,8 +75,17 @@ export const IntelSearch = ({ searchInput, onSearchInputChange }: IntelSearchPro
         )}
 
         {insight && (
-          <div className="p-4 rounded-md bg-blue-50">
-            <p className="text-sm text-blue-900">{insight}</p>
+          <div className="space-y-3 p-4 rounded-md bg-blue-50">
+            {formatInsight(insight).map((point, index) => (
+              <div 
+                key={index}
+                className="flex items-start gap-2 text-sm text-blue-900 animate-fade-in"
+                style={{ animationDelay: `${index * 100}ms` }}
+              >
+                <span className="mt-1.5 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-blue-500" />
+                <p>{point}</p>
+              </div>
+            ))}
           </div>
         )}
       </CardContent>
