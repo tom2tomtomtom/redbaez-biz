@@ -16,6 +16,7 @@ export const useAuth = () => {
           if (email && !isAllowedDomain(email)) {
             try {
               const { error: signOutError } = await supabase.auth.signOut();
+              // If there's no error or if it's just a session_not_found error, proceed with navigation
               if (!signOutError || signOutError.message.includes('session_not_found')) {
                 setError(`Only ${getAllowedDomainsMessage()} email addresses are allowed.`);
                 navigate('/login');
@@ -24,6 +25,7 @@ export const useAuth = () => {
               }
             } catch (err) {
               const error = err as AuthError;
+              // Only set error if it's not a session_not_found error
               if (!error.message.includes('session_not_found')) {
                 setError(getErrorMessage(error));
               }
@@ -55,8 +57,9 @@ export const useAuth = () => {
   }, [navigate]);
 
   const getErrorMessage = (error: AuthError): string => {
+    // Don't show error for session_not_found as it's an expected case during sign-out
     if (error.message.includes('session_not_found')) {
-      return 'Your session has expired. Please sign in again.';
+      return '';
     }
     
     switch (error.message) {
