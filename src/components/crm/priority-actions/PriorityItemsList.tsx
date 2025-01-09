@@ -50,6 +50,29 @@ export const PriorityItemsList = ({ items, onTaskClick }: PriorityItemsListProps
     }
   };
 
+  const createHistoryRecord = async (item: PriorityItem, completed: boolean) => {
+    try {
+      const historyEntry = {
+        client_id: item.type === 'client' ? item.data.id : null,
+        notes: item.type === 'task' 
+          ? `Task completed: ${item.data.title}`
+          : `Client action completed: ${item.data.name} - Next steps completed`,
+        completed_at: completed ? new Date().toISOString() : null,
+        due_date: item.date
+      };
+
+      const { error } = await supabase
+        .from('next_steps_history')
+        .insert(historyEntry);
+
+      if (error) throw error;
+
+    } catch (error) {
+      console.error('Error creating history record:', error);
+      // We don't show a toast here as it's a background operation
+    }
+  };
+
   const handleCompletedChange = async (item: PriorityItem, checked: boolean) => {
     try {
       if (item.type === 'task') {
@@ -64,6 +87,11 @@ export const PriorityItemsList = ({ items, onTaskClick }: PriorityItemsListProps
           .update({ status: checked ? 'completed' : 'incomplete' })
           .eq('id', item.data.id);
         if (error) throw error;
+      }
+
+      // Create history record when marking as completed
+      if (checked) {
+        await createHistoryRecord(item, checked);
       }
 
       queryClient.invalidateQueries({ queryKey: ['priorityClients'] });
