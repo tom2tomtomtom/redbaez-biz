@@ -4,9 +4,6 @@ import { IntelSearch } from './intel-search/IntelSearch';
 import { ClientSearch } from './client-search/ClientSearch';
 import { BusinessSummary } from './business-summary/BusinessSummary';
 import { CalendarView } from '../calendar/CalendarView';
-import { Button } from '@/components/ui/button';
-import { X } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
 
 interface CRMDashboardProps {
   onClientAdded?: () => void;
@@ -24,25 +21,9 @@ export const CRMDashboard = ({ onClientAdded }: CRMDashboardProps) => {
   const [nextSteps, setNextSteps] = useState('');
   const [nextDueDate, setNextDueDate] = useState('');
   const [searchInput, setSearchInput] = useState('');
-  const navigate = useNavigate();
-
-  const handleClose = () => {
-    if (onClientAdded) {
-      onClientAdded();
-    }
-    navigate('/', { replace: true });
-  };
 
   return (
-    <div className="flex flex-col space-y-4 animate-fade-in relative">
-      <Button
-        variant="ghost"
-        size="icon"
-        className="absolute right-2 top-2 rounded-full"
-        onClick={handleClose}
-      >
-        <X className="h-4 w-4" />
-      </Button>
+    <div className="flex flex-col space-y-4 animate-fade-in">
       <div className="grid grid-cols-1 gap-4">
         <ClientForm
           contacts={contacts}
@@ -51,7 +32,7 @@ export const CRMDashboard = ({ onClientAdded }: CRMDashboardProps) => {
           onContactsChange={setContacts}
           onNextStepsChange={setNextSteps}
           onNextDueDateChange={setNextDueDate}
-          onClientAdded={handleClose}
+          onClientAdded={onClientAdded}
         />
       </div>
     </div>

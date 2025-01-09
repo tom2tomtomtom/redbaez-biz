@@ -64,10 +64,7 @@ const Index = () => {
               <Users className="mr-2 h-4 w-4" />
               {showClientList ? 'Hide Clients' : 'View All Clients'}
             </Button>
-            <Dialog 
-              open={isNewClientOpen} 
-              onOpenChange={setIsNewClientOpen}
-            >
+            <Dialog open={isNewClientOpen} onOpenChange={setIsNewClientOpen}>
               <DialogTrigger asChild>
                 <Button>
                   <Plus className="mr-2 h-4 w-4" />

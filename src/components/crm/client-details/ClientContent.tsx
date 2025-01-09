@@ -2,7 +2,6 @@ import { Contact } from './ContactInfoCard';
 import { KeyMetricsCard } from './KeyMetricsCard';
 import { ContactInfoCard } from './ContactInfoCard';
 import { AdditionalInfoCard } from './AdditionalInfoCard';
-import { NextStepsHistory } from './NextStepsHistory';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { AlertTriangle } from 'lucide-react';
@@ -84,10 +83,6 @@ export const ClientContent = ({
         notes={client.notes}
         background={client.background}
       />
-
-      <div className="lg:col-span-6">
-        <NextStepsHistory clientId={client.id} />
-      </div>
 
       <div className="col-span-12 flex items-center gap-4 p-4 bg-white rounded-lg shadow-sm">
         {client.urgent && (
