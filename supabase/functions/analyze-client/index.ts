@@ -18,19 +18,22 @@ serve(async (req) => {
 
     // Format the data for analysis
     const prompt = `
-      Analyze this client data and provide 3-4 strategic recommendations:
+      Based on this client data, provide 3-4 strategic recommendations in the following JSON format:
+      [
+        {
+          "type": "revenue|engagement|risk|opportunity",
+          "priority": "high|medium|low",
+          "suggestion": "detailed actionable suggestion"
+        }
+      ]
       
+      Client Data:
       Revenue Trends: ${JSON.stringify(clientData.revenue_trends)}
       Recent Interactions: ${JSON.stringify(clientData.interaction_history)}
       Upcoming Revenue: ${JSON.stringify(clientData.forecasts)}
       Next Steps: ${JSON.stringify(clientData.next_steps)}
       
-      For each recommendation:
-      1. Identify if it's a revenue, engagement, risk, or opportunity type
-      2. Assign a priority (high, medium, low)
-      3. Provide a specific, actionable suggestion
-      
-      Format as JSON array with type, priority, and suggestion fields.
+      Ensure the response is ONLY the JSON array with no additional text or formatting.
     `;
 
     const apiKey = Deno.env.get('PERPLEXITY_API_KEY');
@@ -50,7 +53,7 @@ serve(async (req) => {
         messages: [
           {
             role: 'system',
-            content: 'You are a strategic business advisor analyzing CRM data. Provide specific, actionable recommendations.'
+            content: 'You are a strategic business advisor. Provide recommendations in the exact JSON format requested, with no additional text or explanations.'
           },
           {
             role: 'user',
@@ -65,23 +68,16 @@ serve(async (req) => {
     const aiResponse = await response.json();
     console.log('Received AI response:', aiResponse);
 
-    // Parse the AI response and format recommendations
+    // Parse the AI response and extract recommendations
     let recommendations = [];
     try {
       const content = aiResponse.choices[0].message.content;
-      recommendations = JSON.parse(content);
+      // Clean up the response to ensure it's valid JSON
+      const cleanedContent = content.replace(/```json\n?|\n?```/g, '').trim();
+      recommendations = JSON.parse(cleanedContent);
     } catch (error) {
       console.error('Error parsing AI response:', error);
-      // Fallback parsing logic if the AI doesn't return perfect JSON
-      const content = aiResponse.choices[0].message.content;
-      // Extract recommendations from the text response
-      recommendations = content.split('\n')
-        .filter(line => line.trim().length > 0)
-        .map((line, index) => ({
-          type: 'opportunity',
-          priority: 'medium',
-          suggestion: line.trim()
-        }));
+      throw new Error('Failed to parse AI recommendations');
     }
 
     console.log('Formatted recommendations:', recommendations);

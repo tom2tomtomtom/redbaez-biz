@@ -62,12 +62,18 @@ export const StrategicRecommendations: React.FC<{ clientId: number }> = ({ clien
       
       console.log('Received recommendations:', response.data);
       
+      if (!response.data?.recommendations || !Array.isArray(response.data.recommendations)) {
+        throw new Error('Invalid recommendations format received');
+      }
+
       // Insert the recommendations
       const { error: insertError } = await supabase
         .from('client_recommendations')
         .insert(response.data.recommendations.map((rec: any) => ({
           client_id: clientId,
-          ...rec
+          type: rec.type.toLowerCase(),
+          priority: rec.priority.toLowerCase(),
+          suggestion: rec.suggestion
         })));
         
       if (insertError) {
@@ -97,7 +103,9 @@ export const StrategicRecommendations: React.FC<{ clientId: number }> = ({ clien
       case 'high':
         return 'destructive';
       case 'medium':
-        return 'warning';
+        return 'default';
+      case 'low':
+        return 'secondary';
       default:
         return 'default';
     }
@@ -134,7 +142,7 @@ export const StrategicRecommendations: React.FC<{ clientId: number }> = ({ clien
               <Alert key={rec.id} className="relative">
                 <AlertTitle className="flex items-center gap-2">
                   {rec.type.charAt(0).toUpperCase() + rec.type.slice(1)}
-                  <Badge variant={getPriorityColor(rec.priority) as any}>
+                  <Badge variant={getPriorityColor(rec.priority)}>
                     {rec.priority}
                   </Badge>
                 </AlertTitle>
