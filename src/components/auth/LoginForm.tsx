@@ -1,57 +1,49 @@
-import { Auth } from "@supabase/auth-ui-react";
-import { ThemeSupa } from "@supabase/auth-ui-shared";
-import { supabase } from "@/integrations/supabase/client";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface LoginFormProps {
   error: string;
   email: string;
   onEmailChange: (email: string) => void;
   onResendLink: () => void;
+  allowedDomainsMessage: string;
 }
 
-export const LoginForm = ({ error, email, onEmailChange, onResendLink }: LoginFormProps) => {
+export const LoginForm = ({
+  error,
+  email,
+  onEmailChange,
+  onResendLink,
+  allowedDomainsMessage
+}: LoginFormProps) => {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100/50 flex items-center justify-center p-4">
+    <div className="flex min-h-screen items-center justify-center p-4">
       <div className="w-full max-w-md space-y-4">
         <div className="text-center space-y-2">
           <h1 className="text-2xl font-bold">Welcome Back</h1>
-          <p className="text-gray-500">Sign in with your redbaez.com or thefamily.network email</p>
+          <p className="text-gray-500">Sign in with your {allowedDomainsMessage} email</p>
         </div>
         
         {error && (
-          <Alert variant="destructive" className="space-y-2">
+          <Alert variant="destructive">
             <AlertDescription>{error}</AlertDescription>
-            {error.includes('expired') && (
-              <div className="pt-2 flex flex-col gap-2">
-                <input
-                  type="email"
-                  placeholder="Enter your email"
-                  className="w-full px-3 py-2 border rounded-md"
-                  value={email}
-                  onChange={(e) => onEmailChange(e.target.value)}
-                />
-                <Button 
-                  onClick={onResendLink}
-                  variant="secondary"
-                  className="w-full"
-                >
-                  Send New Link
-                </Button>
-              </div>
-            )}
           </Alert>
         )}
 
-        <div className="bg-white p-6 rounded-lg shadow-sm">
-          <Auth
-            supabaseClient={supabase}
-            appearance={{ theme: ThemeSupa }}
-            theme="light"
-            providers={[]}
-            redirectTo={window.location.origin}
+        <div className="space-y-4">
+          <Input
+            type="email"
+            placeholder="Enter your email"
+            value={email}
+            onChange={(e) => onEmailChange(e.target.value)}
           />
+          <Button 
+            className="w-full" 
+            onClick={onResendLink}
+          >
+            Send Magic Link
+          </Button>
         </div>
       </div>
     </div>
