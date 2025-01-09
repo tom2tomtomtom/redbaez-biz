@@ -4,6 +4,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { PriorityActions } from "@/components/crm/priority-actions/PriorityActions";
 import { ClientSearch } from "@/components/crm/client-search/ClientSearch";
 import { IntelSearch } from "@/components/crm/intel-search/IntelSearch";
+import { RevenueSummary } from "@/components/crm/revenue-summary/RevenueSummary";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { LogOut, Plus, Users } from "lucide-react";
@@ -160,6 +161,7 @@ const Index = () => {
         ) : (
           <>
             <PriorityActions hideAddButton />
+            <RevenueSummary />
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <ClientSearch />
               <IntelSearch 
