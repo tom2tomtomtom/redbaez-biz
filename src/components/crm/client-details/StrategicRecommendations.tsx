@@ -15,7 +15,15 @@ interface Recommendation {
   implemented: boolean;
 }
 
-export const StrategicRecommendations: React.FC<{ clientId: number }> = ({ clientId }) => {
+interface StrategicRecommendationsProps {
+  clientId: number;
+  clientName: string;  // Added clientName prop
+}
+
+export const StrategicRecommendations: React.FC<StrategicRecommendationsProps> = ({ 
+  clientId,
+  clientName 
+}) => {
   const { recommendations, isLoading, analyzeMutation } = useRecommendations(clientId);
 
   return (
@@ -52,6 +60,7 @@ export const StrategicRecommendations: React.FC<{ clientId: number }> = ({ clien
                 priority={rec.priority}
                 suggestion={rec.suggestion}
                 clientId={clientId}
+                clientName={clientName}
               />
             ))}
           </div>

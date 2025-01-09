@@ -20,13 +20,15 @@ interface RecommendationAlertProps {
   priority: string;
   suggestion: string;
   clientId: number;
+  clientName: string;  // Added clientName prop
 }
 
 export const RecommendationAlert: React.FC<RecommendationAlertProps> = ({
   type,
   priority,
   suggestion,
-  clientId
+  clientId,
+  clientName
 }) => {
   const [date, setDate] = useState<Date>();
   const [isOpen, setIsOpen] = useState(false);
@@ -59,8 +61,8 @@ export const RecommendationAlert: React.FC<RecommendationAlertProps> = ({
       const { error } = await supabase
         .from('general_tasks')
         .insert({
-          title: `[${type}] ${suggestion.substring(0, 50)}...`,
-          description: suggestion,
+          title: `[${clientName}] [${type}] ${suggestion.substring(0, 50)}...`,
+          description: `Client: ${clientName}\n\nRecommendation: ${suggestion}`,
           category: type,
           next_due_date: date.toISOString(),
           urgent: priority === 'high'
