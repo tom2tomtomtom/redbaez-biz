@@ -1,45 +1,42 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/components/ui/use-toast';
-import { Contact } from './ContactInfoCard';
 
-interface UpdateClientData {
-  formData: any;
-  contacts: Contact[];
-}
-
-export const useClientUpdate = (clientId: string | undefined, onSuccess?: () => void) => {
+export const useClientUpdate = (clientId: string, onSuccess?: () => void) => {
   const queryClient = useQueryClient();
-  const numericId = clientId ? parseInt(clientId, 10) : undefined;
-
-  if (!numericId || isNaN(numericId)) {
-    throw new Error('Invalid client ID');
-  }
 
   return useMutation({
-    mutationFn: async ({ formData, contacts }: UpdateClientData) => {
-      const { primaryContact, additionalContacts } = formatContacts(contacts);
-      
-      const clientData = {
-        ...formData,
-        contact_name: `${primaryContact.firstName} ${primaryContact.lastName}`.trim(),
-        contact_email: primaryContact.email,
-        contact_phone: primaryContact.phone,
-        additional_contacts: additionalContacts,
-      };
+    mutationFn: async ({ formData, contacts }: { formData: any; contacts: any[] }) => {
+      // Save the next steps to history if they exist
+      if (formData.nextSteps) {
+        const { error: historyError } = await supabase
+          .from('client_next_steps')
+          .insert({
+            client_id: parseInt(clientId),
+            notes: formData.nextSteps,
+            due_date: formData.nextDueDate || null
+          });
 
-      console.log('Updating client with data:', clientData);
-      
-      const { error } = await supabase
+        if (historyError) throw historyError;
+      }
+
+      // Update the client
+      const { data, error } = await supabase
         .from('clients')
-        .update(clientData)
-        .eq('id', numericId);
+        .update({
+          ...formData,
+          additional_contacts: contacts
+        })
+        .eq('id', clientId)
+        .select()
+        .single();
 
       if (error) throw error;
-      return { success: true };
+      return data;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['client'] });
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['client', parseInt(clientId)] });
+      queryClient.invalidateQueries({ queryKey: ['client-next-steps', parseInt(clientId)] });
       toast({
         title: "Success",
         description: "Client updated successfully",
@@ -53,14 +50,6 @@ export const useClientUpdate = (clientId: string | undefined, onSuccess?: () => 
         description: "Failed to update client",
         variant: "destructive",
       });
-    }
+    },
   });
-};
-
-const formatContacts = (contacts: Contact[]) => {
-  const [primaryContact, ...additionalContacts] = contacts;
-  return {
-    primaryContact,
-    additionalContacts: additionalContacts.length > 0 ? additionalContacts : null
-  };
 };

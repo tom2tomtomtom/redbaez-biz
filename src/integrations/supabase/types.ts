@@ -135,6 +135,44 @@ export type Database = {
           },
         ]
       }
+      client_next_steps: {
+        Row: {
+          client_id: number | null
+          completed_at: string | null
+          created_at: string | null
+          due_date: string | null
+          id: string
+          notes: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          client_id?: number | null
+          completed_at?: string | null
+          created_at?: string | null
+          due_date?: string | null
+          id?: string
+          notes?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          client_id?: number | null
+          completed_at?: string | null
+          created_at?: string | null
+          due_date?: string | null
+          id?: string
+          notes?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_next_steps_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       clients: {
         Row: {
           actual_apr: number | null
