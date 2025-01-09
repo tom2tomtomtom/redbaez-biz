@@ -54,7 +54,8 @@ export const ClientForm = ({
     onSuccess: isEditing ? onSave : onClientAdded
   });
 
-  const onSubmit = async () => {
+  const onSubmit = async (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
     const formData = {
       name: formState.companyName,
       type: formState.type,
