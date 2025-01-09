@@ -3,6 +3,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/use-toast";
+import { useQueryClient } from '@tanstack/react-query';
 
 interface DealLikelihoodProps {
   likelihood: number | null;
@@ -12,6 +13,7 @@ interface DealLikelihoodProps {
 export const DealLikelihood = ({ likelihood, clientId }: DealLikelihoodProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const [value, setValue] = useState(likelihood?.toString() || '');
+  const queryClient = useQueryClient();
 
   const handleSave = async () => {
     const numericValue = parseFloat(value);
@@ -33,6 +35,9 @@ export const DealLikelihood = ({ likelihood, clientId }: DealLikelihoodProps) =>
 
       if (error) throw error;
 
+      // Invalidate and refetch queries that depend on this client's data
+      await queryClient.invalidateQueries({ queryKey: ['client', clientId] });
+
       toast({
         title: "Success",
         description: "Deal likelihood updated successfully",
@@ -47,6 +52,11 @@ export const DealLikelihood = ({ likelihood, clientId }: DealLikelihoodProps) =>
       });
     }
   };
+
+  // Update local state when prop changes
+  useState(() => {
+    setValue(likelihood?.toString() || '');
+  }, [likelihood]);
 
   if (isEditing) {
     return (
