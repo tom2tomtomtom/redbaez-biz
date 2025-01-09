@@ -16,7 +16,6 @@ serve(async (req) => {
     const { clientData } = await req.json();
     console.log('Analyzing client data:', clientData);
     
-    // First, get client analysis data
     const prompt = `You are a practical business advisor for Redbaez, an AI-focused creative and marketing solutions company. Analyze this client data and provide exactly 3 specific, actionable recommendations that can be implemented within the next 30 days.
 
 Return ONLY a JSON array in this exact format, with no additional text, markdown, or explanations:
@@ -33,7 +32,12 @@ Context: Redbaez provides AI training, creative tools, and consulting services t
 2. Quick wins with AI tools and training
 3. Specific, measurable actions that demonstrate value
 
-If client data is limited, prioritize information gathering tasks that will enable better recommendations.
+Example tasks:
+- Schedule a workflow assessment call to identify AI integration opportunities
+- Send personalized AI news digest highlighting relevant case studies
+- Create sample AI-generated ad variations for their current campaign
+- Conduct 30-minute training session on specific AI tool relevant to their needs
+- Document current creative workflow to identify automation opportunities
 
 Client Context:
 Name: ${clientData?.name || 'Unknown'}
@@ -47,19 +51,12 @@ Recent Activity:
 Revenue Trends: ${JSON.stringify(clientData?.revenue_trends)}
 Recent Interactions: ${JSON.stringify(clientData?.interaction_history)}
 Upcoming Revenue: ${JSON.stringify(clientData?.forecasts)}
-Next Steps: ${JSON.stringify(clientData?.next_steps)}
-
-Example tasks:
-- Schedule a workflow assessment call to identify AI integration opportunities
-- Send personalized AI news digest highlighting relevant case studies
-- Create sample AI-generated ad variations for their current campaign
-- Conduct 30-minute training session on specific AI tool relevant to their needs
-- Document current creative workflow to identify automation opportunities`;
+Next Steps: ${JSON.stringify(clientData?.next_steps)}`;
 
     const apiKey = Deno.env.get('PERPLEXITY_API_KEY');
     if (!apiKey) {
-      console.error('Perplexity API key not configured');
-      throw new Error('Perplexity API key not configured');
+      console.error('Error: Perplexity API key not configured');
+      throw new Error('Perplexity API key not configured in Supabase Edge Function Secrets');
     }
 
     console.log('Sending request to Perplexity API');
@@ -87,8 +84,9 @@ Example tasks:
     });
 
     if (!response.ok) {
-      console.error('Error from Perplexity API:', await response.text());
-      throw new Error('Failed to get response from Perplexity API');
+      const errorText = await response.text();
+      console.error('Error from Perplexity API:', errorText);
+      throw new Error(`Failed to get response from Perplexity API: ${errorText}`);
     }
 
     const aiResponse = await response.json();
@@ -109,6 +107,7 @@ Example tasks:
         .replace(/\][\s\S]*$/, ']')         // Remove any text after the array
         .trim();
       
+      console.log('Cleaned content:', cleanedContent);
       recommendations = JSON.parse(cleanedContent);
       
       // Validate the structure of each recommendation
@@ -123,11 +122,22 @@ Example tasks:
         // Ensure type and priority are lowercase
         rec.type = rec.type.toLowerCase();
         rec.priority = rec.priority.toLowerCase();
+        
+        // Validate type and priority values
+        const validTypes = ['revenue', 'engagement', 'risk', 'opportunity'];
+        const validPriorities = ['high', 'medium', 'low'];
+        
+        if (!validTypes.includes(rec.type)) {
+          throw new Error(`Invalid type at index ${index}: ${rec.type}`);
+        }
+        if (!validPriorities.includes(rec.priority)) {
+          throw new Error(`Invalid priority at index ${index}: ${rec.priority}`);
+        }
       });
       
     } catch (error) {
       console.error('Error parsing AI response:', error);
-      throw new Error('Failed to parse AI recommendations');
+      throw new Error(`Failed to parse AI recommendations: ${error.message}`);
     }
 
     console.log('Formatted recommendations:', recommendations);
@@ -139,7 +149,10 @@ Example tasks:
   } catch (error) {
     console.error('Error in analyze-client function:', error);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ 
+        error: error.message,
+        details: 'Please check the Edge Function logs for more information'
+      }),
       { 
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
