@@ -9,10 +9,15 @@ export const useRevenueCalculations = (client: any) => {
   
   const revenueData = months.map((month) => {
     const monthLower = month.toLowerCase();
+    const actualRevenue = client[`actual_${monthLower}`] || 0;
+    
+    // If there's actual revenue, set forecast to 0
+    const forecastRevenue = actualRevenue > 0 ? 0 : (client[`forecast_${monthLower}`] || 0);
+    
     return {
       month,
-      actual: client[`actual_${monthLower}`] || 0,
-      forecast: client[`forecast_${monthLower}`] || 0
+      actual: actualRevenue,
+      forecast: forecastRevenue
     };
   });
 
