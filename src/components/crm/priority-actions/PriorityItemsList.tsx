@@ -20,17 +20,18 @@ export const PriorityItemsList = ({ items, onTaskClick }: PriorityItemsListProps
   return (
     <div className="space-y-3">
       {items.map((item) => (
-        item.type === 'task' ? (
-          <div 
-            key={item.data.id} 
-            onClick={() => onTaskClick(item.data as Tables<'general_tasks'>)} 
-            className="cursor-pointer"
-          >
-            <GeneralTaskItem task={item.data as Tables<'general_tasks'>} />
-          </div>
-        ) : (
-          <PriorityActionItem key={item.data.id} client={item.data} />
-        )
+        <div key={item.data.id}>
+          {item.type === 'task' ? (
+            <div 
+              onClick={() => onTaskClick(item.data as Tables<'general_tasks'>)}
+              className="cursor-pointer"
+            >
+              <GeneralTaskItem task={item.data as Tables<'general_tasks'>} />
+            </div>
+          ) : (
+            <PriorityActionItem client={item.data} />
+          )}
+        </div>
       ))}
     </div>
   );

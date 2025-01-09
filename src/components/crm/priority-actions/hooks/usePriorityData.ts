@@ -5,9 +5,13 @@ import { Tables } from '@/integrations/supabase/types';
 import { ClientRow } from '@/integrations/supabase/types/clients.types';
 
 export type PriorityItem = {
-  type: 'task' | 'client';
+  type: 'task';
   date: string | null;
-  data: Tables<'general_tasks'> | ClientRow;
+  data: Tables<'general_tasks'>;
+} | {
+  type: 'client';
+  date: string | null;
+  data: ClientRow;
 };
 
 const fetchPriorityClients = async () => {
