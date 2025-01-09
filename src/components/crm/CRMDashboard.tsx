@@ -32,7 +32,15 @@ export const CRMDashboard = ({ onClientAdded }: CRMDashboardProps) => {
         variant="ghost"
         size="icon"
         className="absolute right-2 top-2 rounded-full"
-        onClick={() => navigate('/')}
+        onClick={() => {
+          if (onClientAdded) {
+            // If we're in a dialog (indicated by onClientAdded prop), call it to close the dialog
+            onClientAdded();
+          } else {
+            // Otherwise, navigate to home
+            navigate('/');
+          }
+        }}
       >
         <X className="h-4 w-4" />
       </Button>
