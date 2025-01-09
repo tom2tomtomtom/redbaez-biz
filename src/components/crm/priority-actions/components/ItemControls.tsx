@@ -17,6 +17,14 @@ export const ItemControls = ({
     ? item.data.completed_at !== null
     : item.data.status === 'completed';
 
+  const handleUrgentChange = async (checked: boolean) => {
+    // Add a small delay to allow the toggle animation to complete
+    // before the item moves in the list
+    setTimeout(() => {
+      onUrgentChange(checked);
+    }, 300);
+  };
+
   return (
     <div className="absolute right-3 top-3 z-10 flex items-center gap-2 bg-white/80 backdrop-blur-sm px-2 py-1 rounded-full">
       <div className="flex items-center gap-2">
@@ -30,11 +38,14 @@ export const ItemControls = ({
             isCompleted ? 'animate-scale-in' : ''
           }`} />
         </button>
-        <Switch
-          id={`urgent-${item.data.id}`}
-          checked={'urgent' in item.data ? item.data.urgent : false}
-          onCheckedChange={onUrgentChange}
-        />
+        <div className="transition-transform duration-300 hover:scale-105">
+          <Switch
+            id={`urgent-${item.data.id}`}
+            checked={'urgent' in item.data ? item.data.urgent : false}
+            onCheckedChange={handleUrgentChange}
+            className="transition-opacity duration-300"
+          />
+        </div>
       </div>
     </div>
   );

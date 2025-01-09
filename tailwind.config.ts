@@ -96,6 +96,16 @@ export default {
             transform: "scale(1)",
             opacity: "1"
           }
+        },
+        "move-in": {
+          "0%": {
+            transform: "translateY(20px)",
+            opacity: "0"
+          },
+          "100%": {
+            transform: "translateY(0)",
+            opacity: "1"
+          }
         }
       },
       animation: {
@@ -104,6 +114,7 @@ export default {
         "fade-in": "fade-in 0.5s ease-out",
         "fade-out": "fade-out 0.5s ease-out",
         "scale-in": "scale-in 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+        "move-in": "move-in 0.5s cubic-bezier(0.4, 0, 0.2, 1)",
       },
     },
   },
