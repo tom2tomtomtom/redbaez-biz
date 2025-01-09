@@ -20,9 +20,6 @@ export const NextStepItem = ({ nextStep }: NextStepItemProps) => {
             </p>
           </div>
         </div>
-        <span className="text-sm px-2 py-1 rounded-full bg-blue-100 text-blue-600">
-          Next Step
-        </span>
       </div>
       <div className="mt-2 text-sm flex items-center gap-2">
         <Calendar size={14} />

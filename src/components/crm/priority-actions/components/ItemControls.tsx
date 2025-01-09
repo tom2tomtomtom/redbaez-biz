@@ -13,7 +13,9 @@ export const ItemControls = ({
   onComplete, 
   onUrgentChange 
 }: ItemControlsProps) => {
-  if (item.type === 'next_step') return null;
+  const isCompleted = item.type === 'next_step' 
+    ? item.data.completed_at !== null
+    : item.data.status === 'completed';
 
   return (
     <div className="absolute right-3 top-3 z-10 flex items-center gap-2 bg-white/80 backdrop-blur-sm px-2 py-1 rounded-full">
@@ -21,11 +23,11 @@ export const ItemControls = ({
         <button
           onClick={onComplete}
           className={`transition-all duration-300 transform hover:scale-110 active:scale-95 ${
-            item.data.status === 'completed' ? 'text-green-500' : 'text-gray-400 hover:text-gray-600'
+            isCompleted ? 'text-green-500' : 'text-gray-400 hover:text-gray-600'
           }`}
         >
           <CheckCircle className={`h-5 w-5 transition-all duration-300 ${
-            item.data.status === 'completed' ? 'animate-scale-in' : ''
+            isCompleted ? 'animate-scale-in' : ''
           }`} />
         </button>
         <Switch

@@ -34,10 +34,17 @@ export const PriorityItemsList = ({ items, onTaskClick }: PriorityItemsListProps
           .update({ urgent: checked })
           .eq('id', item.data.id);
         if (error) throw error;
+      } else if (item.type === 'next_step') {
+        const { error } = await supabase
+          .from('client_next_steps')
+          .update({ urgent: checked })
+          .eq('id', item.data.id);
+        if (error) throw error;
       }
 
       queryClient.invalidateQueries({ queryKey: ['priorityClients'] });
       queryClient.invalidateQueries({ queryKey: ['generalTasks'] });
+      queryClient.invalidateQueries({ queryKey: ['nextSteps'] });
 
       toast({
         title: checked ? "Marked as urgent" : "Removed urgent flag",
@@ -56,9 +63,12 @@ export const PriorityItemsList = ({ items, onTaskClick }: PriorityItemsListProps
   const createHistoryRecord = async (item: PriorityItem, completed: boolean) => {
     try {
       const historyEntry = {
-        client_id: item.type === 'client' ? Number(item.data.id) : null,
+        client_id: item.type === 'client' ? Number(item.data.id) : 
+                  item.type === 'next_step' ? item.data.client_id : null,
         notes: item.type === 'task' 
           ? `Task completed: ${item.data.title}`
+          : item.type === 'next_step'
+          ? `Next step completed: ${item.data.notes}`
           : `Client action completed: ${
               'name' in item.data ? item.data.name : ''
             } - Next steps completed`,
@@ -90,6 +100,15 @@ export const PriorityItemsList = ({ items, onTaskClick }: PriorityItemsListProps
           .update({ status: checked ? 'completed' : 'incomplete' })
           .eq('id', Number(item.data.id));
         if (error) throw error;
+      } else if (item.type === 'next_step') {
+        const { error } = await supabase
+          .from('client_next_steps')
+          .update({ 
+            completed_at: checked ? new Date().toISOString() : null,
+            status: checked ? 'completed' : 'incomplete'
+          })
+          .eq('id', item.data.id);
+        if (error) throw error;
       }
 
       if (checked) {
@@ -98,6 +117,7 @@ export const PriorityItemsList = ({ items, onTaskClick }: PriorityItemsListProps
 
       queryClient.invalidateQueries({ queryKey: ['priorityClients'] });
       queryClient.invalidateQueries({ queryKey: ['generalTasks'] });
+      queryClient.invalidateQueries({ queryKey: ['nextSteps'] });
 
       toast({
         title: checked ? "Marked as completed" : "Marked as incomplete",
