@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import { useNavigate, useParams, Navigate } from 'react-router-dom';
@@ -44,6 +44,15 @@ export const ClientDetails = () => {
   });
 
   const { contacts, setContacts } = useClientInitialization(client);
+
+  // Initialize nextSteps and nextDueDate when client data is loaded or editing mode changes
+  useEffect(() => {
+    if (client && isEditing) {
+      setNextSteps(client.notes || '');
+      setNextDueDate(client.next_due_date ? new Date(client.next_due_date).toISOString().split('T')[0] : '');
+    }
+  }, [client, isEditing]);
+
   const updateMutation = useClientUpdate(numericId.toString(), () => setIsEditing(false));
 
   if (isLoading) {
@@ -62,7 +71,14 @@ export const ClientDetails = () => {
   const handleSave = async (formData: any) => {
     console.log('Saving client with form data:', formData);
     console.log('Current contacts:', contacts);
-    updateMutation.mutate({ formData, contacts });
+    updateMutation.mutate({ 
+      formData: {
+        ...formData,
+        notes: nextSteps,
+        next_due_date: nextDueDate
+      }, 
+      contacts 
+    });
   };
 
   if (isEditing) {
