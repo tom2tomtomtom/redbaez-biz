@@ -2,6 +2,11 @@ import { Contact } from './ContactInfoCard';
 import { KeyMetricsCard } from './KeyMetricsCard';
 import { ContactInfoCard } from './ContactInfoCard';
 import { AdditionalInfoCard } from './AdditionalInfoCard';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
+import { AlertTriangle } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from '@/components/ui/use-toast';
 
 interface ClientContentProps {
   client: any;
@@ -30,6 +35,29 @@ export const ClientContent = ({
     .filter(([key, value]) => key.startsWith('actual_'))
     .reduce((sum, [_, value]) => sum + (Number(value) || 0), 0);
 
+  const handleUrgentChange = async (checked: boolean) => {
+    try {
+      const { error } = await supabase
+        .from('clients')
+        .update({ urgent: checked })
+        .eq('id', client.id);
+
+      if (error) throw error;
+
+      toast({
+        title: checked ? "Marked as urgent" : "Removed urgent flag",
+        description: `Successfully ${checked ? 'marked' : 'unmarked'} as urgent`,
+      });
+    } catch (error) {
+      console.error('Error updating urgent status:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update urgent status",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
       <KeyMetricsCard 
@@ -55,6 +83,20 @@ export const ClientContent = ({
         notes={client.notes}
         background={client.background}
       />
+
+      <div className="col-span-12 flex items-center gap-4 p-4 bg-white rounded-lg shadow-sm">
+        {client.urgent && (
+          <AlertTriangle className="h-5 w-5 text-red-500" />
+        )}
+        <div className="flex items-center space-x-2">
+          <Switch
+            id="urgent"
+            checked={client.urgent || false}
+            onCheckedChange={handleUrgentChange}
+          />
+          <Label htmlFor="urgent">Mark as Urgent Priority</Label>
+        </div>
+      </div>
     </div>
   );
 };
