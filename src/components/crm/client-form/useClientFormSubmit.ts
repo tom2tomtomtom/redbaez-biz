@@ -1,58 +1,43 @@
-import { toast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
-import { useQueryClient } from "@tanstack/react-query";
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from '@/components/ui/use-toast';
 
-interface UseClientFormSubmitProps {
-  isEditing: boolean;
-  onSave?: (data: any) => void;
-  setIsLoading: (loading: boolean) => void;
-  resetForm: () => void;
-}
-
-export const useClientFormSubmit = ({
-  isEditing,
-  onSave,
-  setIsLoading,
-  resetForm,
-}: UseClientFormSubmitProps) => {
+export const useClientFormSubmit = (clientId?: string) => {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
 
   const handleSubmit = async (formData: any) => {
-    if (!formData.name) {
-      toast({
-        title: "Error",
-        description: "Company name is required",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setIsLoading(true);
+    setIsSubmitting(true);
     try {
       const clientData = {
         name: formData.name,
-        type: formData.type,
-        industry: formData.industry || null,
-        company_size: formData.company_size || null,
-        status: formData.status || 'prospect',
+        type: formData.type || 'business',
+        industry: formData.industry,
+        contact_name: formData.contact_name,
+        contact_email: formData.contact_email,
+        contact_phone: formData.contact_phone,
+        company_size: formData.company_size,
         annual_revenue: formData.annual_revenue ? parseFloat(formData.annual_revenue) : null,
-        project_revenue: formData.project_revenue ? parseFloat(formData.project_revenue) : null,
-        website: formData.website || null,
+        website: formData.website,
         notes: formData.notes,
-        background: formData.background || null,
+        status: formData.status || 'incomplete',
         likelihood: formData.likelihood ? parseFloat(formData.likelihood) : null,
+        background: formData.background,
+        project_revenue: formData.project_revenue ? parseFloat(formData.project_revenue) : null,
         next_due_date: formData.next_due_date || null,
-        project_revenue_signed_off: Boolean(formData.project_revenue_signed_off),
-        project_revenue_forecast: Boolean(formData.project_revenue_forecast),
-        annual_revenue_signed_off: formData.annual_revenue_signed_off ? parseFloat(formData.annual_revenue_signed_off) : 0,
-        annual_revenue_forecast: formData.annual_revenue_forecast ? parseFloat(formData.annual_revenue_forecast) : 0,
       };
 
-      console.log('Saving client with form data:', formData);
-      console.log('Transformed client data for database:', clientData);
+      if (clientId) {
+        const { error } = await supabase
+          .from('clients')
+          .update(clientData)
+          .eq('id', clientId);
 
-      if (isEditing && onSave) {
-        await onSave(clientData);
+        if (error) throw error;
+
         toast({
           title: "Success",
           description: "Client information updated successfully",
@@ -86,26 +71,32 @@ export const useClientFormSubmit = ({
         queryClient.invalidateQueries({ queryKey: ['clients'] });
         queryClient.invalidateQueries({ queryKey: ['priorityClients'] });
         queryClient.invalidateQueries({ queryKey: ['client-next-steps'] });
-        queryClient.invalidateQueries({ queryKey: ['priorityNextSteps'] });
-        queryClient.invalidateQueries({ queryKey: ['nextSteps'] });
+        queryClient.invalidateQueries({ queryKey: ['next-steps-history'] });
 
         toast({
           title: "Success",
-          description: "Client information saved successfully",
+          description: "New client added successfully",
         });
-        resetForm();
+
+        // Navigate to the new client's page
+        if (newClient) {
+          navigate(`/client/${newClient.id}`);
+        }
       }
-    } catch (error) {
-      console.error('Error saving client:', error);
+    } catch (error: any) {
+      console.error('Error submitting client:', error);
       toast({
         title: "Error",
-        description: "Failed to save client information",
+        description: error.message || "Failed to save client information",
         variant: "destructive",
       });
     } finally {
-      setIsLoading(false);
+      setIsSubmitting(false);
     }
   };
 
-  return { handleSubmit };
+  return {
+    handleSubmit,
+    isSubmitting
+  };
 };
