@@ -1,7 +1,6 @@
-import React from 'react';
-import { BackButton } from './components/BackButton';
-import { UrgentFlagToggle } from './components/UrgentFlagToggle';
-import { TaskHistory } from './TaskHistory';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { AlertCircle, Pencil } from 'lucide-react';
 
 interface ClientHeaderProps {
   clientName: string;
@@ -10,22 +9,32 @@ interface ClientHeaderProps {
   onEditClick: () => void;
 }
 
-export const ClientHeader: React.FC<ClientHeaderProps> = ({
+export const ClientHeader = ({
   clientName,
   clientId,
   urgent,
-  onEditClick
-}) => {
+  onEditClick,
+}: ClientHeaderProps) => {
   return (
-    <div className="flex items-center justify-between mb-6">
+    <div className="flex items-center justify-between">
       <div className="flex items-center gap-4">
-        <BackButton />
-        <h1 className="text-2xl font-semibold">{clientName}</h1>
+        <h1 className="text-2xl font-bold">{clientName}</h1>
+        <span className="text-gray-500">#{clientId}</span>
+        {urgent && (
+          <Badge variant="destructive" className="flex items-center gap-1">
+            <AlertCircle size={14} />
+            Urgent
+          </Badge>
+        )}
       </div>
-      <div className="flex items-center gap-4">
-        <TaskHistory />
-        <UrgentFlagToggle clientId={clientId} isUrgent={urgent || false} />
-      </div>
+      <Button
+        onClick={onEditClick}
+        variant="outline"
+        className="flex items-center gap-2"
+      >
+        <Pencil size={16} />
+        Edit Client Info
+      </Button>
     </div>
   );
 };
