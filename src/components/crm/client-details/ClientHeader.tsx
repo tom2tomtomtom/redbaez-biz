@@ -7,12 +7,14 @@ interface ClientHeaderProps {
   clientName: string;
   clientId: number;
   urgent?: boolean;
+  onEditClick: () => void;
 }
 
 export const ClientHeader: React.FC<ClientHeaderProps> = ({
   clientName,
   clientId,
   urgent,
+  onEditClick
 }) => {
   return (
     <div className="flex items-center justify-between mb-6">
@@ -22,7 +24,7 @@ export const ClientHeader: React.FC<ClientHeaderProps> = ({
       </div>
       <div className="flex items-center gap-4">
         <TaskHistory />
-        <UrgentFlagToggle clientId={clientId} initialUrgent={urgent} />
+        <UrgentFlagToggle clientId={clientId} isUrgent={urgent || false} />
       </div>
     </div>
   );

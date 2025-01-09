@@ -124,7 +124,9 @@ export const ClientDetails = () => {
       </Button>
 
       <ClientHeader 
-        client={client}
+        clientName={client.name}
+        clientId={client.id}
+        urgent={client.urgent}
         onEditClick={() => setIsEditing(true)}
       />
 
