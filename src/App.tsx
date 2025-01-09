@@ -10,6 +10,7 @@ export default function App() {
       <Route path="/" element={<CRMDashboard />} />
       <Route path="/client/:id" element={<ClientDetails />} />
       <Route path="/login" element={<Login />} />
+      <Route path="/calendar/:clientId" element={<CalendarView />} />
       <Route path="/calendar" element={<CalendarView />} />
     </Routes>
   );
