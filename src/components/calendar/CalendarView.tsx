@@ -1,18 +1,18 @@
 import { useQuery } from '@tanstack/react-query';
-import { useParams } from 'react-router-dom';
 import { CalendarService, Meeting } from '@/integrations/google/calendar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Calendar, Clock, AlertCircle } from 'lucide-react';
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
-export const CalendarView = () => {
-  const { clientId } = useParams();
-  
+interface CalendarViewProps {
+  clientId: string;  // Keep as string since it comes from URL params
+}
+
+export const CalendarView = ({ clientId }: CalendarViewProps) => {
   const { data: meetings, isLoading, error } = useQuery({
     queryKey: ['meetings', clientId],
-    queryFn: () => clientId ? CalendarService.getClientMeetings(Number(clientId)) : Promise.resolve([]),
-    retry: 1,
-    enabled: !!clientId, // Only run query if clientId exists
+    queryFn: () => CalendarService.getClientMeetings(Number(clientId)),  // Convert to number here
+    retry: 1, // Only retry once to avoid too many failed attempts
   });
 
   if (isLoading) {
@@ -54,14 +54,12 @@ export const CalendarView = () => {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Calendar className="h-5 w-5" />
-          Calendar Events {clientId ? `for Client #${clientId}` : ''}
+          Calendar Events
         </CardTitle>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
-          {!clientId ? (
-            <p className="text-muted-foreground text-sm">Select a client to view their calendar events</p>
-          ) : meetings?.length === 0 ? (
+          {meetings?.length === 0 ? (
             <p className="text-muted-foreground text-sm">No upcoming meetings</p>
           ) : (
             meetings?.map((meeting: Meeting) => (
