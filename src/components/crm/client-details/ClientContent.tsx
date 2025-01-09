@@ -41,26 +41,24 @@ export const ClientContent = ({
 
   return (
     <div className="space-y-6">
-      {/* Status and Next Steps Section */}
+      {/* Main Content Column */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* Status Section - 8 columns on large screens */}
+        {/* Left Column - 8 columns on large screens */}
         <div className="lg:col-span-8 space-y-6">
-          <StatusTab 
-            clientId={client.id}
-            currentStatus={client.status}
-          />
+          {/* Status Section */}
+          <div className="bg-white rounded-lg shadow-sm p-6">
+            <StatusTab 
+              clientId={client.id}
+              currentStatus={client.status}
+            />
+          </div>
 
-          {/* Current Next Steps and History Section */}
+          {/* Next Steps Section */}
           <div className="bg-white rounded-lg shadow-sm p-6">
             <div className="space-y-4">
-              {/* Current Next Steps Header */}
+              {/* Next Steps Header */}
               <div className="flex justify-between items-center mb-4">
                 <h3 className="text-lg font-semibold">Current Next Steps</h3>
-                <UpdateNextStepButton 
-                  clientId={client.id}
-                  currentNotes=""
-                  currentDueDate=""
-                />
               </div>
 
               {/* Current Next Steps List */}
@@ -80,6 +78,15 @@ export const ClientContent = ({
                   <p className="text-gray-500">No active next steps</p>
                 )}
               </div>
+
+              {/* Next Steps Action Button */}
+              <div className="flex justify-end">
+                <UpdateNextStepButton 
+                  clientId={client.id}
+                  currentNotes=""
+                  currentDueDate=""
+                />
+              </div>
               
               {/* Next Steps History */}
               <div>
@@ -88,24 +95,22 @@ export const ClientContent = ({
               </div>
             </div>
           </div>
+
+          {/* Revenue Section */}
+          <div className="bg-white rounded-lg shadow-sm p-6">
+            <KeyMetricsCard 
+              annualRevenue={client.annual_revenue}
+              likelihood={client.likelihood}
+              revenueData={revenueData}
+              annualRevenueSignedOff={totalActualRevenue}
+              annualRevenueForecast={client.annual_revenue_forecast}
+              clientId={client.id}
+            />
+          </div>
         </div>
 
-        {/* Metrics Section - 4 columns on large screens */}
+        {/* Right Column - 4 columns on large screens */}
         <div className="lg:col-span-4 space-y-6">
-          <KeyMetricsCard 
-            annualRevenue={client.annual_revenue}
-            likelihood={client.likelihood}
-            revenueData={revenueData}
-            annualRevenueSignedOff={totalActualRevenue}
-            annualRevenueForecast={client.annual_revenue_forecast}
-            clientId={client.id}
-          />
-        </div>
-      </div>
-
-      {/* Contact and Additional Info Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        <div className="lg:col-span-6">
           <ContactInfoCard 
             contactName={client.contact_name}
             companySize={client.company_size}
@@ -113,9 +118,6 @@ export const ClientContent = ({
             contactPhone={client.contact_phone}
             additionalContacts={parsedAdditionalContacts}
           />
-        </div>
-
-        <div className="lg:col-span-6">
           <AdditionalInfoCard 
             industry={client.industry}
             website={client.website}
@@ -125,17 +127,20 @@ export const ClientContent = ({
         </div>
       </div>
 
-      {/* Strategic Recommendations Section */}
-      <div className="col-span-12">
-        <StrategicRecommendations 
-          clientId={client.id} 
-          clientName={client.name}
-        />
-      </div>
+      {/* Full Width Sections */}
+      <div className="space-y-6">
+        {/* Strategic Recommendations Section */}
+        <div className="col-span-12">
+          <StrategicRecommendations 
+            clientId={client.id} 
+            clientName={client.name}
+          />
+        </div>
 
-      {/* Urgent Flag Toggle */}
-      <div className="col-span-12 flex items-center justify-between gap-4 p-4 bg-white rounded-lg shadow-sm">
-        <UrgentFlagToggle clientId={client.id} isUrgent={client.urgent || false} />
+        {/* Urgent Flag Toggle */}
+        <div className="col-span-12 flex items-center justify-between gap-4 p-4 bg-white rounded-lg shadow-sm">
+          <UrgentFlagToggle clientId={client.id} isUrgent={client.urgent || false} />
+        </div>
       </div>
     </div>
   );
