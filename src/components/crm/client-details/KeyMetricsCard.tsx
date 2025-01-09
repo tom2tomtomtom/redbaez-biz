@@ -35,7 +35,7 @@ export const KeyMetricsCard = ({
           annualRevenueSignedOff={annualRevenueSignedOff}
           annualRevenueForecast={annualRevenueForecast}
         />
-        <DealLikelihood likelihood={likelihood} />
+        <DealLikelihood likelihood={likelihood} clientId={clientId} />
       </div>
       <div className="mt-6 grid gap-6 md:grid-cols-2">
         <div>
