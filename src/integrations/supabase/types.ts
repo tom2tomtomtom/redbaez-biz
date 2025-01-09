@@ -183,6 +183,7 @@ export type Database = {
           project_revenue_signed_off: boolean | null
           status: string | null
           type: string
+          urgent: boolean | null
           website: string | null
         }
         Insert: {
@@ -232,6 +233,7 @@ export type Database = {
           project_revenue_signed_off?: boolean | null
           status?: string | null
           type: string
+          urgent?: boolean | null
           website?: string | null
         }
         Update: {
@@ -281,6 +283,7 @@ export type Database = {
           project_revenue_signed_off?: boolean | null
           status?: string | null
           type?: string
+          urgent?: boolean | null
           website?: string | null
         }
         Relationships: []

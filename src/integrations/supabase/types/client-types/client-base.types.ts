@@ -16,4 +16,5 @@ export type ClientBaseFields = {
   project_revenue: number | null
   next_due_date: string | null
   additional_contacts: string | null
+  urgent: boolean | null
 }
