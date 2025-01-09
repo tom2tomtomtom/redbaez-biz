@@ -42,7 +42,7 @@ export const ClientContent = ({
   return (
     <div className="space-y-6 max-w-5xl mx-auto">
       {/* Status Section */}
-      <div className="bg-white rounded-lg shadow-sm p-6">
+      <div className="bg-white rounded-lg shadow-sm p-6 text-left">
         <StatusTab 
           clientId={client.id}
           currentStatus={client.status}
@@ -50,7 +50,7 @@ export const ClientContent = ({
       </div>
 
       {/* Next Steps Section */}
-      <div className="bg-white rounded-lg shadow-sm p-6">
+      <div className="bg-white rounded-lg shadow-sm p-6 text-left">
         <div className="space-y-4">
           <div className="flex justify-between items-center mb-4">
             <h3 className="text-lg font-semibold">Current Next Steps</h3>
@@ -81,7 +81,7 @@ export const ClientContent = ({
             />
           </div>
           
-          <div>
+          <div className="text-left">
             <h3 className="text-lg font-semibold mb-4">Next Steps History</h3>
             <NextStepsHistory clientId={client.id} />
           </div>
@@ -89,7 +89,7 @@ export const ClientContent = ({
       </div>
 
       {/* Revenue Section */}
-      <div className="bg-white rounded-lg shadow-sm p-6">
+      <div className="bg-white rounded-lg shadow-sm p-6 text-left">
         <KeyMetricsCard 
           annualRevenue={client.annual_revenue}
           likelihood={client.likelihood}
@@ -101,7 +101,7 @@ export const ClientContent = ({
       </div>
 
       {/* Strategic Recommendations Section */}
-      <div className="bg-white rounded-lg shadow-sm">
+      <div className="bg-white rounded-lg shadow-sm text-left">
         <StrategicRecommendations 
           clientId={client.id} 
           clientName={client.name}
@@ -109,7 +109,7 @@ export const ClientContent = ({
       </div>
 
       {/* Client Info Section */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 gap-6">
         <ContactInfoCard 
           contactName={client.contact_name}
           companySize={client.company_size}
@@ -126,7 +126,7 @@ export const ClientContent = ({
       </div>
 
       {/* Urgent Flag Toggle */}
-      <div className="flex items-center justify-between gap-4 p-4 bg-white rounded-lg shadow-sm">
+      <div className="flex items-center justify-start gap-4 p-4 bg-white rounded-lg shadow-sm">
         <UrgentFlagToggle clientId={client.id} isUrgent={client.urgent || false} />
       </div>
     </div>
