@@ -6,6 +6,7 @@ export * from './general-tasks.types';
 export * from './recommendations.types';
 export * from './messages.types';
 export * from './profiles.types';
+export * from './team-members.types';
 
 export type Json =
   | string
@@ -59,9 +60,9 @@ export type Database = {
         Update: import('./recommendations.types').RecommendationUpdate
       }
       team_members: {
-        Row: import('./profiles.types').TeamMemberRow
-        Insert: import('./profiles.types').TeamMemberInsert
-        Update: import('./profiles.types').TeamMemberUpdate
+        Row: import('./team-members.types').TeamMemberRow
+        Insert: import('./team-members.types').TeamMemberInsert
+        Update: import('./team-members.types').TeamMemberUpdate
       }
     }
     Views: {
