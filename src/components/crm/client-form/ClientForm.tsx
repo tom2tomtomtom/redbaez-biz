@@ -51,9 +51,9 @@ export const ClientForm = ({
   
   const { handleSubmit, isSubmitting } = useClientFormSubmit({
     clientId: initialData?.id?.toString(),
-    onSuccess: (data: any) => {
+    onSuccess: () => {
       if (isEditing && onSave) {
-        onSave(data);
+        onSave(formState);
       } else if (!isEditing && onClientAdded) {
         onClientAdded();
       }
