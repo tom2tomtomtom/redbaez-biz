@@ -9,7 +9,9 @@ interface GeneralTaskItemProps {
 }
 
 export const GeneralTaskItem = ({ task }: GeneralTaskItemProps) => {
-  const getCategoryColor = (category: string) => {
+  const getCategoryColor = (category: string | undefined) => {
+    if (!category) return 'bg-gray-50 border-gray-100';
+    
     switch (category.toLowerCase()) {
       case 'marketing':
         return 'bg-purple-50 border-purple-100';
