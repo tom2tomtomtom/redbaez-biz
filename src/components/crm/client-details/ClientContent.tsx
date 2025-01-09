@@ -72,7 +72,10 @@ export const ClientContent = ({
         />
 
         <div className="col-span-12">
-          <StrategicRecommendations clientId={client.id} />
+          <StrategicRecommendations 
+            clientId={client.id} 
+            clientName={client.name}
+          />
         </div>
 
         <div className="col-span-12 flex items-center justify-between gap-4 p-4 bg-white rounded-lg shadow-sm">
