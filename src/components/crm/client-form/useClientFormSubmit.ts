@@ -3,13 +3,23 @@ import { useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/components/ui/use-toast';
+import { ClientFormData, UseClientFormSubmitProps } from './types';
 
-export const useClientFormSubmit = (clientId?: string) => {
+export const useClientFormSubmit = ({ clientId, onSuccess }: UseClientFormSubmitProps) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
-  const handleSubmit = async (formData: any) => {
+  const handleSubmit = async (formData: ClientFormData) => {
+    if (!formData.name) {
+      toast({
+        title: "Error",
+        description: "Company name is required",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       const clientData = {
@@ -20,21 +30,25 @@ export const useClientFormSubmit = (clientId?: string) => {
         contact_email: formData.contact_email,
         contact_phone: formData.contact_phone,
         company_size: formData.company_size,
-        annual_revenue: formData.annual_revenue ? parseFloat(formData.annual_revenue) : null,
+        annual_revenue: formData.annual_revenue,
         website: formData.website,
         notes: formData.notes,
         status: formData.status || 'incomplete',
-        likelihood: formData.likelihood ? parseFloat(formData.likelihood) : null,
+        likelihood: formData.likelihood,
         background: formData.background,
-        project_revenue: formData.project_revenue ? parseFloat(formData.project_revenue) : null,
-        next_due_date: formData.next_due_date || null,
+        project_revenue: formData.project_revenue,
+        next_due_date: formData.next_due_date,
+        project_revenue_signed_off: formData.project_revenue_signed_off,
+        project_revenue_forecast: formData.project_revenue_forecast,
+        annual_revenue_signed_off: formData.annual_revenue_signed_off || 0,
+        annual_revenue_forecast: formData.annual_revenue_forecast || 0,
       };
 
       if (clientId) {
         const { error } = await supabase
           .from('clients')
           .update(clientData)
-          .eq('id', clientId);
+          .eq('id', parseInt(clientId, 10));
 
         if (error) throw error;
 
@@ -42,6 +56,10 @@ export const useClientFormSubmit = (clientId?: string) => {
           title: "Success",
           description: "Client information updated successfully",
         });
+
+        if (onSuccess) {
+          onSuccess();
+        }
       } else {
         const { data: newClient, error } = await supabase
           .from('clients')
@@ -67,7 +85,7 @@ export const useClientFormSubmit = (clientId?: string) => {
           }
         }
 
-        // Invalidate all relevant queries to ensure lists are updated
+        // Invalidate all relevant queries
         queryClient.invalidateQueries({ queryKey: ['clients'] });
         queryClient.invalidateQueries({ queryKey: ['priorityClients'] });
         queryClient.invalidateQueries({ queryKey: ['client-next-steps'] });
@@ -78,7 +96,6 @@ export const useClientFormSubmit = (clientId?: string) => {
           description: "New client added successfully",
         });
 
-        // Navigate to the new client's page
         if (newClient) {
           navigate(`/client/${newClient.id}`);
         }

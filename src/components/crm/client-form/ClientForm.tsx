@@ -9,7 +9,6 @@ import { useClientFormState } from './useClientFormState';
 import { useClientFormSubmit } from './useClientFormSubmit';
 import { RevenueFormSection } from './revenue/RevenueFormSection';
 import { useRevenueState } from './hooks/useRevenueState';
-import { toast } from '@/hooks/use-toast';
 
 interface Contact {
   firstName: string;
@@ -50,32 +49,9 @@ export const ClientForm = ({
   const formState = useClientFormState({ initialData, isEditing });
   const revenueState = useRevenueState(initialData);
   
-  const resetForm = () => {
-    formState.setCompanyName('');
-    formState.setStatus('');
-    formState.setLikelihood('');
-    formState.setType('business');
-    formState.setIndustry('');
-    formState.setCompanySize('');
-    formState.setWebsite('');
-    formState.setBackground('');
-    onContactsChange([{ 
-      firstName: '', 
-      lastName: '', 
-      title: '', 
-      email: '', 
-      address: '', 
-      phone: '' 
-    }]);
-    onNextStepsChange('');
-    onNextDueDateChange('');
-  };
-
-  const { handleSubmit } = useClientFormSubmit({
-    isEditing,
-    onSave,
-    setIsLoading: formState.setIsLoading,
-    resetForm,
+  const { handleSubmit, isSubmitting } = useClientFormSubmit({
+    clientId: initialData?.id?.toString(),
+    onSuccess: isEditing ? onSave : onClientAdded
   });
 
   const onSubmit = async () => {
@@ -83,7 +59,7 @@ export const ClientForm = ({
       name: formState.companyName,
       type: formState.type,
       industry: formState.industry,
-      company_size: formState.companySize || null,
+      company_size: formState.companySize,
       status: formState.status,
       annual_revenue: revenueState.annualRevenue ? parseFloat(revenueState.annualRevenue) : null,
       project_revenue: revenueState.projectRevenue ? parseFloat(revenueState.projectRevenue) : null,
@@ -98,23 +74,7 @@ export const ClientForm = ({
       annual_revenue_forecast: parseFloat(revenueState.annualRevenueForecast) || 0,
     };
 
-    try {
-      await handleSubmit(formData);
-      toast({
-        title: isEditing ? "Client Updated" : "Client Added",
-        description: `Successfully ${isEditing ? 'updated' : 'added'} client information.`,
-      });
-      if (onClientAdded) {
-        onClientAdded();
-      }
-    } catch (error) {
-      console.error('Error saving client:', error);
-      toast({
-        title: "Error",
-        description: "Failed to save client information. Please try again.",
-        variant: "destructive",
-      });
-    }
+    await handleSubmit(formData);
   };
 
   return (
@@ -186,9 +146,9 @@ export const ClientForm = ({
           <Button 
             className="w-full py-6 text-lg font-medium transition-all duration-300 hover:scale-[1.01]"
             onClick={onSubmit}
-            disabled={formState.isLoading}
+            disabled={isSubmitting}
           >
-            {formState.isLoading ? 'Saving...' : isEditing ? 'Update Client Information' : 'Save Client Information'}
+            {isSubmitting ? 'Saving...' : isEditing ? 'Update Client Information' : 'Save Client Information'}
           </Button>
         </div>
       </CardContent>
