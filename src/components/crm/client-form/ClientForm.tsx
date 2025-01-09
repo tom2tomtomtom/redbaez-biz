@@ -51,7 +51,13 @@ export const ClientForm = ({
   
   const { handleSubmit, isSubmitting } = useClientFormSubmit({
     clientId: initialData?.id?.toString(),
-    onSuccess: isEditing ? onSave : onClientAdded
+    onSuccess: (data: any) => {
+      if (isEditing && onSave) {
+        onSave(data);
+      } else if (!isEditing && onClientAdded) {
+        onClientAdded();
+      }
+    }
   });
 
   const onSubmit = async (e: React.MouseEvent<HTMLButtonElement>) => {
