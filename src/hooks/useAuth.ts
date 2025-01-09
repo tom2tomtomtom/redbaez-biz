@@ -11,6 +11,9 @@ export const useAuth = () => {
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event: AuthChangeEvent, session: Session | null) => {
+        console.log('Auth event:', event);
+        console.log('Session:', session);
+
         if (event === 'SIGNED_IN' && session) {
           const email = session.user.email;
           if (email && !isAllowedDomain(email)) {
@@ -40,9 +43,19 @@ export const useAuth = () => {
             if (sessionError && sessionError.message !== 'session_not_found') {
               setError(getErrorMessage(sessionError));
             }
+            // If session exists after user update, redirect to home
+            if (session) {
+              navigate('/');
+            }
           } catch (error) {
             console.error('Error checking session:', error);
           }
+        }
+
+        // Handle email confirmation
+        if (event === 'EMAIL_CONFIRMED') {
+          setError('Email confirmed successfully! You can now sign in.');
+          navigate('/login');
         }
 
         if (event === 'PASSWORD_RECOVERY') {
@@ -51,7 +64,10 @@ export const useAuth = () => {
       }
     );
 
-    return () => subscription.unsubscribe();
+    // Clean up subscription on unmount
+    return () => {
+      subscription.unsubscribe();
+    };
   }, [navigate]);
 
   const getErrorMessage = (error: AuthError): string => {
