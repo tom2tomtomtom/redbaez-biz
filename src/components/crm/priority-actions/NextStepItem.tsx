@@ -1,5 +1,6 @@
 import { Tables } from '@/integrations/supabase/types';
 import { Calendar } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 interface NextStepItemProps {
   nextStep: Tables<'client_next_steps'> & { client_name?: string };
@@ -19,8 +20,19 @@ const getTypeColor = (type: string) => {
 };
 
 export const NextStepItem = ({ nextStep }: NextStepItemProps) => {
+  const navigate = useNavigate();
+
+  const handleClick = () => {
+    if (nextStep.client_id) {
+      navigate(`/client/${nextStep.client_id}`);
+    }
+  };
+
   return (
-    <div className={`p-3 rounded-lg border ${getTypeColor(nextStep.client_name || '')}`}>
+    <div 
+      className={`p-3 rounded-lg border ${getTypeColor(nextStep.client_name || '')} cursor-pointer hover:shadow-md transition-shadow`}
+      onClick={handleClick}
+    >
       <div className="flex justify-between items-start">
         <div className="flex items-start space-x-3">
           <div className="h-6 w-6 rounded-full bg-orange-500 flex items-center justify-center text-white text-xs font-bold">
