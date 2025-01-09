@@ -1,4 +1,5 @@
 import { Tables } from '@/integrations/supabase/types';
+import { Calendar } from 'lucide-react';
 
 interface NextStepItemProps {
   nextStep: Tables<'client_next_steps'> & { client_name?: string };
