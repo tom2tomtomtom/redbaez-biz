@@ -35,13 +35,18 @@ export const NextStepsHistory: React.FC<NextStepsHistoryProps> = ({ clientId }) 
   const { data: history, isLoading } = useQuery<HistoryEntry[]>({
     queryKey: ['next-steps-history', clientId],
     queryFn: async () => {
+      console.log('Fetching history for client:', clientId);
       const { data, error } = await supabase
         .from('next_steps_history')
         .select('*, profiles(full_name)')
         .eq('client_id', clientId)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching history:', error);
+        throw error;
+      }
+      console.log('Fetched history data:', data);
       return data;
     },
   });
