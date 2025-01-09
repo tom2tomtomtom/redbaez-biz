@@ -8,6 +8,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/components/ui/use-toast';
 import { useQueryClient } from '@tanstack/react-query';
 import { GeneralTaskRow } from '@/integrations/supabase/types/general-tasks.types';
+import { CheckCircle } from 'lucide-react';
 
 interface PriorityItemsListProps {
   items: PriorityItem[];
@@ -125,11 +126,16 @@ export const PriorityItemsList = ({ items, onTaskClick }: PriorityItemsListProps
         <div key={item.data.id} className="relative">
           <div className="absolute right-3 top-3 z-10 flex items-center gap-2 bg-white/80 backdrop-blur-sm px-2 py-1 rounded-full">
             <div className="flex items-center gap-2">
-              <Checkbox
-                id={`completed-${item.data.id}`}
-                checked={item.data.status === 'completed'}
-                onCheckedChange={(checked) => handleCompletedChange(item, checked as boolean)}
-              />
+              <button
+                onClick={() => handleCompletedChange(item, item.data.status !== 'completed')}
+                className={`transition-all duration-300 transform hover:scale-110 active:scale-95 ${
+                  item.data.status === 'completed' ? 'text-green-500' : 'text-gray-400 hover:text-gray-600'
+                }`}
+              >
+                <CheckCircle className={`h-5 w-5 transition-all duration-300 ${
+                  item.data.status === 'completed' ? 'animate-scale-in' : ''
+                }`} />
+              </button>
               <Switch
                 id={`urgent-${item.data.id}`}
                 checked={'urgent' in item.data ? item.data.urgent : false}
