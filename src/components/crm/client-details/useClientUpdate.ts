@@ -1,9 +1,9 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/components/ui/use-toast';
 
 export const useClientUpdate = (clientId: string | number, onSuccess?: () => void) => {
-  const queryClient = useQueryClient();
+  // Convert clientId to number if it's a string
   const numericClientId = typeof clientId === 'string' ? parseInt(clientId, 10) : clientId;
 
   return useMutation({
@@ -37,12 +37,10 @@ export const useClientUpdate = (clientId: string | number, onSuccess?: () => voi
       if (error) throw error;
       return data;
     },
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['client', numericClientId] });
-      queryClient.invalidateQueries({ queryKey: ['client-next-steps', numericClientId] });
+    onSuccess: () => {
       toast({
         title: "Success",
-        description: "Client updated successfully",
+        description: "Client information updated successfully",
       });
       if (onSuccess) onSuccess();
     },
@@ -50,9 +48,9 @@ export const useClientUpdate = (clientId: string | number, onSuccess?: () => voi
       console.error('Error updating client:', error);
       toast({
         title: "Error",
-        description: "Failed to update client",
+        description: "Failed to update client information",
         variant: "destructive",
       });
-    },
+    }
   });
 };
