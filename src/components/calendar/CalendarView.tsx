@@ -5,14 +5,15 @@ import { Calendar, Clock, AlertCircle } from 'lucide-react';
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface CalendarViewProps {
-  clientId: string;  // Keep as string since it comes from URL params
+  clientId?: string;  // Made optional
 }
 
 export const CalendarView = ({ clientId }: CalendarViewProps) => {
   const { data: meetings, isLoading, error } = useQuery({
     queryKey: ['meetings', clientId],
-    queryFn: () => CalendarService.getClientMeetings(Number(clientId)),  // Convert to number here
-    retry: 1, // Only retry once to avoid too many failed attempts
+    queryFn: () => clientId ? CalendarService.getClientMeetings(Number(clientId)) : Promise.resolve([]),
+    retry: 1,
+    enabled: !!clientId, // Only run query if clientId exists
   });
 
   if (isLoading) {
@@ -54,12 +55,14 @@ export const CalendarView = ({ clientId }: CalendarViewProps) => {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Calendar className="h-5 w-5" />
-          Calendar Events
+          Calendar Events {clientId ? `for Client #${clientId}` : ''}
         </CardTitle>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
-          {meetings?.length === 0 ? (
+          {!clientId ? (
+            <p className="text-muted-foreground text-sm">Select a client to view their calendar events</p>
+          ) : meetings?.length === 0 ? (
             <p className="text-muted-foreground text-sm">No upcoming meetings</p>
           ) : (
             meetings?.map((meeting: Meeting) => (
