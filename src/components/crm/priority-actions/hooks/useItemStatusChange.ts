@@ -28,8 +28,10 @@ export const useItemStatusChange = () => {
         if (error) throw error;
       }
 
+      // Invalidate all relevant queries to ensure proper reordering
       queryClient.invalidateQueries({ queryKey: ['priorityClients'] });
       queryClient.invalidateQueries({ queryKey: ['generalTasks'] });
+      queryClient.invalidateQueries({ queryKey: ['priorityNextSteps'] });
       queryClient.invalidateQueries({ queryKey: ['nextSteps'] });
 
       toast({
@@ -51,29 +53,48 @@ export const useItemStatusChange = () => {
 
   const handleUrgentChange = async (item: PriorityItem, checked: boolean) => {
     try {
+      let error;
+
       if (item.type === 'task') {
-        const { error } = await supabase
+        const result = await supabase
           .from('general_tasks')
           .update({ urgent: checked })
           .eq('id', item.data.id);
-        if (error) throw error;
+        error = result.error;
       } else if (item.type === 'client') {
-        const { error } = await supabase
+        // Update client urgent status
+        const clientResult = await supabase
           .from('clients')
           .update({ urgent: checked })
           .eq('id', item.data.id);
-        if (error) throw error;
+        error = clientResult.error;
+
+        if (!error) {
+          // Also update all active next steps for this client
+          const nextStepsResult = await supabase
+            .from('client_next_steps')
+            .update({ urgent: checked })
+            .eq('client_id', item.data.id)
+            .is('completed_at', null);
+          error = nextStepsResult.error;
+        }
       } else if (item.type === 'next_step') {
-        const { error } = await supabase
+        const result = await supabase
           .from('client_next_steps')
           .update({ urgent: checked })
           .eq('id', item.data.id);
-        if (error) throw error;
+        error = result.error;
       }
 
+      if (error) throw error;
+
+      // Invalidate all relevant queries to ensure proper reordering
       queryClient.invalidateQueries({ queryKey: ['priorityClients'] });
       queryClient.invalidateQueries({ queryKey: ['generalTasks'] });
+      queryClient.invalidateQueries({ queryKey: ['priorityNextSteps'] });
       queryClient.invalidateQueries({ queryKey: ['nextSteps'] });
+      queryClient.invalidateQueries({ queryKey: ['client'] });
+      queryClient.invalidateQueries({ queryKey: ['client-next-steps'] });
 
       toast({
         title: checked ? "Marked as urgent" : "Removed urgent flag",
