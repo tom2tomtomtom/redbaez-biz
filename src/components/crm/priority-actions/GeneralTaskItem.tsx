@@ -10,7 +10,7 @@ interface GeneralTaskItemProps {
 
 export const GeneralTaskItem = ({ task }: GeneralTaskItemProps) => {
   const getCategoryColor = (category: string | undefined) => {
-    if (!category) return 'bg-gray-50 border-gray-100';
+    if (!category) return 'bg-orange-50 border-orange-100';
     
     switch (category.toLowerCase()) {
       case 'marketing':
@@ -37,9 +37,10 @@ export const GeneralTaskItem = ({ task }: GeneralTaskItemProps) => {
     }
   };
 
-  // Remove square brackets from title
-  const formatTitle = (title: string) => {
-    return title.replace(/\[([^\]]+)\]/g, '$1').trim();
+  // Extract client name from title (assuming format "[ClientName] rest of title")
+  const getClientName = (title: string) => {
+    const match = title.match(/^\[([^\]]+)\]/);
+    return match ? match[1] : 'Unknown Client';
   };
 
   return (
@@ -51,11 +52,16 @@ export const GeneralTaskItem = ({ task }: GeneralTaskItemProps) => {
       )}
     >
       <div className="flex justify-between items-start">
-        <div className="space-y-2">
-          <h3 className="font-medium text-base">{formatTitle(task.title)}</h3>
-          {task.description && (
-            <p className="text-sm text-gray-600">{task.description}</p>
-          )}
+        <div className="flex items-start space-x-3">
+          <div className="h-6 w-6 rounded-full bg-orange-500 flex items-center justify-center text-white text-xs font-bold">
+            {getClientName(task.title).charAt(0).toUpperCase()}
+          </div>
+          <div>
+            <span className="font-medium">{getClientName(task.title)}</span>
+            <p className="text-sm text-gray-600 mt-1">
+              {task.description || 'No description'}
+            </p>
+          </div>
         </div>
         <div className={`px-2 py-1 rounded-full text-sm ${getStatusColor(task.status)}`}>
           {task.status || "pending"}
