@@ -31,9 +31,8 @@ export const CRMDashboard = ({ onClientAdded }: CRMDashboardProps) => {
       // If we're in a dialog (indicated by onClientAdded prop), call it to close the dialog
       onClientAdded();
     } else {
-      // If we're not in a dialog, navigate to home and force a refresh
-      navigate('/');
-      window.location.reload();
+      // If we're not in a dialog, navigate to home
+      navigate('/', { replace: true });
     }
   };
 

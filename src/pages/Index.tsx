@@ -7,7 +7,7 @@ import { IntelSearch } from "@/components/crm/intel-search/IntelSearch";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { LogOut, Plus, Users } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import {
   Dialog,
@@ -33,6 +33,7 @@ const Index = () => {
   const [isNewTaskOpen, setIsNewTaskOpen] = useState(false);
   const [showClientList, setShowClientList] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
 
   const { data: clients, isLoading } = useQuery({
     queryKey: ['clients'],
@@ -66,13 +67,7 @@ const Index = () => {
             </Button>
             <Dialog 
               open={isNewClientOpen} 
-              onOpenChange={(open) => {
-                setIsNewClientOpen(open);
-                if (!open) {
-                  // Force a refresh of the clients list when dialog closes
-                  window.location.reload();
-                }
-              }}
+              onOpenChange={setIsNewClientOpen}
             >
               <DialogTrigger asChild>
                 <Button>
