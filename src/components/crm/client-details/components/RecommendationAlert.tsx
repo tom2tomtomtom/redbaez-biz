@@ -10,7 +10,7 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
-import { CalendarIcon, Plus, CheckCircle } from 'lucide-react';
+import { CalendarIcon, Plus, CheckCircle, Trash2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/components/ui/use-toast';
 import { useQueryClient } from '@tanstack/react-query';
@@ -35,6 +35,7 @@ export const RecommendationAlert: React.FC<RecommendationAlertProps> = ({
   const [isOpen, setIsOpen] = useState(false);
   const [isCompleted, setIsCompleted] = useState(false);
   const [isUrgent, setIsUrgent] = useState(false);
+  const [isDiscarded, setIsDiscarded] = useState(false);
   const queryClient = useQueryClient();
 
   const getPriorityColor = (priority: string) => {
@@ -79,6 +80,8 @@ export const RecommendationAlert: React.FC<RecommendationAlertProps> = ({
         description: "Task created successfully",
       });
 
+      // Mark as discarded after successful task creation
+      setIsDiscarded(true);
       queryClient.invalidateQueries({ queryKey: ['generalTasks'] });
       setIsOpen(false);
     } catch (error) {
@@ -90,6 +93,18 @@ export const RecommendationAlert: React.FC<RecommendationAlertProps> = ({
       });
     }
   };
+
+  const handleDiscard = () => {
+    setIsDiscarded(true);
+    toast({
+      title: "Idea Discarded",
+      description: "The idea has been removed from the list",
+    });
+  };
+
+  if (isDiscarded) {
+    return null;
+  }
 
   return (
     <Alert className={cn(
@@ -112,13 +127,10 @@ export const RecommendationAlert: React.FC<RecommendationAlertProps> = ({
           <Button
             variant="ghost"
             size="sm"
-            className={cn(
-              "hover:bg-transparent",
-              isCompleted ? "text-green-500" : "text-gray-400 hover:text-gray-600"
-            )}
-            onClick={() => setIsCompleted(!isCompleted)}
+            className="text-red-500 hover:text-red-700 hover:bg-transparent"
+            onClick={handleDiscard}
           >
-            <CheckCircle className="h-5 w-5" />
+            <Trash2 className="h-4 w-4" />
           </Button>
           <Popover open={isOpen} onOpenChange={setIsOpen}>
             <PopoverTrigger asChild>
