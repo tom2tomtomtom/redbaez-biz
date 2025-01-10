@@ -1,21 +1,10 @@
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { Loader2, Sparkles } from "lucide-react";
 import { toast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { TaskDialog } from "@/components/crm/priority-actions/TaskDialog";
 import { Tables } from "@/integrations/supabase/types";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+import { IdeaGenerationForm } from "./components/IdeaGenerationForm";
+import { CreateTaskDialog } from "./components/CreateTaskDialog";
 
 interface IdeaGeneratorProps {
   category: string;
@@ -24,7 +13,6 @@ interface IdeaGeneratorProps {
 
 export const IdeaGenerator = ({ category, onIdeaGenerated }: IdeaGeneratorProps) => {
   const [isGenerating, setIsGenerating] = useState(false);
-  const [prompt, setPrompt] = useState("");
   const [isTaskDialogOpen, setIsTaskDialogOpen] = useState(false);
   const [selectedIdea, setSelectedIdea] = useState<{
     suggestion: string;
@@ -33,7 +21,7 @@ export const IdeaGenerator = ({ category, onIdeaGenerated }: IdeaGeneratorProps)
   } | null>(null);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
 
-  const generateIdea = async () => {
+  const generateIdea = async (prompt: string) => {
     try {
       setIsGenerating(true);
       console.log('Generating ideas for category:', category);
@@ -91,7 +79,6 @@ export const IdeaGenerator = ({ category, onIdeaGenerated }: IdeaGeneratorProps)
           description: "Click on any idea to convert it into a task.",
         });
 
-        setPrompt("");
         onIdeaGenerated();
       } else {
         throw new Error('No recommendations received from the API');
@@ -115,50 +102,19 @@ export const IdeaGenerator = ({ category, onIdeaGenerated }: IdeaGeneratorProps)
 
   return (
     <div className="space-y-4">
-      <Textarea
-        placeholder={`Add any specific focus areas or constraints for ${category} ideas...`}
-        value={prompt}
-        onChange={(e) => setPrompt(e.target.value)}
-        className="min-h-[100px]"
+      <IdeaGenerationForm 
+        isGenerating={isGenerating}
+        onGenerate={generateIdea}
       />
-      <Button 
-        onClick={generateIdea} 
-        disabled={isGenerating}
-        className="w-full"
-        variant="default"
-      >
-        {isGenerating ? (
-          <>
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            Generating Ideas...
-          </>
-        ) : (
-          <>
-            <Sparkles className="mr-2 h-4 w-4" />
-            Generate Strategic Ideas
-          </>
-        )}
-      </Button>
 
-      <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Create Task</AlertDialogTitle>
-            <AlertDialogDescription>
-              Do you want to create a task from this idea?
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={() => {
-              setShowConfirmDialog(false);
-              setIsTaskDialogOpen(true);
-            }}>
-              Create Task
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <CreateTaskDialog
+        open={showConfirmDialog}
+        onOpenChange={setShowConfirmDialog}
+        onConfirm={() => {
+          setShowConfirmDialog(false);
+          setIsTaskDialogOpen(true);
+        }}
+      />
 
       <TaskDialog
         isOpen={isTaskDialogOpen}
