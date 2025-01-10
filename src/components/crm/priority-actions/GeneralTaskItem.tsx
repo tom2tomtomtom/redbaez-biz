@@ -48,7 +48,12 @@ export const GeneralTaskItem = ({ task }: GeneralTaskItemProps) => {
     }
   };
 
-  const getClientName = (title: string) => {
+  const getClientName = (title: string, category: string | undefined) => {
+    // For special categories, just return the category name
+    if (category && ['marketing', 'product development', 'partnerships'].includes(category.toLowerCase())) {
+      return category;
+    }
+    // For other tasks, try to extract client name from title
     const match = title.match(/^\[([^\]]+)\]/);
     return match ? match[1] : 'Unknown Client';
   };
@@ -99,10 +104,10 @@ export const GeneralTaskItem = ({ task }: GeneralTaskItemProps) => {
       <div className="flex justify-between items-start">
         <div className="flex items-start space-x-3">
           <div className="h-6 w-6 rounded-full bg-orange-500 flex items-center justify-center text-white text-xs font-bold">
-            {getClientName(task.title).charAt(0).toUpperCase()}
+            {getClientName(task.title, task.category).charAt(0).toUpperCase()}
           </div>
           <div>
-            <span className="font-medium">{getClientName(task.title)}</span>
+            <span className="font-medium">{getClientName(task.title, task.category)}</span>
             <p className="text-sm text-gray-600 mt-1">
               {getTaskDescription(task.description)}
             </p>
