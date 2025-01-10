@@ -54,12 +54,13 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100/50">
-      <div className="container mx-auto py-8 space-y-8">
-        <div className="flex justify-between items-center">
+      <div className="container mx-auto px-4 py-4 md:py-8 space-y-6">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <h1 className="text-2xl font-bold">RedBaez Biz</h1>
-          <div className="flex gap-4">
+          <div className="flex flex-wrap gap-2 w-full md:w-auto">
             <Button 
               variant="outline"
+              className="w-full md:w-auto"
               onClick={() => setShowClientList(!showClientList)}
             >
               <Users className="mr-2 h-4 w-4" />
@@ -67,7 +68,7 @@ const Index = () => {
             </Button>
             <Dialog open={isNewClientOpen} onOpenChange={setIsNewClientOpen}>
               <DialogTrigger asChild>
-                <Button>
+                <Button className="w-full md:w-auto">
                   <Plus className="mr-2 h-4 w-4" />
                   New Client
                 </Button>
@@ -84,7 +85,7 @@ const Index = () => {
             </Dialog>
             <Dialog open={isNewTaskOpen} onOpenChange={setIsNewTaskOpen}>
               <DialogTrigger asChild>
-                <Button>
+                <Button className="w-full md:w-auto">
                   <Plus className="mr-2 h-4 w-4" />
                   Add Task
                 </Button>
@@ -104,7 +105,11 @@ const Index = () => {
                 />
               </DialogContent>
             </Dialog>
-            <Button variant="outline" onClick={handleLogout}>
+            <Button 
+              variant="outline" 
+              onClick={handleLogout}
+              className="w-full md:w-auto"
+            >
               <LogOut className="mr-2 h-4 w-4" />
               Sign out
             </Button>
@@ -159,17 +164,17 @@ const Index = () => {
             </CardContent>
           </Card>
         ) : (
-          <>
+          <div className="space-y-6">
             <PriorityActions hideAddButton />
             <RevenueSummary />
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               <ClientSearch />
               <IntelSearch 
                 searchInput={searchInput}
                 onSearchInputChange={setSearchInput}
               />
             </div>
-          </>
+          </div>
         )}
       </div>
     </div>
