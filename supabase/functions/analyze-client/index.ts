@@ -16,7 +16,7 @@ serve(async (req) => {
     const { clientData } = await req.json();
     console.log('Analyzing client data:', clientData);
     
-    const prompt = `You are a practical business advisor for Redbaez, an AI-focused creative and marketing solutions company. Analyze this client data and provide exactly 3 specific, actionable recommendations that can be implemented within the next 30 days.
+    const prompt = `You are a strategic business advisor for RedBaez, an AI-focused creative and marketing solutions company. Analyze this client data and provide exactly 3 specific, actionable recommendations that align with RedBaez's service offerings and can be implemented within the next 30 days.
 
 Return ONLY a JSON array in this exact format, with no additional text, markdown, or explanations:
 [
@@ -30,22 +30,33 @@ Return ONLY a JSON array in this exact format, with no additional text, markdown
 Valid types are ONLY: "revenue", "engagement", "risk", "opportunity"
 Valid priorities are ONLY: "high", "medium", "low"
 
-Context: Redbaez provides AI training, creative tools, and consulting services to help businesses optimize their marketing and creative workflows. When suggesting actions, focus on:
-1. Gathering key information about the client's AI readiness and needs
-2. Quick wins with AI tools and training
-3. Specific, measurable actions that demonstrate value
+RedBaez Service Offerings:
+1. AI-Centric Creative Campaigns (AUD $15,000 - $50,000)
+   - AI-driven campaign concepts
+   - Interactive AI experiences
+   - AI-powered engagement strategies
 
-Example tasks:
-- Schedule a workflow assessment call to identify AI integration opportunities
-- Send personalized AI news digest highlighting relevant case studies
-- Create sample AI-generated ad variations for their current campaign
-- Conduct 30-minute training session on specific AI tool relevant to their needs
-- Document current creative workflow to identify automation opportunities
+2. Scaled Content Execution (AUD $15,000 - $40,000)
+   - AI audience segmentation
+   - Content template development
+   - A/B testing frameworks
+
+3. AI Optimisation Consultation (AUD $15,000 - $50,000)
+   - Workflow analysis
+   - AI tool recommendations
+   - ROI projections
+
+4. AI Tools Training (AUD $10,000 - $20,000)
+   - Custom training programs
+   - Hands-on workshops
+   - Usage guidelines
 
 Client Context:
 Name: ${clientData?.name || 'Unknown'}
 Industry: ${clientData?.industry || 'Unknown'}
 Status: ${clientData?.status || 'Unknown'}
+Company Size: ${clientData?.company_size || 'Unknown'}
+Annual Revenue: ${clientData?.annual_revenue || 'Unknown'}
 Current Notes: ${clientData?.notes || 'None'}
 Background: ${clientData?.background || 'None'}
 Next Due Date: ${clientData?.next_due_date || 'None'}
@@ -54,7 +65,22 @@ Recent Activity:
 Revenue Trends: ${JSON.stringify(clientData?.revenue_trends)}
 Recent Interactions: ${JSON.stringify(clientData?.interaction_history)}
 Upcoming Revenue: ${JSON.stringify(clientData?.forecasts)}
-Next Steps: ${JSON.stringify(clientData?.next_steps)}`;
+Next Steps: ${JSON.stringify(clientData?.next_steps)}
+
+Consider:
+1. Client's current status and engagement level
+2. Historical interaction patterns
+3. Revenue potential based on company size
+4. Industry-specific AI opportunities
+5. Alignment with RedBaez's service offerings
+6. Implementation feasibility within 30 days
+7. Previous recommendations and their implementation status
+
+Focus recommendations on:
+1. Immediate revenue opportunities through RedBaez's service offerings
+2. Strategic engagement points based on client's industry and size
+3. Risk mitigation and relationship strengthening
+4. Specific, measurable actions with clear next steps`;
 
     const apiKey = Deno.env.get('PERPLEXITY_API_KEY');
     if (!apiKey) {
@@ -74,7 +100,7 @@ Next Steps: ${JSON.stringify(clientData?.next_steps)}`;
         messages: [
           {
             role: 'system',
-            content: 'You are a practical business advisor. Return ONLY a JSON array with exactly 3 specific, actionable recommendations. Each recommendation must have a type (revenue/engagement/risk/opportunity), priority (high/medium/low), and a specific suggestion.'
+            content: 'You are a strategic business advisor. Return ONLY a JSON array with exactly 3 specific, actionable recommendations. Each recommendation must have a type (revenue/engagement/risk/opportunity), priority (high/medium/low), and a specific suggestion that aligns with RedBaez\'s service offerings and pricing.'
           },
           {
             role: 'user',
