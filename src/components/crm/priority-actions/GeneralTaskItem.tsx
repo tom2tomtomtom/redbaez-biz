@@ -1,4 +1,4 @@
-import { Calendar } from "lucide-react";
+import { Calendar, Trash2 } from "lucide-react";
 import { format } from "date-fns";
 import { Card } from "@/components/ui/card";
 import { GeneralTaskRow } from "@/integrations/supabase/types/general-tasks.types";
@@ -83,6 +83,31 @@ export const GeneralTaskItem = ({ task }: GeneralTaskItemProps) => {
     }
   };
 
+  const handleDelete = async () => {
+    try {
+      const { error } = await supabase
+        .from('general_tasks')
+        .delete()
+        .eq('id', task.id);
+
+      if (error) throw error;
+
+      queryClient.invalidateQueries({ queryKey: ['generalTasks'] });
+      
+      toast({
+        title: "Task deleted",
+        description: "The task has been removed.",
+      });
+    } catch (error) {
+      console.error('Error deleting task:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete the task. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <Card 
       className={cn(
@@ -103,15 +128,25 @@ export const GeneralTaskItem = ({ task }: GeneralTaskItemProps) => {
             </p>
           </div>
         </div>
-        {!task.next_due_date && (
-          <Button 
-            variant="outline" 
+        <div className="flex gap-2">
+          {!task.next_due_date && (
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => setIsConverting(true)}
+            >
+              Convert to Task
+            </Button>
+          )}
+          <Button
+            variant="ghost"
             size="sm"
-            onClick={() => setIsConverting(true)}
+            onClick={handleDelete}
+            className="text-red-500 hover:text-red-700 hover:bg-red-50"
           >
-            Convert to Task
+            <Trash2 className="h-4 w-4" />
           </Button>
-        )}
+        </div>
       </div>
       <div 
         className="mt-2 text-sm flex items-center gap-2 text-gray-500"
