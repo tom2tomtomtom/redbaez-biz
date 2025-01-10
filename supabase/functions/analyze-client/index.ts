@@ -6,6 +6,21 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+const BUSINESS_CONTEXT = `
+RedBaez is an AI-powered agency focusing on:
+1. AI-Powered Creativity for innovative campaigns
+2. Optimization Mastery across platforms (Meta, TikTok, YouTube, Snap)
+3. Operational Excellence for productivity
+
+Key Services:
+- AI-Centric Creative Campaigns ($15,000-$50,000)
+- Scaled Content Execution ($15,000-$40,000)
+- AI Optimization Consultation ($15,000-$50,000)
+- AI Tools Training ($10,000-$20,000)
+
+Target Market: Companies with 100+ employees seeking process optimization and enhanced digital content strategy.
+`;
+
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -24,28 +39,28 @@ serve(async (req) => {
 
     // If it's a strategy request, use a different prompt
     if (type === 'strategy') {
-      const strategyPrompt = `As a strategic business advisor, analyze and provide 3 specific, actionable recommendations for the ${category} category.
+      const strategyPrompt = `As a strategic marketing advisor for ${category}, analyze our business context and provide 3 specific, actionable recommendations.
+
+      Business Context:
+      ${BUSINESS_CONTEXT}
       
       ${prompt ? `Additional context or constraints: ${prompt}` : ''}
       
-      Return ONLY a JSON array in this exact format, with no additional text or explanations:
+      Return ONLY a JSON array in this exact format, with no additional text:
       [
         {
-          "type": "revenue",
-          "priority": "high",
+          "type": "revenue" | "engagement" | "risk" | "opportunity",
+          "priority": "high" | "medium" | "low",
           "suggestion": "specific actionable step"
         }
       ]
       
-      Valid types are ONLY: "revenue", "engagement", "risk", "opportunity"
-      Valid priorities are ONLY: "high", "medium", "low"
-      
       Focus on:
-      1. Immediate actionable steps
-      2. Measurable outcomes
-      3. Industry best practices
-      4. Current market trends
-      5. Competitive advantages`;
+      1. Immediate actionable steps aligned with our service offerings
+      2. Measurable outcomes within our price ranges
+      3. Industry best practices for ${category}
+      4. Current market trends in AI and digital marketing
+      5. Competitive advantages based on our SWOT analysis`;
 
       console.log('Sending request to Perplexity API with prompt:', strategyPrompt);
 
