@@ -6,6 +6,8 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+const PERPLEXITY_API_URL = 'https://api.perplexity.ai/chat/completions';
+
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -26,7 +28,7 @@ serve(async (req) => {
     }
 
     // Get news context first
-    const newsResponse = await fetch('https://api.perplexity.ai/chat/completions', {
+    const newsResponse = await fetch(PERPLEXITY_API_URL, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${apiKey}`,
@@ -48,6 +50,12 @@ serve(async (req) => {
         max_tokens: 1000,
       }),
     });
+
+    if (!newsResponse.ok) {
+      const errorText = await newsResponse.text();
+      console.error('Error from Perplexity API (news):', errorText);
+      throw new Error(`Failed to get news from Perplexity API: ${errorText}`);
+    }
 
     const newsData = await newsResponse.json();
     const newsContext = newsData.choices[0].message.content;
@@ -169,7 +177,7 @@ Focus recommendations on:
 5. Opportunities identified from recent news and market developments`;
 
     console.log('Sending request to Perplexity API');
-    const response = await fetch('https://api.perplexity.ai/chat/completions', {
+    const response = await fetch(PERPLEXITY_API_URL, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${apiKey}`,
