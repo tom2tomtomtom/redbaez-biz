@@ -17,6 +17,7 @@ export const IdeaGenerator = ({ category, onIdeaGenerated }: IdeaGeneratorProps)
   const generateIdea = async () => {
     try {
       setIsGenerating(true);
+      console.log('Generating ideas for category:', category);
       
       const { data, error } = await supabase.functions.invoke('analyze-client', {
         body: { 
@@ -26,12 +27,16 @@ export const IdeaGenerator = ({ category, onIdeaGenerated }: IdeaGeneratorProps)
         }
       });
 
+      console.log('Response from Edge Function:', data, error);
+
       if (error) {
         console.error('Error from Edge Function:', error);
         throw error;
       }
 
       if (data?.recommendations) {
+        console.log('Processing recommendations:', data.recommendations);
+        
         // Convert recommendations to tasks
         for (const rec of data.recommendations) {
           await supabase.from('general_tasks').insert({
@@ -57,7 +62,7 @@ export const IdeaGenerator = ({ category, onIdeaGenerated }: IdeaGeneratorProps)
       console.error('Error generating ideas:', error);
       toast({
         title: "Error",
-        description: "Failed to generate ideas. Please ensure the Perplexity API key is configured in Supabase Edge Function secrets.",
+        description: "Failed to generate ideas. Please check the browser console and Edge Function logs for details.",
         variant: "destructive",
       });
     } finally {
