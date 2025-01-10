@@ -17,7 +17,7 @@ interface Recommendation {
 
 interface StrategicRecommendationsProps {
   clientId: number;
-  clientName: string;  // Added clientName prop
+  clientName: string;
 }
 
 export const StrategicRecommendations: React.FC<StrategicRecommendationsProps> = ({ 
@@ -25,6 +25,9 @@ export const StrategicRecommendations: React.FC<StrategicRecommendationsProps> =
   clientName 
 }) => {
   const { recommendations, isLoading, analyzeMutation } = useRecommendations(clientId);
+
+  // Get only the latest 3 recommendations
+  const latestRecommendations = recommendations?.slice(0, 3) || [];
 
   return (
     <Card className="mt-6">
@@ -47,13 +50,13 @@ export const StrategicRecommendations: React.FC<StrategicRecommendationsProps> =
           <div className="flex items-center justify-center p-4">
             <Loader2 className="h-6 w-6 animate-spin" />
           </div>
-        ) : !recommendations?.length ? (
+        ) : !latestRecommendations.length ? (
           <div className="text-center text-muted-foreground p-4">
             No recommendations yet. Click "Generate New Analysis" to get started.
           </div>
         ) : (
           <div className="space-y-4">
-            {recommendations.map((rec: Recommendation) => (
+            {latestRecommendations.map((rec: Recommendation) => (
               <RecommendationAlert
                 key={rec.id}
                 type={rec.type}

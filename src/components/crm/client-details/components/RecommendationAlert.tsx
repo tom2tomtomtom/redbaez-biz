@@ -128,12 +128,14 @@ export const RecommendationAlert: React.FC<RecommendationAlertProps> = ({
           >
             <Trash2 className="h-4 w-4" />
           </Button>
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={() => setIsOpen(true)}
+          >
+            Create Task
+          </Button>
           <Popover open={isOpen} onOpenChange={setIsOpen}>
-            <PopoverTrigger asChild>
-              <Button variant="outline" size="sm">
-                Set as Task
-              </Button>
-            </PopoverTrigger>
             <PopoverContent className="w-auto p-4" align="end">
               <div className="space-y-4">
                 <div className="flex flex-col gap-2">
