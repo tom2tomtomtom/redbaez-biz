@@ -1,10 +1,8 @@
 import { PriorityItem } from '../hooks/usePriorityData';
 import { GeneralTaskItem } from '../GeneralTaskItem';
-import { PriorityActionItem } from '../PriorityActionItem';
 import { NextStepItem } from '../NextStepItem';
 import { ItemControls } from './ItemControls';
 import { GeneralTaskRow } from '@/integrations/supabase/types/general-tasks.types';
-import { ClientRow } from '@/integrations/supabase/types/clients.types';
 
 interface PriorityListItemProps {
   item: PriorityItem;
@@ -36,13 +34,11 @@ export const PriorityListItem = ({
       <div className="transition-all duration-300 transform hover:scale-[1.01] hover:shadow-md rounded-lg">
         {item.type === 'task' ? (
           <div 
-            onClick={() => onTaskClick(item.data as GeneralTaskRow)}
+            onClick={() => onTaskClick(item.data)}
             className="cursor-pointer"
           >
-            <GeneralTaskItem task={item.data as GeneralTaskRow} />
+            <GeneralTaskItem task={item.data} />
           </div>
-        ) : item.type === 'client' ? (
-          <PriorityActionItem client={item.data as ClientRow} />
         ) : (
           <NextStepItem nextStep={item.data} />
         )}
