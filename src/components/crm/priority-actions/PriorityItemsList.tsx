@@ -14,10 +14,10 @@ export const PriorityItemsList = ({ items, onTaskClick }: PriorityItemsListProps
   const [itemToComplete, setItemToComplete] = useState<PriorityItem | null>(null);
   const { handleCompletedChange, handleUrgentChange } = useItemStatusChange();
 
-  // Filter to show only incomplete tasks
-  const activeTasks = items
-    .filter(item => item.type === 'task' && item.data.status !== 'completed')
-    .slice(0, 3);
+  // Filter to show all incomplete tasks without limiting to 3
+  const activeTasks = items.filter(item => 
+    item.type === 'task' && item.data.status !== 'completed'
+  );
 
   if (activeTasks.length === 0) {
     return (
