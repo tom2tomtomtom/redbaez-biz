@@ -14,10 +14,15 @@ export const PriorityItemsList = ({ items, onTaskClick }: PriorityItemsListProps
   const [itemToComplete, setItemToComplete] = useState<PriorityItem | null>(null);
   const { handleCompletedChange, handleUrgentChange } = useItemStatusChange();
 
-  if (items.length === 0) {
+  // Filter to show only the latest 3 items
+  const latestItems = items
+    .filter(item => item.type === 'task')
+    .slice(0, 3);
+
+  if (latestItems.length === 0) {
     return (
       <div className="p-3 bg-gray-50 rounded-lg border border-gray-100">
-        <p className="text-gray-600 text-center">No priority actions found for this month</p>
+        <p className="text-gray-600 text-center">No priority actions found</p>
       </div>
     );
   }
@@ -31,7 +36,7 @@ export const PriorityItemsList = ({ items, onTaskClick }: PriorityItemsListProps
       />
 
       <div className="space-y-3">
-        {items.map((item, index) => (
+        {latestItems.map((item, index) => (
           <PriorityListItem
             key={item.data.id}
             item={item}

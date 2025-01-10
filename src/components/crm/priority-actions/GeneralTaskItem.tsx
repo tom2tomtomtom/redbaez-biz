@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
+import { Button } from "@/components/ui/button";
 
 interface GeneralTaskItemProps {
   task: GeneralTaskRow;
@@ -18,6 +19,7 @@ export const GeneralTaskItem = ({ task }: GeneralTaskItemProps) => {
   const [dateValue, setDateValue] = useState(
     task.next_due_date ? new Date(task.next_due_date).toISOString().split('T')[0] : ''
   );
+  const [isConverting, setIsConverting] = useState(false);
   const queryClient = useQueryClient();
 
   const getCategoryColor = (category: string | undefined) => {
@@ -35,25 +37,10 @@ export const GeneralTaskItem = ({ task }: GeneralTaskItemProps) => {
     }
   };
 
-  const getStatusColor = (status: string | null) => {
-    switch (status) {
-      case "completed":
-        return "bg-green-100 text-green-800";
-      case "in_progress":
-        return "bg-blue-100 text-blue-800";
-      case "blocked":
-        return "bg-red-100 text-red-800";
-      default:
-        return "bg-gray-100 text-gray-800";
-    }
-  };
-
   const getClientName = (title: string, category: string | undefined) => {
-    // For special categories, just return the category name
     if (category && ['marketing', 'product development', 'partnerships'].includes(category.toLowerCase())) {
       return category;
     }
-    // For other tasks, try to extract client name from title
     const match = title.match(/^\[([^\]]+)\]/);
     return match ? match[1] : 'Unknown Client';
   };
@@ -68,28 +55,31 @@ export const GeneralTaskItem = ({ task }: GeneralTaskItemProps) => {
     try {
       const { error } = await supabase
         .from('general_tasks')
-        .update({ next_due_date: newDate ? new Date(newDate).toISOString() : null })
+        .update({ 
+          next_due_date: newDate ? new Date(newDate).toISOString() : null,
+          status: 'in_progress'
+        })
         .eq('id', task.id);
 
       if (error) throw error;
 
-      // Invalidate and refetch
       queryClient.invalidateQueries({ queryKey: ['priorityClients'] });
       queryClient.invalidateQueries({ queryKey: ['generalTasks'] });
       
       toast({
-        title: "Date updated",
-        description: "The task due date has been updated successfully.",
+        title: "Task updated",
+        description: "The task has been converted and due date set.",
       });
     } catch (error) {
-      console.error('Error updating date:', error);
+      console.error('Error updating task:', error);
       toast({
         title: "Error",
-        description: "Failed to update the due date. Please try again.",
+        description: "Failed to update the task. Please try again.",
         variant: "destructive",
       });
     } finally {
       setIsEditingDate(false);
+      setIsConverting(false);
     }
   };
 
@@ -113,19 +103,27 @@ export const GeneralTaskItem = ({ task }: GeneralTaskItemProps) => {
             </p>
           </div>
         </div>
-        <div className={`px-2 py-1 rounded-full text-sm ${getStatusColor(task.status)}`}>
-          {task.status || "pending"}
-        </div>
+        {!task.next_due_date && (
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={() => setIsConverting(true)}
+          >
+            Convert to Task
+          </Button>
+        )}
       </div>
       <div 
         className="mt-2 text-sm flex items-center gap-2 text-gray-500"
         onClick={(e) => {
           e.stopPropagation();
-          setIsEditingDate(true);
+          if (task.next_due_date || isConverting) {
+            setIsEditingDate(true);
+          }
         }}
       >
         <Calendar size={14} />
-        {isEditingDate ? (
+        {(isEditingDate || isConverting) ? (
           <Input
             type="date"
             value={dateValue}
@@ -141,6 +139,7 @@ export const GeneralTaskItem = ({ task }: GeneralTaskItemProps) => {
               } else if (e.key === 'Escape') {
                 e.stopPropagation();
                 setIsEditingDate(false);
+                setIsConverting(false);
                 setDateValue(task.next_due_date ? new Date(task.next_due_date).toISOString().split('T')[0] : '');
               }
             }}
@@ -150,7 +149,9 @@ export const GeneralTaskItem = ({ task }: GeneralTaskItemProps) => {
           />
         ) : (
           <span className="cursor-pointer hover:text-gray-700">
-            Due {task.next_due_date ? format(new Date(task.next_due_date), "MMM d, yyyy") : 'No date set'}
+            {task.next_due_date 
+              ? `Due ${format(new Date(task.next_due_date), "MMM d, yyyy")}` 
+              : 'Click to set due date'}
           </span>
         )}
       </div>
