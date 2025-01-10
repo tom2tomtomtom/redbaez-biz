@@ -15,8 +15,46 @@ serve(async (req) => {
   try {
     const { clientData } = await req.json();
     console.log('Analyzing client data:', clientData);
+
+    // First, let's get relevant news about the client
+    const newsPrompt = `Search for and summarize the latest business news, developments, and market trends related to ${clientData?.name || 'Unknown'} in the ${clientData?.industry || 'Unknown'} industry. Focus on news from the last 3 months that could impact their marketing and AI needs.`;
     
-    const prompt = `You are a strategic business advisor for RedBaez, an AI-focused creative and marketing solutions company. Analyze this client data and provide exactly 3 specific, actionable recommendations that align with RedBaez's service offerings and can be implemented within the next 30 days.
+    const apiKey = Deno.env.get('PERPLEXITY_API_KEY');
+    if (!apiKey) {
+      console.error('Error: Perplexity API key not configured');
+      throw new Error('Perplexity API key not configured in Supabase Edge Function Secrets');
+    }
+
+    // Get news context first
+    const newsResponse = await fetch('https://api.perplexity.ai/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'llama-3.1-sonar-small-128k-online',
+        messages: [
+          {
+            role: 'system',
+            content: 'You are a business analyst. Provide a brief, factual summary of recent news and developments.'
+          },
+          {
+            role: 'user',
+            content: newsPrompt
+          }
+        ],
+        temperature: 0.2,
+        max_tokens: 1000,
+      }),
+    });
+
+    const newsData = await newsResponse.json();
+    const newsContext = newsData.choices[0].message.content;
+    console.log('Retrieved news context:', newsContext);
+    
+    // Now use the news context in our main recommendation prompt
+    const prompt = `You are a strategic business advisor for RedBaez, an AI-focused creative and marketing solutions company. Analyze this client data and recent news to provide exactly 3 specific, actionable recommendations that align with RedBaez's service offerings and can be implemented within the next 30 days.
 
 Return ONLY a JSON array in this exact format, with no additional text, markdown, or explanations:
 [
@@ -94,6 +132,9 @@ Creating Urgency:
 - Frame tools as competitive necessity
 - Emphasize market opportunities
 
+Recent News and Market Context:
+${newsContext}
+
 Client Context:
 Name: ${clientData?.name || 'Unknown'}
 Industry: ${clientData?.industry || 'Unknown'}
@@ -118,18 +159,14 @@ Consider:
 5. Alignment with RedBaez's service offerings
 6. Implementation feasibility within 30 days
 7. Previous recommendations and their implementation status
+8. Recent news and market developments that could impact strategy
 
 Focus recommendations on:
 1. Immediate revenue opportunities through RedBaez's service offerings
 2. Strategic engagement points based on client's industry and size
 3. Risk mitigation and relationship strengthening
-4. Specific, measurable actions with clear next steps`;
-
-    const apiKey = Deno.env.get('PERPLEXITY_API_KEY');
-    if (!apiKey) {
-      console.error('Error: Perplexity API key not configured');
-      throw new Error('Perplexity API key not configured in Supabase Edge Function Secrets');
-    }
+4. Specific, measurable actions with clear next steps
+5. Opportunities identified from recent news and market developments`;
 
     console.log('Sending request to Perplexity API');
     const response = await fetch('https://api.perplexity.ai/chat/completions', {
