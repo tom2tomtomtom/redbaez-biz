@@ -46,9 +46,9 @@ export const NextStepItem = ({ nextStep }: NextStepItemProps) => {
           </div>
         </div>
       </div>
-      <div className="mt-2 text-sm flex items-center gap-2">
+      <div className="mt-2 text-sm flex items-center gap-2 text-gray-500">
         <Calendar size={14} />
-        Due: {nextStep.due_date 
+        {nextStep.due_date 
           ? new Date(nextStep.due_date).toLocaleDateString()
           : 'No deadline set'}
       </div>

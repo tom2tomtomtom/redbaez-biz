@@ -51,9 +51,12 @@ const sortByUrgencyAndDate = (a: PriorityItem, b: PriorityItem) => {
   if (aUrgent && !bUrgent) return -1;
   if (!aUrgent && bUrgent) return 1;
 
-  if (!a.date) return 1;
-  if (!b.date) return -1;
-  return new Date(a.date).getTime() - new Date(b.date).getTime();
+  const aDate = a.type === 'task' ? a.data.next_due_date : a.data.due_date;
+  const bDate = b.type === 'task' ? b.data.next_due_date : b.data.due_date;
+
+  if (!aDate) return 1;
+  if (!bDate) return -1;
+  return new Date(aDate).getTime() - new Date(bDate).getTime();
 };
 
 export const usePriorityData = () => {

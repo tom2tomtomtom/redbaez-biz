@@ -14,12 +14,13 @@ export const PriorityItemsList = ({ items, onTaskClick }: PriorityItemsListProps
   const [itemToComplete, setItemToComplete] = useState<PriorityItem | null>(null);
   const { handleCompletedChange, handleUrgentChange } = useItemStatusChange();
 
-  // Filter to show all incomplete tasks without limiting to 3
-  const activeTasks = items.filter(item => 
-    item.type === 'task' && item.data.status !== 'completed'
+  // Show all incomplete items (both tasks and next steps)
+  const activeItems = items.filter(item => 
+    (item.type === 'task' && item.data.status !== 'completed') ||
+    (item.type === 'next_step' && !item.data.completed_at)
   );
 
-  if (activeTasks.length === 0) {
+  if (activeItems.length === 0) {
     return (
       <div className="p-3 bg-gray-50 rounded-lg border border-gray-100">
         <p className="text-gray-600 text-center">No priority actions found</p>
@@ -36,9 +37,9 @@ export const PriorityItemsList = ({ items, onTaskClick }: PriorityItemsListProps
       />
 
       <div className="space-y-3">
-        {activeTasks.map((item, index) => (
+        {activeItems.map((item, index) => (
           <PriorityListItem
-            key={item.data.id}
+            key={`${item.type}-${item.data.id}`}
             item={item}
             index={index}
             onTaskClick={onTaskClick}
