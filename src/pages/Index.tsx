@@ -7,8 +7,8 @@ import { IntelSearch } from "@/components/crm/intel-search/IntelSearch";
 import { RevenueSummary } from "@/components/crm/revenue-summary/RevenueSummary";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
-import { LogOut, Plus, Users } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { LogOut, Plus, Users, Megaphone, Handshake, Lightbulb } from "lucide-react";
+import { useNavigate, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import {
   Dialog,
@@ -25,7 +25,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Link } from "react-router-dom";
 import { TaskDialog } from "@/components/crm/priority-actions/TaskDialog";
 
 const Index = () => {
@@ -58,6 +57,28 @@ const Index = () => {
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <h1 className="text-2xl font-bold">RedBaez Biz</h1>
           <div className="flex flex-wrap gap-2 w-full md:w-auto">
+            {/* Strategy Navigation */}
+            <div className="flex gap-2 w-full md:w-auto mb-4">
+              <Button variant="outline" asChild>
+                <Link to="/marketing">
+                  <Megaphone className="mr-2 h-4 w-4" />
+                  Marketing
+                </Link>
+              </Button>
+              <Button variant="outline" asChild>
+                <Link to="/partnerships">
+                  <Handshake className="mr-2 h-4 w-4" />
+                  Partnerships
+                </Link>
+              </Button>
+              <Button variant="outline" asChild>
+                <Link to="/product-development">
+                  <Lightbulb className="mr-2 h-4 w-4" />
+                  Product Development
+                </Link>
+              </Button>
+            </div>
+            
             <Button 
               variant="outline"
               className="w-full md:w-auto"
