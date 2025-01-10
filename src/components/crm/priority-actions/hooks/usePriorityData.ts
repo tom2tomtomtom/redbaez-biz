@@ -20,6 +20,7 @@ const fetchGeneralTasks = async () => {
     .from('general_tasks')
     .select('*')
     .neq('status', 'completed')
+    .not('category', 'in', '("marketing","partnerships","product development")')
     .order('next_due_date', { ascending: true });
     
   if (error) throw error;
