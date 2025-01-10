@@ -19,7 +19,7 @@ export const IdeaGenerator = ({ category, onIdeaGenerated }: IdeaGeneratorProps)
       setIsGenerating(true);
       console.log('Generating ideas for category:', category);
 
-      // Delete ALL existing tasks for this category
+      // First, delete ALL existing tasks for this category
       const { error: deleteError } = await supabase
         .from('general_tasks')
         .delete()
@@ -29,6 +29,9 @@ export const IdeaGenerator = ({ category, onIdeaGenerated }: IdeaGeneratorProps)
         console.error('Error deleting existing tasks:', deleteError);
         throw deleteError;
       }
+
+      // Wait a moment to ensure deletion is complete
+      await new Promise(resolve => setTimeout(resolve, 500));
 
       const { data, error } = await supabase.functions.invoke('analyze-client', {
         body: { 
@@ -50,13 +53,18 @@ export const IdeaGenerator = ({ category, onIdeaGenerated }: IdeaGeneratorProps)
         
         // Convert recommendations to tasks
         for (const rec of data.recommendations) {
-          await supabase.from('general_tasks').insert({
+          const { error: insertError } = await supabase.from('general_tasks').insert({
             title: rec.suggestion || 'New Strategic Task',
             description: `Priority: ${rec.priority}\nType: ${rec.type}\n\n${rec.suggestion}`,
             category: category,
             status: 'incomplete',
             next_due_date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString() // Default to 1 week
           });
+
+          if (insertError) {
+            console.error('Error inserting task:', insertError);
+            throw insertError;
+          }
         }
 
         toast({
