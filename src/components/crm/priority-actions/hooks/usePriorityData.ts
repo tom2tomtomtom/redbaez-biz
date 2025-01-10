@@ -35,7 +35,7 @@ const fetchNextSteps = async () => {
       )
     `)
     .is('completed_at', null)
-    .order('due_date');
+    .order('due_date', { ascending: true });
 
   if (error) throw error;
   return data?.map(step => ({
