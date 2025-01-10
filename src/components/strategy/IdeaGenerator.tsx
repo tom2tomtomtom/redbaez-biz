@@ -1,11 +1,21 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Loader2, Sparkles, Plus } from "lucide-react";
+import { Loader2, Sparkles } from "lucide-react";
 import { toast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { TaskDialog } from "@/components/crm/priority-actions/TaskDialog";
 import { Tables } from "@/integrations/supabase/types";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface IdeaGeneratorProps {
   category: string;
@@ -21,6 +31,7 @@ export const IdeaGenerator = ({ category, onIdeaGenerated }: IdeaGeneratorProps)
     priority: string;
     type: string;
   } | null>(null);
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
 
   const generateIdea = async () => {
     try {
@@ -77,7 +88,7 @@ export const IdeaGenerator = ({ category, onIdeaGenerated }: IdeaGeneratorProps)
 
         toast({
           title: "Ideas Generated",
-          description: "New strategic tasks have been created based on the generated ideas.",
+          description: "Click on any idea to convert it into a task.",
         });
 
         setPrompt("");
@@ -99,7 +110,7 @@ export const IdeaGenerator = ({ category, onIdeaGenerated }: IdeaGeneratorProps)
 
   const handleCreateTask = (idea: { suggestion: string; priority: string; type: string }) => {
     setSelectedIdea(idea);
-    setIsTaskDialogOpen(true);
+    setShowConfirmDialog(true);
   };
 
   return (
@@ -110,38 +121,44 @@ export const IdeaGenerator = ({ category, onIdeaGenerated }: IdeaGeneratorProps)
         onChange={(e) => setPrompt(e.target.value)}
         className="min-h-[100px]"
       />
-      <div className="flex flex-col gap-4">
-        <Button 
-          onClick={generateIdea} 
-          disabled={isGenerating}
-          className="w-full"
-          variant="default"
-        >
-          {isGenerating ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Generating Ideas...
-            </>
-          ) : (
-            <>
-              <Sparkles className="mr-2 h-4 w-4" />
-              Generate Strategic Ideas
-            </>
-          )}
-        </Button>
-        <Button
-          onClick={() => handleCreateTask({ 
-            suggestion: prompt,
-            priority: "medium",
-            type: "manual"
-          })}
-          variant="outline"
-          className="w-full"
-        >
-          <Plus className="mr-2 h-4 w-4" />
-          Create as Task
-        </Button>
-      </div>
+      <Button 
+        onClick={generateIdea} 
+        disabled={isGenerating}
+        className="w-full"
+        variant="default"
+      >
+        {isGenerating ? (
+          <>
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            Generating Ideas...
+          </>
+        ) : (
+          <>
+            <Sparkles className="mr-2 h-4 w-4" />
+            Generate Strategic Ideas
+          </>
+        )}
+      </Button>
+
+      <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Create Task</AlertDialogTitle>
+            <AlertDialogDescription>
+              Do you want to create a task from this idea?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={() => {
+              setShowConfirmDialog(false);
+              setIsTaskDialogOpen(true);
+            }}>
+              Create Task
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <TaskDialog
         isOpen={isTaskDialogOpen}
