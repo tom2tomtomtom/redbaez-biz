@@ -39,7 +39,7 @@ export const ClientContent = ({
           .from('general_tasks')
           .select('*')
           .eq('client_id', client.id)
-          .is('completed_at', null)
+          .eq('status', 'incomplete')
           .order('next_due_date', { ascending: true })
       ]);
 

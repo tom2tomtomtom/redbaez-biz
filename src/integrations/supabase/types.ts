@@ -412,6 +412,7 @@ export type Database = {
       general_tasks: {
         Row: {
           category: string
+          client_id: number | null
           created_at: string | null
           description: string | null
           id: string
@@ -423,6 +424,7 @@ export type Database = {
         }
         Insert: {
           category: string
+          client_id?: number | null
           created_at?: string | null
           description?: string | null
           id?: string
@@ -434,6 +436,7 @@ export type Database = {
         }
         Update: {
           category?: string
+          client_id?: number | null
           created_at?: string | null
           description?: string | null
           id?: string
@@ -443,7 +446,15 @@ export type Database = {
           updated_at?: string | null
           urgent?: boolean | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "general_tasks_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       messages: {
         Row: {
