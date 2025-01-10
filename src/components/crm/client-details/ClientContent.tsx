@@ -24,18 +24,49 @@ export const ClientContent = ({
 }: ClientContentProps) => {
   const { revenueData, totalActualRevenue } = useRevenueCalculations(client);
 
+  // Fetch both client next steps and general tasks
   const { data: activeNextSteps } = useQuery({
     queryKey: ['client-next-steps', client.id],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('client_next_steps')
-        .select('*')
-        .eq('client_id', client.id)
-        .is('completed_at', null)
-        .order('due_date', { ascending: true });
+      const [nextStepsResult, tasksResult] = await Promise.all([
+        supabase
+          .from('client_next_steps')
+          .select('*')
+          .eq('client_id', client.id)
+          .is('completed_at', null)
+          .order('due_date', { ascending: true }),
+        supabase
+          .from('general_tasks')
+          .select('*')
+          .eq('client_id', client.id)
+          .is('completed_at', null)
+          .order('next_due_date', { ascending: true })
+      ]);
 
-      if (error) throw error;
-      return data || [];
+      if (nextStepsResult.error) throw nextStepsResult.error;
+      if (tasksResult.error) throw tasksResult.error;
+
+      // Combine and sort both types of items
+      const combinedItems = [
+        ...(nextStepsResult.data || []).map(step => ({
+          ...step,
+          type: 'next_step',
+          dueDate: step.due_date,
+          description: step.notes
+        })),
+        ...(tasksResult.data || []).map(task => ({
+          ...task,
+          type: 'task',
+          dueDate: task.next_due_date,
+          description: task.description || task.title
+        }))
+      ].sort((a, b) => {
+        if (!a.dueDate) return 1;
+        if (!b.dueDate) return -1;
+        return new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
+      });
+
+      return combinedItems;
     },
   });
 
@@ -58,18 +89,28 @@ export const ClientContent = ({
 
           <div className="space-y-4 mb-6">
             {activeNextSteps && activeNextSteps.length > 0 ? (
-              activeNextSteps.map((step) => (
-                <div key={step.id} className="bg-gray-50 p-4 rounded-lg">
-                  <p className="text-gray-700">{step.notes}</p>
-                  {step.due_date && (
-                    <p className="text-sm text-gray-500 mt-2">
-                      Due: {new Date(step.due_date).toLocaleDateString()}
-                    </p>
-                  )}
+              activeNextSteps.map((item) => (
+                <div 
+                  key={`${item.type}-${item.id}`} 
+                  className="bg-gray-50 p-4 rounded-lg border-l-4 border-l-blue-500"
+                >
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <p className="text-gray-700">{item.description}</p>
+                      {item.dueDate && (
+                        <p className="text-sm text-gray-500 mt-2 flex items-center gap-2">
+                          Due: {new Date(item.dueDate).toLocaleDateString()}
+                        </p>
+                      )}
+                    </div>
+                    <span className="text-xs px-2 py-1 rounded bg-gray-200 text-gray-700">
+                      {item.type === 'next_step' ? 'Next Step' : 'Task'}
+                    </span>
+                  </div>
                 </div>
               ))
             ) : (
-              <p className="text-gray-500">No active next steps</p>
+              <p className="text-gray-500">No active next steps or tasks</p>
             )}
           </div>
 
