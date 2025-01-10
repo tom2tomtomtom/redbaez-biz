@@ -41,7 +41,11 @@ export const TaskList = ({ tasks, isLoading, onTasksUpdated }: TaskListProps) =>
       ) : (
         <div className="space-y-4">
           {tasks.map((task) => (
-            <GeneralTaskItem key={task.id} task={task} />
+            <GeneralTaskItem 
+              key={task.id} 
+              task={task} 
+              onDeleted={onTasksUpdated}
+            />
           ))}
         </div>
       )}

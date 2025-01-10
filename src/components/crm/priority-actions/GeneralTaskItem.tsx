@@ -12,9 +12,10 @@ import { Button } from "@/components/ui/button";
 
 interface GeneralTaskItemProps {
   task: GeneralTaskRow;
+  onDeleted?: () => void;
 }
 
-export const GeneralTaskItem = ({ task }: GeneralTaskItemProps) => {
+export const GeneralTaskItem = ({ task, onDeleted }: GeneralTaskItemProps) => {
   const [isEditingDate, setIsEditingDate] = useState(false);
   const [dateValue, setDateValue] = useState(
     task.next_due_date ? new Date(task.next_due_date).toISOString().split('T')[0] : ''
@@ -93,6 +94,7 @@ export const GeneralTaskItem = ({ task }: GeneralTaskItemProps) => {
       if (error) throw error;
 
       queryClient.invalidateQueries({ queryKey: ['generalTasks'] });
+      onDeleted?.();
       
       toast({
         title: "Task deleted",
