@@ -10,7 +10,7 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
-import { CalendarIcon, Plus, CheckCircle, Trash2 } from 'lucide-react';
+import { CalendarIcon, Plus, Trash2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/components/ui/use-toast';
 import { useQueryClient } from '@tanstack/react-query';
@@ -33,7 +33,6 @@ export const RecommendationAlert: React.FC<RecommendationAlertProps> = ({
 }) => {
   const [date, setDate] = useState<Date>();
   const [isOpen, setIsOpen] = useState(false);
-  const [isCompleted, setIsCompleted] = useState(false);
   const [isUrgent, setIsUrgent] = useState(false);
   const [isDiscarded, setIsDiscarded] = useState(false);
   const queryClient = useQueryClient();
@@ -70,7 +69,7 @@ export const RecommendationAlert: React.FC<RecommendationAlertProps> = ({
           category: type,
           next_due_date: date.toISOString(),
           urgent: isUrgent,
-          status: isCompleted ? 'completed' : 'incomplete'
+          status: 'in_progress'
         });
 
       if (error) throw error;
@@ -107,10 +106,7 @@ export const RecommendationAlert: React.FC<RecommendationAlertProps> = ({
   }
 
   return (
-    <Alert className={cn(
-      "relative border-l-4",
-      isCompleted ? "border-green-500 bg-green-50" : "border-orange-500 bg-orange-50/50"
-    )}>
+    <Alert className="relative border-l-4 border-orange-500 bg-orange-50/50">
       <AlertTitle className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           {type.charAt(0).toUpperCase() + type.slice(1)}
@@ -134,9 +130,8 @@ export const RecommendationAlert: React.FC<RecommendationAlertProps> = ({
           </Button>
           <Popover open={isOpen} onOpenChange={setIsOpen}>
             <PopoverTrigger asChild>
-              <Button variant="outline" size="sm" className="ml-2">
-                <Plus className="h-4 w-4 mr-1" />
-                Add Task
+              <Button variant="outline" size="sm">
+                Set as Task
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-4" align="end">
@@ -177,10 +172,7 @@ export const RecommendationAlert: React.FC<RecommendationAlertProps> = ({
           </Popover>
         </div>
       </AlertTitle>
-      <AlertDescription className={cn(
-        "mt-2",
-        isCompleted ? "text-green-700" : "text-gray-700"
-      )}>
+      <AlertDescription className="mt-2 text-gray-700">
         {suggestion}
       </AlertDescription>
     </Alert>

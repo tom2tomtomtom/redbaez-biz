@@ -14,9 +14,9 @@ export const PriorityItemsList = ({ items, onTaskClick }: PriorityItemsListProps
   const [itemToComplete, setItemToComplete] = useState<PriorityItem | null>(null);
   const { handleCompletedChange, handleUrgentChange } = useItemStatusChange();
 
-  // Filter to show only the latest 3 items
+  // Filter to show only tasks and get the latest 3
   const latestItems = items
-    .filter(item => item.type === 'task')
+    .filter(item => item.type === 'task' && item.data.status !== 'completed')
     .slice(0, 3);
 
   if (latestItems.length === 0) {
