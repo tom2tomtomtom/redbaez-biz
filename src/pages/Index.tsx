@@ -1,23 +1,15 @@
 import { Suspense, useState } from "react";
+import { MainNav } from "@/components/ui/main-nav";
 import { CRMDashboard } from "@/components/crm/CRMDashboard";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PriorityActions } from "@/components/crm/priority-actions/PriorityActions";
 import { ClientSearch } from "@/components/crm/client-search/ClientSearch";
 import { IntelSearch } from "@/components/crm/intel-search/IntelSearch";
 import { RevenueSummary } from "@/components/crm/revenue-summary/RevenueSummary";
-import { Button } from "@/components/ui/button";
-import { supabase } from "@/integrations/supabase/client";
-import { LogOut, Plus, Users, Megaphone, Handshake, Lightbulb } from "lucide-react";
-import { useNavigate, Link } from "react-router-dom";
+import { Users } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+import { supabase } from "@/integrations/supabase/client";
+import { Link } from "react-router-dom";
 import {
   Card,
   CardContent,
@@ -25,14 +17,11 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { TaskDialog } from "@/components/crm/priority-actions/TaskDialog";
+import { Button } from "@/components/ui/button";
 
 const Index = () => {
   const [searchInput, setSearchInput] = useState('');
-  const [isNewClientOpen, setIsNewClientOpen] = useState(false);
-  const [isNewTaskOpen, setIsNewTaskOpen] = useState(false);
   const [showClientList, setShowClientList] = useState(false);
-  const navigate = useNavigate();
 
   const { data: clients, isLoading } = useQuery({
     queryKey: ['clients'],
@@ -46,95 +35,18 @@ const Index = () => {
     },
   });
 
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    navigate('/login');
-  };
-
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100/50">
+      <MainNav />
       <div className="container mx-auto px-4 py-4 md:py-8 space-y-6">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-          <h1 className="text-2xl font-bold">RedBaez Biz</h1>
-          <div className="flex flex-wrap gap-2 w-full md:w-auto">
-            {/* Strategy Navigation */}
-            <div className="flex gap-2 w-full md:w-auto mb-4">
-              <Button variant="outline" asChild>
-                <Link to="/marketing">
-                  <Megaphone className="mr-2 h-4 w-4" />
-                  Marketing
-                </Link>
-              </Button>
-              <Button variant="outline" asChild>
-                <Link to="/partnerships">
-                  <Handshake className="mr-2 h-4 w-4" />
-                  Partnerships
-                </Link>
-              </Button>
-              <Button variant="outline" asChild>
-                <Link to="/product-development">
-                  <Lightbulb className="mr-2 h-4 w-4" />
-                  Product Development
-                </Link>
-              </Button>
-            </div>
-            
-            <Button 
-              variant="outline"
-              className="w-full md:w-auto"
-              onClick={() => setShowClientList(!showClientList)}
-            >
-              <Users className="mr-2 h-4 w-4" />
-              {showClientList ? 'Hide Clients' : 'View All Clients'}
-            </Button>
-            <Dialog open={isNewClientOpen} onOpenChange={setIsNewClientOpen}>
-              <DialogTrigger asChild>
-                <Button className="w-full md:w-auto">
-                  <Plus className="mr-2 h-4 w-4" />
-                  New Client
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-                <DialogHeader>
-                  <DialogTitle>Add New Client</DialogTitle>
-                  <DialogDescription>
-                    Enter the client's information below
-                  </DialogDescription>
-                </DialogHeader>
-                <CRMDashboard onClientAdded={() => setIsNewClientOpen(false)} />
-              </DialogContent>
-            </Dialog>
-            <Dialog open={isNewTaskOpen} onOpenChange={setIsNewTaskOpen}>
-              <DialogTrigger asChild>
-                <Button className="w-full md:w-auto">
-                  <Plus className="mr-2 h-4 w-4" />
-                  Add Task
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-                <DialogHeader>
-                  <DialogTitle>Add New Task</DialogTitle>
-                  <DialogDescription>
-                    Enter the task details below
-                  </DialogDescription>
-                </DialogHeader>
-                <TaskDialog 
-                  isOpen={isNewTaskOpen} 
-                  onOpenChange={setIsNewTaskOpen}
-                  task={null}
-                  onSaved={() => setIsNewTaskOpen(false)}
-                />
-              </DialogContent>
-            </Dialog>
-            <Button 
-              variant="outline" 
-              onClick={handleLogout}
-              className="w-full md:w-auto"
-            >
-              <LogOut className="mr-2 h-4 w-4" />
-              Sign out
-            </Button>
-          </div>
+        <div className="flex justify-end mb-4">
+          <Button 
+            variant="outline"
+            onClick={() => setShowClientList(!showClientList)}
+          >
+            <Users className="mr-2 h-4 w-4" />
+            {showClientList ? 'Hide Clients' : 'View All Clients'}
+          </Button>
         </div>
 
         {showClientList ? (
