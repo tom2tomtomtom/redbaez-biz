@@ -8,6 +8,9 @@ import { supabase } from "@/integrations/supabase/client";
 import Index from "./pages/Index";
 import { Login } from "./pages/Login";
 import { ClientDetails } from "./components/crm/ClientDetails";
+import { Marketing } from "./pages/Marketing";
+import { Partnerships } from "./pages/Partnerships";
+import { ProductDevelopment } from "./pages/ProductDevelopment";
 
 const queryClient = new QueryClient();
 
@@ -55,6 +58,30 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <ClientDetails />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/marketing"
+              element={
+                <ProtectedRoute>
+                  <Marketing />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/partnerships"
+              element={
+                <ProtectedRoute>
+                  <Partnerships />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/product-development"
+              element={
+                <ProtectedRoute>
+                  <ProductDevelopment />
                 </ProtectedRoute>
               }
             />
