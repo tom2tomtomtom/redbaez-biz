@@ -44,12 +44,13 @@ serve(async (req) => {
 
     // If it's a strategy request, use a different prompt
     if (type === 'strategy') {
-      const strategyPrompt = `As a strategic marketing advisor, analyze our context and provide 3 specific, actionable recommendations for the ${category} category.
+      // Modify the prompt to prioritize user input
+      const userPrompt = prompt ? `Based on this specific focus: "${prompt}"\n\n` : '';
+      
+      const strategyPrompt = `${userPrompt}As a strategic marketing advisor for RedBaez, analyze our context and provide 3 specific, actionable recommendations that align with the user's focus.
 
       Context:
       ${MARKETING_PROMPT}
-      
-      ${prompt ? `Additional focus areas or constraints: ${prompt}` : ''}
       
       Return ONLY a JSON array in this exact format, with no additional text:
       [
@@ -80,7 +81,7 @@ serve(async (req) => {
           messages: [
             {
               role: 'system',
-              content: 'You are a strategic business advisor. Return ONLY a JSON array with exactly 3 specific, actionable recommendations.'
+              content: 'You are a strategic business advisor. Return ONLY a JSON array with exactly 3 specific, actionable recommendations that specifically address the user\'s focus areas if provided.'
             },
             {
               role: 'user',
