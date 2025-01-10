@@ -28,9 +28,6 @@ const fetchGeneralTasks = async () => {
 };
 
 const fetchNextSteps = async () => {
-  const startDate = startOfMonth(new Date());
-  const endDate = endOfMonth(new Date());
-
   const { data, error } = await supabase
     .from('client_next_steps')
     .select(`
@@ -39,8 +36,6 @@ const fetchNextSteps = async () => {
         name
       )
     `)
-    .gte('due_date', startDate.toISOString())
-    .lte('due_date', endDate.toISOString())
     .is('completed_at', null)
     .order('due_date');
 
