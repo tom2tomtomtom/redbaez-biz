@@ -3,12 +3,23 @@ import { format } from "date-fns";
 import { Card } from "@/components/ui/card";
 import { GeneralTaskRow } from "@/integrations/supabase/types/general-tasks.types";
 import { cn } from "@/lib/utils";
+import { useState } from "react";
+import { Input } from "@/components/ui/input";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "@/components/ui/use-toast";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface GeneralTaskItemProps {
   task: GeneralTaskRow;
 }
 
 export const GeneralTaskItem = ({ task }: GeneralTaskItemProps) => {
+  const [isEditingDate, setIsEditingDate] = useState(false);
+  const [dateValue, setDateValue] = useState(
+    task.next_due_date ? new Date(task.next_due_date).toISOString().split('T')[0] : ''
+  );
+  const queryClient = useQueryClient();
+
   const getCategoryColor = (category: string | undefined) => {
     if (!category) return 'bg-orange-50 border-orange-100';
     
@@ -48,6 +59,35 @@ export const GeneralTaskItem = ({ task }: GeneralTaskItemProps) => {
     return colonIndex !== -1 ? description.slice(colonIndex + 1).trim() : description;
   };
 
+  const handleDateChange = async (newDate: string) => {
+    try {
+      const { error } = await supabase
+        .from('general_tasks')
+        .update({ next_due_date: newDate ? new Date(newDate).toISOString() : null })
+        .eq('id', task.id);
+
+      if (error) throw error;
+
+      // Invalidate and refetch
+      queryClient.invalidateQueries({ queryKey: ['priorityClients'] });
+      queryClient.invalidateQueries({ queryKey: ['generalTasks'] });
+      
+      toast({
+        title: "Date updated",
+        description: "The task due date has been updated successfully.",
+      });
+    } catch (error) {
+      console.error('Error updating date:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update the due date. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsEditingDate(false);
+    }
+  };
+
   return (
     <Card 
       className={cn(
@@ -72,12 +112,34 @@ export const GeneralTaskItem = ({ task }: GeneralTaskItemProps) => {
           {task.status || "pending"}
         </div>
       </div>
-      {task.next_due_date && (
-        <div className="mt-2 text-sm flex items-center gap-2 text-gray-500">
-          <Calendar size={14} />
-          <span>Due {format(new Date(task.next_due_date), "MMM d, yyyy")}</span>
-        </div>
-      )}
+      <div 
+        className="mt-2 text-sm flex items-center gap-2 text-gray-500"
+        onClick={() => setIsEditingDate(true)}
+      >
+        <Calendar size={14} />
+        {isEditingDate ? (
+          <Input
+            type="date"
+            value={dateValue}
+            onChange={(e) => setDateValue(e.target.value)}
+            onBlur={() => handleDateChange(dateValue)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                handleDateChange(dateValue);
+              } else if (e.key === 'Escape') {
+                setIsEditingDate(false);
+                setDateValue(task.next_due_date ? new Date(task.next_due_date).toISOString().split('T')[0] : '');
+              }
+            }}
+            className="w-40 h-7 px-2"
+            autoFocus
+          />
+        ) : (
+          <span className="cursor-pointer hover:text-gray-700">
+            Due {task.next_due_date ? format(new Date(task.next_due_date), "MMM d, yyyy") : 'No date set'}
+          </span>
+        )}
+      </div>
     </Card>
   );
 };
