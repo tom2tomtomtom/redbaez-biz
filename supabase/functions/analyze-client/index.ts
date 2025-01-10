@@ -43,14 +43,16 @@ serve(async (req) => {
 
     if (type === 'strategy') {
       const userPromptAnalysis = prompt ? `
-        Create 3 highly specific content recommendations based on this user input: "${prompt}"
+        Analyze this specific content request: "${prompt}"
         
-        Consider:
-        1. How can we tie this specific topic to RedBaez's AI expertise?
-        2. What unique angles or insights can we offer?
-        3. How can we make this content stand out in the current conversation?
+        First, search for and identify the most recent, relevant news or developments related to this topic.
+        Then, create 3 highly specific content recommendations that:
+        1. Reference actual, current events or announcements
+        2. Include specific details, statistics, or noteworthy developments
+        3. Tie these current events to RedBaez's AI expertise
+        4. Suggest a unique angle or insight that would make the content stand out
         
-        Format each recommendation to be immediately actionable and tied to current trends/discussions.
+        Each recommendation should be immediately actionable and directly connected to current events/developments.
       ` : 'Create 3 strategic marketing recommendations for RedBaez';
 
       const strategyPrompt = `${userPromptAnalysis}
@@ -63,16 +65,16 @@ serve(async (req) => {
         {
           "type": "revenue" | "engagement" | "risk" | "opportunity",
           "priority": "high" | "medium" | "low",
-          "suggestion": "specific actionable step"
+          "suggestion": "specific actionable step that references current events and specific details"
         }
       ]
       
       Focus recommendations on:
-      1. Creative marketing initiatives that showcase our AI expertise
-      2. Lead generation tactics within our service price ranges
-      3. Thought leadership opportunities in ${category}
-      4. Content formats: Blog series, case studies, interactive tools, webinars, social campaigns
-      5. Engagement channels: LinkedIn, YouTube, Meta, TikTok, and events`;
+      1. Specific, current developments in ${category}
+      2. Real examples and concrete details
+      3. Actionable content ideas that leverage current events
+      4. Content formats: Blog posts, LinkedIn articles, case studies, webinars
+      5. Ways to establish thought leadership through timely insights`;
 
       console.log('Sending request to Perplexity API with prompt:', strategyPrompt);
 
@@ -87,7 +89,7 @@ serve(async (req) => {
           messages: [
             {
               role: 'system',
-              content: 'You are a strategic content advisor. Create highly specific, actionable recommendations that directly address the user\'s input topic. Each suggestion should be unique and tied to current trends.'
+              content: 'You are a content strategist with deep knowledge of current tech events and AI developments. Create highly specific recommendations that reference actual events, announcements, or developments. Include concrete details and statistics when possible.'
             },
             {
               role: 'user',
