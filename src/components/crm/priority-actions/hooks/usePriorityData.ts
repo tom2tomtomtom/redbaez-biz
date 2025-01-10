@@ -10,29 +10,9 @@ export type PriorityItem = {
   date: string | null;
   data: GeneralTaskRow;
 } | {
-  type: 'client';
-  date: string | null;
-  data: ClientRow;
-} | {
   type: 'next_step';
   date: string | null;
   data: Tables<'client_next_steps'> & { client_name?: string };
-};
-
-const fetchPriorityClients = async () => {
-  const startDate = startOfMonth(new Date());
-  const endDate = endOfMonth(new Date());
-
-  const { data, error } = await supabase
-    .from('clients')
-    .select('*')
-    .gte('next_due_date', startDate.toISOString())
-    .lte('next_due_date', endDate.toISOString())
-    .neq('status', 'completed')
-    .order('next_due_date');
-    
-  if (error) throw error;
-  return data;
 };
 
 const fetchGeneralTasks = async () => {
@@ -40,6 +20,7 @@ const fetchGeneralTasks = async () => {
     .from('general_tasks')
     .select('*')
     .neq('status', 'completed')
+    .not('category', 'in', '("marketing","partnerships","product development")')
     .order('next_due_date', { ascending: true });
     
   if (error) throw error;
@@ -83,11 +64,6 @@ const sortByUrgencyAndDate = (a: PriorityItem, b: PriorityItem) => {
 };
 
 export const usePriorityData = () => {
-  const clientsQuery = useQuery({
-    queryKey: ['priorityClients'],
-    queryFn: fetchPriorityClients,
-  });
-
   const tasksQuery = useQuery({
     queryKey: ['generalTasks'],
     queryFn: fetchGeneralTasks,
@@ -98,19 +74,14 @@ export const usePriorityData = () => {
     queryFn: fetchNextSteps,
   });
 
-  const isLoading = clientsQuery.isLoading || tasksQuery.isLoading || nextStepsQuery.isLoading;
-  const error = clientsQuery.error || tasksQuery.error || nextStepsQuery.error;
+  const isLoading = tasksQuery.isLoading || nextStepsQuery.isLoading;
+  const error = tasksQuery.error || nextStepsQuery.error;
 
   const allItems: PriorityItem[] = [
     ...(tasksQuery.data?.map(task => ({
       type: 'task' as const,
       date: task.next_due_date,
       data: task
-    })) || []),
-    ...(clientsQuery.data?.map(client => ({
-      type: 'client' as const,
-      date: client.next_due_date,
-      data: client
     })) || []),
     ...(nextStepsQuery.data?.map(step => ({
       type: 'next_step' as const,
