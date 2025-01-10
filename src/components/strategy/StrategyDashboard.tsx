@@ -10,7 +10,7 @@ interface StrategyDashboardProps {
 
 export const StrategyDashboard = ({ category }: StrategyDashboardProps) => {
   const [refreshTrigger, setRefreshTrigger] = useState(0);
-  const { tasks, isLoading } = useGeneralTasks(category, refreshTrigger);
+  const { data: tasks, isLoading } = useGeneralTasks(category, refreshTrigger);
 
   const handleIdeaGenerated = () => {
     setRefreshTrigger(prev => prev + 1);
@@ -29,7 +29,7 @@ export const StrategyDashboard = ({ category }: StrategyDashboardProps) => {
       <Card className="p-6">
         <h2 className="text-2xl font-semibold mb-4">Tasks & Action Items</h2>
         <TaskList 
-          tasks={tasks} 
+          tasks={tasks || []} 
           isLoading={isLoading} 
           onTasksUpdated={handleIdeaGenerated}
         />
