@@ -19,6 +19,17 @@ export const IdeaGenerator = ({ category, onIdeaGenerated }: IdeaGeneratorProps)
       setIsGenerating(true);
       console.log('Generating ideas for category:', category);
       
+      // First, delete existing tasks for this category
+      const { error: deleteError } = await supabase
+        .from('general_tasks')
+        .delete()
+        .eq('category', category);
+
+      if (deleteError) {
+        console.error('Error deleting existing tasks:', deleteError);
+        throw deleteError;
+      }
+
       const { data, error } = await supabase.functions.invoke('analyze-client', {
         body: { 
           prompt: prompt || undefined,
