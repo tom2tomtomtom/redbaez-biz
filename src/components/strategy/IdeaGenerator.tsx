@@ -5,6 +5,7 @@ import { Loader2, Sparkles, Plus } from "lucide-react";
 import { toast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { TaskDialog } from "@/components/crm/priority-actions/TaskDialog";
+import { Tables } from "@/integrations/supabase/types";
 
 interface IdeaGeneratorProps {
   category: string;
@@ -15,7 +16,11 @@ export const IdeaGenerator = ({ category, onIdeaGenerated }: IdeaGeneratorProps)
   const [isGenerating, setIsGenerating] = useState(false);
   const [prompt, setPrompt] = useState("");
   const [isTaskDialogOpen, setIsTaskDialogOpen] = useState(false);
-  const [selectedIdea, setSelectedIdea] = useState<any>(null);
+  const [selectedIdea, setSelectedIdea] = useState<{
+    suggestion: string;
+    priority: string;
+    type: string;
+  } | null>(null);
 
   const generateIdea = async () => {
     try {
@@ -92,7 +97,7 @@ export const IdeaGenerator = ({ category, onIdeaGenerated }: IdeaGeneratorProps)
     }
   };
 
-  const handleCreateTask = (idea: any) => {
+  const handleCreateTask = (idea: { suggestion: string; priority: string; type: string }) => {
     setSelectedIdea(idea);
     setIsTaskDialogOpen(true);
   };
@@ -125,7 +130,11 @@ export const IdeaGenerator = ({ category, onIdeaGenerated }: IdeaGeneratorProps)
           )}
         </Button>
         <Button
-          onClick={() => handleCreateTask({ title: prompt })}
+          onClick={() => handleCreateTask({ 
+            suggestion: prompt,
+            priority: "medium",
+            type: "manual"
+          })}
           variant="outline"
           className="w-full"
         >
@@ -138,12 +147,16 @@ export const IdeaGenerator = ({ category, onIdeaGenerated }: IdeaGeneratorProps)
         isOpen={isTaskDialogOpen}
         onOpenChange={setIsTaskDialogOpen}
         task={selectedIdea ? {
-          title: selectedIdea.title,
-          description: selectedIdea.description || '',
+          id: '',
+          title: selectedIdea.suggestion,
+          description: `Priority: ${selectedIdea.priority}\nType: ${selectedIdea.type}`,
           category: category,
           status: 'incomplete',
           next_due_date: null,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
           urgent: false,
+          client_id: null
         } : null}
         onSaved={() => {
           setIsTaskDialogOpen(false);
