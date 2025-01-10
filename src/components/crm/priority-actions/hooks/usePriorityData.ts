@@ -1,8 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { startOfMonth, endOfMonth } from 'date-fns';
 import { Tables } from '@/integrations/supabase/types';
-import { ClientRow } from '@/integrations/supabase/types/clients.types';
 import { GeneralTaskRow } from '@/integrations/supabase/types/general-tasks.types';
 
 export type PriorityItem = {
