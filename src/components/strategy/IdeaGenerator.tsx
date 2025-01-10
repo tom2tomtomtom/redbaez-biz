@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Loader2, Sparkles } from "lucide-react";
+import { Loader2, Sparkles, Plus } from "lucide-react";
 import { toast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { TaskDialog } from "@/components/crm/priority-actions/TaskDialog";
 
 interface IdeaGeneratorProps {
   category: string;
@@ -13,6 +14,8 @@ interface IdeaGeneratorProps {
 export const IdeaGenerator = ({ category, onIdeaGenerated }: IdeaGeneratorProps) => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [prompt, setPrompt] = useState("");
+  const [isTaskDialogOpen, setIsTaskDialogOpen] = useState(false);
+  const [selectedIdea, setSelectedIdea] = useState<any>(null);
 
   const generateIdea = async () => {
     try {
@@ -89,6 +92,11 @@ export const IdeaGenerator = ({ category, onIdeaGenerated }: IdeaGeneratorProps)
     }
   };
 
+  const handleCreateTask = (idea: any) => {
+    setSelectedIdea(idea);
+    setIsTaskDialogOpen(true);
+  };
+
   return (
     <div className="space-y-4">
       <Textarea
@@ -97,24 +105,51 @@ export const IdeaGenerator = ({ category, onIdeaGenerated }: IdeaGeneratorProps)
         onChange={(e) => setPrompt(e.target.value)}
         className="min-h-[100px]"
       />
-      <Button 
-        onClick={generateIdea} 
-        disabled={isGenerating}
-        className="w-full"
-        variant="default"
-      >
-        {isGenerating ? (
-          <>
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            Generating Ideas...
-          </>
-        ) : (
-          <>
-            <Sparkles className="mr-2 h-4 w-4" />
-            Generate Strategic Ideas
-          </>
-        )}
-      </Button>
+      <div className="flex flex-col gap-4">
+        <Button 
+          onClick={generateIdea} 
+          disabled={isGenerating}
+          className="w-full"
+          variant="default"
+        >
+          {isGenerating ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Generating Ideas...
+            </>
+          ) : (
+            <>
+              <Sparkles className="mr-2 h-4 w-4" />
+              Generate Strategic Ideas
+            </>
+          )}
+        </Button>
+        <Button
+          onClick={() => handleCreateTask({ title: prompt })}
+          variant="outline"
+          className="w-full"
+        >
+          <Plus className="mr-2 h-4 w-4" />
+          Create as Task
+        </Button>
+      </div>
+
+      <TaskDialog
+        isOpen={isTaskDialogOpen}
+        onOpenChange={setIsTaskDialogOpen}
+        task={selectedIdea ? {
+          title: selectedIdea.title,
+          description: selectedIdea.description || '',
+          category: category,
+          status: 'incomplete',
+          next_due_date: null,
+          urgent: false,
+        } : null}
+        onSaved={() => {
+          setIsTaskDialogOpen(false);
+          onIdeaGenerated();
+        }}
+      />
     </div>
   );
 };
