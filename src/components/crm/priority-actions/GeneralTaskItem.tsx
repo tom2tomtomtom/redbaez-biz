@@ -114,7 +114,10 @@ export const GeneralTaskItem = ({ task }: GeneralTaskItemProps) => {
       </div>
       <div 
         className="mt-2 text-sm flex items-center gap-2 text-gray-500"
-        onClick={() => setIsEditingDate(true)}
+        onClick={(e) => {
+          e.stopPropagation();
+          setIsEditingDate(true);
+        }}
       >
         <Calendar size={14} />
         {isEditingDate ? (
@@ -122,15 +125,21 @@ export const GeneralTaskItem = ({ task }: GeneralTaskItemProps) => {
             type="date"
             value={dateValue}
             onChange={(e) => setDateValue(e.target.value)}
-            onBlur={() => handleDateChange(dateValue)}
+            onBlur={(e) => {
+              e.stopPropagation();
+              handleDateChange(dateValue);
+            }}
             onKeyDown={(e) => {
               if (e.key === 'Enter') {
+                e.stopPropagation();
                 handleDateChange(dateValue);
               } else if (e.key === 'Escape') {
+                e.stopPropagation();
                 setIsEditingDate(false);
                 setDateValue(task.next_due_date ? new Date(task.next_due_date).toISOString().split('T')[0] : '');
               }
             }}
+            onClick={(e) => e.stopPropagation()}
             className="w-40 h-7 px-2"
             autoFocus
           />
