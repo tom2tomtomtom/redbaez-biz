@@ -27,7 +27,6 @@ Services and Pricing:
 `;
 
 serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
@@ -42,14 +41,21 @@ serve(async (req) => {
 
     console.log('Processing request for category:', category, 'type:', type);
 
-    // If it's a strategy request, use a different prompt
     if (type === 'strategy') {
-      // Modify the prompt to prioritize user input
-      const userPrompt = prompt ? `Based on this specific focus: "${prompt}"\n\n` : '';
-      
-      const strategyPrompt = `${userPrompt}As a strategic marketing advisor for RedBaez, analyze our context and provide 3 specific, actionable recommendations that align with the user's focus.
+      const userPromptAnalysis = prompt ? `
+        Create 3 highly specific content recommendations based on this user input: "${prompt}"
+        
+        Consider:
+        1. How can we tie this specific topic to RedBaez's AI expertise?
+        2. What unique angles or insights can we offer?
+        3. How can we make this content stand out in the current conversation?
+        
+        Format each recommendation to be immediately actionable and tied to current trends/discussions.
+      ` : 'Create 3 strategic marketing recommendations for RedBaez';
 
-      Context:
+      const strategyPrompt = `${userPromptAnalysis}
+
+      Company Context:
       ${MARKETING_PROMPT}
       
       Return ONLY a JSON array in this exact format, with no additional text:
@@ -61,7 +67,7 @@ serve(async (req) => {
         }
       ]
       
-      Focus your recommendations on:
+      Focus recommendations on:
       1. Creative marketing initiatives that showcase our AI expertise
       2. Lead generation tactics within our service price ranges
       3. Thought leadership opportunities in ${category}
@@ -81,7 +87,7 @@ serve(async (req) => {
           messages: [
             {
               role: 'system',
-              content: 'You are a strategic business advisor. Return ONLY a JSON array with exactly 3 specific, actionable recommendations that specifically address the user\'s focus areas if provided.'
+              content: 'You are a strategic content advisor. Create highly specific, actionable recommendations that directly address the user\'s input topic. Each suggestion should be unique and tied to current trends.'
             },
             {
               role: 'user',
@@ -121,7 +127,6 @@ serve(async (req) => {
       );
     }
 
-    // Handle other types of requests (if any)
     throw new Error('Invalid request type');
     
   } catch (error) {
