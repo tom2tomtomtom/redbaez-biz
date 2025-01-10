@@ -26,6 +26,46 @@ Services and Pricing:
 - AI Tools Training ($10,000-$20,000)
 `;
 
+const PARTNERSHIPS_PROMPT = `
+Imagine you're the Head of Partnerships at RedBaez, an innovative AI consultancy. Your mission is to identify and develop strategic partnerships that enhance RedBaez's market position and service offerings.
+
+Consider the following:
+• Target Partners: Tech companies, AI startups, enterprise software providers, and digital agencies
+• Core Strengths: AI expertise, creative solutions, operational excellence
+• Goals: Expand service offerings, increase market reach, and create mutual value
+
+Focus on RedBaez's partnership opportunities:
+1. Technology Integration: Partnerships with AI tool providers and platforms
+2. Service Enhancement: Collaborations that expand our capabilities
+3. Market Access: Strategic alliances for new market entry
+
+Partnership Types and Value Ranges:
+- Technology Integration Partnerships ($50,000-$200,000 annual value)
+- Co-Marketing Initiatives ($25,000-$100,000 per campaign)
+- Joint Service Offerings ($100,000-$500,000 potential revenue)
+- Channel Partnerships ($50,000-$250,000 annual revenue)
+`;
+
+const PRODUCT_DEVELOPMENT_PROMPT = `
+Imagine you're the Chief Product Officer at RedBaez, leading the development of cutting-edge AI products and services. Your focus is on creating innovative solutions that solve real business problems.
+
+Consider the following:
+• Target Market: Mid to large enterprises, agencies, and tech companies
+• Core Technology: AI/ML, automation, content generation
+• Goals: Build scalable products, drive innovation, create recurring revenue
+
+Focus on RedBaez's product opportunities:
+1. AI-Powered Solutions: Tools that enhance business operations
+2. Custom Development: Tailored solutions for specific industries
+3. Platform Integration: Solutions that work with existing tech stacks
+
+Product Categories and Pricing:
+- AI Content Platform ($5,000-$20,000/month)
+- Custom AI Solutions ($50,000-$200,000)
+- Integration Services ($25,000-$100,000)
+- Managed AI Services ($10,000-$50,000/month)
+`;
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -42,6 +82,13 @@ serve(async (req) => {
     console.log('Processing request for category:', category, 'type:', type);
 
     if (type === 'strategy') {
+      let contextPrompt = MARKETING_PROMPT;
+      if (category === 'partnerships') {
+        contextPrompt = PARTNERSHIPS_PROMPT;
+      } else if (category === 'product development') {
+        contextPrompt = PRODUCT_DEVELOPMENT_PROMPT;
+      }
+
       const userPromptAnalysis = prompt ? `
         Analyze this specific content request: "${prompt}"
         
@@ -49,16 +96,16 @@ serve(async (req) => {
         Then, create 3 highly specific content recommendations that:
         1. Reference actual, current events or announcements
         2. Include specific details, statistics, or noteworthy developments
-        3. Tie these current events to RedBaez's AI expertise
+        3. Tie these current events to RedBaez's ${category} expertise
         4. Suggest a unique angle or insight that would make the content stand out
         
         Each recommendation should be immediately actionable and directly connected to current events/developments.
-      ` : 'Create 3 strategic marketing recommendations for RedBaez';
+      ` : `Create 3 strategic ${category} recommendations for RedBaez`;
 
       const strategyPrompt = `${userPromptAnalysis}
 
       Company Context:
-      ${MARKETING_PROMPT}
+      ${contextPrompt}
       
       Return ONLY a JSON array in this exact format, with no additional text:
       [
@@ -72,9 +119,9 @@ serve(async (req) => {
       Focus recommendations on:
       1. Specific, current developments in ${category}
       2. Real examples and concrete details
-      3. Actionable content ideas that leverage current events
-      4. Content formats: Blog posts, LinkedIn articles, case studies, webinars
-      5. Ways to establish thought leadership through timely insights`;
+      3. Actionable ideas that leverage current events
+      4. Ways to establish thought leadership through timely insights
+      5. Opportunities specific to the ${category} sector`;
 
       console.log('Sending request to Perplexity API with prompt:', strategyPrompt);
 
@@ -89,7 +136,7 @@ serve(async (req) => {
           messages: [
             {
               role: 'system',
-              content: 'You are a content strategist with deep knowledge of current tech events and AI developments. Create highly specific recommendations that reference actual events, announcements, or developments. Include concrete details and statistics when possible.'
+              content: `You are a ${category} strategist with deep knowledge of current tech events and industry developments. Create highly specific recommendations that reference actual events, announcements, or developments. Include concrete details and statistics when possible.`
             },
             {
               role: 'user',
