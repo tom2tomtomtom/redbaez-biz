@@ -6,8 +6,6 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-const PERPLEXITY_API_URL = 'https://api.perplexity.ai/chat/completions';
-
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -15,54 +13,129 @@ serve(async (req) => {
   }
 
   try {
-    const { clientData } = await req.json();
-    console.log('Analyzing client data:', clientData);
-
-    // First, let's get relevant news about the client
-    const newsPrompt = `Search for and summarize the latest business news, developments, and market trends related to ${clientData?.name || 'Unknown'} in the ${clientData?.industry || 'Unknown'} industry. Focus on news from the last 3 months that could impact their marketing and AI needs.`;
+    const { category, prompt, type, clientData } = await req.json();
     
     const apiKey = Deno.env.get('PERPLEXITY_API_KEY');
     if (!apiKey) {
-      console.error('Error: Perplexity API key not configured');
       throw new Error('Perplexity API key not configured in Supabase Edge Function Secrets');
     }
 
-    // Get news context first
-    const newsResponse = await fetch(PERPLEXITY_API_URL, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'llama-3.1-sonar-small-128k-online',
-        messages: [
-          {
-            role: 'system',
-            content: 'You are a business analyst. Provide a brief, factual summary of recent news and developments.'
-          },
-          {
-            role: 'user',
-            content: newsPrompt
-          }
-        ],
-        temperature: 0.2,
-        max_tokens: 1000,
-      }),
-    });
+    // If it's a strategy request, use a different prompt
+    if (type === 'strategy') {
+      const strategyPrompt = `As a strategic business advisor, analyze and provide 3 specific, actionable recommendations for the ${category} category.
+      
+      ${prompt ? `Additional context or constraints: ${prompt}` : ''}
+      
+      Return ONLY a JSON array in this exact format, with no additional text or explanations:
+      [
+        {
+          "type": "revenue",
+          "priority": "high",
+          "suggestion": "specific actionable step"
+        }
+      ]
+      
+      Valid types are ONLY: "revenue", "engagement", "risk", "opportunity"
+      Valid priorities are ONLY: "high", "medium", "low"
+      
+      Focus on:
+      1. Immediate actionable steps
+      2. Measurable outcomes
+      3. Industry best practices
+      4. Current market trends
+      5. Competitive advantages`;
 
-    if (!newsResponse.ok) {
-      const errorText = await newsResponse.text();
-      console.error('Error from Perplexity API (news):', errorText);
-      throw new Error(`Failed to get news from Perplexity API: ${errorText}`);
-    }
+      const response = await fetch('https://api.perplexity.ai/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${apiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'llama-3.1-sonar-small-128k-online',
+          messages: [
+            {
+              role: 'system',
+              content: 'You are a strategic business advisor. Return ONLY a JSON array with exactly 3 specific, actionable recommendations.'
+            },
+            {
+              role: 'user',
+              content: strategyPrompt
+            }
+          ],
+          temperature: 0.2,
+          max_tokens: 1000,
+        }),
+      });
 
-    const newsData = await newsResponse.json();
-    const newsContext = newsData.choices[0].message.content;
-    console.log('Retrieved news context:', newsContext);
-    
-    // Now use the news context in our main recommendation prompt
-    const prompt = `You are a strategic business advisor for RedBaez, an AI-focused creative and marketing solutions company. Analyze this client data and recent news to provide exactly 3 specific, actionable recommendations that align with RedBaez's service offerings and can be implemented within the next 30 days.
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Error from Perplexity API:', errorText);
+        throw new Error(`Failed to get response from Perplexity API: ${errorText}`);
+      }
+
+      const aiResponse = await response.json();
+      console.log('Received AI response:', aiResponse);
+
+      if (!aiResponse?.choices?.[0]?.message?.content) {
+        throw new Error('Invalid response format from AI');
+      }
+
+      let recommendations = [];
+      try {
+        const content = aiResponse.choices[0].message.content;
+        recommendations = JSON.parse(content.replace(/```json\n?|\n?```/g, '').trim());
+      } catch (error) {
+        console.error('Error parsing AI response:', error);
+        throw new Error(`Failed to parse AI recommendations: ${error.message}`);
+      }
+
+      return new Response(
+        JSON.stringify({ recommendations }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    } else {
+      // Handle client analysis
+      console.log('Analyzing client data:', clientData);
+
+      // First, let's get relevant news about the client
+      const newsPrompt = `Search for and summarize the latest business news, developments, and market trends related to ${clientData?.name || 'Unknown'} in the ${clientData?.industry || 'Unknown'} industry. Focus on news from the last 3 months that could impact their marketing and AI needs.`;
+
+      // Get news context first
+      const newsResponse = await fetch('https://api.perplexity.ai/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${apiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'llama-3.1-sonar-small-128k-online',
+          messages: [
+            {
+              role: 'system',
+              content: 'You are a business analyst. Provide a brief, factual summary of recent news and developments.'
+            },
+            {
+              role: 'user',
+              content: newsPrompt
+            }
+          ],
+          temperature: 0.2,
+          max_tokens: 1000,
+        }),
+      });
+
+      if (!newsResponse.ok) {
+        const errorText = await newsResponse.text();
+        console.error('Error from Perplexity API (news):', errorText);
+        throw new Error(`Failed to get news from Perplexity API: ${errorText}`);
+      }
+
+      const newsData = await newsResponse.json();
+      const newsContext = newsData.choices[0].message.content;
+      console.log('Retrieved news context:', newsContext);
+
+      const clientPrompt = `You are a strategic business advisor for RedBaez, an AI-focused creative and marketing solutions company. Analyze this client data and recent news to provide exactly 3 specific, actionable recommendations that align with RedBaez's service offerings and can be implemented within the next 30 days.
 
 Return ONLY a JSON array in this exact format, with no additional text, markdown, or explanations:
 [
@@ -176,98 +249,56 @@ Focus recommendations on:
 4. Specific, measurable actions with clear next steps
 5. Opportunities identified from recent news and market developments`;
 
-    console.log('Sending request to Perplexity API');
-    const response = await fetch(PERPLEXITY_API_URL, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'llama-3.1-sonar-small-128k-online',
-        messages: [
-          {
-            role: 'system',
-            content: 'You are a strategic business advisor. Return ONLY a JSON array with exactly 3 specific, actionable recommendations. Each recommendation must have a type (revenue/engagement/risk/opportunity), priority (high/medium/low), and a specific suggestion that aligns with RedBaez\'s service offerings and pricing.'
-          },
-          {
-            role: 'user',
-            content: prompt
-          }
-        ],
-        temperature: 0.2,
-        max_tokens: 1000,
-      }),
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('Error from Perplexity API:', errorText);
-      throw new Error(`Failed to get response from Perplexity API: ${errorText}`);
-    }
-
-    const aiResponse = await response.json();
-    console.log('Received AI response:', aiResponse);
-
-    if (!aiResponse?.choices?.[0]?.message?.content) {
-      console.error('Invalid response format from AI:', aiResponse);
-      throw new Error('Invalid response format from AI');
-    }
-
-    let recommendations = [];
-    try {
-      const content = aiResponse.choices[0].message.content;
-      // Remove any markdown formatting and clean up the response
-      const cleanedContent = content
-        .replace(/```json\n?|\n?```/g, '')  // Remove markdown code blocks
-        .replace(/^[\s\S]*?\[/, '[')        // Remove any text before the array
-        .replace(/\][\s\S]*$/, ']')         // Remove any text after the array
-        .trim();
-      
-      console.log('Cleaned content:', cleanedContent);
-      recommendations = JSON.parse(cleanedContent);
-      
-      // Validate the structure of each recommendation
-      if (!Array.isArray(recommendations) || recommendations.length !== 3) {
-        throw new Error('Invalid recommendations format: must be an array of exactly 3 items');
-      }
-      
-      const validTypes = ['revenue', 'engagement', 'risk', 'opportunity'];
-      const validPriorities = ['high', 'medium', 'low'];
-      
-      recommendations = recommendations.map((rec, index) => {
-        if (!rec.type || !rec.priority || !rec.suggestion) {
-          throw new Error(`Missing required fields at index ${index}`);
-        }
-        
-        const type = rec.type.toLowerCase();
-        const priority = rec.priority.toLowerCase();
-        
-        if (!validTypes.includes(type)) {
-          throw new Error(`Invalid type "${type}" at index ${index}. Must be one of: ${validTypes.join(', ')}`);
-        }
-        if (!validPriorities.includes(priority)) {
-          throw new Error(`Invalid priority "${priority}" at index ${index}. Must be one of: ${validPriorities.join(', ')}`);
-        }
-        
-        return {
-          ...rec,
-          type,
-          priority
-        };
+      const response = await fetch('https://api.perplexity.ai/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${apiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'llama-3.1-sonar-small-128k-online',
+          messages: [
+            {
+              role: 'system',
+              content: 'You are a strategic business advisor. Return ONLY a JSON array with exactly 3 specific, actionable recommendations. Each recommendation must have a type (revenue/engagement/risk/opportunity), priority (high/medium/low), and a specific suggestion that aligns with RedBaez\'s service offerings and pricing.'
+            },
+            {
+              role: 'user',
+              content: clientPrompt
+            }
+          ],
+          temperature: 0.2,
+          max_tokens: 1000,
+        }),
       });
-      
-    } catch (error) {
-      console.error('Error parsing AI response:', error);
-      throw new Error(`Failed to parse AI recommendations: ${error.message}`);
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Error from Perplexity API:', errorText);
+        throw new Error(`Failed to get response from Perplexity API: ${errorText}`);
+      }
+
+      const aiResponse = await response.json();
+      console.log('Received AI response:', aiResponse);
+
+      if (!aiResponse?.choices?.[0]?.message?.content) {
+        throw new Error('Invalid response format from AI');
+      }
+
+      let recommendations = [];
+      try {
+        const content = aiResponse.choices[0].message.content;
+        recommendations = JSON.parse(content.replace(/```json\n?|\n?```/g, '').trim());
+      } catch (error) {
+        console.error('Error parsing AI response:', error);
+        throw new Error(`Failed to parse AI recommendations: ${error.message}`);
+      }
+
+      return new Response(
+        JSON.stringify({ recommendations }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
-
-    console.log('Formatted recommendations:', recommendations);
-    return new Response(
-      JSON.stringify({ recommendations }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
-
   } catch (error) {
     console.error('Error in analyze-client function:', error);
     return new Response(

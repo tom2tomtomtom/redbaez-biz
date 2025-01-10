@@ -19,17 +19,24 @@ export const IdeaGenerator = ({ category, onIdeaGenerated }: IdeaGeneratorProps)
       setIsGenerating(true);
       
       const { data, error } = await supabase.functions.invoke('analyze-client', {
-        body: { category, prompt: prompt || undefined }
+        body: { 
+          prompt: prompt || undefined,
+          category,
+          type: 'strategy'
+        }
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error from Edge Function:', error);
+        throw error;
+      }
 
       if (data?.recommendations) {
         // Convert recommendations to tasks
         for (const rec of data.recommendations) {
           await supabase.from('general_tasks').insert({
-            title: rec.title || 'New Strategic Task',
-            description: rec.description,
+            title: rec.suggestion || 'New Strategic Task',
+            description: `Priority: ${rec.priority}\nType: ${rec.type}\n\n${rec.suggestion}`,
             category: category,
             status: 'incomplete',
             next_due_date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString() // Default to 1 week
@@ -43,12 +50,14 @@ export const IdeaGenerator = ({ category, onIdeaGenerated }: IdeaGeneratorProps)
 
         setPrompt("");
         onIdeaGenerated();
+      } else {
+        throw new Error('No recommendations received from the API');
       }
     } catch (error) {
       console.error('Error generating ideas:', error);
       toast({
         title: "Error",
-        description: "Failed to generate ideas. Please try again.",
+        description: "Failed to generate ideas. Please ensure the Perplexity API key is configured in Supabase Edge Function secrets.",
         variant: "destructive",
       });
     } finally {
@@ -68,6 +77,7 @@ export const IdeaGenerator = ({ category, onIdeaGenerated }: IdeaGeneratorProps)
         onClick={generateIdea} 
         disabled={isGenerating}
         className="w-full"
+        variant="default"
       >
         {isGenerating ? (
           <>
