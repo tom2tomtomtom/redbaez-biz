@@ -6,19 +6,24 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-const BUSINESS_CONTEXT = `
-RedBaez is an AI-powered agency focusing on:
-1. AI-Powered Creativity for innovative campaigns
-2. Optimization Mastery across platforms (Meta, TikTok, YouTube, Snap)
-3. Operational Excellence for productivity
+const MARKETING_PROMPT = `
+Imagine you're the CMO of a cutting-edge AI consultancy, RedBaez, revolutionizing how businesses operate and market themselves. Your mission is to craft unique, impactful marketing strategies that establish RedBaez as the go-to expert for AI-driven creativity, content scaling, and operational excellence.
 
-Key Services:
+Consider the following:
+• Audience: Businesses with 100+ employees, agencies, and marketers keen on optimizing processes or boosting digital marketing strategies.
+• Core Strengths: AI-powered campaign innovation, scaled content creation, and workflow optimization.
+• Goals: Build brand awareness, generate leads, and establish thought leadership in the AI space.
+
+Focus on RedBaez's unique selling points:
+1. Efficiency Meets Creativity: Showcase how AI transforms operations while fueling innovative marketing campaigns.
+2. Scalable Solutions: Emphasize AI's ability to generate diverse, targeted content at scale.
+3. Thought Leadership: Position RedBaez as a visionary in AI adoption.
+
+Services and Pricing:
 - AI-Centric Creative Campaigns ($15,000-$50,000)
 - Scaled Content Execution ($15,000-$40,000)
 - AI Optimization Consultation ($15,000-$50,000)
 - AI Tools Training ($10,000-$20,000)
-
-Target Market: Companies with 100+ employees seeking process optimization and enhanced digital content strategy.
 `;
 
 serve(async (req) => {
@@ -39,12 +44,12 @@ serve(async (req) => {
 
     // If it's a strategy request, use a different prompt
     if (type === 'strategy') {
-      const strategyPrompt = `As a strategic marketing advisor for ${category}, analyze our business context and provide 3 specific, actionable recommendations.
+      const strategyPrompt = `As a strategic marketing advisor, analyze our context and provide 3 specific, actionable recommendations for the ${category} category.
 
-      Business Context:
-      ${BUSINESS_CONTEXT}
+      Context:
+      ${MARKETING_PROMPT}
       
-      ${prompt ? `Additional context or constraints: ${prompt}` : ''}
+      ${prompt ? `Additional focus areas or constraints: ${prompt}` : ''}
       
       Return ONLY a JSON array in this exact format, with no additional text:
       [
@@ -55,12 +60,12 @@ serve(async (req) => {
         }
       ]
       
-      Focus on:
-      1. Immediate actionable steps aligned with our service offerings
-      2. Measurable outcomes within our price ranges
-      3. Industry best practices for ${category}
-      4. Current market trends in AI and digital marketing
-      5. Competitive advantages based on our SWOT analysis`;
+      Focus your recommendations on:
+      1. Creative marketing initiatives that showcase our AI expertise
+      2. Lead generation tactics within our service price ranges
+      3. Thought leadership opportunities in ${category}
+      4. Content formats: Blog series, case studies, interactive tools, webinars, social campaigns
+      5. Engagement channels: LinkedIn, YouTube, Meta, TikTok, and events`;
 
       console.log('Sending request to Perplexity API with prompt:', strategyPrompt);
 
