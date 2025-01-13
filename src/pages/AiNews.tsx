@@ -80,8 +80,12 @@ export const AiNews = () => {
 
       if (error) throw error;
       
-      setGeneratedArticle(data.article);
-      setShowArticleDialog(true);
+      if (data?.article) {
+        setGeneratedArticle(data.article);
+        setShowArticleDialog(true);
+      } else {
+        throw new Error('No article generated');
+      }
     } catch (error) {
       console.error('Error generating LinkedIn article:', error);
       toast.error('Failed to generate LinkedIn article');

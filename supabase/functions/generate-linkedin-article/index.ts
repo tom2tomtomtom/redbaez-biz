@@ -11,7 +11,7 @@ serve(async (req) => {
   }
 
   try {
-    const { topic } = await req.json()
+    const { title, summary } = await req.json()
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -20,7 +20,7 @@ serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4',
+        model: 'gpt-4o-mini',
         messages: [
           {
             role: 'system',
@@ -39,7 +39,11 @@ Remember to include relevant hashtags at the end.`
           },
           {
             role: 'user',
-            content: `Write a LinkedIn post about ${topic}. Keep it concise and engaging.`
+            content: `Write a LinkedIn post about this AI news:
+Title: ${title}
+Summary: ${summary}
+
+Keep it concise and engaging.`
           }
         ],
         temperature: 0.7,
@@ -51,7 +55,7 @@ Remember to include relevant hashtags at the end.`
     console.log('OpenAI API Response:', result)
 
     return new Response(
-      JSON.stringify({ content: result.choices[0].message.content }),
+      JSON.stringify({ article: result.choices[0].message.content }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
     )
   } catch (error) {
