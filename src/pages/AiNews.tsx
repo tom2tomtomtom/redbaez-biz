@@ -3,10 +3,17 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Newspaper, Share2, RefreshCw } from "lucide-react";
+import { Newspaper, Share2, RefreshCw, Linkedin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   Select,
   SelectContent,
@@ -14,6 +21,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useState } from "react";
 
 interface NewsItem {
   id: number;
@@ -27,6 +35,11 @@ interface NewsItem {
 }
 
 export const AiNews = () => {
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [showArticleDialog, setShowArticleDialog] = useState(false);
+  const [generatedArticle, setGeneratedArticle] = useState("");
+  const [selectedNewsItem, setSelectedNewsItem] = useState<NewsItem | null>(null);
+
   const { data: newsItems, isLoading, refetch } = useQuery({
     queryKey: ['ai-news'],
     queryFn: async () => {
@@ -65,6 +78,35 @@ export const AiNews = () => {
       navigator.clipboard.writeText(item.url);
       toast.success('Link copied to clipboard');
     }
+  };
+
+  const generateLinkedInArticle = async (item: NewsItem) => {
+    setIsGenerating(true);
+    setSelectedNewsItem(item);
+    
+    try {
+      const { data, error } = await supabase.functions.invoke('generate-linkedin-article', {
+        body: {
+          title: item.title,
+          summary: item.summary,
+        },
+      });
+
+      if (error) throw error;
+      
+      setGeneratedArticle(data.article);
+      setShowArticleDialog(true);
+    } catch (error) {
+      console.error('Error generating LinkedIn article:', error);
+      toast.error('Failed to generate LinkedIn article');
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  const copyArticle = () => {
+    navigator.clipboard.writeText(generatedArticle);
+    toast.success('Article copied to clipboard');
   };
 
   return (
@@ -127,14 +169,25 @@ export const AiNews = () => {
                         {item.title}
                       </a>
                     </CardTitle>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => shareNews(item)}
-                      className="shrink-0"
-                    >
-                      <Share2 className="h-4 w-4" />
-                    </Button>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => shareNews(item)}
+                        className="shrink-0"
+                      >
+                        <Share2 className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => generateLinkedInArticle(item)}
+                        disabled={isGenerating && selectedNewsItem?.id === item.id}
+                        className="shrink-0"
+                      >
+                        <Linkedin className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </div>
                   <div className="flex flex-wrap items-center gap-2">
                     <span className="text-sm text-muted-foreground">
@@ -166,6 +219,25 @@ export const AiNews = () => {
           )}
         </div>
       </div>
+
+      <Dialog open={showArticleDialog} onOpenChange={setShowArticleDialog}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Generated LinkedIn Article</DialogTitle>
+            <DialogDescription>
+              Copy and paste this article to LinkedIn
+            </DialogDescription>
+          </DialogHeader>
+          <div className="mt-4 space-y-4">
+            <div className="bg-gray-50 p-4 rounded-lg whitespace-pre-wrap">
+              {generatedArticle}
+            </div>
+            <Button onClick={copyArticle} className="w-full">
+              Copy to Clipboard
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

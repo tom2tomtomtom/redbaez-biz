@@ -1,0 +1,3 @@
+project_id = "ryomveanixzshfatalcd"
+[functions.generate-linkedin-article]
+verify_jwt = false
