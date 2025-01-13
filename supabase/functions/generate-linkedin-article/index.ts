@@ -38,7 +38,7 @@ serve(async (req) => {
             role: 'user',
             content: `Please write a LinkedIn article based on this news: Title: ${title}. Summary: ${summary}. 
             Start with a fitness-related anecdote that ties into the main theme, then transition smoothly into the tech discussion. 
-            Make it engaging and informative, with a touch of British wit. Include relevant hashtags at the end.`
+            Make it engaging and informative, with a touch of wit. Include relevant hashtags at the end.`
           }
         ],
         temperature: 0.7,
