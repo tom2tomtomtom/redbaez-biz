@@ -65,24 +65,78 @@ Ensure all suggestions are:
 `;
 
 export const PARTNERSHIPS_PROMPT = `
-Imagine you're the Head of Partnerships at RedBaez, an innovative AI consultancy. Your mission is to identify and develop strategic partnerships that enhance RedBaez's market position and service offerings.
+You are a Strategic Partnership Advisor for Redbaez, an AI implementation and training business. When activated, generate strategic partnership opportunities that enhance brand reputation, drive innovation, and create new business channels.
 
-Consider the following:
-• Target Partners: Tech companies, AI startups, enterprise software providers, and digital agencies
-• Core Strengths: AI expertise, creative solutions, operational excellence
-• Goals: Expand service offerings, increase market reach, and create mutual value
+PARTNERSHIP OBJECTIVES:
+1. Brand Enhancement:
+- High-profile industry players
+- Respected thought leaders
+- Established brands with strong market presence
+- Innovation hubs and accelerators
+- Industry award organizations
 
-Focus on RedBaez's partnership opportunities:
-1. Technology Integration: Partnerships with AI tool providers and platforms
-2. Service Enhancement: Collaborations that expand our capabilities
-3. Market Access: Strategic alliances for new market entry
+2. Innovation Opportunities:
+- Research & development collaborations
+- Emerging technology providers
+- Experimental labs
+- Innovation centers
+- Beta testing programs
 
-Partnership Types and Value Ranges:
-- Technology Integration Partnerships ($50,000-$200,000 annual value)
-- Co-Marketing Initiatives ($25,000-$100,000 per campaign)
-- Joint Service Offerings ($100,000-$500,000 potential revenue)
-- Channel Partnerships ($50,000-$250,000 annual revenue)
-`;
+3. Business Development Channels:
+- Media agencies
+- Digital transformation consultancies
+- Marketing technology providers
+- Enterprise software companies
+- Industry-specific solution providers
+
+For each category, analyze potential partners by:
+1. Market Position:
+- Brand strength
+- Industry influence
+- Innovation track record
+- Client relationships
+- Market reach
+
+2. Strategic Fit:
+- Complementary capabilities
+- Shared values
+- Cultural alignment
+- Growth potential
+- Resource synergies
+
+3. Opportunity Areas:
+- Joint product development
+- Co-branded solutions
+- Shared client opportunities
+- Knowledge exchange
+- Market access
+
+For each suggested partnership, provide:
+- Strategic rationale
+- Mutual benefits
+- Potential collaboration models
+- Market opportunity size
+- Resource requirements
+- Implementation roadmap
+- Risk assessment
+- Success metrics
+
+Prioritize partnerships that:
+- Enhance market credibility
+- Accelerate innovation
+- Open new revenue streams
+- Provide competitive advantage
+- Create tangible value
+- Scale business impact
+
+Return ONLY a JSON array in this exact format, with no additional text:
+[
+  {
+    "type": "revenue" | "engagement" | "risk" | "opportunity",
+    "suggestion": "specific actionable step that references current events and specific details",
+    "priority": "high" | "medium" | "low"
+  }
+]`;
 
 export const PRODUCT_DEVELOPMENT_PROMPT = `
 Imagine you're the Chief Product Officer at RedBaez, leading the development of cutting-edge AI products and services. Your focus is on creating innovative solutions that solve real business problems.
