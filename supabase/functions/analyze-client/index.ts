@@ -134,7 +134,6 @@ serve(async (req) => {
       [
         {
           "type": "revenue" | "engagement" | "risk" | "opportunity",
-          "priority": "high" | "medium" | "low",
           "suggestion": "specific actionable step that references current events and specific details"
         }
       ]`;
