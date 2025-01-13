@@ -22,6 +22,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useState } from "react";
+import { format } from "date-fns";
 
 interface NewsItem {
   id: number;
@@ -237,9 +238,11 @@ export const AiNews = () => {
                     </div>
                   </div>
                   <div className="flex flex-wrap items-center gap-2">
-                    <span className="text-sm text-muted-foreground">
-                      {new Date(item.created_at || '').toLocaleDateString()}
-                    </span>
+                    {item.published_date && (
+                      <span className="text-sm text-muted-foreground">
+                        {format(new Date(item.published_date), 'MMM d, yyyy')}
+                      </span>
+                    )}
                     <span className="text-muted-foreground">•</span>
                     <span className="text-sm text-muted-foreground">{item.source}</span>
                     {item.category && (
