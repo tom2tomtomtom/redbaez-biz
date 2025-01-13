@@ -1,9 +1,22 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3'
 import { corsHeaders } from '../_shared/cors.ts'
 
-const SYSTEM_PROMPT = `You are an AI news curator for a website. Your task is to find and summarize the latest AI news stories.
+// Define types for better validation
+interface NewsItem {
+  headline: string;
+  summary: string;
+  source: string;
+  category: 'tools' | 'training' | 'innovation' | 'ethics';
+  link: string;
+}
 
-Format your response EXACTLY as a JSON string with this structure:
+interface NewsResponse {
+  news: NewsItem[];
+}
+
+const SYSTEM_PROMPT = `You are an AI news curator. Generate exactly 5 recent AI news items.
+
+Your response MUST be a valid JSON string matching this EXACT structure:
 {
   "news": [
     {
@@ -22,7 +35,7 @@ Focus on:
 - AI innovation and research
 - AI ethics and safety
 
-Return exactly 5 recent news items.`
+Be precise and factual. Return EXACTLY 5 items.`;
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -55,7 +68,7 @@ Deno.serve(async (req) => {
             content: 'Generate 5 recent AI news items.'
           }
         ],
-        temperature: 0.1,
+        temperature: 0.05, // Lower temperature for more consistent formatting
         max_tokens: 1000,
         return_images: false,
         return_related_questions: false,
@@ -69,39 +82,56 @@ Deno.serve(async (req) => {
     }
 
     const data = await response.json()
-    console.log('Perplexity API response:', JSON.stringify(data))
+    console.log('Perplexity API response:', JSON.stringify(data, null, 2))
 
     if (!data.choices?.[0]?.message?.content) {
       console.error('Invalid API response structure:', data)
       throw new Error('Invalid API response structure')
     }
 
-    const content = data.choices[0].message.content
+    const content = data.choices[0].message.content.trim()
     console.log('Raw content:', content)
     
-    let newsItems
+    let newsItems: NewsResponse
     try {
-      // Try to parse the content as JSON
-      newsItems = JSON.parse(content.trim())
+      // Parse and validate the response
+      newsItems = JSON.parse(content)
       
-      // Validate the structure
       if (!newsItems?.news || !Array.isArray(newsItems.news)) {
         console.error('Invalid news format:', content)
-        throw new Error('Invalid news array format')
+        throw new Error('Response must contain a "news" array')
+      }
+
+      if (newsItems.news.length !== 5) {
+        console.error('Wrong number of news items:', newsItems.news.length)
+        throw new Error('Response must contain exactly 5 news items')
       }
 
       // Validate each news item
       newsItems.news.forEach((item, index) => {
-        if (!item.headline || !item.summary || !item.source || !item.category || !item.link) {
-          console.error(`Invalid news item at index ${index}:`, item)
-          throw new Error(`Invalid news item format at index ${index}`)
+        const validCategories = ['tools', 'training', 'innovation', 'ethics']
+        if (!item.headline || typeof item.headline !== 'string') {
+          throw new Error(`Invalid headline in item ${index}`)
+        }
+        if (!item.summary || typeof item.summary !== 'string') {
+          throw new Error(`Invalid summary in item ${index}`)
+        }
+        if (!item.source || typeof item.source !== 'string') {
+          throw new Error(`Invalid source in item ${index}`)
+        }
+        if (!item.category || !validCategories.includes(item.category)) {
+          throw new Error(`Invalid category in item ${index}`)
+        }
+        if (!item.link || typeof item.link !== 'string' || !item.link.startsWith('http')) {
+          throw new Error(`Invalid link in item ${index}`)
         }
       })
 
-      console.log('Successfully parsed news items:', newsItems)
+      console.log('Successfully validated news items:', newsItems)
     } catch (e) {
-      console.error('Failed to parse news items:', e, 'Content:', content)
-      throw new Error(`Failed to parse news items: ${e.message}`)
+      console.error('Failed to parse or validate news items:', e)
+      console.error('Raw content that failed validation:', content)
+      throw new Error(`Invalid news format: ${e.message}`)
     }
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL')
@@ -128,6 +158,7 @@ Deno.serve(async (req) => {
       
       if (error) {
         console.error('Error inserting news item:', error)
+        throw error
       }
     }
 
@@ -141,7 +172,8 @@ Deno.serve(async (req) => {
     return new Response(
       JSON.stringify({ 
         error: error.message,
-        stack: error.stack 
+        stack: error.stack,
+        name: error.name 
       }), {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
