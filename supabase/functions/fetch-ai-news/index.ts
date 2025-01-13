@@ -16,7 +16,7 @@ Format each news item as a JSON object with:
 - category: One of [tools, training, innovation, ethics]
 - link: URL to the original article
 
-Return exactly 5 relevant and recent news items.`;
+Return a JSON object with a "news" array containing exactly 5 relevant and recent news items.`;
 
 Deno.serve(async (req) => {
   // Handle CORS
@@ -72,6 +72,9 @@ Deno.serve(async (req) => {
     let newsItems
     try {
       newsItems = JSON.parse(content)
+      if (!newsItems.news || !Array.isArray(newsItems.news)) {
+        throw new Error('Invalid news format')
+      }
     } catch (e) {
       console.error('Failed to parse news items:', e)
       throw new Error('Invalid response format')
