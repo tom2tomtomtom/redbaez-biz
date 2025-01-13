@@ -126,6 +126,36 @@ Deno.serve(async (req) => {
         console.log('Generating image for:', item.headline)
         
         try {
+          // Verify Hugging Face token before attempting image generation
+          try {
+            console.log('Verifying Hugging Face token...')
+            const testResponse = await fetch('https://huggingface.co/api/whoami', {
+              headers: {
+                'Authorization': `Bearer ${hfKey}`
+              }
+            });
+            
+            if (!testResponse.ok) {
+              console.error('Invalid Hugging Face token:', await testResponse.text())
+              throw new Error('Invalid Hugging Face token - please check your API key')
+            }
+          } catch (error) {
+            console.error('Error verifying Hugging Face token:', error)
+            // Store the news item without an image
+            const { error: dbError } = await supabase
+              .from('ai_news')
+              .insert({
+                title: item.headline,
+                summary: item.summary,
+                source: item.source,
+                category: item.category,
+                url: item.link,
+              })
+            
+            if (dbError) throw dbError
+            continue // Skip image generation for this item
+          }
+
           const image = await hf.textToImage({
             inputs: `${item.headline} - ${item.summary.substring(0, 100)}`,
             model: 'black-forest-labs/FLUX.1-schnell',
