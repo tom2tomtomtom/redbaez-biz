@@ -1,23 +1,30 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import "https://deno.land/x/xhr@0.1.0/mod.ts";
+import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+}
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
+    return new Response(null, { headers: corsHeaders })
   }
 
   try {
-    const { newsItems } = await req.json() as { newsItems: { title: string; summary: string | null; category: string | null; }[] };
-    console.log('Received request with news items:', newsItems.length);
+    const supabase = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    )
 
-    const newsContent = newsItems.reduce((acc, item) => {
-      return acc + `\n\n${item.title}\n${item.summary || ''}\nCategory: ${item.category || 'Uncategorized'}\n---`
-    }, '');
+    // Fetch recent AI news
+    const { data: newsItems, error: newsError } = await supabase
+      .from('ai_news')
+      .select('*')
+      .order('published_date', { ascending: false })
+      .limit(5)
+
+    if (newsError) throw newsError
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -26,70 +33,44 @@ serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4o',
+        model: 'gpt-4',
         messages: [
           {
             role: 'system',
-            content: `You are a thought leader who creates engaging newsletters about AI developments using unconventional, thought-provoking analogies.
-            Your writing approach:
-            1. Use fresh, unexpected comparisons that offer new perspectives on AI technology
-            2. Maintain a conversational yet intellectually engaging tone
-            3. Avoid clichés and overused metaphors
-            4. Present complex ideas clearly while provoking curiosity
-            5. Connect different AI developments through innovative analogies
-            6. Encourage deeper reflection on AI's implications
-            
-            Structure your newsletter with:
-            - A compelling opening that introduces the main themes through an unexpected analogy
-            - Clear sections with creative transitions
-            - A thought-provoking conclusion that invites reader engagement
-            
-            Focus on making complex AI concepts accessible through fresh perspectives and unexpected comparisons.`
+            content: `You are a thought leader who explores AI-related concepts using unconventional, thought-provoking analogies that challenge readers' expectations. Create a newsletter section that synthesizes recent AI news into engaging, insightful content.
+
+Your writing style:
+- Uses fresh, unexpected comparisons that offer new perspectives on AI technology
+- Maintains a conversational yet intellectually engaging tone
+- Avoids clichés and overused metaphors
+- Blends subtle humor with deep insights
+- Presents complex ideas clearly while provoking curiosity
+- Encourages deeper reflection on AI's implications in professional and societal contexts
+
+Format the newsletter with clear sections and engaging headlines.`
           },
           {
             role: 'user',
-            content: `Please create an engaging newsletter from these AI news items:\n${newsContent}\n
-            Use unexpected analogies and fresh perspectives to connect these developments and their implications.
-            Organize by themes, add creative transitions, and end with a thought-provoking conclusion.`
+            content: `Create a newsletter section based on these recent AI news items: ${JSON.stringify(newsItems)}`
           }
         ],
         temperature: 0.7,
-        max_tokens: 2000,
+        max_tokens: 1000,
       }),
-    });
+    })
 
-    if (!response.ok) {
-      const error = await response.json();
-      console.error('OpenAI API error:', error);
-      throw new Error(error.error?.message || 'Error generating newsletter');
-    }
-
-    const data = await response.json();
-    console.log('OpenAI API response received');
+    const result = await response.json()
+    console.log('OpenAI API Response:', result)
 
     return new Response(
-      JSON.stringify({ newsletter: data.choices[0].message.content }),
-      { 
-        headers: { 
-          ...corsHeaders, 
-          'Content-Type': 'application/json'
-        } 
-      }
-    );
+      JSON.stringify({ content: result.choices[0].message.content }),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+    )
   } catch (error) {
-    console.error('Error generating newsletter:', error);
+    console.error('Error:', error)
     return new Response(
-      JSON.stringify({ 
-        error: error.message,
-        details: error.stack
-      }),
-      { 
-        status: 500,
-        headers: { 
-          ...corsHeaders, 
-          'Content-Type': 'application/json'
-        }
-      }
-    );
+      JSON.stringify({ error: error.message }),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 },
+    )
   }
-});
+})
