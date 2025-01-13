@@ -115,7 +115,7 @@ export const GeneralTaskItem = ({ task, onDeleted }: GeneralTaskItemProps) => {
       className={cn(
         "p-4 hover:shadow-md transition-shadow border-2",
         getCategoryColor(task.category),
-        task.urgent && "ring-2 ring-red-500"
+        task.urgent && "border-red-200 bg-red-50/50"
       )}
     >
       <div className="flex justify-between items-start">
