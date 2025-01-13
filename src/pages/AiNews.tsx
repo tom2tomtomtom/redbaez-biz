@@ -139,29 +139,32 @@ export const AiNews = () => {
                       <Share2 className="h-4 w-4" />
                     </Button>
                   </div>
-                  <CardDescription className="flex items-center gap-2">
-                    <span>{new Date(item.created_at || '').toLocaleDateString()}</span>
-                    <span>•</span>
-                    <span>{item.source}</span>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="text-sm text-muted-foreground">
+                      {new Date(item.created_at || '').toLocaleDateString()}
+                    </span>
+                    <span className="text-muted-foreground">•</span>
+                    <span className="text-sm text-muted-foreground">{item.source}</span>
                     {item.category && (
                       <>
-                        <span>•</span>
-                        <Badge variant="secondary">{item.category}</Badge>
+                        <span className="text-muted-foreground">•</span>
+                        <span className="inline-block">
+                          <Badge variant="secondary">{item.category}</Badge>
+                        </span>
                       </>
                     )}
-                  </CardDescription>
+                  </div>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="space-y-4">
                   {item.image_url && (
-                    <div className="mb-4">
-                      <AspectRatio ratio={16 / 9} className="bg-muted">
-                        <img
-                          src={item.image_url}
-                          alt={item.title}
-                          className="rounded-lg object-cover w-full h-full"
-                        />
-                      </AspectRatio>
-                    </div>
+                    <AspectRatio ratio={16 / 9} className="bg-muted overflow-hidden rounded-lg">
+                      <img
+                        src={item.image_url}
+                        alt={item.title}
+                        className="object-cover w-full h-full"
+                        loading="lazy"
+                      />
+                    </AspectRatio>
                   )}
                   <ScrollArea className="h-32">
                     <p className="text-gray-600">{item.summary}</p>
