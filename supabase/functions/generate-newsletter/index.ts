@@ -1,26 +1,20 @@
-import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import "https://deno.land/x/xhr@0.1.0/mod.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-}
+};
 
 serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders })
-  }
-
-  const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY')
-  if (!OPENAI_API_KEY) {
-    throw new Error('Missing OpenAI API key')
+    return new Response(null, { headers: corsHeaders });
   }
 
   try {
     const { newsItems } = await req.json() as { newsItems: { title: string; summary: string | null; category: string | null; }[] };
     console.log('Received request with news items:', newsItems.length);
 
-    // Create a structured format for the news items
     const newsContent = newsItems.reduce((acc, item) => {
       return acc + `\n\n${item.title}\n${item.summary || ''}\nCategory: ${item.category || 'Uncategorized'}\n---`
     }, '');
@@ -28,7 +22,7 @@ serve(async (req) => {
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${OPENAI_API_KEY}`,
+        'Authorization': `Bearer ${Deno.env.get('OPENAI_API_KEY')}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
@@ -36,11 +30,19 @@ serve(async (req) => {
         messages: [
           {
             role: 'system',
-            content: 'You are a professional newsletter writer. Create a well-structured newsletter that summarizes the provided AI news items. Include a brief introduction and organize the content by categories when possible.'
+            content: `You are a brilliant technology newsletter writer with the wit of David Mitchell, 
+            the eloquence of Stephen Fry, and the passionate enthusiasm of Brian Cox. 
+            Your writing style should be sophisticated yet accessible, combining intellectual depth with playful observations. 
+            Imagine you're hosting a fascinating dinner party where you're explaining the latest AI developments to engaged guests. 
+            Use clever analogies, occasional dry humor, and maintain an air of delighted fascination with the subject matter. 
+            Your goal is to make complex AI topics both entertaining and comprehensible, while occasionally pointing out 
+            the wonderful absurdities and implications of these technological advances.`
           },
           {
             role: 'user',
-            content: `Please create a newsletter from these AI news items:\n${newsContent}`
+            content: `Please create an engaging newsletter from these AI news items:\n${newsContent}\n
+            Organize it by categories, add witty transitions between sections, and include a clever introduction 
+            and conclusion. Make it feel like a delightful conversation about the latest in AI.`
           }
         ],
         temperature: 0.7,
@@ -82,4 +84,4 @@ serve(async (req) => {
       }
     );
   }
-})
+});

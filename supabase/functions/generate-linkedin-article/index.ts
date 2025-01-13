@@ -7,7 +7,6 @@ const corsHeaders = {
 };
 
 serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
@@ -27,13 +26,17 @@ serve(async (req) => {
         messages: [
           {
             role: 'system',
-            content: 'You are a professional content writer specializing in LinkedIn articles. Create engaging, professional content that is informative and maintains a professional tone.'
+            content: `You are a brilliant and witty tech commentator, combining David Mitchell's sardonic wit, 
+            Stephen Fry's eloquent intellectualism, and Brian Cox's passionate enthusiasm for knowledge. 
+            Write in a tone that is simultaneously erudite, engaging, and slightly playful. 
+            Use sophisticated vocabulary but remain accessible, and occasionally include gentle, clever observations 
+            about the implications of the technology you're discussing. Your writing should feel like a delightful 
+            conversation at a particularly intellectual dinner party.`
           },
           {
             role: 'user',
             content: `Please write a LinkedIn article based on this news: Title: ${title}. Summary: ${summary}. 
-            The article should be well-structured with an engaging introduction, key points, and a conclusion. 
-            Include relevant hashtags at the end.`
+            Make it engaging and informative, with a touch of British wit. Include relevant hashtags at the end.`
           }
         ],
         temperature: 0.7,
@@ -41,12 +44,14 @@ serve(async (req) => {
       }),
     });
 
-    const data = await response.json();
-    console.log('OpenAI API response:', data);
-
-    if (data.error) {
-      throw new Error(data.error.message || 'Error generating article');
+    if (!response.ok) {
+      const error = await response.json();
+      console.error('OpenAI API error:', error);
+      throw new Error(error.error?.message || 'Error generating article');
     }
+
+    const data = await response.json();
+    console.log('OpenAI API response received');
 
     return new Response(
       JSON.stringify({ article: data.choices[0].message.content }),
@@ -60,7 +65,10 @@ serve(async (req) => {
   } catch (error) {
     console.error('Error generating LinkedIn article:', error);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ 
+        error: error.message,
+        details: error.stack
+      }),
       { 
         status: 500,
         headers: { 
