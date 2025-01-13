@@ -14,6 +14,7 @@ serve(async (req) => {
 
   try {
     const { title, summary } = await req.json();
+    console.log('Received request with title:', title, 'and summary:', summary);
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -22,7 +23,7 @@ serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
+        model: 'gpt-4',
         messages: [
           {
             role: 'system',
@@ -35,15 +36,26 @@ serve(async (req) => {
             Include relevant hashtags at the end.`
           }
         ],
+        temperature: 0.7,
+        max_tokens: 1000,
       }),
     });
 
     const data = await response.json();
-    console.log('Generated article response:', data);
+    console.log('OpenAI API response:', data);
+
+    if (data.error) {
+      throw new Error(data.error.message || 'Error generating article');
+    }
 
     return new Response(
       JSON.stringify({ article: data.choices[0].message.content }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      { 
+        headers: { 
+          ...corsHeaders, 
+          'Content-Type': 'application/json'
+        } 
+      }
     );
   } catch (error) {
     console.error('Error generating LinkedIn article:', error);
@@ -51,7 +63,10 @@ serve(async (req) => {
       JSON.stringify({ error: error.message }),
       { 
         status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        headers: { 
+          ...corsHeaders, 
+          'Content-Type': 'application/json'
+        }
       }
     );
   }
