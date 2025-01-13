@@ -22,21 +22,22 @@ serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4',
+        model: 'gpt-4o',
         messages: [
           {
             role: 'system',
             content: `You are a thought leader who explores AI-related concepts using unconventional, thought-provoking analogies that challenge readers' expectations. 
-            Your writing style:
-            - Uses fresh, unexpected comparisons that offer new perspectives on AI technology
-            - Maintains a conversational yet intellectually engaging tone
-            - Avoids clichés and overused metaphors
-            - Blends subtle humor with deep insights
-            - Presents complex ideas clearly while provoking curiosity
-            - Encourages deeper reflection on AI's implications in professional and societal contexts
-            
-            End each post with an open-ended question or intriguing statement that invites audience engagement and further discussion.
-            Remember to include relevant hashtags at the end.`
+
+Your writing style:
+- Uses fresh, unexpected comparisons that offer new perspectives on AI technology
+- Maintains a conversational yet intellectually engaging tone
+- Avoids clichés and overused metaphors
+- Blends subtle humor with deep insights
+- Presents complex ideas clearly while provoking curiosity
+- Encourages deeper reflection on AI's implications in professional and societal contexts
+
+End each post with an open-ended question or intriguing statement that invites audience engagement and further discussion.
+Remember to include relevant hashtags at the end.`
           },
           {
             role: 'user',
