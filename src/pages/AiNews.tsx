@@ -3,15 +3,17 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { Newspaper } from "lucide-react";
 
 interface NewsItem {
   id: number;
   title: string;
   source: string;
-  summary: string;
-  url: string;
-  published_date: string;
-  category: string;
+  summary: string | null;
+  url: string | null;
+  published_date: string | null;
+  category: string | null;
+  created_at: string | null;
 }
 
 export const AiNews = () => {
@@ -19,10 +21,9 @@ export const AiNews = () => {
     queryKey: ['ai-news'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('messages')
+        .from('ai_news')
         .select('*')
-        .eq('type', 'ai_news')
-        .order('created_at', { ascending: false })
+        .order('published_date', { ascending: false })
         .limit(20);
       
       if (error) throw error;
@@ -34,9 +35,12 @@ export const AiNews = () => {
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100/50">
       <MainNav />
       <div className="container mx-auto px-4 py-8">
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">AI News & Insights</h1>
-          <p className="text-gray-600">Stay updated with the latest developments in artificial intelligence</p>
+        <div className="mb-8 flex items-center gap-3">
+          <Newspaper className="h-8 w-8 text-blue-600" />
+          <div>
+            <h1 className="text-4xl font-bold text-gray-900 mb-2">AI News & Insights</h1>
+            <p className="text-gray-600">Stay updated with the latest developments in artificial intelligence</p>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -58,7 +62,7 @@ export const AiNews = () => {
                 <CardHeader>
                   <CardTitle className="line-clamp-2">
                     <a 
-                      href={item.url} 
+                      href={item.url || '#'} 
                       target="_blank" 
                       rel="noopener noreferrer"
                       className="hover:text-blue-600 transition-colors"
@@ -67,7 +71,8 @@ export const AiNews = () => {
                     </a>
                   </CardTitle>
                   <CardDescription>
-                    {new Date(item.published_date).toLocaleDateString()} • {item.source}
+                    {item.published_date ? new Date(item.published_date).toLocaleDateString() : 'Date not available'} • {item.source}
+                    {item.category && ` • ${item.category}`}
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
