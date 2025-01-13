@@ -9,13 +9,13 @@ interface NextStepItemProps {
 const getTypeColor = (type: string) => {
   switch (type?.toLowerCase()) {
     case 'product development':
-      return 'bg-blue-50 border-blue-100';
+      return 'bg-blue-50 hover:bg-blue-100/80';
     case 'marketing':
-      return 'bg-purple-50 border-purple-100';
+      return 'bg-purple-50 hover:bg-purple-100/80';
     case 'partnerships':
-      return 'bg-green-50 border-green-100';
+      return 'bg-green-50 hover:bg-green-100/80';
     default:
-      return 'bg-orange-50 border-orange-100';
+      return 'bg-orange-50 hover:bg-orange-100/80';
   }
 };
 
@@ -30,7 +30,9 @@ export const NextStepItem = ({ nextStep }: NextStepItemProps) => {
 
   return (
     <div 
-      className={`p-3 rounded-lg border ${getTypeColor(nextStep.client_name || '')} cursor-pointer hover:shadow-md transition-shadow`}
+      className={`p-3 rounded-lg transition-all duration-300 hover:shadow-md ${getTypeColor(nextStep.client_name || '')} ${
+        nextStep.urgent ? 'bg-red-50/50' : ''
+      }`}
       onClick={handleClick}
     >
       <div className="flex justify-between items-start">
