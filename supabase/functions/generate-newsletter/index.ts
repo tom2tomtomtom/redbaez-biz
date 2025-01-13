@@ -5,12 +5,6 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-interface NewsItem {
-  title: string;
-  summary: string | null;
-  category: string | null;
-}
-
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -23,7 +17,7 @@ serve(async (req) => {
   }
 
   try {
-    const { newsItems } = await req.json() as { newsItems: NewsItem[] };
+    const { newsItems } = await req.json() as { newsItems: { title: string; summary: string | null; category: string | null; }[] };
     console.log('Received request with news items:', newsItems.length);
 
     // Create a structured format for the news items
@@ -54,12 +48,14 @@ serve(async (req) => {
       }),
     });
 
+    if (!response.ok) {
+      const error = await response.json();
+      console.error('OpenAI API error:', error);
+      throw new Error(error.error?.message || 'Error generating newsletter');
+    }
+
     const data = await response.json();
     console.log('OpenAI API response received');
-
-    if (data.error) {
-      throw new Error(data.error.message || 'Error generating newsletter');
-    }
 
     return new Response(
       JSON.stringify({ newsletter: data.choices[0].message.content }),
@@ -73,7 +69,10 @@ serve(async (req) => {
   } catch (error) {
     console.error('Error generating newsletter:', error);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ 
+        error: error.message,
+        details: error.stack
+      }),
       { 
         status: 500,
         headers: { 
