@@ -137,14 +137,7 @@ serve(async (req) => {
           "priority": "high" | "medium" | "low",
           "suggestion": "specific actionable step that references current events and specific details"
         }
-      ]
-      
-      Focus recommendations on:
-      1. Specific, current developments in ${category}
-      2. Real examples and concrete details
-      3. Actionable ideas that leverage current events
-      4. Ways to establish thought leadership through timely insights
-      5. Opportunities specific to the ${category} sector`;
+      ]`;
 
       console.log('Sending request to Perplexity API with prompt:', strategyPrompt);
 
