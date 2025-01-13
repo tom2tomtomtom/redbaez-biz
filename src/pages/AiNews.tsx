@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Newspaper, Share2, RefreshCw, Linkedin } from "lucide-react";
+import { Newspaper, Share2, RefreshCw, Linkedin, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
@@ -37,7 +37,9 @@ interface NewsItem {
 export const AiNews = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [showArticleDialog, setShowArticleDialog] = useState(false);
+  const [showNewsletterDialog, setShowNewsletterDialog] = useState(false);
   const [generatedArticle, setGeneratedArticle] = useState("");
+  const [generatedNewsletter, setGeneratedNewsletter] = useState("");
   const [selectedNewsItem, setSelectedNewsItem] = useState<NewsItem | null>(null);
 
   const { data: newsItems, isLoading, refetch } = useQuery({
@@ -104,9 +106,45 @@ export const AiNews = () => {
     }
   };
 
+  const generateNewsletter = async () => {
+    if (!newsItems?.length) {
+      toast.error('No news items available');
+      return;
+    }
+
+    setIsGenerating(true);
+    
+    try {
+      const { data, error } = await supabase.functions.invoke('generate-newsletter', {
+        body: {
+          newsItems: newsItems.map(item => ({
+            title: item.title,
+            summary: item.summary,
+            category: item.category,
+          })),
+        },
+      });
+
+      if (error) throw error;
+      
+      setGeneratedNewsletter(data.newsletter);
+      setShowNewsletterDialog(true);
+    } catch (error) {
+      console.error('Error generating newsletter:', error);
+      toast.error('Failed to generate newsletter');
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
   const copyArticle = () => {
     navigator.clipboard.writeText(generatedArticle);
     toast.success('Article copied to clipboard');
+  };
+
+  const copyNewsletter = () => {
+    navigator.clipboard.writeText(generatedNewsletter);
+    toast.success('Newsletter copied to clipboard');
   };
 
   return (
@@ -134,6 +172,15 @@ export const AiNews = () => {
                 <SelectItem value="ethics">Ethics & Risks</SelectItem>
               </SelectContent>
             </Select>
+            <Button 
+              onClick={generateNewsletter} 
+              variant="outline" 
+              className="gap-2"
+              disabled={isGenerating || !newsItems?.length}
+            >
+              <FileText className="h-4 w-4" />
+              Generate Newsletter
+            </Button>
             <Button onClick={refreshNews} variant="outline" className="gap-2">
               <RefreshCw className="h-4 w-4" />
               Refresh News
@@ -218,26 +265,45 @@ export const AiNews = () => {
             </div>
           )}
         </div>
-      </div>
 
-      <Dialog open={showArticleDialog} onOpenChange={setShowArticleDialog}>
-        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Generated LinkedIn Article</DialogTitle>
-            <DialogDescription>
-              Copy and paste this article to LinkedIn
-            </DialogDescription>
-          </DialogHeader>
-          <div className="mt-4 space-y-4">
-            <div className="bg-gray-50 p-4 rounded-lg whitespace-pre-wrap">
-              {generatedArticle}
+        <Dialog open={showArticleDialog} onOpenChange={setShowArticleDialog}>
+          <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Generated LinkedIn Article</DialogTitle>
+              <DialogDescription>
+                Copy and paste this article to LinkedIn
+              </DialogDescription>
+            </DialogHeader>
+            <div className="mt-4 space-y-4">
+              <div className="bg-gray-50 p-4 rounded-lg whitespace-pre-wrap">
+                {generatedArticle}
+              </div>
+              <Button onClick={copyArticle} className="w-full">
+                Copy to Clipboard
+              </Button>
             </div>
-            <Button onClick={copyArticle} className="w-full">
-              Copy to Clipboard
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
+          </DialogContent>
+        </Dialog>
+
+        <Dialog open={showNewsletterDialog} onOpenChange={setShowNewsletterDialog}>
+          <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Generated Newsletter</DialogTitle>
+              <DialogDescription>
+                Copy and use this newsletter to share the latest AI news
+              </DialogDescription>
+            </DialogHeader>
+            <div className="mt-4 space-y-4">
+              <div className="bg-gray-50 p-4 rounded-lg whitespace-pre-wrap">
+                {generatedNewsletter}
+              </div>
+              <Button onClick={copyNewsletter} className="w-full">
+                Copy to Clipboard
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+      </div>
     </div>
   );
 };
