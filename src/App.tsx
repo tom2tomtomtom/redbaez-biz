@@ -11,6 +11,7 @@ import { ClientDetails } from "./components/crm/ClientDetails";
 import { Marketing } from "./pages/Marketing";
 import { Partnerships } from "./pages/Partnerships";
 import { ProductDevelopment } from "./pages/ProductDevelopment";
+import { AiNews } from "./pages/AiNews";
 
 const queryClient = new QueryClient();
 
@@ -82,6 +83,14 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <ProductDevelopment />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/ai-news"
+              element={
+                <ProtectedRoute>
+                  <AiNews />
                 </ProtectedRoute>
               }
             />
