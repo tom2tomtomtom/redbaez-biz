@@ -14,6 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { AspectRatio } from "@/components/ui/aspect-ratio";
 
 interface NewsItem {
   id: number;
@@ -24,6 +25,7 @@ interface NewsItem {
   published_date: string | null;
   category: string | null;
   created_at: string | null;
+  image_url: string | null;
 }
 
 export const AiNews = () => {
@@ -108,6 +110,7 @@ export const AiNews = () => {
                   <div className="h-4 bg-gray-200 rounded w-1/4"></div>
                 </CardHeader>
                 <CardContent>
+                  <div className="h-48 bg-gray-200 rounded mb-4"></div>
                   <div className="h-20 bg-gray-200 rounded"></div>
                 </CardContent>
               </Card>
@@ -149,6 +152,17 @@ export const AiNews = () => {
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
+                  {item.image_url && (
+                    <div className="mb-4">
+                      <AspectRatio ratio={16 / 9} className="bg-muted">
+                        <img
+                          src={item.image_url}
+                          alt={item.title}
+                          className="rounded-lg object-cover w-full h-full"
+                        />
+                      </AspectRatio>
+                    </div>
+                  )}
                   <ScrollArea className="h-32">
                     <p className="text-gray-600">{item.summary}</p>
                   </ScrollArea>

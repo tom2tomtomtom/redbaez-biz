@@ -14,6 +14,7 @@ export type Database = {
           category: string | null
           created_at: string | null
           id: number
+          image_url: string | null
           published_date: string | null
           source: string
           summary: string | null
@@ -24,6 +25,7 @@ export type Database = {
           category?: string | null
           created_at?: string | null
           id?: never
+          image_url?: string | null
           published_date?: string | null
           source: string
           summary?: string | null
@@ -34,6 +36,7 @@ export type Database = {
           category?: string | null
           created_at?: string | null
           id?: never
+          image_url?: string | null
           published_date?: string | null
           source?: string
           summary?: string | null

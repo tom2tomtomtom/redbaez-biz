@@ -1,7 +1,7 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3'
 import { corsHeaders } from '../_shared/cors.ts'
+import { HfInference } from 'https://esm.sh/@huggingface/inference@2.3.2'
 
-// Define types for better validation
 interface NewsItem {
   headline: string;
   summary: string;
@@ -44,8 +44,10 @@ Deno.serve(async (req) => {
 
   try {
     const perplexityKey = Deno.env.get('PERPLEXITY_API_KEY')
-    if (!perplexityKey) {
-      throw new Error('Missing Perplexity API key')
+    const hfKey = Deno.env.get('HUGGING_FACE_ACCESS_TOKEN')
+    
+    if (!perplexityKey || !hfKey) {
+      throw new Error('Missing API keys')
     }
 
     console.log('Fetching news from Perplexity API...')
@@ -68,7 +70,7 @@ Deno.serve(async (req) => {
             content: 'Generate 5 recent AI news items.'
           }
         ],
-        temperature: 0.05, // Lower temperature for more consistent formatting
+        temperature: 0.05,
         max_tokens: 1000,
         return_images: false,
         return_related_questions: false,
@@ -94,7 +96,6 @@ Deno.serve(async (req) => {
     
     let newsItems: NewsResponse
     try {
-      // Parse and validate the response
       newsItems = JSON.parse(content)
       
       if (!newsItems?.news || !Array.isArray(newsItems.news)) {
@@ -107,66 +108,79 @@ Deno.serve(async (req) => {
         throw new Error('Response must contain exactly 5 news items')
       }
 
-      // Validate each news item
-      newsItems.news.forEach((item, index) => {
-        const validCategories = ['tools', 'training', 'innovation', 'ethics']
-        if (!item.headline || typeof item.headline !== 'string') {
-          throw new Error(`Invalid headline in item ${index}`)
-        }
-        if (!item.summary || typeof item.summary !== 'string') {
-          throw new Error(`Invalid summary in item ${index}`)
-        }
-        if (!item.source || typeof item.source !== 'string') {
-          throw new Error(`Invalid source in item ${index}`)
-        }
-        if (!item.category || !validCategories.includes(item.category)) {
-          throw new Error(`Invalid category in item ${index}`)
-        }
-        if (!item.link || typeof item.link !== 'string' || !item.link.startsWith('http')) {
-          throw new Error(`Invalid link in item ${index}`)
-        }
-      })
+      // Initialize Hugging Face client
+      const hf = new HfInference(hfKey)
 
-      console.log('Successfully validated news items:', newsItems)
+      const supabaseUrl = Deno.env.get('SUPABASE_URL')
+      const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
+      
+      if (!supabaseUrl || !supabaseKey) {
+        throw new Error('Missing Supabase credentials')
+      }
+
+      const supabase = createClient(supabaseUrl, supabaseKey)
+      console.log('Storing news items in database...')
+
+      // Process each news item and generate an image
+      for (const item of newsItems.news) {
+        console.log('Generating image for:', item.headline)
+        
+        try {
+          const image = await hf.textToImage({
+            inputs: `${item.headline} - ${item.summary.substring(0, 100)}`,
+            model: 'black-forest-labs/FLUX.1-schnell',
+          })
+
+          // Convert the blob to a base64 string
+          const arrayBuffer = await image.arrayBuffer()
+          const base64 = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)))
+          const imageUrl = `data:image/png;base64,${base64}`
+
+          const { error } = await supabase
+            .from('ai_news')
+            .insert({
+              title: item.headline,
+              summary: item.summary,
+              source: item.source,
+              category: item.category,
+              url: item.link,
+              image_url: imageUrl,
+            })
+          
+          if (error) {
+            console.error('Error inserting news item:', error)
+            throw error
+          }
+        } catch (error) {
+          console.error('Error generating image:', error)
+          // Continue with other items even if image generation fails
+          const { error: dbError } = await supabase
+            .from('ai_news')
+            .insert({
+              title: item.headline,
+              summary: item.summary,
+              source: item.source,
+              category: item.category,
+              url: item.link,
+            })
+          
+          if (dbError) {
+            console.error('Error inserting news item:', dbError)
+            throw dbError
+          }
+        }
+      }
+
+      console.log('Successfully stored news items')
+
+      return new Response(JSON.stringify({ success: true, data: newsItems }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
     } catch (e) {
       console.error('Failed to parse or validate news items:', e)
       console.error('Raw content that failed validation:', content)
       throw new Error(`Invalid news format: ${e.message}`)
     }
-
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
-    
-    if (!supabaseUrl || !supabaseKey) {
-      throw new Error('Missing Supabase credentials')
-    }
-
-    const supabase = createClient(supabaseUrl, supabaseKey)
-    console.log('Storing news items in database...')
-
-    // Insert each news item into the database
-    for (const item of newsItems.news) {
-      const { error } = await supabase
-        .from('ai_news')
-        .insert({
-          title: item.headline,
-          summary: item.summary,
-          source: item.source,
-          category: item.category,
-          url: item.link,
-        })
-      
-      if (error) {
-        console.error('Error inserting news item:', error)
-        throw error
-      }
-    }
-
-    console.log('Successfully stored news items')
-
-    return new Response(JSON.stringify({ success: true, data: newsItems }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    })
   } catch (error) {
     console.error('Error:', error)
     return new Response(
