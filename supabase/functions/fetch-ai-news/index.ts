@@ -12,23 +12,27 @@ Focus on:
 Format each news item as a JSON object with:
 - headline: A short, engaging title
 - summary: 2-3 sentence synopsis highlighting key points
-- relevance: How it connects to Redbaez's focus areas
 - source: The publication source
 - category: One of [tools, training, innovation, ethics]
+- link: URL to the original article
 
 Return exactly 5 relevant and recent news items.`;
 
 Deno.serve(async (req) => {
+  // Handle CORS
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
   }
 
   try {
+    // Get the Perplexity API key from environment variables
     const perplexityKey = Deno.env.get('PERPLEXITY_API_KEY')
     if (!perplexityKey) {
       throw new Error('Missing Perplexity API key')
     }
 
+    console.log('Fetching news from Perplexity API...')
+    
     const response = await fetch('https://api.perplexity.ai/chat/completions', {
       method: 'POST',
       headers: {
@@ -54,12 +58,14 @@ Deno.serve(async (req) => {
       }),
     })
 
+    if (!response.ok) {
+      const error = await response.text()
+      console.error('Perplexity API error:', error)
+      throw new Error('Failed to fetch AI news from Perplexity')
+    }
+
     const data = await response.json()
     console.log('Perplexity API response:', data)
-
-    if (!response.ok) {
-      throw new Error('Failed to fetch AI news')
-    }
 
     // Parse the response content as JSON
     const content = data.choices[0].message.content
@@ -98,7 +104,7 @@ Deno.serve(async (req) => {
       }
     }
 
-    return new Response(JSON.stringify(newsItems), {
+    return new Response(JSON.stringify({ success: true, data: newsItems }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     })
   } catch (error) {
