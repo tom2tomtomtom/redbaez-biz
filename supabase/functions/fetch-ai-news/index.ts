@@ -69,14 +69,18 @@ Deno.serve(async (req) => {
 
     // Parse the response content as JSON
     const content = data.choices[0].message.content
+    console.log('Parsing content:', content)
+    
     let newsItems
     try {
       newsItems = JSON.parse(content)
       if (!newsItems.news || !Array.isArray(newsItems.news)) {
+        console.error('Invalid news format received:', content)
         throw new Error('Invalid news format')
       }
+      console.log('Successfully parsed news items:', newsItems)
     } catch (e) {
-      console.error('Failed to parse news items:', e)
+      console.error('Failed to parse news items:', e, 'Content:', content)
       throw new Error('Invalid response format')
     }
 
@@ -89,6 +93,7 @@ Deno.serve(async (req) => {
     }
 
     const supabase = createClient(supabaseUrl, supabaseKey)
+    console.log('Storing news items in database...')
 
     // Insert each news item into the database
     for (const item of newsItems.news) {
@@ -106,6 +111,8 @@ Deno.serve(async (req) => {
         console.error('Error inserting news item:', error)
       }
     }
+
+    console.log('Successfully stored news items')
 
     return new Response(JSON.stringify({ success: true, data: newsItems }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
