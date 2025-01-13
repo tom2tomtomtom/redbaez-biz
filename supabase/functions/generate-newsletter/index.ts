@@ -12,19 +12,7 @@ serve(async (req) => {
   }
 
   try {
-    const supabase = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    )
-
-    // Fetch recent AI news
-    const { data: newsItems, error: newsError } = await supabase
-      .from('ai_news')
-      .select('*')
-      .order('published_date', { ascending: false })
-      .limit(5)
-
-    if (newsError) throw newsError
+    const { newsItems } = await req.json()
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -33,7 +21,7 @@ serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4',
+        model: 'gpt-4o-mini',
         messages: [
           {
             role: 'system',
@@ -63,7 +51,7 @@ Format the newsletter with clear sections and engaging headlines.`
     console.log('OpenAI API Response:', result)
 
     return new Response(
-      JSON.stringify({ content: result.choices[0].message.content }),
+      JSON.stringify({ newsletter: result.choices[0].message.content }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
     )
   } catch (error) {

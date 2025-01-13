@@ -115,8 +115,12 @@ export const AiNews = () => {
 
       if (error) throw error;
       
-      setGeneratedNewsletter(data.newsletter);
-      setShowNewsletterDialog(true);
+      if (data?.newsletter) {
+        setGeneratedNewsletter(data.newsletter);
+        setShowNewsletterDialog(true);
+      } else {
+        throw new Error('No newsletter generated');
+      }
     } catch (error) {
       console.error('Error generating newsletter:', error);
       toast.error('Failed to generate newsletter');
