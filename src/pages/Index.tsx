@@ -6,7 +6,7 @@ import { PriorityActions } from "@/components/crm/priority-actions/PriorityActio
 import { ClientSearch } from "@/components/crm/client-search/ClientSearch";
 import { IntelSearch } from "@/components/crm/intel-search/IntelSearch";
 import { RevenueSummary } from "@/components/crm/revenue-summary/RevenueSummary";
-import { Users } from "lucide-react";
+import { Users, Plus, FileText } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Link } from "react-router-dom";
@@ -39,14 +39,25 @@ const Index = () => {
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100/50">
       <MainNav />
       <div className="container mx-auto px-4 py-4 md:py-8 space-y-6">
-        <div className="flex justify-end mb-4">
-          <Button 
-            variant="outline"
-            onClick={() => setShowClientList(!showClientList)}
-          >
-            <Users className="mr-2 h-4 w-4" />
-            {showClientList ? 'Hide Clients' : 'View All Clients'}
-          </Button>
+        <div className="flex items-center justify-between mb-4">
+          <h1 className="text-2xl font-bold text-gray-900">Redbaez Biz</h1>
+          <div className="flex gap-4">
+            <Button 
+              variant="outline"
+              onClick={() => setShowClientList(!showClientList)}
+            >
+              <Users className="mr-2 h-4 w-4" />
+              {showClientList ? 'Hide Clients' : 'View All Clients'}
+            </Button>
+            <Button className="gap-2">
+              <Plus className="h-4 w-4" />
+              Add New Client
+            </Button>
+            <Button variant="secondary" className="gap-2">
+              <FileText className="h-4 w-4" />
+              Add New Task
+            </Button>
+          </div>
         </div>
 
         {showClientList ? (
