@@ -39,25 +39,37 @@ const Index = () => {
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100/50">
       <MainNav />
       <div className="container mx-auto px-4 py-4 md:py-8 space-y-6">
-        <div className="flex items-center justify-between mb-4">
-          <h1 className="text-2xl font-bold text-gray-900">Redbaez Biz</h1>
-          <div className="flex gap-4">
-            <Button 
-              variant="outline"
-              onClick={() => setShowClientList(!showClientList)}
-            >
-              <Users className="mr-2 h-4 w-4" />
-              {showClientList ? 'Hide Clients' : 'View All Clients'}
-            </Button>
-            <Button className="gap-2">
-              <Plus className="h-4 w-4" />
-              Add New Client
-            </Button>
-            <Button variant="secondary" className="gap-2">
-              <FileText className="h-4 w-4" />
-              Add New Task
-            </Button>
+        <div className="flex flex-col space-y-4">
+          <div className="flex items-center justify-between">
+            <h1 className="text-2xl font-bold text-gray-900">Redbaez Biz</h1>
+            <div className="flex gap-4">
+              <Button 
+                variant="outline"
+                onClick={() => setShowClientList(!showClientList)}
+              >
+                <Users className="mr-2 h-4 w-4" />
+                {showClientList ? 'Hide Clients' : 'View All Clients'}
+              </Button>
+              <Button className="gap-2">
+                <Plus className="h-4 w-4" />
+                Add New Client
+              </Button>
+              <Button variant="secondary" className="gap-2">
+                <FileText className="h-4 w-4" />
+                Add New Task
+              </Button>
+            </div>
           </div>
+
+          {!showClientList && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <ClientSearch />
+              <IntelSearch 
+                searchInput={searchInput}
+                onSearchInputChange={setSearchInput}
+              />
+            </div>
+          )}
         </div>
 
         {showClientList ? (
@@ -111,13 +123,6 @@ const Index = () => {
           <div className="space-y-6">
             <PriorityActions hideAddButton />
             <RevenueSummary />
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-              <ClientSearch />
-              <IntelSearch 
-                searchInput={searchInput}
-                onSearchInputChange={setSearchInput}
-              />
-            </div>
           </div>
         )}
       </div>
