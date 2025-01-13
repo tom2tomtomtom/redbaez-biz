@@ -1,31 +1,35 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3'
 import { corsHeaders } from '../_shared/cors.ts'
 
-const SYSTEM_PROMPT = `You are a dynamic content generator for the Redbaez website, tasked with delivering up-to-date AI news that aligns with Redbaez's mission of AI implementation, training, and innovative solutions.
+const SYSTEM_PROMPT = `You are an AI news curator for a website. Your task is to find and summarize the latest AI news stories.
+
+Format your response EXACTLY as a JSON string with this structure:
+{
+  "news": [
+    {
+      "headline": "string",
+      "summary": "string",
+      "source": "string",
+      "category": "tools" | "training" | "innovation" | "ethics",
+      "link": "string"
+    }
+  ]
+}
 
 Focus on:
-- AI tools for marketing and ad creation
-- Innovations in AI training and education
-- Emerging AI technologies impacting ecommerce and business operations
-- Ethical considerations and risks in AI usage
+- AI tools and platforms
+- AI training and education
+- AI innovation and research
+- AI ethics and safety
 
-Format each news item as a JSON object with:
-- headline: A short, engaging title
-- summary: 2-3 sentence synopsis highlighting key points
-- source: The publication source
-- category: One of [tools, training, innovation, ethics]
-- link: URL to the original article
-
-Return a JSON object with a "news" array containing exactly 5 relevant and recent news items.`;
+Return exactly 5 recent news items.`
 
 Deno.serve(async (req) => {
-  // Handle CORS
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
   }
 
   try {
-    // Get the Perplexity API key from environment variables
     const perplexityKey = Deno.env.get('PERPLEXITY_API_KEY')
     if (!perplexityKey) {
       throw new Error('Missing Perplexity API key')
@@ -48,10 +52,10 @@ Deno.serve(async (req) => {
           },
           {
             role: 'user',
-            content: 'Generate 5 recent and relevant AI news items for Redbaez.'
+            content: 'Generate 5 recent AI news items.'
           }
         ],
-        temperature: 0.2,
+        temperature: 0.1,
         max_tokens: 1000,
         return_images: false,
         return_related_questions: false,
@@ -65,26 +69,41 @@ Deno.serve(async (req) => {
     }
 
     const data = await response.json()
-    console.log('Perplexity API response:', data)
+    console.log('Perplexity API response:', JSON.stringify(data))
 
-    // Parse the response content as JSON
+    if (!data.choices?.[0]?.message?.content) {
+      console.error('Invalid API response structure:', data)
+      throw new Error('Invalid API response structure')
+    }
+
     const content = data.choices[0].message.content
-    console.log('Parsing content:', content)
+    console.log('Raw content:', content)
     
     let newsItems
     try {
-      newsItems = JSON.parse(content)
-      if (!newsItems.news || !Array.isArray(newsItems.news)) {
-        console.error('Invalid news format received:', content)
-        throw new Error('Invalid news format')
+      // Try to parse the content as JSON
+      newsItems = JSON.parse(content.trim())
+      
+      // Validate the structure
+      if (!newsItems?.news || !Array.isArray(newsItems.news)) {
+        console.error('Invalid news format:', content)
+        throw new Error('Invalid news array format')
       }
+
+      // Validate each news item
+      newsItems.news.forEach((item, index) => {
+        if (!item.headline || !item.summary || !item.source || !item.category || !item.link) {
+          console.error(`Invalid news item at index ${index}:`, item)
+          throw new Error(`Invalid news item format at index ${index}`)
+        }
+      })
+
       console.log('Successfully parsed news items:', newsItems)
     } catch (e) {
       console.error('Failed to parse news items:', e, 'Content:', content)
-      throw new Error('Invalid response format')
+      throw new Error(`Failed to parse news items: ${e.message}`)
     }
 
-    // Store news items in the database
     const supabaseUrl = Deno.env.get('SUPABASE_URL')
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
     
@@ -119,9 +138,14 @@ Deno.serve(async (req) => {
     })
   } catch (error) {
     console.error('Error:', error)
-    return new Response(JSON.stringify({ error: error.message }), {
-      status: 500,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    })
+    return new Response(
+      JSON.stringify({ 
+        error: error.message,
+        stack: error.stack 
+      }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      }
+    )
   }
 })
