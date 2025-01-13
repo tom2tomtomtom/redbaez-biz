@@ -1,6 +1,5 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3'
 import { corsHeaders } from '../_shared/cors.ts'
-import { HfInference } from 'https://esm.sh/@huggingface/inference@2.3.2'
 
 interface NewsItem {
   headline: string;
@@ -44,10 +43,9 @@ Deno.serve(async (req) => {
 
   try {
     const perplexityKey = Deno.env.get('PERPLEXITY_API_KEY')
-    const hfKey = Deno.env.get('HUGGING_FACE_ACCESS_TOKEN')
     
-    if (!perplexityKey || !hfKey) {
-      throw new Error('Missing API keys')
+    if (!perplexityKey) {
+      throw new Error('Missing Perplexity API key')
     }
 
     console.log('Fetching news from Perplexity API...')
@@ -108,9 +106,6 @@ Deno.serve(async (req) => {
         throw new Error('Response must contain exactly 5 news items')
       }
 
-      // Initialize Hugging Face client
-      const hf = new HfInference(hfKey)
-
       const supabaseUrl = Deno.env.get('SUPABASE_URL')
       const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
       
@@ -121,83 +116,21 @@ Deno.serve(async (req) => {
       const supabase = createClient(supabaseUrl, supabaseKey)
       console.log('Storing news items in database...')
 
-      // Process each news item and generate an image
+      // Store each news item
       for (const item of newsItems.news) {
-        console.log('Generating image for:', item.headline)
-        
-        try {
-          // Verify Hugging Face token before attempting image generation
-          try {
-            console.log('Verifying Hugging Face token...')
-            const testResponse = await fetch('https://huggingface.co/api/whoami', {
-              headers: {
-                'Authorization': `Bearer ${hfKey}`
-              }
-            });
-            
-            if (!testResponse.ok) {
-              console.error('Invalid Hugging Face token:', await testResponse.text())
-              throw new Error('Invalid Hugging Face token - please check your API key')
-            }
-          } catch (error) {
-            console.error('Error verifying Hugging Face token:', error)
-            // Store the news item without an image
-            const { error: dbError } = await supabase
-              .from('ai_news')
-              .insert({
-                title: item.headline,
-                summary: item.summary,
-                source: item.source,
-                category: item.category,
-                url: item.link,
-              })
-            
-            if (dbError) throw dbError
-            continue // Skip image generation for this item
-          }
-
-          const image = await hf.textToImage({
-            inputs: `${item.headline} - ${item.summary.substring(0, 100)}`,
-            model: 'black-forest-labs/FLUX.1-schnell',
+        const { error } = await supabase
+          .from('ai_news')
+          .insert({
+            title: item.headline,
+            summary: item.summary,
+            source: item.source,
+            category: item.category,
+            url: item.link,
           })
-
-          // Convert the blob to a base64 string
-          const arrayBuffer = await image.arrayBuffer()
-          const base64 = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)))
-          const imageUrl = `data:image/png;base64,${base64}`
-
-          const { error } = await supabase
-            .from('ai_news')
-            .insert({
-              title: item.headline,
-              summary: item.summary,
-              source: item.source,
-              category: item.category,
-              url: item.link,
-              image_url: imageUrl,
-            })
-          
-          if (error) {
-            console.error('Error inserting news item:', error)
-            throw error
-          }
-        } catch (error) {
-          console.error('Error generating image:', error)
-          // Continue with other items even if image generation fails
-          const { error: dbError } = await supabase
-            .from('ai_news')
-            .insert({
-              title: item.headline,
-              summary: item.summary,
-              source: item.source,
-              category: item.category,
-              url: item.link,
-            })
-          
-          if (dbError) {
-            console.error('Error inserting news item:', dbError)
-            throw dbError
-          }
+        
+        if (error) {
+          console.error('Error inserting news item:', error)
+          throw error
         }
       }
 
