@@ -110,9 +110,6 @@ export const GeneralTaskItem = ({ task, onDeleted }: GeneralTaskItemProps) => {
           </div>
           <div>
             <span className="font-medium">{task.title}</span>
-            <p className="text-sm text-gray-600 mt-1">
-              {task.description || 'No description'}
-            </p>
           </div>
         </div>
         <div className="flex gap-2">
