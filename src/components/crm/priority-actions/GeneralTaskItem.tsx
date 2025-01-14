@@ -33,19 +33,19 @@ const getCategoryColor = (task: GeneralTaskRow, isClientTask: boolean) => {
   switch (task.category.toLowerCase()) {
     case 'marketing':
       console.log('Marketing task colors:');
-      console.log('Base color: #FAD4F9');
-      console.log('Hover color: #D946EF with 70% opacity');
-      return 'bg-[#FAD4F9] hover:bg-[#D946EF]/70';
+      console.log('Base color: #D946EF');
+      console.log('Hover color: #D946EF with 80% opacity');
+      return 'bg-[#D946EF]/20 hover:bg-[#D946EF]/70';
     case 'product development':
       console.log('Product development task colors:');
-      console.log('Base color: #BAE6FD');
-      console.log('Hover color: #0EA5E9 with 70% opacity');
-      return 'bg-[#BAE6FD] hover:bg-[#0EA5E9]/70';
+      console.log('Base color: #0EA5E9');
+      console.log('Hover color: #0EA5E9 with 80% opacity');
+      return 'bg-[#0EA5E9]/20 hover:bg-[#0EA5E9]/70';
     case 'partnerships':
       console.log('Partnerships task colors:');
-      console.log('Base color: #DDD6FE');
-      console.log('Hover color: #8B5CF6 with 70% opacity');
-      return 'bg-[#DDD6FE] hover:bg-[#8B5CF6]/70';
+      console.log('Base color: #8B5CF6');
+      console.log('Hover color: #8B5CF6 with 80% opacity');
+      return 'bg-[#8B5CF6]/20 hover:bg-[#8B5CF6]/70';
     case 'business admin':
       console.log('Business admin task, returning gray');
       return 'bg-gray-200 hover:bg-gray-300';
