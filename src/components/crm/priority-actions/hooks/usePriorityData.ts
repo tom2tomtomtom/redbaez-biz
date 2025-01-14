@@ -14,19 +14,20 @@ export type PriorityItem = {
 };
 
 const fetchGeneralTasks = async (category?: string) => {
+  console.log('Fetching tasks for category:', category); // Debug log
+  
   let query = supabase
     .from('general_tasks')
     .select('*')
-    .neq('status', 'completed')
-    .not('next_due_date', 'is', null)
-    .order('next_due_date', { ascending: true });
+    .neq('status', 'completed');
 
   if (category) {
-    query = query.eq('category', category);
+    query = query.eq('category', category.toLowerCase());
   }
     
   const { data, error } = await query;
   if (error) throw error;
+  console.log('Fetched tasks:', data); // Debug log
   return data;
 };
 
@@ -49,21 +50,6 @@ const fetchNextSteps = async () => {
   }));
 };
 
-const sortByUrgencyAndDate = (a: PriorityItem, b: PriorityItem) => {
-  const aUrgent = 'urgent' in a.data ? a.data.urgent : false;
-  const bUrgent = 'urgent' in b.data ? b.data.urgent : false;
-
-  if (aUrgent && !bUrgent) return -1;
-  if (!aUrgent && bUrgent) return 1;
-
-  const aDate = a.type === 'task' ? a.data.next_due_date : a.data.due_date;
-  const bDate = b.type === 'task' ? b.data.next_due_date : b.data.due_date;
-
-  if (!aDate) return 1;
-  if (!bDate) return -1;
-  return new Date(aDate).getTime() - new Date(bDate).getTime();
-};
-
 export const usePriorityData = (category?: string) => {
   const tasksQuery = useQuery({
     queryKey: ['generalTasks', category],
@@ -71,13 +57,10 @@ export const usePriorityData = (category?: string) => {
   });
 
   const nextStepsQuery = useQuery({
-    queryKey: ['priorityNextSteps'],
+    queryKey: ['clientNextSteps'],
     queryFn: fetchNextSteps,
     enabled: !category, // Only fetch next steps if no category filter
   });
-
-  const isLoading = tasksQuery.isLoading || (!category && nextStepsQuery.isLoading);
-  const error = tasksQuery.error || (!category && nextStepsQuery.error);
 
   const allItems: PriorityItem[] = [
     ...(tasksQuery.data?.map(task => ({
@@ -90,11 +73,25 @@ export const usePriorityData = (category?: string) => {
       date: step.due_date,
       data: step
     })) || []) : [])
-  ].sort(sortByUrgencyAndDate);
+  ].sort((a, b) => {
+    const aUrgent = 'urgent' in a.data ? a.data.urgent : false;
+    const bUrgent = 'urgent' in b.data ? b.data.urgent : false;
+
+    if (aUrgent && !bUrgent) return -1;
+    if (!aUrgent && bUrgent) return 1;
+
+    const aDate = a.date;
+    const bDate = b.date;
+
+    if (!aDate && !bDate) return 0;
+    if (!aDate) return 1;
+    if (!bDate) return -1;
+    return new Date(aDate).getTime() - new Date(bDate).getTime();
+  });
 
   return {
     allItems,
-    isLoading,
-    error
+    isLoading: tasksQuery.isLoading || (!category && nextStepsQuery.isLoading),
+    error: tasksQuery.error || (!category && nextStepsQuery.error)
   };
 };

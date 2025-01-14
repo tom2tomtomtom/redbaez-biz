@@ -25,8 +25,11 @@ export const PriorityActions = ({
   const queryClient = useQueryClient();
   const { allItems, isLoading, error } = usePriorityData(category);
 
+  console.log('Priority Actions - all items:', allItems); // Debug log
+
   const handleTaskSaved = () => {
     queryClient.invalidateQueries({ queryKey: ['generalTasks'] });
+    queryClient.invalidateQueries({ queryKey: ['clientNextSteps'] });
     setIsDialogOpen(false);
     setEditingTask(null);
   };
@@ -45,6 +48,7 @@ export const PriorityActions = ({
   }
 
   if (error) {
+    console.error('Priority Actions error:', error); // Debug log
     return (
       <Card>
         <CardHeader>
