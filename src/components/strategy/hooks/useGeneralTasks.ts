@@ -5,6 +5,8 @@ export const useGeneralTasks = (category: string, refreshTrigger: number) => {
   return useQuery({
     queryKey: ['generalTasks', category, refreshTrigger],
     queryFn: async () => {
+      console.log('Fetching tasks for category:', category); // Debug log
+
       const { data, error } = await supabase
         .from('general_tasks')
         .select('*')
