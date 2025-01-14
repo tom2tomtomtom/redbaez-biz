@@ -114,7 +114,8 @@ export const IdeaGenerator = ({ category, onIdeaGenerated }: IdeaGeneratorProps)
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
           urgent: false,
-          client_id: null
+          client_id: null,
+          updated_by: null // Add the missing property
         } : null}
         onSaved={() => {
           setIsTaskDialogOpen(false);
