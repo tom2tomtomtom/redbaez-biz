@@ -9,6 +9,7 @@ import { useState } from "react";
 import { TaskDialog } from "@/components/crm/priority-actions/TaskDialog";
 import { GeneralTaskItem } from "@/components/crm/priority-actions/GeneralTaskItem";
 import { Tables } from "@/integrations/supabase/types";
+import { PriorityActions } from "@/components/crm/priority-actions/PriorityActions";
 
 export const BusinessAdmin = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -100,26 +101,10 @@ export const BusinessAdmin = () => {
           </Button>
         </div>
 
-        {/* Tasks Section */}
-        <Card className="mb-8">
-          <CardHeader>
-            <CardTitle>Business Admin Tasks</CardTitle>
-            <CardDescription>Manage and track business administration tasks</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {!tasks?.length ? (
-                <p className="text-center text-gray-500 py-4">No business admin tasks found</p>
-              ) : (
-                tasks.map((task) => (
-                  <div key={task.id} onClick={() => handleTaskClick(task)} className="cursor-pointer">
-                    <GeneralTaskItem task={task} />
-                  </div>
-                ))
-              )}
-            </div>
-          </CardContent>
-        </Card>
+        {/* Priority Actions Section */}
+        <div className="mb-8">
+          <PriorityActions category="Business Admin" />
+        </div>
 
         {/* Summary Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
@@ -200,6 +185,7 @@ export const BusinessAdmin = () => {
         onOpenChange={setIsDialogOpen}
         task={editingTask}
         onSaved={handleTaskSaved}
+        defaultCategory="Business Admin"
       />
     </div>
   );
