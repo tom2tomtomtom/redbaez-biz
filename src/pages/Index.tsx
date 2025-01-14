@@ -9,7 +9,7 @@ import { RevenueSummary } from "@/components/crm/revenue-summary/RevenueSummary"
 import { Users, Plus, FileText } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
   Card,
   CardContent,
@@ -24,6 +24,7 @@ const Index = () => {
   const [searchInput, setSearchInput] = useState('');
   const [showClientList, setShowClientList] = useState(false);
   const [isNewTaskOpen, setIsNewTaskOpen] = useState(false);
+  const navigate = useNavigate();
 
   const { data: clients, isLoading } = useQuery({
     queryKey: ['clients'],
@@ -52,12 +53,13 @@ const Index = () => {
                 <Users className="mr-2 h-4 w-4" />
                 {showClientList ? 'Hide Clients' : 'View All Clients'}
               </Button>
-              <Link to="/client/new">
-                <Button className="gap-2">
-                  <Plus className="h-4 w-4" />
-                  Add New Client
-                </Button>
-              </Link>
+              <Button 
+                className="gap-2"
+                onClick={() => navigate('/client/new')}
+              >
+                <Plus className="h-4 w-4" />
+                Add New Client
+              </Button>
               <Button 
                 variant="secondary" 
                 className="gap-2"

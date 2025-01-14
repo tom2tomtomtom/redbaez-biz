@@ -12,6 +12,7 @@ import { Marketing } from "./pages/Marketing";
 import { Partnerships } from "./pages/Partnerships";
 import { ProductDevelopment } from "./pages/ProductDevelopment";
 import { AiNews } from "./pages/AiNews";
+import { CRMDashboard } from "./components/crm/CRMDashboard";
 
 const queryClient = new QueryClient();
 
@@ -51,6 +52,14 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <Index />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/client/new"
+              element={
+                <ProtectedRoute>
+                  <CRMDashboard />
                 </ProtectedRoute>
               }
             />
