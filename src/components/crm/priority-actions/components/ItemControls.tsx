@@ -2,6 +2,17 @@ import { Switch } from "@/components/ui/switch";
 import { CheckCircle, Trash2 } from "lucide-react";
 import { PriorityItem } from "../hooks/usePriorityData";
 import { cn } from "@/lib/utils";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 interface ItemControlsProps {
   item: PriorityItem;
@@ -41,12 +52,31 @@ export const ItemControls = ({
             isCompleted ? 'animate-scale-in' : ''
           )} />
         </button>
-        <button
-          onClick={onDelete}
-          className="transition-all duration-300 transform hover:scale-110 active:scale-95 text-gray-400 hover:text-red-500"
-        >
-          <Trash2 className="h-5 w-5" />
-        </button>
+        
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <button
+              className="transition-all duration-300 transform hover:scale-110 active:scale-95 text-gray-400 hover:text-red-500"
+            >
+              <Trash2 className="h-5 w-5" />
+            </button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This action cannot be undone. This will permanently delete the {item.type === 'task' ? 'task' : 'next step'}.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={onDelete} className="bg-red-500 hover:bg-red-600">
+                Delete
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
         <div className="transition-transform duration-300 hover:scale-105">
           <Switch
             id={`urgent-${item.data.id}`}

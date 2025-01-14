@@ -45,23 +45,31 @@ export const useItemStatusChange = () => {
 
   const handleDelete = async (item: PriorityItem) => {
     try {
+      let error;
+
       if (item.type === 'task') {
-        const { error } = await supabase
+        console.log('Deleting task with ID:', item.data.id);
+        const result = await supabase
           .from('general_tasks')
           .delete()
           .eq('id', item.data.id);
-        if (error) throw error;
+        error = result.error;
       } else if (item.type === 'next_step') {
-        const { error } = await supabase
+        console.log('Deleting next step with ID:', item.data.id);
+        const result = await supabase
           .from('client_next_steps')
           .delete()
           .eq('id', item.data.id);
-        if (error) throw error;
+        error = result.error;
       }
 
+      if (error) throw error;
+
+      // Invalidate all relevant queries to refresh the data
       queryClient.invalidateQueries({ queryKey: ['generalTasks'] });
       queryClient.invalidateQueries({ queryKey: ['priorityNextSteps'] });
       queryClient.invalidateQueries({ queryKey: ['nextSteps'] });
+      queryClient.invalidateQueries({ queryKey: ['client'] });
 
       toast({
         title: "Item deleted",
