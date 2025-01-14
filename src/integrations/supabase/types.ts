@@ -469,6 +469,7 @@ export type Database = {
           status: string | null
           title: string
           updated_at: string | null
+          updated_by: string | null
           urgent: boolean | null
         }
         Insert: {
@@ -481,6 +482,7 @@ export type Database = {
           status?: string | null
           title: string
           updated_at?: string | null
+          updated_by?: string | null
           urgent?: boolean | null
         }
         Update: {
@@ -493,6 +495,7 @@ export type Database = {
           status?: string | null
           title?: string
           updated_at?: string | null
+          updated_by?: string | null
           urgent?: boolean | null
         }
         Relationships: [
@@ -501,6 +504,13 @@ export type Database = {
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "general_tasks_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]

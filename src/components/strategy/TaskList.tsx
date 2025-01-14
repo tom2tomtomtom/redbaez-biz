@@ -54,13 +54,17 @@ export const TaskList = ({ tasks, isLoading, onTasksUpdated, isHistory = false }
 
   // Filter tasks based on whether they're completed and have due dates
   const filteredTasks = tasks.filter(task => {
+    console.log('Filtering task:', task); // Debug log
+    
     if (isHistory) {
       return task.status === 'completed';
     }
+    
     // For active tasks section, show tasks with due dates
     if (!isHistory && task.next_due_date) {
       return task.status !== 'completed';
     }
+    
     // For ideas section, show tasks without due dates
     return task.status !== 'completed' && !task.next_due_date;
   });

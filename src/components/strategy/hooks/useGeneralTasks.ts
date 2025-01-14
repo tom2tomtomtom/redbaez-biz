@@ -7,11 +7,11 @@ export const useGeneralTasks = (category: string, refreshTrigger: number) => {
     queryFn: async () => {
       console.log('Fetching tasks for category:', category); // Debug log
 
-      // Fetch general tasks
+      // Fetch general tasks with case-insensitive category matching
       const { data: tasks, error: tasksError } = await supabase
         .from('general_tasks')
         .select('*, clients(name)')
-        .eq('category', category.toLowerCase())
+        .ilike('category', category)
         .order('next_due_date', { ascending: true });
 
       if (tasksError) {
@@ -23,7 +23,7 @@ export const useGeneralTasks = (category: string, refreshTrigger: number) => {
       const { data: nextSteps, error: nextStepsError } = await supabase
         .from('client_next_steps')
         .select('*, clients(name)')
-        .eq('category', category.toLowerCase())
+        .ilike('category', category)
         .is('completed_at', null)
         .order('due_date', { ascending: true });
 
