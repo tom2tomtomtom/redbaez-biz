@@ -41,6 +41,8 @@ export const GeneralTaskItem = ({ task, isClientTask = false }: { task: GeneralT
     displayDescription = contentParts.join('\n\n');
   }
 
+  const isOverdue = task.next_due_date ? new Date(task.next_due_date) < new Date() : false;
+
   return (
     <div className={cn(
       "p-6 rounded-lg transition-colors text-left",
@@ -52,7 +54,10 @@ export const GeneralTaskItem = ({ task, isClientTask = false }: { task: GeneralT
           <h3 className="font-medium text-gray-900 mb-2">{displayTitle}</h3>
           <p className="text-sm text-gray-600 whitespace-pre-wrap leading-relaxed">{displayDescription}</p>
           {task.next_due_date && (
-            <p className="mt-3 text-sm text-gray-500 flex items-center">
+            <p className={cn(
+              "mt-3 text-sm flex items-center",
+              isOverdue ? "text-red-600 font-medium" : "text-gray-500"
+            )}>
               Due: {new Date(task.next_due_date).toLocaleDateString()}
             </p>
           )}
