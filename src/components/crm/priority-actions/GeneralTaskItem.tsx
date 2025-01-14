@@ -1,5 +1,7 @@
 import { cn } from "@/lib/utils";
-import { GeneralTaskRow } from "@/integrations/supabase/types";
+import { Tables } from "@/integrations/supabase/types";
+
+type GeneralTaskRow = Tables<'general_tasks'>;
 
 const getCategoryColor = (task: GeneralTaskRow, isClientTask: boolean) => {
   console.log('Task category:', task.category);
@@ -19,25 +21,25 @@ const getCategoryColor = (task: GeneralTaskRow, isClientTask: boolean) => {
   // Business Admin tasks
   if (category === 'business admin') {
     console.log('Business admin task colors');
-    return 'bg-gray-100 hover:bg-gray-200';
+    return '!bg-gray-100 hover:!bg-gray-200';
   }
 
   // Marketing tasks
   if (category === 'marketing') {
     console.log('Marketing task colors - applying bg-[#F0D4FA]/50');
-    return '!bg-[#F0D4FA]/50 hover:!bg-[#F0D4FA]/70';  // Added ! to increase specificity
+    return '!bg-[#F0D4FA]/50 hover:!bg-[#F0D4FA]/70';
   }
   
   // Product Development tasks
   if (category === 'product development') {
     console.log('Product development task colors');
-    return 'bg-blue-100 hover:bg-blue-200';
+    return '!bg-blue-100 hover:!bg-blue-200';
   }
   
   // Partnerships tasks
   if (category === 'partnerships') {
     console.log('Partnerships task colors');
-    return 'bg-green-100 hover:bg-green-200';
+    return '!bg-green-100 hover:!bg-green-200';
   }
 
   // Default color
