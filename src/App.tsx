@@ -7,6 +7,7 @@ import { ProductDevelopment } from './pages/ProductDevelopment';
 import Index from './pages/Index';
 import { BusinessAdmin } from './pages/BusinessAdmin';
 import { AiNews } from './pages/AiNews';
+import { ClientDetails } from './components/crm/client-details/ClientDetails';
 import './App.css';
 
 const queryClient = new QueryClient({
@@ -30,6 +31,7 @@ function App() {
           <Route path="/product-development" element={<ProductDevelopment />} />
           <Route path="/ai-news" element={<AiNews />} />
           <Route path="/business-admin" element={<BusinessAdmin />} />
+          <Route path="/client/:id" element={<ClientDetails />} />
         </Routes>
       </Router>
     </QueryClientProvider>
