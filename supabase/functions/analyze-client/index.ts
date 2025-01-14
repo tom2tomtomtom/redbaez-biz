@@ -4,21 +4,22 @@ import { corsHeaders, generateRecommendations } from "./perplexityApi.ts";
 import { MARKETING_PROMPT, PARTNERSHIPS_PROMPT, PRODUCT_DEVELOPMENT_PROMPT } from "./prompts.ts";
 
 serve(async (req) => {
+  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const { category, prompt, type } = await req.json();
-    console.log('Received request:', { category, type, prompt });
+    const { clientData, category, prompt, type } = await req.json();
+    console.log('Received request:', { category, type, prompt, clientData });
     
     const apiKey = Deno.env.get('PERPLEXITY_API_KEY');
     if (!apiKey) {
       throw new Error('Perplexity API key not configured in Supabase Edge Function Secrets');
     }
 
-    console.log('Processing request for category:', category, 'type:', type);
-
+    let recommendations;
+    
     if (type === 'strategy') {
       let contextPrompt = MARKETING_PROMPT;
       if (category === 'partnerships') {
@@ -50,6 +51,7 @@ serve(async (req) => {
       [
         {
           "type": "revenue" | "engagement" | "risk" | "opportunity",
+          "priority": "high" | "medium" | "low",
           "suggestion": "specific actionable step that references current events and specific details"
         }
       ]
@@ -58,23 +60,54 @@ serve(async (req) => {
 
       console.log('Sending request to Perplexity API with prompt:', strategyPrompt);
 
-      const recommendations = await generateRecommendations(strategyPrompt, apiKey);
+      recommendations = await generateRecommendations(strategyPrompt, apiKey);
       console.log('Processed recommendations:', recommendations);
+    } else {
+      // Handle client analysis
+      if (!clientData) {
+        throw new Error('Client data is required for analysis');
+      }
 
-      return new Response(
-        JSON.stringify({ recommendations }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      console.log('Analyzing client data:', clientData);
+
+      const analysisPrompt = `
+        Analyze this client data and generate 3 strategic recommendations:
+        ${JSON.stringify(clientData, null, 2)}
+
+        For each recommendation:
+        1. Focus on revenue growth, engagement improvement, risk mitigation, or new opportunities
+        2. Consider the client's current status, revenue trends, and interaction history
+        3. Provide specific, actionable steps
+        4. Prioritize based on potential impact and urgency
+
+        Return ONLY a JSON array in this exact format, with no additional text or markdown:
+        [
+          {
+            "type": "revenue" | "engagement" | "risk" | "opportunity",
+            "priority": "high" | "medium" | "low",
+            "suggestion": "specific actionable recommendation"
+          }
+        ]
+
+        IMPORTANT: Do not use any square brackets [] within the suggestion text.
+      `;
+
+      console.log('Sending client analysis request to Perplexity API');
+      recommendations = await generateRecommendations(analysisPrompt, apiKey);
+      console.log('Generated client recommendations:', recommendations);
     }
 
-    throw new Error('Invalid request type');
-    
+    return new Response(
+      JSON.stringify({ recommendations }),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
+
   } catch (error) {
     console.error('Error in analyze-client function:', error);
     return new Response(
       JSON.stringify({ 
         error: error.message,
-        details: 'Please check the Edge Function logs for more information'
+        details: 'Check the Edge Function logs for more information'
       }),
       { 
         status: 500,

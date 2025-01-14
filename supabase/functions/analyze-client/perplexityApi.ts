@@ -1,4 +1,4 @@
-const corsHeaders = {
+export const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
@@ -17,7 +17,7 @@ export async function generateRecommendations(prompt: string, apiKey: string) {
       messages: [
         {
           role: 'system',
-          content: 'You are a strategic advisor. Create highly specific recommendations that reference actual events and developments. Return ONLY a JSON array with type and suggestion fields. Do not include any square brackets in the suggestions.'
+          content: 'You are a strategic advisor. Create highly specific recommendations that reference actual events and developments. Return ONLY a JSON array with type, priority, and suggestion fields. Do not include any square brackets in the suggestions.'
         },
         {
           role: 'user',
@@ -57,7 +57,9 @@ export async function generateRecommendations(prompt: string, apiKey: string) {
     // Clean any remaining square brackets from suggestions
     const cleaned = parsed.map((rec: any) => ({
       ...rec,
-      suggestion: rec.suggestion.replace(/[\[\]]/g, '').trim()
+      suggestion: rec.suggestion.replace(/[\[\]]/g, '').trim(),
+      type: rec.type.toLowerCase(),
+      priority: rec.priority.toLowerCase()
     }));
     
     console.log('Final cleaned recommendations:', cleaned);
@@ -67,5 +69,3 @@ export async function generateRecommendations(prompt: string, apiKey: string) {
     throw new Error(`Failed to parse AI recommendations: ${error.message}`);
   }
 }
-
-export { corsHeaders };
