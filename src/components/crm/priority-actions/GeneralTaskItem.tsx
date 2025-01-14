@@ -100,13 +100,14 @@ export const GeneralTaskItem = ({ task, onDeleted }: GeneralTaskItemProps) => {
   // Parse the title to extract client name and task description
   const isClientTask = task.title.includes(']') && task.title.includes('[');
   let clientName = '';
-  let taskDescription = task.title;
+  let taskDescription = isClientTask ? (task.description || '') : task.description;
+  let displayTitle = task.title;
 
   if (isClientTask) {
     const matches = task.title.match(/\[(.*?)\]/g);
     if (matches && matches.length >= 2) {
       clientName = matches[0].replace(/[\[\]]/g, '').trim();
-      taskDescription = task.description || '';
+      displayTitle = clientName;
     }
   }
 
@@ -124,13 +125,11 @@ export const GeneralTaskItem = ({ task, onDeleted }: GeneralTaskItemProps) => {
             {clientName ? clientName.charAt(0).toUpperCase() : task.title.charAt(0).toUpperCase()}
           </div>
           <div className="space-y-1 flex-1">
-            {isClientTask ? (
-              <>
-                <span className="font-bold">{clientName}</span>
-                <p className="text-sm text-gray-600">{taskDescription}</p>
-              </>
-            ) : (
-              <span className="font-medium">{taskDescription}</span>
+            <span className={cn("font-medium", isClientTask && "font-bold")}>
+              {displayTitle}
+            </span>
+            {taskDescription && (
+              <p className="text-sm text-gray-600">{taskDescription}</p>
             )}
           </div>
         </div>
