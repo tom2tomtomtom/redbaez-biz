@@ -55,35 +55,33 @@ export const IdeaGenerator = ({ category, onIdeaGenerated }: IdeaGeneratorProps)
         throw error;
       }
 
-      if (data?.recommendations) {
-        console.log('Processing recommendations:', data.recommendations);
-        
-        // Convert recommendations to tasks
-        for (const rec of data.recommendations) {
-          const { error: insertError } = await supabase.from('general_tasks').insert({
-            title: rec.suggestion,
-            description: `Type: ${rec.type}\nPriority: ${rec.priority}`,
-            category: category,
-            status: 'incomplete',
-            next_due_date: null // Create as ideas first
-          });
+      if (!data?.recommendations || !Array.isArray(data.recommendations)) {
+        throw new Error('Invalid response format: recommendations array is missing');
+      }
 
-          if (insertError) {
-            console.error('Error inserting task:', insertError);
-            throw insertError;
-          }
-        }
-
-        toast({
-          title: "Ideas Generated",
-          description: "Click on any idea to convert it into a task.",
+      // Convert recommendations to tasks
+      for (const rec of data.recommendations) {
+        const { error: insertError } = await supabase.from('general_tasks').insert({
+          title: rec.suggestion,
+          description: `Type: ${rec.type}\nPriority: ${rec.priority}`,
+          category: category,
+          status: 'incomplete',
+          next_due_date: null // Create as ideas first
         });
 
-        // Only trigger refresh after all operations are complete
-        onIdeaGenerated();
-      } else {
-        throw new Error('No recommendations received from the API');
+        if (insertError) {
+          console.error('Error inserting task:', insertError);
+          throw insertError;
+        }
       }
+
+      toast({
+        title: "Ideas Generated",
+        description: "Click on any idea to convert it into a task.",
+      });
+
+      // Only trigger refresh after all operations are complete
+      onIdeaGenerated();
     } catch (error) {
       console.error('Error generating ideas:', error);
       toast({

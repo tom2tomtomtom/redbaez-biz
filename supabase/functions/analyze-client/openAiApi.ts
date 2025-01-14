@@ -13,7 +13,7 @@ export async function generateRecommendations(prompt: string, apiKey: string) {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      model: 'gpt-4-1106-preview',
+      model: 'gpt-4o-mini',
       messages: [
         {
           role: 'system',
@@ -21,8 +21,17 @@ export async function generateRecommendations(prompt: string, apiKey: string) {
           Your expertise includes LinkedIn strategy, content marketing, thought leadership, and event marketing.
           Create highly specific recommendations that reference actual events, trends, and case studies.
           Focus on innovative ideas that blend entertainment with education and drive engagement.
-          Return ONLY a valid JSON array with type, priority, and suggestion fields.
-          Do not include any additional text or formatting.`
+          Return ONLY a valid JSON object with a recommendations array containing objects with type, priority, and suggestion fields.
+          The response must be in this exact format:
+          {
+            "recommendations": [
+              {
+                "type": "revenue" | "engagement" | "risk" | "opportunity",
+                "priority": "high" | "medium" | "low",
+                "suggestion": "specific actionable recommendation"
+              }
+            ]
+          }`
         },
         {
           role: 'user',
@@ -51,8 +60,11 @@ export async function generateRecommendations(prompt: string, apiKey: string) {
     const parsed = JSON.parse(content);
     console.log('Parsed recommendations:', parsed);
     
-    // Ensure we're returning the recommendations array
-    return parsed.recommendations || [];
+    if (!parsed.recommendations || !Array.isArray(parsed.recommendations)) {
+      throw new Error('Invalid response format: recommendations array is missing');
+    }
+    
+    return parsed.recommendations;
   } catch (error) {
     console.error('Error parsing OpenAI response:', error);
     throw new Error(`Failed to parse AI recommendations: ${error.message}`);
