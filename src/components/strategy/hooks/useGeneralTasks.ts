@@ -11,7 +11,6 @@ export const useGeneralTasks = (category: string, refreshTrigger: number) => {
         .from('general_tasks')
         .select('*, clients(name)')
         .eq('category', category)
-        .eq('status', 'incomplete')
         .order('created_at', { ascending: false });
 
       if (error) {
