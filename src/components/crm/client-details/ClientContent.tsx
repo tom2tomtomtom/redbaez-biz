@@ -30,19 +30,20 @@ export const ClientContent = ({ client, isEditing, parsedAdditionalContacts }: C
           type={client.type}
         />
       </div>
-      <div className="space-y-6">
+      <div className="lg:col-span-1 space-y-6">
         <KeyMetricsCard
           annualRevenue={client.annual_revenue}
           likelihood={client.likelihood}
-          revenueData={[]} // You might want to compute this from client data
+          revenueData={[]}
           annualRevenueSignedOff={client.annual_revenue_signed_off || 0}
           annualRevenueForecast={client.annual_revenue_forecast || 0}
           clientId={client.id}
         />
-        <div className="flex flex-col gap-4">
-          <StatusTab clientId={client.id} status={client.status} />
-          <TaskHistory clientId={client.id} />
-        </div>
+        <StatusTab 
+          clientId={client.id} 
+          currentStatus={client.status}
+        />
+        <TaskHistory clientId={client.id} />
       </div>
     </div>
   );
