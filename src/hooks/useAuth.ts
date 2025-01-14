@@ -6,9 +6,20 @@ import { isAllowedDomain, getAllowedDomainsMessage } from '@/utils/auth';
 
 export const useAuth = () => {
   const [error, setError] = useState<string>('');
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
+    // Check initial session
+    const checkSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      setIsAuthenticated(!!session);
+      setIsLoading(false);
+    };
+    
+    checkSession();
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event: AuthChangeEvent, session: Session | null) => {
         console.log('Auth event:', event);
@@ -22,6 +33,7 @@ export const useAuth = () => {
               try {
                 await supabase.auth.signOut();
                 setError(`Only ${getAllowedDomainsMessage()} email addresses are allowed.`);
+                setIsAuthenticated(false);
               } catch (signOutError) {
                 console.error('Error during sign out:', signOutError);
               }
@@ -31,28 +43,28 @@ export const useAuth = () => {
           }
           // Clear any existing errors and redirect to home
           setError('');
+          setIsAuthenticated(true);
           navigate('/');
           return;
         }
         
         if (event === 'SIGNED_OUT') {
           setError('');
+          setIsAuthenticated(false);
           navigate('/login');
           return;
         }
 
         // Handle email confirmation success
         if (event === 'USER_UPDATED') {
-          // Clear any existing errors
           setError('');
-          // Check if we have a valid session
           const { data: { session }, error: sessionError } = await supabase.auth.getSession();
           if (sessionError) {
             setError(getErrorMessage(sessionError));
             return;
           }
-          // If we have a session, redirect to home
           if (session) {
+            setIsAuthenticated(true);
             navigate('/');
             return;
           }
@@ -89,6 +101,8 @@ export const useAuth = () => {
 
   return {
     error,
-    setError
+    setError,
+    isAuthenticated,
+    isLoading
   };
 };
