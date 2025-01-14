@@ -29,6 +29,25 @@ interface DueItem {
   urgent?: boolean;
 }
 
+const formatText = (text: string) => {
+  if (!text) return '';
+  
+  // Split by double newlines for paragraphs
+  const paragraphs = text.split(/\n\n+/);
+  
+  // For each paragraph, split by single newlines and join with line breaks
+  return paragraphs
+    .map(para => 
+      para
+        .split(/\n/)
+        .map(line => line.trim())
+        .filter(line => line.length > 0)
+        .join('\n')
+    )
+    .filter(para => para.length > 0)
+    .join('\n\n');
+};
+
 export const ClientContent = ({ client, isEditing, parsedAdditionalContacts }: ClientContentProps) => {
   // Fetch all related tasks and next steps
   const { data: allItems, isLoading } = useQuery({
@@ -140,7 +159,9 @@ export const ClientContent = ({ client, isEditing, parsedAdditionalContacts }: C
       {client.background && (
         <div className="bg-white rounded-lg shadow-sm p-6">
           <h3 className="text-lg font-semibold mb-4">Background</h3>
-          <p className="text-gray-700">{client.background}</p>
+          <div className="text-gray-700 whitespace-pre-line">
+            {formatText(client.background)}
+          </div>
         </div>
       )}
 
