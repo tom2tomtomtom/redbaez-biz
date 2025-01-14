@@ -8,6 +8,7 @@ import { TaskDialog } from "@/components/crm/priority-actions/TaskDialog";
 import { DashboardHeader } from "@/components/crm/dashboard/DashboardHeader";
 import { SearchSection } from "@/components/crm/dashboard/SearchSection";
 import { ClientListSection } from "@/components/crm/dashboard/ClientListSection";
+import { Sheet, SheetContent } from "@/components/ui/sheet";
 
 const Index = () => {
   const [searchInput, setSearchInput] = useState('');
@@ -50,14 +51,16 @@ const Index = () => {
           </div>
 
           <div className="rounded-lg bg-card p-8 shadow-sm">
-            {showClientList ? (
-              <ClientListSection clients={clients} isLoading={isLoading} />
-            ) : (
-              <RevenueSummary />
-            )}
+            <RevenueSummary />
           </div>
         </div>
       </main>
+
+      <Sheet open={showClientList} onOpenChange={setShowClientList}>
+        <SheetContent className="w-full sm:max-w-xl">
+          <ClientListSection clients={clients} isLoading={isLoading} />
+        </SheetContent>
+      </Sheet>
 
       <TaskDialog 
         isOpen={isNewTaskOpen}
