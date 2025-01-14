@@ -1,30 +1,18 @@
 import { Suspense, useState } from "react";
 import { MainNav } from "@/components/ui/main-nav";
-import { CRMDashboard } from "@/components/crm/CRMDashboard";
-import { Skeleton } from "@/components/ui/skeleton";
 import { PriorityActions } from "@/components/crm/priority-actions/PriorityActions";
-import { ClientSearch } from "@/components/crm/client-search/ClientSearch";
-import { IntelSearch } from "@/components/crm/intel-search/IntelSearch";
 import { RevenueSummary } from "@/components/crm/revenue-summary/RevenueSummary";
-import { Users, Plus, FileText } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Link, useNavigate } from "react-router-dom";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { TaskDialog } from "@/components/crm/priority-actions/TaskDialog";
+import { DashboardHeader } from "@/components/crm/dashboard/DashboardHeader";
+import { SearchSection } from "@/components/crm/dashboard/SearchSection";
+import { ClientListSection } from "@/components/crm/dashboard/ClientListSection";
 
 const Index = () => {
   const [searchInput, setSearchInput] = useState('');
   const [showClientList, setShowClientList] = useState(false);
   const [isNewTaskOpen, setIsNewTaskOpen] = useState(false);
-  const navigate = useNavigate();
 
   const { data: clients, isLoading } = useQuery({
     queryKey: ['clients'],
@@ -43,92 +31,22 @@ const Index = () => {
       <MainNav />
       <div className="container mx-auto px-4 py-4 md:py-8 space-y-6">
         <div className="flex flex-col space-y-4">
-          <div className="flex items-center justify-between">
-            <h1 className="text-2xl font-bold text-gray-900">Redbaez Biz</h1>
-            <div className="flex gap-4">
-              <Button 
-                variant="outline"
-                onClick={() => setShowClientList(!showClientList)}
-              >
-                <Users className="mr-2 h-4 w-4" />
-                {showClientList ? 'Hide Clients' : 'View All Clients'}
-              </Button>
-              <Button 
-                className="gap-2"
-                onClick={() => navigate('/client/new')}
-              >
-                <Plus className="h-4 w-4" />
-                Add New Client
-              </Button>
-              <Button 
-                variant="secondary" 
-                className="gap-2"
-                onClick={() => setIsNewTaskOpen(true)}
-              >
-                <FileText className="h-4 w-4" />
-                Add New Task
-              </Button>
-            </div>
-          </div>
+          <DashboardHeader 
+            showClientList={showClientList}
+            onToggleClientList={() => setShowClientList(!showClientList)}
+            onNewTaskClick={() => setIsNewTaskOpen(true)}
+          />
 
           {!showClientList && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <ClientSearch />
-              <IntelSearch 
-                searchInput={searchInput}
-                onSearchInputChange={setSearchInput}
-              />
-            </div>
+            <SearchSection 
+              searchInput={searchInput}
+              onSearchInputChange={setSearchInput}
+            />
           )}
         </div>
 
         {showClientList ? (
-          <Card>
-            <CardHeader>
-              <CardTitle>All Clients</CardTitle>
-              <CardDescription>A complete list of all clients</CardDescription>
-            </CardHeader>
-            <CardContent>
-              {isLoading ? (
-                <div className="space-y-2">
-                  <Skeleton className="h-12 w-full" />
-                  <Skeleton className="h-12 w-full" />
-                  <Skeleton className="h-12 w-full" />
-                </div>
-              ) : (
-                <div className="space-y-2">
-                  {clients?.map((client) => (
-                    <Link 
-                      key={client.id}
-                      to={`/client/${client.id}`}
-                      className="block p-4 rounded-lg border hover:bg-gray-50 transition-colors"
-                    >
-                      <div className="flex justify-between items-center">
-                        <div>
-                          <h3 className="font-medium">{client.name}</h3>
-                          <p className="text-sm text-gray-500">
-                            {client.industry || 'No industry specified'} · {client.type}
-                          </p>
-                        </div>
-                        <span className={`px-3 py-1 rounded-full text-sm ${
-                          client.status === 'active' 
-                            ? 'bg-green-100 text-green-800'
-                            : 'bg-gray-100 text-gray-800'
-                        }`}>
-                          {client.status || 'New'}
-                        </span>
-                      </div>
-                    </Link>
-                  ))}
-                  {clients?.length === 0 && (
-                    <p className="text-center text-gray-500 py-4">
-                      No clients found. Add a new client to get started.
-                    </p>
-                  )}
-                </div>
-              )}
-            </CardContent>
-          </Card>
+          <ClientListSection clients={clients} isLoading={isLoading} />
         ) : (
           <div className="space-y-6">
             <PriorityActions hideAddButton />
