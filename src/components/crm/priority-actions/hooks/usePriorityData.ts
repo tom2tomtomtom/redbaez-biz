@@ -22,7 +22,8 @@ const fetchGeneralTasks = async (category?: string) => {
     .neq('status', 'completed');
 
   if (category) {
-    query = query.eq('category', category.toLowerCase());
+    // Convert both the category and the database value to lowercase for comparison
+    query = query.ilike('category', category);
   }
     
   const { data, error } = await query;
