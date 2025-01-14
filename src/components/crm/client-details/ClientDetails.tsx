@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Navigate } from 'react-router-dom';
+import { Navigate, useParams } from 'react-router-dom';
 import { Contact } from './ContactInfoCard';
 import { useClientUpdate } from './useClientUpdate';
 import { useClientInitialization } from './useClientInitialization';
@@ -14,15 +14,18 @@ import { useClientData } from './hooks/useClientData';
 
 export const ClientDetails = () => {
   const [isEditing, setIsEditing] = useState(false);
-  const { isValid, clientId } = useClientValidation();
-
-  if (!isValid) {
+  const { id } = useParams();
+  
+  // Validate and convert id parameter
+  const numericId = id ? parseInt(id, 10) : null;
+  if (!numericId || isNaN(numericId)) {
+    console.error('Invalid client ID:', id);
     return <Navigate to="/" replace />;
   }
 
-  const { data: client, isLoading, error } = useClientData(clientId);
+  const { data: client, isLoading, error } = useClientData(numericId);
   const { contacts, setContacts, nextSteps, setNextSteps, nextDueDate, setNextDueDate } = useClientInitialization(client);
-  const updateMutation = useClientUpdate(clientId.toString(), () => setIsEditing(false));
+  const updateMutation = useClientUpdate(numericId.toString(), () => setIsEditing(false));
 
   if (isLoading) return <LoadingState />;
   if (error || !client) return <ErrorState />;
@@ -60,6 +63,7 @@ export const ClientDetails = () => {
     );
   }
 
+  // Parse and validate additional_contacts from JSON
   const parsedAdditionalContacts: Contact[] = client.additional_contacts ? 
     (Array.isArray(client.additional_contacts) ? 
       client.additional_contacts.map((contact: any) => ({
