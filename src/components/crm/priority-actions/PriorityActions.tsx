@@ -11,14 +11,13 @@ import { usePriorityData } from './hooks/usePriorityData';
 
 interface PriorityActionsProps {
   hideAddButton?: boolean;
-  category?: string;
 }
 
-export const PriorityActions = ({ hideAddButton = false, category }: PriorityActionsProps) => {
+export const PriorityActions = ({ hideAddButton = false }: PriorityActionsProps) => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Tables<'general_tasks'> | null>(null);
   const queryClient = useQueryClient();
-  const { allItems, isLoading, error } = usePriorityData(category);
+  const { allItems, isLoading, error } = usePriorityData();
 
   const handleTaskSaved = () => {
     queryClient.invalidateQueries({ queryKey: ['generalTasks'] });
@@ -78,7 +77,6 @@ export const PriorityActions = ({ hideAddButton = false, category }: PriorityAct
         onOpenChange={setIsDialogOpen}
         task={editingTask}
         onSaved={handleTaskSaved}
-        defaultCategory={category}
       />
     </Card>
   );

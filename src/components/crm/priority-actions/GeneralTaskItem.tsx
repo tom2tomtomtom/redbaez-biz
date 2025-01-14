@@ -11,9 +11,9 @@ const getCategoryColor = (task: GeneralTaskRow, isClientTask: boolean) => {
 
   const category = task.category?.toLowerCase() || '';
 
-  // Business Admin tasks - using a proper gray color
+  // Business Admin tasks
   if (category === 'business admin') {
-    return 'bg-gray-100/80 hover:bg-gray-200/80';
+    return 'bg-gray-100 hover:bg-gray-200';
   }
 
   // Marketing tasks
