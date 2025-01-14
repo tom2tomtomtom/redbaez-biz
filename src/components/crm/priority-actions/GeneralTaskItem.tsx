@@ -30,11 +30,7 @@ const getCategoryColor = (task: GeneralTaskRow, isClientTask: boolean) => {
     return 'bg-[#F1F0FB]/50 hover:bg-[#F1F0FB]';
   }
   
-  // Normalize the category by trimming whitespace and converting to lowercase
-  const normalizedCategory = task.category.trim().toLowerCase();
-  console.log('Normalized category:', normalizedCategory);
-  
-  switch (normalizedCategory) {
+  switch (task.category) {
     case 'marketing':
       console.log('Marketing task, returning pink');
       return 'bg-[#FFDEE2]/50 hover:bg-[#FFDEE2]';
@@ -48,7 +44,7 @@ const getCategoryColor = (task: GeneralTaskRow, isClientTask: boolean) => {
       console.log('Business admin task, returning gray');
       return 'bg-[#F1F0FB]/50 hover:bg-[#F1F0FB]';
     default:
-      console.log('Default case, category:', normalizedCategory);
+      console.log('Default case, category:', task.category);
       return 'bg-[#F1F0FB]/50 hover:bg-[#F1F0FB]';
   }
 };
