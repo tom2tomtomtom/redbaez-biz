@@ -35,23 +35,33 @@ const getCategoryColor = (task: GeneralTaskRow, isClientTask: boolean) => {
   const category = task.category.toLowerCase().trim();
   console.log('Processing category:', category);
   
-  switch (category) {
-    case 'marketing':
-      console.log('Marketing task colors');
-      return 'bg-[#D946EF]/50 hover:bg-[#D946EF]';
-    case 'product development':
-      console.log('Product development task colors');
-      return 'bg-[#0EA5E9]/50 hover:bg-[#0EA5E9]';
-    case 'partnerships':
-      console.log('Partnerships task colors');
-      return 'bg-[#8B5CF6]/50 hover:bg-[#8B5CF6]';
-    case 'business admin':
-      console.log('Business admin task colors');
-      return 'bg-gray-200 hover:bg-gray-300';
-    default:
-      console.log('Default case, category:', category);
-      return 'bg-gray-200 hover:bg-gray-300';
+  // Marketing tasks
+  if (category === 'marketing') {
+    console.log('Marketing task colors');
+    return 'bg-[#D946EF]/50 hover:bg-[#D946EF]';
   }
+  
+  // Product Development tasks
+  if (category === 'product development') {
+    console.log('Product development task colors');
+    return 'bg-[#0EA5E9]/50 hover:bg-[#0EA5E9]';
+  }
+  
+  // Partnership tasks
+  if (category === 'partnerships') {
+    console.log('Partnerships task colors');
+    return 'bg-[#8B5CF6]/50 hover:bg-[#8B5CF6]';
+  }
+  
+  // Business Admin tasks
+  if (category === 'business admin') {
+    console.log('Business admin task colors');
+    return 'bg-gray-200 hover:bg-gray-300';
+  }
+  
+  // Default case
+  console.log('Default case, category:', category);
+  return 'bg-gray-200 hover:bg-gray-300';
 };
 
 export const GeneralTaskItem = ({ task, onDeleted }: GeneralTaskItemProps) => {
