@@ -23,8 +23,9 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
         <Button 
           variant="outline"
           onClick={onToggleClientList}
+          className="gap-2"
         >
-          <Users className="mr-2 h-4 w-4" />
+          <Users className="h-4 w-4" />
           {showClientList ? 'Hide Clients' : 'View All Clients'}
         </Button>
         <Button 
