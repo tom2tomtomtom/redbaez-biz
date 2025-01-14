@@ -8,6 +8,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useQuery } from '@tanstack/react-query';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Card } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 
 interface StatusTabProps {
   clientId: number;
@@ -18,6 +19,7 @@ export const StatusTab = ({ clientId, currentStatus }: StatusTabProps) => {
   const [status, setStatus] = useState(currentStatus || '');
   const [notes, setNotes] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isEditingStatus, setIsEditingStatus] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -66,6 +68,7 @@ export const StatusTab = ({ clientId, currentStatus }: StatusTabProps) => {
         description: "The client's status has been successfully updated.",
       });
       setNotes('');
+      setIsEditingStatus(false);
       
       // Invalidate queries to refresh data
       queryClient.invalidateQueries({ queryKey: ['client', clientId] });
@@ -82,16 +85,80 @@ export const StatusTab = ({ clientId, currentStatus }: StatusTabProps) => {
     }
   };
 
+  const getStatusBadgeVariant = (status: string) => {
+    switch (status.toLowerCase()) {
+      case 'active':
+        return 'default';
+      case 'inactive':
+        return 'secondary';
+      case 'pending':
+        return 'warning';
+      case 'completed':
+        return 'success';
+      default:
+        return 'secondary';
+    }
+  };
+
   return (
     <div className="space-y-6 bg-white rounded-lg shadow-sm p-6">
+      {/* Current Status Section */}
+      <div className="border-b pb-4">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-semibold">Current Status</h3>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setIsEditingStatus(!isEditingStatus)}
+          >
+            {isEditingStatus ? 'Cancel' : 'Edit Status'}
+          </Button>
+        </div>
+        
+        {isEditingStatus ? (
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Select value={status} onValueChange={setStatus}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="active">Active</SelectItem>
+                  <SelectItem value="inactive">Inactive</SelectItem>
+                  <SelectItem value="pending">Pending</SelectItem>
+                  <SelectItem value="completed">Completed</SelectItem>
+                </SelectContent>
+              </Select>
+              <Textarea
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                placeholder="Add any relevant notes about this status change..."
+                className="min-h-[100px]"
+              />
+            </div>
+            <Button type="submit" disabled={isSubmitting || !status}>
+              {isSubmitting ? "Updating..." : "Update Status"}
+            </Button>
+          </form>
+        ) : (
+          <div className="flex items-center space-x-2">
+            <Badge variant={getStatusBadgeVariant(currentStatus || '')}>
+              {currentStatus || 'Not Set'}
+            </Badge>
+          </div>
+        )}
+      </div>
+
+      {/* Status History Section */}
       <div className="space-y-4">
         <h3 className="text-lg font-semibold">Status History</h3>
-        
         <ScrollArea className="h-[200px] rounded-md border p-4">
           {statusHistory && statusHistory.map((entry: any) => (
             <div key={entry.id} className="mb-4 last:mb-0 border-b last:border-0 pb-4 last:pb-0">
               <div className="flex items-center justify-between mb-2">
-                <span className="font-medium capitalize">{entry.status}</span>
+                <Badge variant={getStatusBadgeVariant(entry.status)}>
+                  {entry.status}
+                </Badge>
                 <span className="text-xs text-gray-500">
                   {new Date(entry.created_at).toLocaleDateString()} {new Date(entry.created_at).toLocaleTimeString()}
                 </span>
@@ -103,47 +170,6 @@ export const StatusTab = ({ clientId, currentStatus }: StatusTabProps) => {
           ))}
         </ScrollArea>
       </div>
-      
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="space-y-2">
-          <label className="text-sm font-medium">Status</label>
-          <Select value={status} onValueChange={setStatus}>
-            <SelectTrigger>
-              <SelectValue placeholder="Select status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="active">Active</SelectItem>
-              <SelectItem value="inactive">Inactive</SelectItem>
-              <SelectItem value="pending">Pending</SelectItem>
-              <SelectItem value="completed">Completed</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className="space-y-2">
-          <label className="text-sm font-medium">Notes</label>
-          <Textarea
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-            placeholder="Add any relevant notes about this status change..."
-            className="min-h-[100px]"
-          />
-        </div>
-
-        {notes && (
-          <Card className="p-4 bg-gray-50">
-            <h4 className="text-sm font-medium mb-2">Preview</h4>
-            <div className="space-y-2">
-              {status && <p className="font-medium capitalize">{status}</p>}
-              <p className="text-sm text-gray-700">{notes}</p>
-            </div>
-          </Card>
-        )}
-
-        <Button type="submit" disabled={isSubmitting || !status}>
-          {isSubmitting ? "Updating..." : "Update Status"}
-        </Button>
-      </form>
     </div>
   );
 };
