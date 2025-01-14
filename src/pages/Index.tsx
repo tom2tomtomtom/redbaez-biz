@@ -29,30 +29,39 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100/50">
       <MainNav />
-      <div className="container mx-auto px-4 py-4 md:py-8 space-y-6">
-        <div className="flex flex-col space-y-4">
-          <DashboardHeader 
-            showClientList={showClientList}
-            onToggleClientList={() => setShowClientList(!showClientList)}
-            onNewTaskClick={() => setIsNewTaskOpen(true)}
-          />
+      <div className="container mx-auto px-4 py-4 md:py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          {/* Left column - Priority Actions */}
+          <div className="lg:col-span-4 space-y-6">
+            <div className="flex flex-col space-y-4">
+              <DashboardHeader 
+                showClientList={showClientList}
+                onToggleClientList={() => setShowClientList(!showClientList)}
+                onNewTaskClick={() => setIsNewTaskOpen(true)}
+              />
 
-          {!showClientList && (
-            <SearchSection 
-              searchInput={searchInput}
-              onSearchInputChange={setSearchInput}
-            />
-          )}
-        </div>
+              {!showClientList && (
+                <SearchSection 
+                  searchInput={searchInput}
+                  onSearchInputChange={setSearchInput}
+                />
+              )}
+            </div>
 
-        {showClientList ? (
-          <ClientListSection clients={clients} isLoading={isLoading} />
-        ) : (
-          <div className="space-y-6">
-            <PriorityActions hideAddButton />
-            <RevenueSummary />
+            <div className="h-[calc(100vh-300px)] overflow-y-auto rounded-lg">
+              <PriorityActions hideAddButton />
+            </div>
           </div>
-        )}
+
+          {/* Right column - Main Content */}
+          <div className="lg:col-span-8 space-y-6">
+            {showClientList ? (
+              <ClientListSection clients={clients} isLoading={isLoading} />
+            ) : (
+              <RevenueSummary />
+            )}
+          </div>
+        </div>
       </div>
 
       <TaskDialog 
