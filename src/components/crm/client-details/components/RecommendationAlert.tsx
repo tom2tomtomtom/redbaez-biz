@@ -48,9 +48,9 @@ export const RecommendationAlert = ({
 
       if (recommendationError) throw recommendationError;
 
-      const taskTitle = `Strategic Recommendation for ${clientName}`;
-      // Create description without duplicating the title
-      const taskDescription = `Type: ${type}\nPriority: ${priority}\n\n${suggestion}`;
+      // Create task with properly formatted title and description
+      const taskTitle = `${clientName} Strategic Recommendation`;
+      const taskDescription = `${suggestion}\n\nType: ${type}\nPriority: ${priority}`;
 
       const { error } = await supabase
         .from('general_tasks')

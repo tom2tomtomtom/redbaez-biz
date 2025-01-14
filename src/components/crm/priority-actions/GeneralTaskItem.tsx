@@ -38,13 +38,15 @@ const getCategoryColor = (task: GeneralTaskRow, isClientTask: boolean) => {
 export const GeneralTaskItem = ({ task, isClientTask = false }: { task: GeneralTaskRow; isClientTask?: boolean }) => {
   const colorClasses = getCategoryColor(task, isClientTask);
   
-  // Format the title and description for display, avoiding duplication
-  const displayTitle = task.title.replace(/[\[\]]/g, '').trim();
-  let displayDescription = task.description?.replace(/[\[\]]/g, '').trim() || 'No description provided';
+  // Extract client name from title if it's a strategic recommendation
+  const titleMatch = task.title.match(/Strategic Recommendation for (.+)/);
+  const displayTitle = titleMatch ? `${titleMatch[1]} Strategic Recommendation` : task.title;
   
-  // If the description starts with the title, remove it to avoid duplication
-  if (displayDescription.startsWith(displayTitle)) {
-    displayDescription = displayDescription.slice(displayTitle.length).trim();
+  // Clean up description - remove any client prefix and format metadata
+  let displayDescription = task.description || 'No description provided';
+  if (titleMatch && displayDescription.includes('Type:')) {
+    const [metadata, ...contentParts] = displayDescription.split('\n\n');
+    displayDescription = contentParts.join('\n\n');
   }
 
   return (
