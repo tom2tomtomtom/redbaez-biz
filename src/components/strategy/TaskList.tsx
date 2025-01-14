@@ -6,6 +6,9 @@ import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { TaskDialog } from "../crm/priority-actions/TaskDialog";
 import { format } from "date-fns";
+import { Input } from "@/components/ui/input";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "@/components/ui/use-toast";
 
 interface TaskListProps {
   tasks: GeneralTaskRow[];
@@ -16,28 +19,49 @@ interface TaskListProps {
 
 export const TaskList = ({ tasks, isLoading, onTasksUpdated, isHistory = false }: TaskListProps) => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [dateInputs, setDateInputs] = useState<Record<string, string>>({});
 
-  if (isLoading) {
-    return (
-      <div className="space-y-4">
-        <Skeleton className="h-24 w-full" />
-        <Skeleton className="h-24 w-full" />
-        <Skeleton className="h-24 w-full" />
-      </div>
-    );
-  }
+  const handleDateChange = async (taskId: string, date: string) => {
+    try {
+      const { error } = await supabase
+        .from('general_tasks')
+        .update({ next_due_date: date ? new Date(date).toISOString() : null })
+        .eq('id', taskId);
+
+      if (error) throw error;
+
+      // Clear the date input
+      setDateInputs(prev => {
+        const newInputs = { ...prev };
+        delete newInputs[taskId];
+        return newInputs;
+      });
+
+      toast({
+        title: "Task updated",
+        description: date ? "Task has been moved to active tasks." : "Date removed from task.",
+      });
+
+      onTasksUpdated();
+    } catch (error) {
+      console.error('Error updating task date:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update task date. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
 
   const filteredTasks = tasks.filter(task => {
     if (isHistory) {
       return task.status === 'completed';
     }
-    // For active tasks, show both ideas (no due date) and active tasks (with due date)
     return task.status !== 'completed';
   });
 
   const sortedTasks = [...filteredTasks].sort((a, b) => {
     if (isHistory) {
-      // Sort completed tasks by updated_at in descending order
       return new Date(b.updated_at || 0).getTime() - new Date(a.updated_at || 0).getTime();
     }
     
@@ -53,9 +77,18 @@ export const TaskList = ({ tasks, isLoading, onTasksUpdated, isHistory = false }
     return aDate - bDate;
   });
 
-  // Separate tasks into ideas and active tasks for display
+  // Separate tasks into ideas and active tasks
   const ideas = sortedTasks.filter(task => !task.next_due_date);
   const activeTasks = sortedTasks.filter(task => task.next_due_date);
+
+  // Function to clean up idea title/description
+  const cleanIdeaText = (task: GeneralTaskRow) => {
+    const titleMatch = task.title.match(/Strategic Recommendation for (.+)/);
+    if (titleMatch) {
+      return titleMatch[1];
+    }
+    return task.title;
+  };
 
   return (
     <div className="space-y-4">
@@ -68,7 +101,13 @@ export const TaskList = ({ tasks, isLoading, onTasksUpdated, isHistory = false }
         </div>
       )}
       
-      {!sortedTasks?.length ? (
+      {isLoading ? (
+        <div className="space-y-4">
+          <Skeleton className="h-24 w-full" />
+          <Skeleton className="h-24 w-full" />
+          <Skeleton className="h-24 w-full" />
+        </div>
+      ) : !filteredTasks.length ? (
         <div className="text-center text-gray-500 py-8">
           {isHistory 
             ? "No completed tasks yet"
@@ -103,11 +142,33 @@ export const TaskList = ({ tasks, isLoading, onTasksUpdated, isHistory = false }
               <h3 className="font-medium text-sm text-gray-500">Generated Ideas</h3>
               <div className="space-y-4">
                 {ideas.map((task) => (
-                  <div key={task.id} className="relative">
+                  <div key={task.id} className="relative space-y-2">
                     <GeneralTaskItem 
-                      task={task}
+                      task={{
+                        ...task,
+                        title: cleanIdeaText(task)
+                      }}
                       isClientTask={!!task.client_id}
                     />
+                    <div className="flex items-center gap-2 px-6">
+                      <Input
+                        type="date"
+                        value={dateInputs[task.id] || ''}
+                        onChange={(e) => {
+                          setDateInputs(prev => ({
+                            ...prev,
+                            [task.id]: e.target.value
+                          }));
+                        }}
+                        className="max-w-[200px]"
+                      />
+                      <Button 
+                        variant="outline" 
+                        onClick={() => handleDateChange(task.id, dateInputs[task.id])}
+                      >
+                        Set Due Date
+                      </Button>
+                    </div>
                   </div>
                 ))}
               </div>
