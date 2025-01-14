@@ -41,7 +41,7 @@ export const IntelSearch = ({ searchInput, onSearchInputChange }: IntelSearchPro
   };
 
   return (
-    <Card className="w-[300px] transition-all duration-300 hover:shadow-lg">
+    <Card className="flex-1 transition-all duration-300 hover:shadow-lg">
       <CardHeader className="pb-2">
         <CardTitle className="text-sm font-medium">Intel Search</CardTitle>
       </CardHeader>

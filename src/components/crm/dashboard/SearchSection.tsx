@@ -12,8 +12,8 @@ export const SearchSection: React.FC<SearchSectionProps> = ({
   onSearchInputChange,
 }) => {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <div className="flex items-start space-x-4">
+    <div className="w-full">
+      <div className="flex items-start justify-between gap-4">
         <ClientSearch />
         <IntelSearch 
           searchInput={searchInput}
