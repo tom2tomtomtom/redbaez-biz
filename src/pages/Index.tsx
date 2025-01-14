@@ -44,7 +44,7 @@ const Index = () => {
 
           <div className="rounded-lg bg-card p-8 shadow-sm">
             <h2 className="text-2xl font-semibold mb-6 text-left">Priority Actions</h2>
-            <div className="max-h-[800px] overflow-y-auto">
+            <div>
               <PriorityActions hideAddButton />
             </div>
           </div>
