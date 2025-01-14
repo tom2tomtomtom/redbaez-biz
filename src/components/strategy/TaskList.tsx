@@ -27,7 +27,6 @@ export const TaskList = ({ tasks, isLoading, onTasksUpdated, isHistory = false }
 
       if (error) throw error;
 
-      // Clear the date input
       setDateInputs(prev => {
         const newInputs = { ...prev };
         delete newInputs[taskId];
@@ -61,15 +60,6 @@ export const TaskList = ({ tasks, isLoading, onTasksUpdated, isHistory = false }
   const ideas = filteredTasks.filter(task => !task.next_due_date);
   const activeTasks = filteredTasks.filter(task => task.next_due_date);
 
-  // Function to clean up idea title/description
-  const cleanIdeaText = (task: GeneralTaskRow) => {
-    const titleMatch = task.title.match(/Strategic Recommendation for (.+)/);
-    if (titleMatch) {
-      return titleMatch[1];
-    }
-    return task.title;
-  };
-
   return (
     <div className="space-y-4">
       {isLoading ? (
@@ -82,7 +72,7 @@ export const TaskList = ({ tasks, isLoading, onTasksUpdated, isHistory = false }
         <div className="text-center text-gray-500 py-8">
           {isHistory 
             ? "No completed tasks yet"
-            : "No tasks or ideas yet. Try generating some ideas!"
+            : "No tasks found"
           }
         </div>
       ) : (
@@ -115,10 +105,7 @@ export const TaskList = ({ tasks, isLoading, onTasksUpdated, isHistory = false }
                 {ideas.map((task) => (
                   <div key={task.id} className="relative space-y-2">
                     <GeneralTaskItem 
-                      task={{
-                        ...task,
-                        title: cleanIdeaText(task)
-                      }}
+                      task={task}
                       isClientTask={!!task.client_id}
                     />
                     <div className="flex items-center gap-2 px-6">

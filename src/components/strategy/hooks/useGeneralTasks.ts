@@ -11,6 +11,7 @@ export const useGeneralTasks = (category: string, refreshTrigger: number) => {
         .from('general_tasks')
         .select('*, clients(name)')  // Also fetch client name if linked
         .eq('category', category.toLowerCase())
+        .neq('status', 'completed')  // Only fetch uncompleted tasks
         .order('created_at', { ascending: false });
 
       if (error) {
