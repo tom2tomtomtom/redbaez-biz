@@ -23,6 +23,9 @@ export const IdeaGenerator = ({ category, onIdeaGenerated }: IdeaGeneratorProps)
   const generateIdea = async (prompt: string) => {
     try {
       setIsGenerating(true);
+      // Clear existing ideas immediately when starting generation
+      onIdeaGenerated();
+      
       console.log('Generating ideas for category:', category);
 
       const { data, error } = await supabase.functions.invoke('analyze-client', {
