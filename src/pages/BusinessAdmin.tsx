@@ -53,7 +53,7 @@ export const BusinessAdmin = () => {
     }
   });
 
-  // Calculate total achieved and forecast revenue using annual totals
+  // Calculate total achieved and forecast revenue
   const { totalAchievedRevenue, totalForecastRevenue } = clientsData?.reduce((acc, client) => ({
     totalAchievedRevenue: acc.totalAchievedRevenue + (client.annual_revenue_signed_off || 0),
     totalForecastRevenue: acc.totalForecastRevenue + (client.annual_revenue_forecast || 0)
@@ -69,6 +69,21 @@ export const BusinessAdmin = () => {
     setEditingTask(task);
     setIsDialogOpen(true);
   };
+
+  // Fetch recent activities
+  const { data: recentActivities } = useQuery({
+    queryKey: ['client-status-history'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('client_status_history')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(5);
+      
+      if (error) throw error;
+      return data || [];
+    }
+  });
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100/50">
@@ -165,19 +180,13 @@ export const BusinessAdmin = () => {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {/* Recent activities list */}
               {recentActivities?.map((activity) => (
                 <div key={activity.id} className="flex items-center">
                   <div className="ml-4">
-                    <p className="text-sm font-medium">{activity.description}</p>
+                    <p className="text-sm font-medium">{activity.notes}</p>
                     <p className="text-sm text-muted-foreground">
-                      {format(new Date(activity.date), 'PPp')}
+                      {format(new Date(activity.created_at), 'PPp')}
                     </p>
-                    {activity.details && (
-                      <p className="text-sm text-muted-foreground mt-1">
-                        {activity.details}
-                      </p>
-                    )}
                   </div>
                 </div>
               ))}
