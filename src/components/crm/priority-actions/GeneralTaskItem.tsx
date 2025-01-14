@@ -108,8 +108,11 @@ export const GeneralTaskItem = ({ task, onDeleted }: GeneralTaskItemProps) => {
           <div className="h-6 w-6 rounded-full bg-orange-500 flex items-center justify-center text-white text-xs font-bold">
             {task.title.charAt(0).toUpperCase()}
           </div>
-          <div>
+          <div className="space-y-1">
             <span className="font-medium">{task.title}</span>
+            {task.description && (
+              <p className="text-sm text-gray-600">{task.description}</p>
+            )}
           </div>
         </div>
         <div className="flex gap-2">
