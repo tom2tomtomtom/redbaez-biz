@@ -13,9 +13,9 @@ export const ItemControls = ({
   onComplete, 
   onUrgentChange 
 }: ItemControlsProps) => {
-  const isCompleted = item.type === 'next_step' 
-    ? item.data.completed_at !== null
-    : item.data.status === 'completed';
+  const isCompleted = item.type === 'task' 
+    ? item.data.status === 'completed'
+    : (item.data as any).completed_at !== null;
 
   const handleUrgentChange = async (checked: boolean) => {
     // Add a small delay to allow the toggle animation to complete

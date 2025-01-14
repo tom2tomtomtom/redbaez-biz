@@ -3,7 +3,6 @@ import { MainNav } from "@/components/ui/main-nav";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Briefcase, ChartBar, DollarSign, Users, Plus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { TaskDialog } from "@/components/crm/priority-actions/TaskDialog";
@@ -157,30 +156,15 @@ export const BusinessAdmin = () => {
           </Card>
         </div>
 
-        {/* Recent Activity */}
+        {/* Recent Activity Card */}
         <Card>
           <CardHeader>
             <CardTitle>Recent Activity</CardTitle>
             <CardDescription>Overview of recent business activities</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              {/* Recent activities list */}
-              {recentActivities?.map((activity) => (
-                <div key={activity.id} className="flex items-center">
-                  <div className="ml-4">
-                    <p className="text-sm font-medium">{activity.description}</p>
-                    <p className="text-sm text-muted-foreground">
-                      {format(new Date(activity.date), 'PPp')}
-                    </p>
-                    {activity.details && (
-                      <p className="text-sm text-muted-foreground mt-1">
-                        {activity.details}
-                      </p>
-                    )}
-                  </div>
-                </div>
-              ))}
+            <div className="text-center text-gray-500 py-4">
+              No recent activities to display
             </div>
           </CardContent>
         </Card>
