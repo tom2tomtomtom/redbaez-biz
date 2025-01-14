@@ -30,79 +30,56 @@ Each suggestion should:
 - Suggest unique angles or hooks
 `;
 
-export const PARTNERSHIPS_PROMPT = \`// ... keep existing code\`;
+export const PARTNERSHIPS_PROMPT = `
+RedBaez is seeking strategic partnerships to expand its AI implementation services. Generate partnership recommendations that:
 
-export const PRODUCT_DEVELOPMENT_PROMPT = \`// ... keep existing code\`;`;
+Target Partners:
+- Technology vendors and AI platforms
+- Marketing agencies and creative studios
+- Industry-specific solution providers
 
-<lov-write file_path="supabase/functions/analyze-client/perplexityApi.ts">
-export const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+Key Objectives:
+- Expand service offerings
+- Access new markets
+- Enhance technical capabilities
 
-export async function generateRecommendations(prompt: string, apiKey: string) {
-  console.log('Starting recommendation generation with prompt:', prompt);
-  
-  const response = await fetch('https://api.perplexity.ai/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${apiKey}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      model: 'llama-3.1-sonar-small-128k-online',
-      messages: [
-        {
-          role: 'system',
-          content: 'You are a strategic marketing advisor specializing in AI technology marketing. Create highly specific recommendations that reference actual events, trends, and case studies. Return ONLY a JSON array with type, priority, and suggestion fields. Do not include any square brackets in the suggestions.'
-        },
-        {
-          role: 'user',
-          content: prompt
-        }
-      ],
-      temperature: 0.7,
-      max_tokens: 1000,
-    }),
-  });
+Focus Areas:
+1. Technical Integrations
+2. Co-Marketing Initiatives
+3. Joint Service Offerings
+4. Knowledge Exchange
+5. Market Expansion
 
-  if (!response.ok) {
-    const errorText = await response.text();
-    console.error('Error from Perplexity API:', errorText);
-    throw new Error(`Failed to get response from Perplexity API: ${errorText}`);
-  }
+Each suggestion should:
+- Reference specific potential partners
+- Include partnership benefits
+- Align with RedBaez's expertise
+- Suggest concrete next steps
+`;
 
-  const aiResponse = await response.json();
-  console.log('Received AI response:', aiResponse);
+export const PRODUCT_DEVELOPMENT_PROMPT = `
+RedBaez is developing AI-powered products for creative and marketing applications. Generate product development ideas that:
 
-  if (!aiResponse?.choices?.[0]?.message?.content) {
-    throw new Error('Invalid response format from AI');
-  }
+Target Users:
+- Marketing teams
+- Creative professionals
+- Content creators
 
-  try {
-    const content = aiResponse.choices[0].message.content;
-    console.log('Raw content from AI:', content);
-    
-    // Remove any markdown code block syntax
-    const cleanedContent = content.replace(/```json\n?|\n?```/g, '').trim();
-    console.log('Cleaned content:', cleanedContent);
-    
-    // Parse the JSON
-    const parsed = JSON.parse(cleanedContent);
-    console.log('Parsed JSON:', parsed);
-    
-    // Clean any remaining square brackets from suggestions
-    const cleaned = parsed.map((rec: any) => ({
-      ...rec,
-      suggestion: rec.suggestion.replace(/[\[\]]/g, '').trim(),
-      type: rec.type.toLowerCase(),
-      priority: rec.priority.toLowerCase()
-    }));
-    
-    console.log('Final cleaned recommendations:', cleaned);
-    return cleaned;
-  } catch (error) {
-    console.error('Error parsing AI response:', error);
-    throw new Error(`Failed to parse AI recommendations: ${error.message}`);
-  }
-}
+Key Features:
+- AI-powered automation
+- Creative assistance
+- Performance optimization
+
+Focus Areas:
+1. Content Generation
+2. Creative Automation
+3. Performance Analytics
+4. Workflow Optimization
+5. Integration Capabilities
+
+Each suggestion should:
+- Address specific user needs
+- Include technical requirements
+- Consider market demand
+- Suggest development priorities
+`;
