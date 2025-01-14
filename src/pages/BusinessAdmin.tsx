@@ -18,26 +18,26 @@ type RecentActivity = {
   details?: string;
 };
 
+// Mock recent activities data
+const recentActivities: RecentActivity[] = [
+  {
+    id: '1',
+    description: 'Monthly financial report generated',
+    date: new Date().toISOString(),
+    details: 'Q1 2024 financial summary completed'
+  },
+  {
+    id: '2',
+    description: 'Team meeting scheduled',
+    date: new Date().toISOString(),
+    details: 'Quarterly planning session'
+  }
+];
+
 export const BusinessAdmin = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Tables<'general_tasks'> | null>(null);
   const queryClient = useQueryClient();
-
-  // Mock recent activities data
-  const recentActivities: RecentActivity[] = [
-    {
-      id: '1',
-      description: 'Monthly financial report generated',
-      date: new Date().toISOString(),
-      details: 'Q1 2024 financial summary completed'
-    },
-    {
-      id: '2',
-      description: 'Team meeting scheduled',
-      date: new Date().toISOString(),
-      details: 'Quarterly planning session'
-    }
-  ];
 
   const { data: tasks } = useQuery({
     queryKey: ['generalTasks', 'business-admin'],
