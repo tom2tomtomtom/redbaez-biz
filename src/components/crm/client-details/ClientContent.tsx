@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Contact } from './ContactInfoCard';
 import { AdditionalInfoCard } from './AdditionalInfoCard';
@@ -11,7 +11,10 @@ import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { CalendarDays } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
+import { CalendarDays, Edit2, Save } from 'lucide-react';
+import { toast } from '@/components/ui/use-toast';
 
 interface ClientContentProps {
   client: any;
@@ -49,6 +52,33 @@ const formatText = (text: string) => {
 };
 
 export const ClientContent = ({ client, isEditing, parsedAdditionalContacts }: ClientContentProps) => {
+  const [isEditingBackground, setIsEditingBackground] = useState(false);
+  const [editedBackground, setEditedBackground] = useState(client.background || '');
+  
+  const handleSaveBackground = async () => {
+    try {
+      const { error } = await supabase
+        .from('clients')
+        .update({ background: editedBackground })
+        .eq('id', client.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Background updated successfully",
+      });
+      setIsEditingBackground(false);
+    } catch (error) {
+      console.error('Error updating background:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update background",
+        variant: "destructive",
+      });
+    }
+  };
+
   // Fetch all related tasks and next steps
   const { data: allItems, isLoading } = useQuery({
     queryKey: ['client-items', client.id],
@@ -156,14 +186,43 @@ export const ClientContent = ({ client, isEditing, parsedAdditionalContacts }: C
       </div>
 
       {/* Client Background Section */}
-      {client.background && (
-        <div className="bg-white rounded-lg shadow-sm p-6">
-          <h3 className="text-lg font-semibold mb-4">Background</h3>
-          <div className="text-gray-700 whitespace-pre-line">
-            {formatText(client.background)}
-          </div>
+      <div className="bg-white rounded-lg shadow-sm p-6">
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-lg font-semibold">Background</h3>
+          {!isEditingBackground ? (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setIsEditingBackground(true)}
+            >
+              <Edit2 className="h-4 w-4 mr-2" />
+              Edit
+            </Button>
+          ) : (
+            <Button
+              variant="default"
+              size="sm"
+              onClick={handleSaveBackground}
+            >
+              <Save className="h-4 w-4 mr-2" />
+              Save
+            </Button>
+          )}
         </div>
-      )}
+        
+        {isEditingBackground ? (
+          <Textarea
+            value={editedBackground}
+            onChange={(e) => setEditedBackground(e.target.value)}
+            className="min-h-[150px] mb-4"
+            placeholder="Enter client background information..."
+          />
+        ) : (
+          <div className="text-gray-700 whitespace-pre-line">
+            {formatText(client.background || 'No background information available.')}
+          </div>
+        )}
+      </div>
 
       {/* Next Steps Section */}
       <div className="bg-white rounded-lg shadow-sm p-6">
