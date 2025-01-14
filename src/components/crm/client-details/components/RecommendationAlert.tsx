@@ -43,13 +43,13 @@ export const RecommendationAlert = ({
 
       if (recommendationError) throw recommendationError;
 
-      // Then create a task for follow-up
+      // Then create a task for follow-up with proper formatting
       const { error } = await supabase
         .from('general_tasks')
         .insert({
           title: `${clientName} - Strategic Recommendation`,
           description: suggestion,
-          category: 'revenue',
+          category: type,
           next_due_date: date.toISOString(),
           urgent: isUrgent,
           status: 'in_progress',
