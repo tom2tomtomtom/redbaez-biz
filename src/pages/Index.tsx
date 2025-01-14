@@ -36,33 +36,27 @@ const Index = () => {
           onNewTaskClick={() => setIsNewTaskOpen(true)}
         />
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Left Column - Priority Actions */}
-          <div className="lg:col-span-1 space-y-4">
-            <div className="rounded-lg bg-card p-4 shadow-sm">
-              <h2 className="text-lg font-semibold mb-4">Priority Actions</h2>
-              <div className="h-[calc(100vh-300px)] overflow-y-auto">
-                <PriorityActions hideAddButton />
-              </div>
+        {!showClientList && (
+          <SearchSection 
+            searchInput={searchInput}
+            onSearchInputChange={setSearchInput}
+          />
+        )}
+
+        <div className="space-y-6">
+          <div className="rounded-lg bg-card p-4 shadow-sm">
+            <h2 className="text-lg font-semibold mb-4">Priority Actions</h2>
+            <div className="max-h-[500px] overflow-y-auto">
+              <PriorityActions hideAddButton />
             </div>
           </div>
 
-          {/* Center and Right Columns */}
-          <div className="lg:col-span-2 space-y-4">
-            {!showClientList && (
-              <SearchSection 
-                searchInput={searchInput}
-                onSearchInputChange={setSearchInput}
-              />
+          <div className="rounded-lg bg-card p-4 shadow-sm">
+            {showClientList ? (
+              <ClientListSection clients={clients} isLoading={isLoading} />
+            ) : (
+              <RevenueSummary />
             )}
-            
-            <div className="rounded-lg bg-card p-4 shadow-sm">
-              {showClientList ? (
-                <ClientListSection clients={clients} isLoading={isLoading} />
-              ) : (
-                <RevenueSummary />
-              )}
-            </div>
           </div>
         </div>
       </main>
