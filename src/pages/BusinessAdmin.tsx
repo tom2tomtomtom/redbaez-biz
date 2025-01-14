@@ -9,6 +9,8 @@ import { TaskDialog } from "@/components/crm/priority-actions/TaskDialog";
 import { GeneralTaskItem } from "@/components/crm/priority-actions/GeneralTaskItem";
 import { Tables } from "@/integrations/supabase/types";
 
+// ... keep existing code (imports and component start)
+
 export const BusinessAdmin = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Tables<'general_tasks'> | null>(null);

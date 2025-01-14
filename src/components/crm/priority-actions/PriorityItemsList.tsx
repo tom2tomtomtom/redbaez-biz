@@ -1,58 +1,51 @@
-import { useState } from 'react';
 import { PriorityItem } from './hooks/usePriorityData';
-import { GeneralTaskRow } from '@/integrations/supabase/types/general-tasks.types';
-import { CompletionDialog } from './components/CompletionDialog';
 import { PriorityListItem } from './components/PriorityListItem';
-import { useItemStatusChange } from './hooks/useItemStatusChange';
 
 interface PriorityItemsListProps {
   items: PriorityItem[];
-  onTaskClick: (task: GeneralTaskRow) => void;
+  onTaskClick?: (task: any) => void;
+  onComplete?: (item: PriorityItem) => void;
+  onUrgentChange?: (item: PriorityItem, urgent: boolean) => void;
 }
 
-export const PriorityItemsList = ({ items, onTaskClick }: PriorityItemsListProps) => {
-  const [itemToComplete, setItemToComplete] = useState<PriorityItem | null>(null);
-  const { handleCompletedChange, handleUrgentChange } = useItemStatusChange();
-
+export const PriorityItemsList = ({
+  items,
+  onTaskClick,
+  onComplete,
+  onUrgentChange
+}: PriorityItemsListProps) => {
   // Show only items that:
   // 1. For tasks: are incomplete AND have a due date
   // 2. For next steps: are not completed
   const activeItems = items.filter(item => {
     if (item.type === 'task') {
-      return item.data.status !== 'completed' && item.data.next_due_date !== null;
+      const task = item.data as any;
+      return task.status !== 'completed' && task.next_due_date !== null;
     } else {
-      return !item.data.completed_at;
+      const nextStep = item.data as any;
+      return !nextStep.completed_at;
     }
   });
 
   if (activeItems.length === 0) {
     return (
-      <div className="p-3 bg-gray-50 rounded-lg border border-gray-100">
-        <p className="text-gray-600 text-center">No priority actions found</p>
+      <div className="text-center text-gray-500 py-4">
+        No active items
       </div>
     );
   }
 
   return (
-    <>
-      <CompletionDialog
-        itemToComplete={itemToComplete}
-        onOpenChange={() => setItemToComplete(null)}
-        onComplete={(item) => handleCompletedChange(item, true)}
-      />
-
-      <div className="space-y-3">
-        {activeItems.map((item, index) => (
-          <PriorityListItem
-            key={`${item.type}-${item.data.id}`}
-            item={item}
-            index={index}
-            onTaskClick={onTaskClick}
-            onComplete={() => setItemToComplete(item)}
-            onUrgentChange={(checked) => handleUrgentChange(item, checked)}
-          />
-        ))}
-      </div>
-    </>
+    <div className="space-y-4">
+      {activeItems.map((item) => (
+        <PriorityListItem
+          key={item.data.id}
+          item={item}
+          onTaskClick={onTaskClick}
+          onComplete={onComplete}
+          onUrgentChange={onUrgentChange}
+        />
+      ))}
+    </div>
   );
 };
