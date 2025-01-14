@@ -4,18 +4,23 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Briefcase, ChartBar, DollarSign, Users } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
+import { RevenueCharts } from "@/components/crm/business-summary/components/RevenueCharts";
+import { calculateRevenueData } from "@/components/crm/business-summary/utils/revenueCalculations";
 
 export const BusinessAdmin = () => {
-  // Fetch total number of clients
+  // Fetch all clients for revenue calculations
   const { data: clientsData } = useQuery({
-    queryKey: ['clients-count'],
+    queryKey: ['clients'],
     queryFn: async () => {
-      const { count } = await supabase
+      const { data } = await supabase
         .from('clients')
-        .select('*', { count: 'exact', head: true });
-      return count || 0;
+        .select('*');
+      return data || [];
     }
   });
+
+  // Calculate revenue data
+  const revenueData = clientsData ? calculateRevenueData(clientsData) : { forecastData: [], achievedData: [] };
 
   // Fetch active projects (clients with status 'active')
   const { data: activeProjectsCount } = useQuery({
@@ -29,18 +34,7 @@ export const BusinessAdmin = () => {
     }
   });
 
-  // Fetch total revenue (sum of all client revenues)
-  const { data: revenueData } = useQuery({
-    queryKey: ['total-revenue'],
-    queryFn: async () => {
-      const { data } = await supabase
-        .from('clients')
-        .select('project_revenue');
-      return data?.reduce((sum, client) => sum + (client.project_revenue || 0), 0) || 0;
-    }
-  });
-
-  // Fetch recent activities (combination of status changes and next steps)
+  // Fetch recent activities
   const { data: recentActivities } = useQuery({
     queryKey: ['recent-activities'],
     queryFn: async () => {
@@ -71,7 +65,6 @@ export const BusinessAdmin = () => {
         .order('created_at', { ascending: false })
         .limit(5);
 
-      // Combine and sort both types of activities
       const allActivities = [
         ...(statusHistory?.map(sh => ({
           id: sh.id,
@@ -94,31 +87,9 @@ export const BusinessAdmin = () => {
     }
   });
 
-  // Calculate growth rate (comparing current month's revenue to previous month)
-  const { data: growthRate } = useQuery({
-    queryKey: ['growth-rate'],
-    queryFn: async () => {
-      const currentDate = new Date();
-      const currentMonth = currentDate.getMonth() + 1;
-      const previousMonth = currentMonth === 1 ? 12 : currentMonth - 1;
-      
-      const { data: currentMonthData } = await supabase
-        .from('client_forecasts')
-        .select('amount')
-        .eq('month', format(currentDate, 'yyyy-MM'));
-      
-      const { data: previousMonthData } = await supabase
-        .from('client_forecasts')
-        .select('amount')
-        .eq('month', format(new Date(currentDate.getFullYear(), previousMonth - 1), 'yyyy-MM'));
-
-      const currentTotal = currentMonthData?.reduce((sum, record) => sum + (record.amount || 0), 0) || 0;
-      const previousTotal = previousMonthData?.reduce((sum, record) => sum + (record.amount || 0), 0) || 0;
-
-      if (previousTotal === 0) return 0;
-      return ((currentTotal - previousTotal) / previousTotal) * 100;
-    }
-  });
+  // Calculate total achieved and forecast revenue
+  const totalAchievedRevenue = revenueData.achievedData.reduce((sum, item) => sum + item.revenue, 0);
+  const totalForecastRevenue = revenueData.forecastData.reduce((sum, item) => sum + item.revenue, 0);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100/50">
@@ -133,7 +104,7 @@ export const BusinessAdmin = () => {
               <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{clientsData || 0}</div>
+              <div className="text-2xl font-bold">{clientsData?.length || 0}</div>
               <p className="text-xs text-muted-foreground">Active client base</p>
             </CardContent>
           </Card>
@@ -151,29 +122,36 @@ export const BusinessAdmin = () => {
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
+              <CardTitle className="text-sm font-medium">Achieved Revenue</CardTitle>
               <DollarSign className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
-                ${revenueData?.toLocaleString() || '0'}
+                ${totalAchievedRevenue.toLocaleString()}
               </div>
-              <p className="text-xs text-muted-foreground">Total project revenue</p>
+              <p className="text-xs text-muted-foreground">Total achieved revenue</p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Growth Rate</CardTitle>
+              <CardTitle className="text-sm font-medium">Forecast Revenue</CardTitle>
               <ChartBar className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
-                {growthRate ? `${growthRate.toFixed(1)}%` : '0%'}
+                ${totalForecastRevenue.toLocaleString()}
               </div>
-              <p className="text-xs text-muted-foreground">Month over month</p>
+              <p className="text-xs text-muted-foreground">Total forecast revenue</p>
             </CardContent>
           </Card>
+        </div>
+
+        <div className="mt-8">
+          <RevenueCharts 
+            forecastData={revenueData.forecastData}
+            achievedData={revenueData.achievedData}
+          />
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
@@ -213,26 +191,26 @@ export const BusinessAdmin = () => {
                 <div>
                   <p className="text-sm font-medium">Client Retention Rate</p>
                   <p className="text-2xl font-bold">
-                    {activeProjectsCount && clientsData
-                      ? `${((activeProjectsCount / clientsData) * 100).toFixed(1)}%`
+                    {activeProjectsCount && clientsData?.length
+                      ? `${((activeProjectsCount / clientsData.length) * 100).toFixed(1)}%`
                       : '0%'}
                   </p>
                 </div>
                 <div>
                   <p className="text-sm font-medium">Average Revenue per Client</p>
                   <p className="text-2xl font-bold">
-                    ${clientsData && revenueData
-                      ? (revenueData / clientsData).toLocaleString(undefined, {
+                    ${clientsData?.length && totalAchievedRevenue
+                      ? (totalAchievedRevenue / clientsData.length).toLocaleString(undefined, {
                           maximumFractionDigits: 0,
                         })
                       : '0'}
                   </p>
                 </div>
                 <div>
-                  <p className="text-sm font-medium">Active Projects Rate</p>
+                  <p className="text-sm font-medium">Forecast to Achieved Ratio</p>
                   <p className="text-2xl font-bold">
-                    {activeProjectsCount && clientsData
-                      ? `${((activeProjectsCount / clientsData) * 100).toFixed(1)}%`
+                    {totalAchievedRevenue
+                      ? `${((totalForecastRevenue / totalAchievedRevenue) * 100).toFixed(1)}%`
                       : '0%'}
                   </p>
                 </div>
