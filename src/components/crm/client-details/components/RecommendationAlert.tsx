@@ -8,7 +8,6 @@ import { format } from "date-fns";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/use-toast";
-import { cn } from "@/lib/utils";
 
 interface RecommendationAlertProps {
   type: 'revenue' | 'engagement' | 'risk' | 'opportunity';
@@ -49,12 +48,15 @@ export const RecommendationAlert = ({
 
       if (recommendationError) throw recommendationError;
 
-      // Then create a task for follow-up with proper formatting
+      // Create a task with proper formatting
+      const taskTitle = `Strategic Recommendation for ${clientName}`;
+      const taskDescription = `${suggestion}\n\nType: ${type}\nPriority: ${priority}`;
+
       const { error } = await supabase
         .from('general_tasks')
         .insert({
-          title: `Strategic Recommendation for ${clientName}`,
-          description: suggestion,
+          title: taskTitle,
+          description: taskDescription,
           category: type,
           next_due_date: date.toISOString(),
           urgent: isUrgent,
