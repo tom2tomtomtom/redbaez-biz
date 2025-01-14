@@ -4,8 +4,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Briefcase, ChartBar, DollarSign, Users } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
-import { RevenueCharts } from "@/components/crm/business-summary/components/RevenueCharts";
-import { calculateRevenueData } from "@/components/crm/business-summary/utils/revenueCalculations";
 
 export const BusinessAdmin = () => {
   // Fetch all clients for revenue calculations
@@ -18,9 +16,6 @@ export const BusinessAdmin = () => {
       return data || [];
     }
   });
-
-  // Calculate revenue data
-  const revenueData = clientsData ? calculateRevenueData(clientsData) : { forecastData: [], achievedData: [] };
 
   // Fetch active projects (clients with status 'active')
   const { data: activeProjectsCount } = useQuery({
@@ -87,9 +82,40 @@ export const BusinessAdmin = () => {
     }
   });
 
-  // Calculate total achieved and forecast revenue
-  const totalAchievedRevenue = revenueData.achievedData.reduce((sum, item) => sum + item.revenue, 0);
-  const totalForecastRevenue = revenueData.forecastData.reduce((sum, item) => sum + item.revenue, 0);
+  // Calculate total achieved and forecast revenue from monthly columns
+  const totalAchievedRevenue = clientsData?.reduce((sum, client) => {
+    return sum + (
+      (client.actual_jan || 0) +
+      (client.actual_feb || 0) +
+      (client.actual_mar || 0) +
+      (client.actual_apr || 0) +
+      (client.actual_may || 0) +
+      (client.actual_jun || 0) +
+      (client.actual_jul || 0) +
+      (client.actual_aug || 0) +
+      (client.actual_sep || 0) +
+      (client.actual_oct || 0) +
+      (client.actual_nov || 0) +
+      (client.actual_dec || 0)
+    );
+  }, 0) || 0;
+
+  const totalForecastRevenue = clientsData?.reduce((sum, client) => {
+    return sum + (
+      (client.forecast_jan || 0) +
+      (client.forecast_feb || 0) +
+      (client.forecast_mar || 0) +
+      (client.forecast_apr || 0) +
+      (client.forecast_may || 0) +
+      (client.forecast_jun || 0) +
+      (client.forecast_jul || 0) +
+      (client.forecast_aug || 0) +
+      (client.forecast_sep || 0) +
+      (client.forecast_oct || 0) +
+      (client.forecast_nov || 0) +
+      (client.forecast_dec || 0)
+    );
+  }, 0) || 0;
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100/50">
@@ -145,13 +171,6 @@ export const BusinessAdmin = () => {
               <p className="text-xs text-muted-foreground">Total forecast revenue</p>
             </CardContent>
           </Card>
-        </div>
-
-        <div className="mt-8">
-          <RevenueCharts 
-            forecastData={revenueData.forecastData}
-            achievedData={revenueData.achievedData}
-          />
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
