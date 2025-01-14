@@ -22,7 +22,7 @@ export const NextStepItem = ({ nextStep }: NextStepItemProps) => {
 
   return (
     <div 
-      className={`p-3 rounded-lg transition-all duration-300 hover:shadow-md ${getTypeColor(nextStep.client_name || '')} ${
+      className={`p-3 rounded-lg transition-all duration-300 hover:shadow-md text-left ${getTypeColor(nextStep.client_name || '')} ${
         nextStep.urgent ? 'bg-red-50/50' : ''
       }`}
       onClick={handleClick}
