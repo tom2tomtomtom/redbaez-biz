@@ -27,6 +27,12 @@ export function MainNav() {
       >
         Product Development
       </Link>
+      <Link
+        to="/business-admin"
+        className="text-base text-gray-600 hover:text-primary"
+      >
+        Business Admin
+      </Link>
       <div className="flex-grow"></div>
       <Link
         to="/ai-news"
