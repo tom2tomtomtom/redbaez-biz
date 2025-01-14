@@ -28,8 +28,23 @@ export const UpdateNextStepButton = ({ clientId }: UpdateNextStepButtonProps) =>
     try {
       // Get current user
       const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        throw new Error('No authenticated user found');
+      }
+
+      // Get user's profile
+      const { data: profileData, error: profileError } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('id', user.id)
+        .single();
+
+      if (profileError || !profileData) {
+        console.error('Error fetching profile:', profileError);
+        throw new Error('Could not find user profile');
+      }
       
-      // Insert next step
+      // Insert next step with created_by field
       const { error } = await supabase
         .from('client_next_steps')
         .insert({
@@ -37,7 +52,7 @@ export const UpdateNextStepButton = ({ clientId }: UpdateNextStepButtonProps) =>
           notes: notes,
           due_date: dueDate || null,
           urgent: isUrgent,
-          created_by: user?.id
+          created_by: profileData.id
         });
 
       if (error) {
@@ -72,7 +87,7 @@ export const UpdateNextStepButton = ({ clientId }: UpdateNextStepButtonProps) =>
       queryClient.invalidateQueries({ queryKey: ['next-steps-history'] });
       queryClient.invalidateQueries({ queryKey: ['client'] });
       queryClient.invalidateQueries({ queryKey: ['priorityClients'] });
-      queryClient.invalidateQueries({ queryKey: ['clientNextSteps'] }); // Add this
+      queryClient.invalidateQueries({ queryKey: ['clientNextSteps'] });
       
       // Reset form and close dialog
       setNotes('');
