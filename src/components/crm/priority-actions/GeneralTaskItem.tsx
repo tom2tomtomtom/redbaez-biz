@@ -22,7 +22,7 @@ const getCategoryColor = (task: GeneralTaskRow, isClientTask: boolean) => {
   // always return orange colors
   if (isClientTask || task.client_id) {
     console.log('Returning client color');
-    return 'bg-[#FEC6A1]/50 hover:bg-[#FEC6A1]';
+    return 'bg-[#FEC6A1]/50 hover:bg-[#FEC6A1]/70';
   }
   
   // Check if the task has a valid category
@@ -38,19 +38,19 @@ const getCategoryColor = (task: GeneralTaskRow, isClientTask: boolean) => {
   // Marketing tasks
   if (category === 'marketing') {
     console.log('Marketing task colors');
-    return 'bg-[#D946EF]/50 hover:bg-[#D946EF]';
+    return 'bg-[#D946EF]/50 hover:bg-[#D946EF]/70';
   }
   
   // Product Development tasks
   if (category === 'product development') {
     console.log('Product development task colors');
-    return 'bg-[#0EA5E9]/50 hover:bg-[#0EA5E9]';
+    return 'bg-[#0EA5E9]/50 hover:bg-[#0EA5E9]/70';
   }
   
   // Partnership tasks
   if (category === 'partnerships') {
     console.log('Partnerships task colors');
-    return 'bg-[#8B5CF6]/50 hover:bg-[#8B5CF6]';
+    return 'bg-[#8B5CF6]/50 hover:bg-[#8B5CF6]/70';
   }
   
   // Business Admin tasks
