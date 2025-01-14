@@ -65,7 +65,10 @@ export const ClientContent: React.FC<ClientContentProps> = ({
         clientId={client.id}
       />
 
-      <StatusTab clientId={client.id} />
+      <StatusTab 
+        clientId={client.id} 
+        currentStatus={client.status || ''}
+      />
       
       <StrategicRecommendations 
         clientId={client.id}
