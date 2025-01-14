@@ -61,9 +61,9 @@ export const ClientSearch = () => {
   };
 
   return (
-    <Card className="transition-all duration-300 hover:shadow-lg">
-      <CardHeader>
-        <CardTitle className="text-lg font-medium">Find Client</CardTitle>
+    <Card className="w-[300px] transition-all duration-300 hover:shadow-lg">
+      <CardHeader className="pb-2">
+        <CardTitle className="text-sm font-medium">Find Client</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="flex space-x-2">
@@ -71,11 +71,12 @@ export const ClientSearch = () => {
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
             onKeyPress={handleKeyPress}
-            placeholder="Search clients by name..."
-            className="transition-all duration-300"
+            placeholder="Search clients..."
+            className="h-8 text-sm"
             disabled={isSearching}
           />
           <Button 
+            size="sm"
             className="transition-all duration-300" 
             onClick={handleSearch}
             disabled={isSearching}

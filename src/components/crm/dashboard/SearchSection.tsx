@@ -13,11 +13,13 @@ export const SearchSection: React.FC<SearchSectionProps> = ({
 }) => {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <ClientSearch />
-      <IntelSearch 
-        searchInput={searchInput}
-        onSearchInputChange={onSearchInputChange}
-      />
+      <div className="flex items-start space-x-4">
+        <ClientSearch />
+        <IntelSearch 
+          searchInput={searchInput}
+          onSearchInputChange={onSearchInputChange}
+        />
+      </div>
     </div>
   );
 };

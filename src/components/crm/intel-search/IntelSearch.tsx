@@ -16,7 +16,6 @@ export const IntelSearch = ({ searchInput, onSearchInputChange }: IntelSearchPro
   const { data: insight, isLoading, error } = useIntelSearch(query);
   const { toast } = useToast();
 
-  // Auto-search when component mounts if searchInput is provided
   useEffect(() => {
     if (searchInput) {
       setQuery(searchInput);
@@ -37,17 +36,14 @@ export const IntelSearch = ({ searchInput, onSearchInputChange }: IntelSearchPro
 
   const formatInsight = (text: string) => {
     if (!text) return [];
-    // Split by bullet points or numbered lists
     const points = text.split(/(?:\r?\n|\r)(?:[-•*]|\d+\.)\s+/).filter(Boolean);
-    
-    // Remove any remaining bullet points or numbers from the beginning of each point
     return points.map(point => point.trim().replace(/^[-•*]\s*|\d+\.\s*/, ''));
   };
 
   return (
-    <Card className="transition-all duration-300 hover:shadow-lg">
-      <CardHeader>
-        <CardTitle className="text-lg font-medium">Intel Search</CardTitle>
+    <Card className="w-[300px] transition-all duration-300 hover:shadow-lg">
+      <CardHeader className="pb-2">
+        <CardTitle className="text-sm font-medium">Intel Search</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="flex space-x-2">
@@ -55,7 +51,7 @@ export const IntelSearch = ({ searchInput, onSearchInputChange }: IntelSearchPro
             value={searchInput}
             onChange={(e) => onSearchInputChange(e.target.value)}
             placeholder="Search for intel..."
-            className="transition-all duration-300"
+            className="h-8 text-sm"
             onKeyDown={(e) => {
               if (e.key === 'Enter') {
                 handleSearch();
@@ -63,11 +59,12 @@ export const IntelSearch = ({ searchInput, onSearchInputChange }: IntelSearchPro
             }}
           />
           <Button 
+            size="sm"
             className="transition-all duration-300"
             onClick={handleSearch}
             disabled={isLoading}
           >
-            <Send size={18} />
+            <Send size={16} />
           </Button>
         </div>
 
