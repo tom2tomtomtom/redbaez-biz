@@ -13,9 +13,16 @@ export const useAuth = () => {
   useEffect(() => {
     // Check initial session
     const checkSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      setIsAuthenticated(!!session);
-      setIsLoading(false);
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        console.log('Initial session check:', session);
+        setIsAuthenticated(!!session);
+      } catch (error) {
+        console.error('Session check error:', error);
+        setIsAuthenticated(false);
+      } finally {
+        setIsLoading(false);
+      }
     };
     
     checkSession();
@@ -28,20 +35,16 @@ export const useAuth = () => {
         if (event === 'SIGNED_IN' && session) {
           const email = session.user.email;
           if (email && !isAllowedDomain(email)) {
-            // Wait a brief moment to ensure session is established
-            setTimeout(async () => {
-              try {
-                await supabase.auth.signOut();
-                setError(`Only ${getAllowedDomainsMessage()} email addresses are allowed.`);
-                setIsAuthenticated(false);
-              } catch (signOutError) {
-                console.error('Error during sign out:', signOutError);
-              }
+            try {
+              await supabase.auth.signOut();
+              setError(`Only ${getAllowedDomainsMessage()} email addresses are allowed.`);
+              setIsAuthenticated(false);
               navigate('/login');
-            }, 100);
+            } catch (signOutError) {
+              console.error('Error during sign out:', signOutError);
+            }
             return;
           }
-          // Clear any existing errors and redirect to home
           setError('');
           setIsAuthenticated(true);
           navigate('/');
@@ -49,55 +52,33 @@ export const useAuth = () => {
         }
         
         if (event === 'SIGNED_OUT') {
+          console.log('User signed out');
           setError('');
           setIsAuthenticated(false);
           navigate('/login');
           return;
         }
 
-        // Handle email confirmation success
         if (event === 'USER_UPDATED') {
           setError('');
-          const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-          if (sessionError) {
-            setError(getErrorMessage(sessionError));
-            return;
+          try {
+            const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+            if (sessionError) throw sessionError;
+            setIsAuthenticated(!!session);
+            if (session) navigate('/');
+          } catch (error) {
+            console.error('Session update error:', error);
+            if (error instanceof Error) setError(error.message);
           }
-          if (session) {
-            setIsAuthenticated(true);
-            navigate('/');
-            return;
-          }
-        }
-
-        if (event === 'PASSWORD_RECOVERY') {
-          setError('A confirmation link has been sent to your email. This link will expire in 5 minutes. Please check your inbox.');
+          return;
         }
       }
     );
 
-    // Clean up subscription on unmount
     return () => {
       subscription.unsubscribe();
     };
   }, [navigate]);
-
-  const getErrorMessage = (error: AuthError): string => {
-    if (error.message === 'session_not_found') {
-      return '';
-    }
-    
-    switch (error.message) {
-      case 'Invalid login credentials':
-        return 'Invalid email or password. Please check your credentials and try again.';
-      case 'Email not confirmed':
-        return 'Please verify your email address before signing in.';
-      case 'User not found':
-        return 'No user found with these credentials.';
-      default:
-        return error.message;
-    }
-  };
 
   return {
     error,
