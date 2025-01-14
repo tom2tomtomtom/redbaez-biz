@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
-import { corsHeaders, generateRecommendations } from "./perplexityApi.ts";
+import { corsHeaders, generateRecommendations } from "./openAiApi.ts";
 import { MARKETING_PROMPT, PARTNERSHIPS_PROMPT, PRODUCT_DEVELOPMENT_PROMPT } from "./prompts.ts";
 
 serve(async (req) => {
@@ -13,9 +13,9 @@ serve(async (req) => {
     const { clientData, category, prompt, type } = await req.json();
     console.log('Received request:', { category, type, prompt, clientData });
     
-    const apiKey = Deno.env.get('PERPLEXITY_API_KEY');
+    const apiKey = Deno.env.get('OPENAI_API_KEY');
     if (!apiKey) {
-      throw new Error('Perplexity API key not configured in Supabase Edge Function Secrets');
+      throw new Error('OpenAI API key not configured in Supabase Edge Function Secrets');
     }
 
     let recommendations;
@@ -58,7 +58,7 @@ serve(async (req) => {
       
       IMPORTANT: Do not use any square brackets [] within the suggestion text.`;
 
-      console.log('Sending request to Perplexity API with prompt:', strategyPrompt);
+      console.log('Sending request to OpenAI API with prompt:', strategyPrompt);
 
       recommendations = await generateRecommendations(strategyPrompt, apiKey);
       console.log('Processed recommendations:', recommendations);
@@ -92,7 +92,7 @@ serve(async (req) => {
         IMPORTANT: Do not use any square brackets [] within the suggestion text.
       `;
 
-      console.log('Sending client analysis request to Perplexity API');
+      console.log('Sending client analysis request to OpenAI API');
       recommendations = await generateRecommendations(analysisPrompt, apiKey);
       console.log('Generated client recommendations:', recommendations);
     }
