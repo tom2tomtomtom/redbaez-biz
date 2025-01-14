@@ -24,6 +24,8 @@ const getCategoryColor = (category: string | undefined) => {
       return 'bg-blue-50 hover:bg-blue-100/80';
     case 'partnerships':
       return 'bg-green-50 hover:bg-green-100/80';
+    case 'business admin':
+      return 'bg-gray-50 hover:bg-gray-100/80';
     default:
       return 'bg-orange-50 hover:bg-orange-100/80';
   }
