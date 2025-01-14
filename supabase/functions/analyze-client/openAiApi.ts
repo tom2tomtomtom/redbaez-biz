@@ -13,7 +13,7 @@ export async function generateRecommendations(prompt: string, apiKey: string) {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      model: 'gpt-4o-mini',
+      model: 'gpt-4-1106-preview',
       messages: [
         {
           role: 'system',
@@ -64,7 +64,7 @@ export async function generateRecommendations(prompt: string, apiKey: string) {
       ...rec,
       suggestion: rec.suggestion.replace(/[\[\]]/g, '').trim(),
       type: rec.type.toLowerCase(),
-      priority: rec.priority.toLowerCase()
+      priority: priority.toLowerCase()
     }));
     
     console.log('Final cleaned recommendations:', cleaned);
