@@ -7,16 +7,8 @@ interface NextStepItemProps {
 }
 
 const getTypeColor = (type: string) => {
-  switch (type?.toLowerCase()) {
-    case 'product development':
-      return 'bg-blue-50 hover:bg-blue-100/80';
-    case 'marketing':
-      return 'bg-purple-50 hover:bg-purple-100/80';
-    case 'partnerships':
-      return 'bg-green-50 hover:bg-green-100/80';
-    default:
-      return 'bg-orange-50 hover:bg-orange-100/80';
-  }
+  // Always return orange colors for client tasks
+  return 'bg-[#FEC6A1]/50 hover:bg-[#FEC6A1]';
 };
 
 export const NextStepItem = ({ nextStep }: NextStepItemProps) => {
