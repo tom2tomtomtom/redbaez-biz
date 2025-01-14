@@ -97,10 +97,18 @@ export const GeneralTaskItem = ({ task, onDeleted }: GeneralTaskItemProps) => {
     }
   };
 
-  // Parse the description to extract type and priority
-  const descriptionLines = task.description?.split('\n') || [];
-  const taskType = descriptionLines.find(line => line.startsWith('Type:'))?.replace('Type:', '').trim();
-  const taskPriority = descriptionLines.find(line => line.startsWith('Priority:'))?.replace('Priority:', '').trim();
+  // Parse the title to extract client name and task description
+  const isClientTask = task.title.includes(']') && task.title.includes('[');
+  let clientName = '';
+  let taskDescription = task.title;
+
+  if (isClientTask) {
+    const matches = task.title.match(/\[(.*?)\]/g);
+    if (matches && matches.length >= 2) {
+      clientName = matches[0].replace(/[\[\]]/g, '').trim();
+      taskDescription = task.description || '';
+    }
+  }
 
   return (
     <Card 
@@ -113,15 +121,16 @@ export const GeneralTaskItem = ({ task, onDeleted }: GeneralTaskItemProps) => {
       <div className="flex flex-col space-y-3">
         <div className="flex items-start space-x-3">
           <div className="h-6 w-6 rounded-full bg-orange-500 flex items-center justify-center text-white text-xs font-bold">
-            {task.title.charAt(0).toUpperCase()}
+            {clientName ? clientName.charAt(0).toUpperCase() : task.title.charAt(0).toUpperCase()}
           </div>
-          <div className="space-y-1">
-            <span className="font-medium">{task.title}</span>
-            {(taskType || taskPriority) && (
-              <div className="text-sm text-gray-600 space-y-0.5">
-                {taskType && <p>Type: {taskType}</p>}
-                {taskPriority && <p>Priority: {taskPriority}</p>}
-              </div>
+          <div className="space-y-1 flex-1">
+            {isClientTask ? (
+              <>
+                <span className="font-bold">{clientName}</span>
+                <p className="text-sm text-gray-600">{taskDescription}</p>
+              </>
+            ) : (
+              <span className="font-medium">{taskDescription}</span>
             )}
           </div>
         </div>
