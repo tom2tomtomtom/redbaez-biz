@@ -4,7 +4,7 @@ import { Marketing } from './pages/Marketing';
 import { Partnerships } from './pages/Partnerships';
 import { ProductDevelopment } from './pages/ProductDevelopment';
 import Index from './pages/Index';
-import BusinessAdmin from './pages/BusinessAdmin';
+import { BusinessAdmin } from './pages/BusinessAdmin';
 import { AiNews } from './pages/AiNews';
 import './App.css';
 

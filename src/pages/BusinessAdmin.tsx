@@ -1,6 +1,6 @@
 import { MainNav } from "@/components/ui/main-nav";
 
-const BusinessAdmin = () => {
+export const BusinessAdmin = () => {
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100/50">
       <MainNav />
@@ -15,5 +15,3 @@ const BusinessAdmin = () => {
     </div>
   );
 };
-
-export default BusinessAdmin;
