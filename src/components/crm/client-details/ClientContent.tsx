@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Contact } from './ContactInfoCard';
 import { AdditionalInfoCard } from './AdditionalInfoCard';
@@ -8,13 +8,8 @@ import { StatusTab } from './StatusTab';
 import { TaskHistory } from './TaskHistory';
 import { UpdateNextStepButton } from './components/UpdateNextStepButton';
 import { supabase } from '@/integrations/supabase/client';
-import { format } from 'date-fns';
-import { Card } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
-import { CalendarDays, Edit2, Save } from 'lucide-react';
-import { toast } from '@/components/ui/use-toast';
+import { BackgroundSection } from './sections/BackgroundSection';
+import { DueItemsSection } from './sections/DueItemsSection';
 
 interface ClientContentProps {
   client: any;
@@ -22,63 +17,7 @@ interface ClientContentProps {
   parsedAdditionalContacts: Contact[];
 }
 
-interface DueItem {
-  id: string;
-  type: 'task' | 'next-step' | 'idea';
-  dueDate: string;
-  title?: string;
-  notes?: string;
-  description?: string;
-  urgent?: boolean;
-}
-
-const formatText = (text: string) => {
-  if (!text) return '';
-  
-  // Split by double newlines for paragraphs
-  const paragraphs = text.split(/\n\n+/);
-  
-  // For each paragraph, split by single newlines and join with line breaks
-  return paragraphs
-    .map(para => 
-      para
-        .split(/\n/)
-        .map(line => line.trim())
-        .filter(line => line.length > 0)
-        .join('\n')
-    )
-    .filter(para => para.length > 0)
-    .join('\n\n');
-};
-
 export const ClientContent = ({ client, isEditing, parsedAdditionalContacts }: ClientContentProps) => {
-  const [isEditingBackground, setIsEditingBackground] = useState(false);
-  const [editedBackground, setEditedBackground] = useState(client.background || '');
-  
-  const handleSaveBackground = async () => {
-    try {
-      const { error } = await supabase
-        .from('clients')
-        .update({ background: editedBackground })
-        .eq('id', client.id);
-
-      if (error) throw error;
-
-      toast({
-        title: "Success",
-        description: "Background updated successfully",
-      });
-      setIsEditingBackground(false);
-    } catch (error) {
-      console.error('Error updating background:', error);
-      toast({
-        title: "Error",
-        description: "Failed to update background",
-        variant: "destructive",
-      });
-    }
-  };
-
   // Fetch all related tasks and next steps
   const { data: allItems, isLoading } = useQuery({
     queryKey: ['client-items', client.id],
@@ -115,65 +54,27 @@ export const ClientContent = ({ client, isEditing, parsedAdditionalContacts }: C
     }
   });
 
-  const renderDueItems = () => {
-    if (isLoading) return <div>Loading items...</div>;
-    if (!allItems) return null;
-
-    const allDueItems: DueItem[] = [
-      ...allItems.tasks.map(task => ({
-        ...task,
-        type: 'task' as const,
-        dueDate: task.next_due_date,
-        title: task.title,
-        description: task.description
-      })),
-      ...allItems.nextSteps.map(step => ({
-        ...step,
-        type: 'next-step' as const,
-        dueDate: step.due_date,
-        notes: step.notes
-      })),
-      ...allItems.ideas.map(idea => ({
-        ...idea,
-        type: 'idea' as const,
-        dueDate: idea.due_date,
-        description: idea.description
-      }))
-    ].sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime());
-
-    return (
-      <div className="space-y-4">
-        {allDueItems.map((item) => (
-          <Card key={`${item.type}-${item.id}`} className="p-4">
-            <div className="flex items-start justify-between">
-              <div className="space-y-1">
-                <div className="flex items-center gap-2">
-                  <Badge variant={item.urgent ? "destructive" : "secondary"}>
-                    {item.type === 'task' ? 'Task' : item.type === 'next-step' ? 'Next Step' : 'Strategic Idea'}
-                  </Badge>
-                  {item.urgent && (
-                    <Badge variant="destructive">Urgent</Badge>
-                  )}
-                </div>
-                <h4 className="font-medium">
-                  {item.type === 'task' ? item.title : 
-                   item.type === 'next-step' ? item.notes :
-                   item.description}
-                </h4>
-                {item.description && item.type === 'task' && (
-                  <p className="text-sm text-gray-500">{item.description}</p>
-                )}
-              </div>
-              <div className="flex items-center text-sm text-gray-500">
-                <CalendarDays className="h-4 w-4 mr-1" />
-                {format(new Date(item.dueDate), 'MMM d, yyyy')}
-              </div>
-            </div>
-          </Card>
-        ))}
-      </div>
-    );
-  };
+  const dueItems = allItems ? [
+    ...allItems.tasks.map(task => ({
+      ...task,
+      type: 'task' as const,
+      dueDate: task.next_due_date,
+      title: task.title,
+      description: task.description
+    })),
+    ...allItems.nextSteps.map(step => ({
+      ...step,
+      type: 'next-step' as const,
+      dueDate: step.due_date,
+      notes: step.notes
+    })),
+    ...allItems.ideas.map(idea => ({
+      ...idea,
+      type: 'idea' as const,
+      dueDate: idea.due_date,
+      description: idea.description
+    }))
+  ].sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime()) : [];
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
@@ -184,43 +85,10 @@ export const ClientContent = ({ client, isEditing, parsedAdditionalContacts }: C
         )}
       </div>
 
-      <div className="bg-white rounded-lg shadow-sm p-6">
-        <div className="flex justify-between items-center mb-4">
-          <h3 className="text-lg font-semibold">Background</h3>
-          {!isEditingBackground ? (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setIsEditingBackground(true)}
-            >
-              <Edit2 className="h-4 w-4 mr-2" />
-              Edit
-            </Button>
-          ) : (
-            <Button
-              variant="default"
-              size="sm"
-              onClick={handleSaveBackground}
-            >
-              <Save className="h-4 w-4 mr-2" />
-              Save
-            </Button>
-          )}
-        </div>
-        
-        {isEditingBackground ? (
-          <Textarea
-            value={editedBackground}
-            onChange={(e) => setEditedBackground(e.target.value)}
-            className="min-h-[150px] mb-4"
-            placeholder="Enter client background information..."
-          />
-        ) : (
-          <div className="text-gray-700 whitespace-pre-line">
-            {formatText(client.background || 'No background information available.')}
-          </div>
-        )}
-      </div>
+      <BackgroundSection 
+        clientId={client.id}
+        background={client.background}
+      />
 
       <div className="bg-white rounded-lg shadow-sm p-6">
         <div className="flex justify-between items-center mb-4">
@@ -231,7 +99,7 @@ export const ClientContent = ({ client, isEditing, parsedAdditionalContacts }: C
         {/* Due Items Section */}
         <div className="mb-6">
           <h4 className="text-md font-medium mb-4">Due Items</h4>
-          {renderDueItems()}
+          <DueItemsSection items={dueItems} isLoading={isLoading} />
         </div>
 
         <TaskHistory clientId={client.id} />
@@ -251,7 +119,6 @@ export const ClientContent = ({ client, isEditing, parsedAdditionalContacts }: C
         clientId={client.id}
       />
 
-      {/* Additional Information */}
       <AdditionalInfoCard
         industry={client.industry}
         website={client.website}
