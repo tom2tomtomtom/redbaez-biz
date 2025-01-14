@@ -595,6 +595,7 @@ export type Database = {
       recommendations: {
         Row: {
           action_url: string | null
+          category: string
           client_id: number | null
           created_at: string | null
           description: string | null
@@ -606,6 +607,7 @@ export type Database = {
         }
         Insert: {
           action_url?: string | null
+          category: string
           client_id?: number | null
           created_at?: string | null
           description?: string | null
@@ -617,6 +619,7 @@ export type Database = {
         }
         Update: {
           action_url?: string | null
+          category?: string
           client_id?: number | null
           created_at?: string | null
           description?: string | null

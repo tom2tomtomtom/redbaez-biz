@@ -8,6 +8,7 @@ interface ClientAnalysisData {
     type: string;
     priority: string;
     suggestion: string;
+    category: string;
   }>;
 }
 
@@ -59,7 +60,8 @@ const insertNewRecommendations = async (clientId: number, recommendations: any[]
       client_id: clientId,
       type: rec.type.toLowerCase(),
       priority: rec.priority.toLowerCase(),
-      suggestion: rec.suggestion
+      suggestion: rec.suggestion,
+      category: rec.category || 'general' // Add default category
     })));
     
   if (error) {
@@ -90,10 +92,7 @@ export const useRecommendations = (clientId: number) => {
         // Only store if it's the first (latest) occurrence of this type
         if (!latestRecommendations.has(rec.type)) {
           latestRecommendations.set(rec.type, rec);
-        }
-      });
-
-      // Convert map values back to array
+        } map values back to array
       return Array.from(latestRecommendations.values());
     }
   });
