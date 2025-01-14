@@ -1,177 +1,77 @@
+import React from 'react';
+import { ClientRow } from '@/integrations/supabase/types/client-types';
 import { Contact } from './ContactInfoCard';
-import { KeyMetricsCard } from './KeyMetricsCard';
 import { ContactInfoCard } from './ContactInfoCard';
 import { AdditionalInfoCard } from './AdditionalInfoCard';
-import { NextStepsHistory } from './NextStepsHistory';
-import { UrgentFlagToggle } from './components/UrgentFlagToggle';
-import { useRevenueCalculations } from './hooks/useRevenueCalculations';
-import { StrategicRecommendations } from './StrategicRecommendations';
+import { KeyMetricsCard } from './KeyMetricsCard';
 import { StatusTab } from './StatusTab';
-import { UpdateNextStepButton } from './components/UpdateNextStepButton';
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { StrategicRecommendations } from './StrategicRecommendations';
+import { NextStepsHistory } from './NextStepsHistory';
 
 interface ClientContentProps {
-  client: any;
+  client: ClientRow;
   isEditing: boolean;
   parsedAdditionalContacts: Contact[];
 }
 
-export const ClientContent = ({
+export const ClientContent: React.FC<ClientContentProps> = ({
   client,
   isEditing,
   parsedAdditionalContacts,
-}: ClientContentProps) => {
-  const { revenueData, totalActualRevenue } = useRevenueCalculations(client);
-
-  // Fetch both client next steps and general tasks
-  const { data: activeNextSteps } = useQuery({
-    queryKey: ['client-next-steps', client.id],
-    queryFn: async () => {
-      const [nextStepsResult, tasksResult] = await Promise.all([
-        supabase
-          .from('client_next_steps')
-          .select('*')
-          .eq('client_id', client.id)
-          .is('completed_at', null)
-          .order('due_date', { ascending: true }),
-        supabase
-          .from('general_tasks')
-          .select('*')
-          .eq('client_id', client.id)
-          .eq('status', 'incomplete')
-          .order('next_due_date', { ascending: true })
-      ]);
-
-      if (nextStepsResult.error) throw nextStepsResult.error;
-      if (tasksResult.error) throw tasksResult.error;
-
-      // Combine and sort both types of items
-      const combinedItems = [
-        ...(nextStepsResult.data || []).map(step => ({
-          ...step,
-          type: 'next_step',
-          dueDate: step.due_date,
-          description: step.notes
-        })),
-        ...(tasksResult.data || []).map(task => ({
-          ...task,
-          type: 'task',
-          dueDate: task.next_due_date,
-          description: task.description || task.title
-        }))
-      ].sort((a, b) => {
-        if (!a.dueDate) return 1;
-        if (!b.dueDate) return -1;
-        return new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
-      });
-
-      return combinedItems;
-    },
-  });
+}) => {
+  const revenueData = Array.from({ length: 12 }, (_, i) => {
+    const date = new Date();
+    date.setMonth(date.getMonth() - i);
+    const month = date.toLocaleString('default', { month: 'short' });
+    const actualKey = `actual_${month.toLowerCase()}` as keyof typeof client;
+    const forecastKey = `forecast_${month.toLowerCase()}` as keyof typeof client;
+    
+    return {
+      month,
+      actual: Number(client[actualKey] || 0),
+      forecast: Number(client[forecastKey] || 0),
+    };
+  }).reverse();
 
   return (
-    <div className="space-y-6 max-w-5xl mx-auto">
-      {/* Status Section */}
-      <div className="bg-white rounded-lg shadow-sm p-6 text-left">
-        <StatusTab 
-          clientId={client.id}
-          currentStatus={client.status}
-        />
+    <div className="space-y-6">
+      <div className="flex flex-col space-y-2">
+        <h1 className="text-2xl font-bold tracking-tight">{client.name}</h1>
+        <p className="text-muted-foreground">{client.background}</p>
       </div>
 
-      {/* Next Steps Section */}
-      <div className="bg-white rounded-lg shadow-sm p-6 text-left">
-        <div className="space-y-4">
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="text-lg font-semibold">Current Next Steps</h3>
-          </div>
-
-          <div className="space-y-4 mb-6">
-            {activeNextSteps && activeNextSteps.length > 0 ? (
-              activeNextSteps.map((item) => (
-                <div 
-                  key={`${item.type}-${item.id}`} 
-                  className="bg-gray-50 p-4 rounded-lg border-l-4 border-l-blue-500"
-                >
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <p className="text-gray-700">{item.description}</p>
-                      {item.dueDate && (
-                        <p className="text-sm text-gray-500 mt-2 flex items-center gap-2">
-                          Due: {new Date(item.dueDate).toLocaleDateString()}
-                        </p>
-                      )}
-                    </div>
-                    <span className="text-xs px-2 py-1 rounded bg-gray-200 text-gray-700">
-                      {item.type === 'next_step' ? 'Next Step' : 'Task'}
-                    </span>
-                  </div>
-                </div>
-              ))
-            ) : (
-              <p className="text-gray-500">No active next steps or tasks</p>
-            )}
-          </div>
-
-          <div className="flex justify-start">
-            <UpdateNextStepButton 
-              clientId={client.id}
-              currentNotes=""
-              currentDueDate=""
-            />
-          </div>
-          
-          <div className="text-left">
-            <h3 className="text-lg font-semibold mb-4">Next Steps History</h3>
-            <NextStepsHistory clientId={client.id} />
-          </div>
-        </div>
-      </div>
-
-      {/* Revenue Section */}
-      <div className="bg-white rounded-lg shadow-sm p-6 text-left">
-        <KeyMetricsCard 
-          annualRevenue={client.annual_revenue}
-          likelihood={client.likelihood}
-          revenueData={revenueData}
-          annualRevenueSignedOff={totalActualRevenue}
-          annualRevenueForecast={client.annual_revenue_forecast}
-          clientId={client.id}
-        />
-      </div>
-
-      {/* Strategic Recommendations Section */}
-      <div className="bg-white rounded-lg shadow-sm text-left">
-        <StrategicRecommendations 
-          clientId={client.id} 
-          clientName={client.name}
-        />
-      </div>
-
-      {/* Client Info Section */}
-      <div className="grid grid-cols-1 gap-6">
-        <ContactInfoCard 
+      <div className="grid gap-6 md:grid-cols-2">
+        <ContactInfoCard
           contactName={client.contact_name}
-          companySize={client.company_size}
           contactEmail={client.contact_email}
           contactPhone={client.contact_phone}
           additionalContacts={parsedAdditionalContacts}
-          clientId={client.id}
         />
-        <AdditionalInfoCard 
+        <AdditionalInfoCard
           industry={client.industry}
+          companySize={client.company_size}
           website={client.website}
-          notes={client.notes}
-          background={client.background}
-          clientId={client.id}
+          type={client.type}
         />
       </div>
 
-      {/* Urgent Flag Toggle */}
-      <div className="flex items-center justify-start gap-4 p-4 bg-white rounded-lg shadow-sm">
-        <UrgentFlagToggle clientId={client.id} isUrgent={client.urgent || false} />
-      </div>
+      <KeyMetricsCard
+        annualRevenue={client.annual_revenue}
+        likelihood={client.likelihood}
+        revenueData={revenueData}
+        annualRevenueSignedOff={client.annual_revenue_signed_off || 0}
+        annualRevenueForecast={client.annual_revenue_forecast || 0}
+        clientId={client.id}
+      />
+
+      <StatusTab client={client} />
+      
+      <StrategicRecommendations 
+        clientId={client.id}
+        clientName={client.name}
+      />
+
+      <NextStepsHistory clientId={client.id} />
     </div>
   );
 };
