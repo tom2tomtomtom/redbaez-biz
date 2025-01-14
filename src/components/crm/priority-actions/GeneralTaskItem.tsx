@@ -15,8 +15,9 @@ interface GeneralTaskItemProps {
 }
 
 const getCategoryColor = (category: string | undefined, isClientTask: boolean) => {
-  // If it's a client task or a strategic idea connected to a client, always return orange colors
-  if (isClientTask) {
+  // If it's a client task, a strategic idea connected to a client, or a next step for a client
+  // always return orange colors
+  if (isClientTask || task?.client_id) {
     return 'bg-[#FEC6A1]/50 hover:bg-[#FEC6A1]';
   }
   
@@ -120,7 +121,7 @@ export const GeneralTaskItem = ({ task, onDeleted }: GeneralTaskItemProps) => {
     <Card 
       className={cn(
         "p-4 transition-all duration-300",
-        getCategoryColor(task.category, isClientTask),
+        getCategoryColor(task.category, isClientTask || !!task.client_id),
         task.urgent && "bg-red-50/50"
       )}
     >
