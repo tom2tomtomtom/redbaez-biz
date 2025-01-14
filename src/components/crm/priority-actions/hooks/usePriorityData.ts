@@ -22,7 +22,9 @@ const fetchGeneralTasks = async () => {
     .order('next_due_date', { ascending: true });
     
   if (error) throw error;
-  return data;
+  
+  // Additional filter to ensure we only get tasks with due dates
+  return data.filter(task => task.next_due_date !== null);
 };
 
 const fetchNextSteps = async () => {
