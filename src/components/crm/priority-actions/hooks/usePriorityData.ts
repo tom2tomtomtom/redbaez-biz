@@ -18,6 +18,7 @@ const fetchGeneralTasks = async () => {
     .from('general_tasks')
     .select('*')
     .neq('status', 'completed')
+    .not('next_due_date', 'is', null)  // Only fetch tasks with a due date
     .order('next_due_date', { ascending: true });
     
   if (error) throw error;
