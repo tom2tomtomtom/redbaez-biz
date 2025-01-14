@@ -27,42 +27,45 @@ const Index = () => {
   });
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100/50">
+    <div className="min-h-screen bg-background">
       <MainNav />
-      <div className="container mx-auto px-4 py-4 md:py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          {/* Left column - Priority Actions */}
-          <div className="lg:col-span-4 space-y-6">
-            <div className="flex flex-col space-y-4">
-              <DashboardHeader 
-                showClientList={showClientList}
-                onToggleClientList={() => setShowClientList(!showClientList)}
-                onNewTaskClick={() => setIsNewTaskOpen(true)}
-              />
+      <main className="container mx-auto p-4 space-y-6">
+        <DashboardHeader 
+          showClientList={showClientList}
+          onToggleClientList={() => setShowClientList(!showClientList)}
+          onNewTaskClick={() => setIsNewTaskOpen(true)}
+        />
 
-              {!showClientList && (
-                <SearchSection 
-                  searchInput={searchInput}
-                  onSearchInputChange={setSearchInput}
-                />
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Left Column - Priority Actions */}
+          <div className="lg:col-span-1 space-y-4">
+            <div className="rounded-lg bg-card p-4 shadow-sm">
+              <h2 className="text-lg font-semibold mb-4">Priority Actions</h2>
+              <div className="h-[calc(100vh-300px)] overflow-y-auto">
+                <PriorityActions hideAddButton />
+              </div>
+            </div>
+          </div>
+
+          {/* Center and Right Columns */}
+          <div className="lg:col-span-2 space-y-4">
+            {!showClientList && (
+              <SearchSection 
+                searchInput={searchInput}
+                onSearchInputChange={setSearchInput}
+              />
+            )}
+            
+            <div className="rounded-lg bg-card p-4 shadow-sm">
+              {showClientList ? (
+                <ClientListSection clients={clients} isLoading={isLoading} />
+              ) : (
+                <RevenueSummary />
               )}
             </div>
-
-            <div className="h-[calc(100vh-300px)] overflow-y-auto rounded-lg">
-              <PriorityActions hideAddButton />
-            </div>
-          </div>
-
-          {/* Right column - Main Content */}
-          <div className="lg:col-span-8 space-y-6">
-            {showClientList ? (
-              <ClientListSection clients={clients} isLoading={isLoading} />
-            ) : (
-              <RevenueSummary />
-            )}
           </div>
         </div>
-      </div>
+      </main>
 
       <TaskDialog 
         isOpen={isNewTaskOpen}
