@@ -39,8 +39,8 @@ export const GeneralTaskItem = ({ task, isClientTask = false }: { task: GeneralT
   const colorClasses = getCategoryColor(task, isClientTask);
   
   // Format the title and description for display
-  const displayTitle = task.title;
-  const displayDescription = task.description || 'No description provided';
+  const displayTitle = task.title.replace(/[\[\]]/g, '').trim();
+  const displayDescription = task.description?.replace(/[\[\]]/g, '').trim() || 'No description provided';
 
   return (
     <div className={cn(

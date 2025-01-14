@@ -48,7 +48,6 @@ export const RecommendationAlert = ({
 
       if (recommendationError) throw recommendationError;
 
-      // Create a task with proper formatting - remove any square brackets from the title
       const taskTitle = `Strategic Recommendation for ${clientName}`;
       const taskDescription = `${suggestion}\n\nType: ${type}\nPriority: ${priority}`;
 
