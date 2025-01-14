@@ -13,15 +13,16 @@ interface TaskFormProps {
   task?: Tables<'general_tasks'> | null;
   onSaved: () => void;
   onCancel: () => void;
+  defaultCategory?: string;
 }
 
 const CATEGORIES = ['Marketing', 'Product Development', 'Partnerships', 'Business Admin'] as const;
 
-export const TaskForm = ({ task, onSaved, onCancel }: TaskFormProps) => {
+export const TaskForm = ({ task, onSaved, onCancel, defaultCategory }: TaskFormProps) => {
   const { toast } = useToast();
   const [title, setTitle] = useState(task?.title || '');
   const [description, setDescription] = useState(task?.description || '');
-  const [category, setCategory] = useState(task?.category || CATEGORIES[0]);
+  const [category, setCategory] = useState(task?.category || defaultCategory || CATEGORIES[0]);
   const [dueDate, setDueDate] = useState(task?.next_due_date ? new Date(task.next_due_date).toISOString().split('T')[0] : '');
   const [urgent, setUrgent] = useState(task?.urgent || false);
   const [isSubmitting, setIsSubmitting] = useState(false);

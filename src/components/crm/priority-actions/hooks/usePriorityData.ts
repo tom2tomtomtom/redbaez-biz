@@ -13,14 +13,19 @@ export type PriorityItem = {
   data: Tables<'client_next_steps'> & { client_name?: string };
 };
 
-const fetchGeneralTasks = async () => {
-  const { data, error } = await supabase
+const fetchGeneralTasks = async (category?: string) => {
+  let query = supabase
     .from('general_tasks')
     .select('*')
     .neq('status', 'completed')
-    .not('next_due_date', 'is', null)  // Only fetch tasks with a due date
+    .not('next_due_date', 'is', null)
     .order('next_due_date', { ascending: true });
+
+  if (category) {
+    query = query.eq('category', category);
+  }
     
+  const { data, error } = await query;
   if (error) throw error;
   return data;
 };
@@ -59,19 +64,20 @@ const sortByUrgencyAndDate = (a: PriorityItem, b: PriorityItem) => {
   return new Date(aDate).getTime() - new Date(bDate).getTime();
 };
 
-export const usePriorityData = () => {
+export const usePriorityData = (category?: string) => {
   const tasksQuery = useQuery({
-    queryKey: ['generalTasks'],
-    queryFn: fetchGeneralTasks,
+    queryKey: ['generalTasks', category],
+    queryFn: () => fetchGeneralTasks(category),
   });
 
   const nextStepsQuery = useQuery({
     queryKey: ['priorityNextSteps'],
     queryFn: fetchNextSteps,
+    enabled: !category, // Only fetch next steps if no category filter
   });
 
-  const isLoading = tasksQuery.isLoading || nextStepsQuery.isLoading;
-  const error = tasksQuery.error || nextStepsQuery.error;
+  const isLoading = tasksQuery.isLoading || (!category && nextStepsQuery.isLoading);
+  const error = tasksQuery.error || (!category && nextStepsQuery.error);
 
   const allItems: PriorityItem[] = [
     ...(tasksQuery.data?.map(task => ({
@@ -79,11 +85,11 @@ export const usePriorityData = () => {
       date: task.next_due_date,
       data: task
     })) || []),
-    ...(nextStepsQuery.data?.map(step => ({
+    ...(!category ? (nextStepsQuery.data?.map(step => ({
       type: 'next_step' as const,
       date: step.due_date,
       data: step
-    })) || [])
+    })) || []) : [])
   ].sort(sortByUrgencyAndDate);
 
   return {

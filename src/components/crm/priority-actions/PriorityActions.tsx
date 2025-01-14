@@ -11,13 +11,19 @@ import { usePriorityData } from './hooks/usePriorityData';
 
 interface PriorityActionsProps {
   hideAddButton?: boolean;
+  category?: string;
+  onTaskClick?: (task: Tables<'general_tasks'>) => void;
 }
 
-export const PriorityActions = ({ hideAddButton = false }: PriorityActionsProps) => {
+export const PriorityActions = ({ 
+  hideAddButton = false, 
+  category,
+  onTaskClick 
+}: PriorityActionsProps) => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Tables<'general_tasks'> | null>(null);
   const queryClient = useQueryClient();
-  const { allItems, isLoading, error } = usePriorityData();
+  const { allItems, isLoading, error } = usePriorityData(category);
 
   const handleTaskSaved = () => {
     queryClient.invalidateQueries({ queryKey: ['generalTasks'] });
@@ -26,8 +32,12 @@ export const PriorityActions = ({ hideAddButton = false }: PriorityActionsProps)
   };
 
   const handleTaskClick = (task: Tables<'general_tasks'>) => {
-    setEditingTask(task);
-    setIsDialogOpen(true);
+    if (onTaskClick) {
+      onTaskClick(task);
+    } else {
+      setEditingTask(task);
+      setIsDialogOpen(true);
+    }
   };
 
   if (isLoading) {
@@ -52,7 +62,12 @@ export const PriorityActions = ({ hideAddButton = false }: PriorityActionsProps)
   return (
     <Card className="transition-all duration-300 hover:shadow-lg">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-        <CardTitle>Priority Actions for {new Date().toLocaleString('default', { month: 'long' })}</CardTitle>
+        <CardTitle>
+          {category 
+            ? `${category} Tasks` 
+            : `Priority Actions for ${new Date().toLocaleString('default', { month: 'long' })}`
+          }
+        </CardTitle>
         {!hideAddButton && (
           <Button onClick={() => {
             setEditingTask(null);
@@ -77,6 +92,7 @@ export const PriorityActions = ({ hideAddButton = false }: PriorityActionsProps)
         onOpenChange={setIsDialogOpen}
         task={editingTask}
         onSaved={handleTaskSaved}
+        defaultCategory={category}
       />
     </Card>
   );
