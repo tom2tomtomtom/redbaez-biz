@@ -4,7 +4,7 @@ const corsHeaders = {
 };
 
 export async function generateRecommendations(prompt: string, apiKey: string) {
-  console.log('Generating recommendations with prompt:', prompt);
+  console.log('Starting recommendation generation with prompt:', prompt);
   
   const response = await fetch('https://api.perplexity.ai/chat/completions', {
     method: 'POST',
@@ -46,16 +46,18 @@ export async function generateRecommendations(prompt: string, apiKey: string) {
     const content = aiResponse.choices[0].message.content;
     console.log('Raw content from AI:', content);
     
+    // Remove any markdown code block syntax
     const cleanedContent = content.replace(/```json\n?|\n?```/g, '').trim();
     console.log('Cleaned content:', cleanedContent);
     
+    // Parse the JSON
     const parsed = JSON.parse(cleanedContent);
     console.log('Parsed JSON:', parsed);
     
     // Clean any remaining square brackets from suggestions
     const cleaned = parsed.map((rec: any) => ({
       ...rec,
-      suggestion: rec.suggestion.replace(/[\[\]]/g, '')
+      suggestion: rec.suggestion.replace(/[\[\]]/g, '').trim()
     }));
     
     console.log('Final cleaned recommendations:', cleaned);

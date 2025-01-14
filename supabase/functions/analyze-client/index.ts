@@ -10,6 +10,7 @@ serve(async (req) => {
 
   try {
     const { category, prompt, type } = await req.json();
+    console.log('Received request:', { category, type, prompt });
     
     const apiKey = Deno.env.get('PERPLEXITY_API_KEY');
     if (!apiKey) {
@@ -37,6 +38,7 @@ serve(async (req) => {
         4. Suggest a unique angle or insight that would make the content stand out
         
         Each recommendation should be immediately actionable and directly connected to current events/developments.
+        IMPORTANT: Do not use any square brackets [] in your suggestions.
       ` : `Create 3 strategic ${category} recommendations for RedBaez`;
 
       const strategyPrompt = `${userPromptAnalysis}
@@ -44,17 +46,20 @@ serve(async (req) => {
       Company Context:
       ${contextPrompt}
       
-      Return ONLY a JSON array in this exact format, with no additional text:
+      Return ONLY a JSON array in this exact format, with no additional text or markdown:
       [
         {
           "type": "revenue" | "engagement" | "risk" | "opportunity",
           "suggestion": "specific actionable step that references current events and specific details"
         }
-      ]`;
+      ]
+      
+      IMPORTANT: Do not use any square brackets [] within the suggestion text.`;
 
       console.log('Sending request to Perplexity API with prompt:', strategyPrompt);
 
       const recommendations = await generateRecommendations(strategyPrompt, apiKey);
+      console.log('Processed recommendations:', recommendations);
 
       return new Response(
         JSON.stringify({ recommendations }),
