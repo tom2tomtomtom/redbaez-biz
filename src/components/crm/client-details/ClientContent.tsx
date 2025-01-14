@@ -40,8 +40,11 @@ export const ClientContent: React.FC<ClientContentProps> = ({
     <div className="space-y-6 p-8 text-left">
       {/* Background Section */}
       <Card className="p-6">
-        <h2 className="text-xl font-semibold mb-4">Background</h2>
-        <p className="text-muted-foreground">{client.background || 'No background information available.'}</p>
+        <h2 className="text-2xl font-bold mb-4">{client.name}</h2>
+        <div className="space-y-4">
+          <h3 className="text-xl font-semibold">Background</h3>
+          <p className="text-muted-foreground">{client.background || 'No background information available.'}</p>
+        </div>
       </Card>
 
       {/* Tasks and Status Section */}
