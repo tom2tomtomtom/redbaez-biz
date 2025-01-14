@@ -7,10 +7,9 @@ interface TaskDialogProps {
   onOpenChange: (open: boolean) => void;
   task: Tables<'general_tasks'> | null;
   onSaved: () => void;
-  defaultCategory?: string;
 }
 
-export const TaskDialog = ({ isOpen, onOpenChange, task, onSaved, defaultCategory }: TaskDialogProps) => {
+export const TaskDialog = ({ isOpen, onOpenChange, task, onSaved }: TaskDialogProps) => {
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent>
@@ -20,8 +19,7 @@ export const TaskDialog = ({ isOpen, onOpenChange, task, onSaved, defaultCategor
         <TaskForm 
           task={task} 
           onSaved={onSaved} 
-          onCancel={() => onOpenChange(false)}
-          defaultCategory={defaultCategory}
+          onCancel={() => onOpenChange(false)} 
         />
       </DialogContent>
     </Dialog>
