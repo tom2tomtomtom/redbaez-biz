@@ -12,15 +12,31 @@ interface PriorityItemsListProps {
 
 export const PriorityItemsList = ({ items, onTaskClick }: PriorityItemsListProps) => {
   const [itemToComplete, setItemToComplete] = useState<PriorityItem | null>(null);
+  const [localItems, setLocalItems] = useState<PriorityItem[]>(items);
   const { handleCompletedChange, handleUrgentChange, handleDelete } = useItemStatusChange();
 
-  const activeItems = items.filter(item => 
+  // Update localItems when items prop changes
+  if (JSON.stringify(localItems) !== JSON.stringify(items)) {
+    setLocalItems(items);
+  }
+
+  const activeItems = localItems.filter(item => 
     (item.type === 'task' && 
      item.data.status !== 'completed' && 
      item.data.next_due_date !== null) ||
     (item.type === 'next_step' && 
      !item.data.completed_at)
   );
+
+  const handleItemDelete = async (item: PriorityItem) => {
+    const success = await handleDelete(item);
+    if (success) {
+      // Remove the item from local state immediately
+      setLocalItems(prevItems => prevItems.filter(i => 
+        !(i.type === item.type && i.data.id === item.data.id)
+      ));
+    }
+  };
 
   if (activeItems.length === 0) {
     return (
@@ -47,7 +63,7 @@ export const PriorityItemsList = ({ items, onTaskClick }: PriorityItemsListProps
             onTaskClick={onTaskClick}
             onComplete={() => setItemToComplete(item)}
             onUrgentChange={(checked) => handleUrgentChange(item, checked)}
-            onDelete={() => handleDelete(item)}
+            onDelete={() => handleItemDelete(item)}
           />
         ))}
       </div>
