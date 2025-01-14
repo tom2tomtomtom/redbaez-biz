@@ -13,7 +13,7 @@ export const useClientFormSubmit = ({ clientId, onSuccess }: UseClientFormSubmit
     createNextStep,
     invalidateQueries,
     navigate
-  } = useClientMutation(clientId);
+  } = useClientMutation(clientId ? parseInt(clientId) : undefined);
 
   const handleSubmit = async (formData: ClientFormData) => {
     console.log('Submitting form data:', formData);
