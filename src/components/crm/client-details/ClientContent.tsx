@@ -15,6 +15,14 @@ interface ClientContentProps {
 export const ClientContent = ({ client, isEditing, parsedAdditionalContacts }: ClientContentProps) => {
   return (
     <div className="max-w-4xl mx-auto space-y-6">
+      {/* Client Name Section */}
+      <div className="bg-white rounded-lg shadow-sm p-6">
+        <h2 className="text-2xl font-bold text-gray-900">{client.name}</h2>
+        {client.type && (
+          <p className="text-gray-500 mt-1">{client.type}</p>
+        )}
+      </div>
+
       {/* Client Background Section */}
       {client.background && (
         <div className="bg-white rounded-lg shadow-sm p-6">
