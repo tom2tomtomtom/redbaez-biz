@@ -44,13 +44,22 @@ export async function generateRecommendations(prompt: string, apiKey: string) {
 
   try {
     const content = aiResponse.choices[0].message.content;
-    const parsed = JSON.parse(content.replace(/```json\n?|\n?```/g, '').trim());
+    console.log('Raw content from AI:', content);
+    
+    const cleanedContent = content.replace(/```json\n?|\n?```/g, '').trim();
+    console.log('Cleaned content:', cleanedContent);
+    
+    const parsed = JSON.parse(cleanedContent);
+    console.log('Parsed JSON:', parsed);
     
     // Clean any remaining square brackets from suggestions
-    return parsed.map((rec: any) => ({
+    const cleaned = parsed.map((rec: any) => ({
       ...rec,
       suggestion: rec.suggestion.replace(/[\[\]]/g, '')
     }));
+    
+    console.log('Final cleaned recommendations:', cleaned);
+    return cleaned;
   } catch (error) {
     console.error('Error parsing AI response:', error);
     throw new Error(`Failed to parse AI recommendations: ${error.message}`);
