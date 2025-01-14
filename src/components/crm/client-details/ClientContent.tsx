@@ -1,4 +1,5 @@
 import React from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { Contact } from './ContactInfoCard';
 import { AdditionalInfoCard } from './AdditionalInfoCard';
 import { KeyMetricsCard } from './KeyMetricsCard';
@@ -6,6 +7,11 @@ import { ContactInfoCard } from './ContactInfoCard';
 import { StatusTab } from './StatusTab';
 import { TaskHistory } from './TaskHistory';
 import { UpdateNextStepButton } from './components/UpdateNextStepButton';
+import { supabase } from '@/integrations/supabase/client';
+import { format } from 'date-fns';
+import { Card } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { CalendarDays } from 'lucide-react';
 
 interface ClientContentProps {
   client: any;
@@ -14,6 +20,98 @@ interface ClientContentProps {
 }
 
 export const ClientContent = ({ client, isEditing, parsedAdditionalContacts }: ClientContentProps) => {
+  // Fetch all related tasks and next steps
+  const { data: allItems, isLoading } = useQuery({
+    queryKey: ['client-items', client.id],
+    queryFn: async () => {
+      const [tasksResponse, nextStepsResponse, ideasResponse] = await Promise.all([
+        supabase
+          .from('general_tasks')
+          .select('*')
+          .eq('client_id', client.id)
+          .is('status', null)
+          .not('next_due_date', 'is', null)
+          .order('next_due_date', { ascending: true }),
+        supabase
+          .from('client_next_steps')
+          .select('*')
+          .eq('client_id', client.id)
+          .is('completed_at', null)
+          .not('due_date', 'is', null)
+          .order('due_date', { ascending: true }),
+        supabase
+          .from('recommendations')
+          .select('*')
+          .eq('client_id', client.id)
+          .eq('status', 'pending')
+          .not('due_date', 'is', null)
+          .order('due_date', { ascending: true })
+      ]);
+
+      return {
+        tasks: tasksResponse.data || [],
+        nextSteps: nextStepsResponse.data || [],
+        ideas: ideasResponse.data || []
+      };
+    }
+  });
+
+  const renderDueItems = () => {
+    if (isLoading) return <div>Loading items...</div>;
+    if (!allItems) return null;
+
+    const allDueItems = [
+      ...allItems.tasks.map(task => ({
+        ...task,
+        type: 'task',
+        dueDate: task.next_due_date
+      })),
+      ...allItems.nextSteps.map(step => ({
+        ...step,
+        type: 'next-step',
+        dueDate: step.due_date
+      })),
+      ...allItems.ideas.map(idea => ({
+        ...idea,
+        type: 'idea',
+        dueDate: idea.due_date
+      }))
+    ].sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime());
+
+    return (
+      <div className="space-y-4">
+        {allDueItems.map((item) => (
+          <Card key={`${item.type}-${item.id}`} className="p-4">
+            <div className="flex items-start justify-between">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <Badge variant={item.urgent ? "destructive" : "secondary"}>
+                    {item.type === 'task' ? 'Task' : item.type === 'next-step' ? 'Next Step' : 'Strategic Idea'}
+                  </Badge>
+                  {item.urgent && (
+                    <Badge variant="destructive">Urgent</Badge>
+                  )}
+                </div>
+                <h4 className="font-medium">
+                  {item.type === 'task' ? item.title : 
+                   item.type === 'next-step' ? item.notes :
+                   item.description}
+                </h4>
+                {item.description && item.type === 'task' && (
+                  <p className="text-sm text-gray-500">{item.description}</p>
+                )}
+              </div>
+              <div className="flex items-center text-sm text-gray-500">
+                <CalendarDays className="h-4 w-4 mr-1" />
+                {format(new Date(item.dueDate), 'MMM d, yyyy')}
+              </div>
+            </div>
+          </Card>
+        ))}
+      </div>
+    );
+  };
+
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       {/* Client Name Section */}
@@ -38,6 +136,13 @@ export const ClientContent = ({ client, isEditing, parsedAdditionalContacts }: C
           <h3 className="text-lg font-semibold">Next Steps</h3>
           <UpdateNextStepButton clientId={client.id} />
         </div>
+        
+        {/* Due Items Section */}
+        <div className="mb-6">
+          <h4 className="text-md font-medium mb-4">Due Items</h4>
+          {renderDueItems()}
+        </div>
+
         <TaskHistory clientId={client.id} />
       </div>
 
