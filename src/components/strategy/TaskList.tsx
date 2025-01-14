@@ -3,12 +3,10 @@ import { GeneralTaskRow } from "@/integrations/supabase/types/general-tasks.type
 import { GeneralTaskItem } from "../crm/priority-actions/GeneralTaskItem";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
-import { TaskDialog } from "../crm/priority-actions/TaskDialog";
-import { format } from "date-fns";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/use-toast";
+import { format } from "date-fns";
 
 interface TaskListProps {
   tasks: GeneralTaskRow[];
@@ -18,7 +16,6 @@ interface TaskListProps {
 }
 
 export const TaskList = ({ tasks, isLoading, onTasksUpdated, isHistory = false }: TaskListProps) => {
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [dateInputs, setDateInputs] = useState<Record<string, string>>({});
 
   const handleDateChange = async (taskId: string, date: string) => {
@@ -60,26 +57,9 @@ export const TaskList = ({ tasks, isLoading, onTasksUpdated, isHistory = false }
     return task.status !== 'completed';
   });
 
-  const sortedTasks = [...filteredTasks].sort((a, b) => {
-    if (isHistory) {
-      return new Date(b.updated_at || 0).getTime() - new Date(a.updated_at || 0).getTime();
-    }
-    
-    // Sort tasks: tasks with due dates first (sorted by date), then tasks without due dates (ideas)
-    const aDate = a.next_due_date ? new Date(a.next_due_date).getTime() : Infinity;
-    const bDate = b.next_due_date ? new Date(b.next_due_date).getTime() : Infinity;
-    
-    if (aDate === Infinity && bDate === Infinity) {
-      // If both are ideas (no due date), sort by creation date
-      return new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime();
-    }
-    
-    return aDate - bDate;
-  });
-
   // Separate tasks into ideas and active tasks
-  const ideas = sortedTasks.filter(task => !task.next_due_date);
-  const activeTasks = sortedTasks.filter(task => task.next_due_date);
+  const ideas = filteredTasks.filter(task => !task.next_due_date);
+  const activeTasks = filteredTasks.filter(task => task.next_due_date);
 
   // Function to clean up idea title/description
   const cleanIdeaText = (task: GeneralTaskRow) => {
@@ -92,15 +72,6 @@ export const TaskList = ({ tasks, isLoading, onTasksUpdated, isHistory = false }
 
   return (
     <div className="space-y-4">
-      {!isHistory && (
-        <div className="flex justify-end">
-          <Button onClick={() => setIsDialogOpen(true)}>
-            <Plus className="h-4 w-4 mr-2" />
-            Create Task
-          </Button>
-        </div>
-      )}
-      
       {isLoading ? (
         <div className="space-y-4">
           <Skeleton className="h-24 w-full" />
@@ -118,7 +89,7 @@ export const TaskList = ({ tasks, isLoading, onTasksUpdated, isHistory = false }
         <div className="space-y-8">
           {activeTasks.length > 0 && (
             <div className="space-y-4">
-              <h3 className="font-medium text-sm text-gray-500">Active Tasks</h3>
+              <h3 className="font-medium text-sm text-gray-500">Active Tasks ({activeTasks.length})</h3>
               <div className="space-y-4">
                 {activeTasks.map((task) => (
                   <div key={task.id} className="relative">
@@ -176,16 +147,6 @@ export const TaskList = ({ tasks, isLoading, onTasksUpdated, isHistory = false }
           )}
         </div>
       )}
-
-      <TaskDialog
-        isOpen={isDialogOpen}
-        onOpenChange={setIsDialogOpen}
-        task={null}
-        onSaved={() => {
-          onTasksUpdated();
-          setIsDialogOpen(false);
-        }}
-      />
     </div>
   );
 };

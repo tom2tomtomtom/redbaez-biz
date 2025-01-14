@@ -3,8 +3,6 @@ import { Card } from "@/components/ui/card";
 import { IdeaGenerator } from "./IdeaGenerator";
 import { TaskList } from "./TaskList";
 import { useGeneralTasks } from "./hooks/useGeneralTasks";
-import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
 import { TaskDialog } from "@/components/crm/priority-actions/TaskDialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
@@ -18,7 +16,7 @@ export const StrategyDashboard = ({ category }: StrategyDashboardProps) => {
   
   const { data: allTasks, isLoading } = useGeneralTasks(category, refreshTrigger);
   
-  const activeTasks = allTasks?.filter(task => task.status !== 'completed') || [];
+  const activeTasks = allTasks?.filter(task => task.status !== 'completed' && task.next_due_date) || [];
   const completedTasks = allTasks?.filter(task => task.status === 'completed') || [];
 
   const handleIdeaGenerated = () => {
@@ -30,10 +28,6 @@ export const StrategyDashboard = ({ category }: StrategyDashboardProps) => {
       <Card className="p-6">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-2xl font-semibold">Generate Ideas</h2>
-          <Button onClick={() => setIsNewTaskOpen(true)}>
-            <Plus className="mr-2 h-4 w-4" />
-            New Task
-          </Button>
         </div>
         <IdeaGenerator 
           category={category} 
@@ -50,7 +44,7 @@ export const StrategyDashboard = ({ category }: StrategyDashboardProps) => {
           </TabsList>
           <TabsContent value="active">
             <TaskList 
-              tasks={activeTasks} 
+              tasks={allTasks || []} 
               isLoading={isLoading} 
               onTasksUpdated={handleIdeaGenerated}
             />
@@ -74,6 +68,7 @@ export const StrategyDashboard = ({ category }: StrategyDashboardProps) => {
           setIsNewTaskOpen(false);
           handleIdeaGenerated();
         }}
+        defaultCategory={category}
       />
     </div>
   );
