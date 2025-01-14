@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { supabase } from '@/integrations/supabase/client';
 import { Tables } from '@/integrations/supabase/types';
 import { useToast } from '@/components/ui/use-toast';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface TaskFormProps {
   task?: Tables<'general_tasks'> | null;
@@ -20,6 +21,7 @@ const CATEGORIES = ['Marketing', 'Product Development', 'Partnerships', 'Busines
 
 export const TaskForm = ({ task, onSaved, onCancel, defaultCategory }: TaskFormProps) => {
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [title, setTitle] = useState(task?.title || '');
   const [description, setDescription] = useState(task?.description || '');
   const [category, setCategory] = useState(task?.category || defaultCategory || CATEGORIES[0]);
@@ -32,6 +34,9 @@ export const TaskForm = ({ task, onSaved, onCancel, defaultCategory }: TaskFormP
     setIsSubmitting(true);
 
     try {
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+
       if (task?.id) {
         const { error } = await supabase
           .from('general_tasks')
@@ -41,6 +46,7 @@ export const TaskForm = ({ task, onSaved, onCancel, defaultCategory }: TaskFormP
             category,
             next_due_date: dueDate ? new Date(dueDate).toISOString() : null,
             urgent,
+            updated_by: user?.id
           })
           .eq('id', task.id);
 
@@ -58,6 +64,7 @@ export const TaskForm = ({ task, onSaved, onCancel, defaultCategory }: TaskFormP
             category,
             next_due_date: dueDate ? new Date(dueDate).toISOString() : null,
             urgent,
+            created_by: user?.id
           });
 
         if (error) throw error;
@@ -66,6 +73,11 @@ export const TaskForm = ({ task, onSaved, onCancel, defaultCategory }: TaskFormP
           description: "The new task has been successfully created.",
         });
       }
+
+      // Invalidate relevant queries
+      queryClient.invalidateQueries({ queryKey: ['generalTasks'] });
+      queryClient.invalidateQueries({ queryKey: ['priorityClients'] });
+      queryClient.invalidateQueries({ queryKey: ['clientNextSteps'] });
 
       onSaved();
     } catch (error) {

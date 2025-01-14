@@ -26,13 +26,18 @@ export const UpdateNextStepButton = ({ clientId }: UpdateNextStepButtonProps) =>
     e.preventDefault();
     
     try {
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      // Insert next step
       const { error } = await supabase
         .from('client_next_steps')
         .insert({
           client_id: clientId,
           notes: notes,
           due_date: dueDate || null,
-          urgent: isUrgent
+          urgent: isUrgent,
+          created_by: user?.id
         });
 
       if (error) {
@@ -62,11 +67,12 @@ export const UpdateNextStepButton = ({ clientId }: UpdateNextStepButtonProps) =>
         description: "Next step added successfully",
       });
       
-      // Invalidate both queries to refresh the data
-      queryClient.invalidateQueries({ queryKey: ['client-next-steps', clientId] });
-      queryClient.invalidateQueries({ queryKey: ['next-steps-history', clientId] });
+      // Invalidate all relevant queries
+      queryClient.invalidateQueries({ queryKey: ['client-next-steps'] });
+      queryClient.invalidateQueries({ queryKey: ['next-steps-history'] });
       queryClient.invalidateQueries({ queryKey: ['client'] });
       queryClient.invalidateQueries({ queryKey: ['priorityClients'] });
+      queryClient.invalidateQueries({ queryKey: ['clientNextSteps'] }); // Add this
       
       // Reset form and close dialog
       setNotes('');
