@@ -15,19 +15,19 @@ interface GeneralTaskItemProps {
 }
 
 const getCategoryColor = (category: string | undefined) => {
-  if (!category) return 'bg-orange-50 hover:bg-orange-100/80';
+  if (!category) return 'bg-[#F1F0FB] hover:bg-[#8B5CF6]';
   
   switch (category.toLowerCase()) {
     case 'marketing':
-      return 'bg-purple-50 hover:bg-purple-100/80';
+      return 'bg-[#FFDEE2] hover:bg-[#D946EF]';
     case 'product development':
-      return 'bg-blue-50 hover:bg-blue-100/80';
+      return 'bg-[#D3E4FD] hover:bg-[#0EA5E9]';
     case 'partnerships':
-      return 'bg-green-50 hover:bg-green-100/80';
+      return 'bg-[#F2FCE2] hover:bg-[#22C55E]';
     case 'business admin':
-      return 'bg-gray-50 hover:bg-gray-100/80';
+      return 'bg-[#F1F0FB] hover:bg-[#8B5CF6]';
     default:
-      return 'bg-orange-50 hover:bg-orange-100/80';
+      return 'bg-[#FDE1D3] hover:bg-[#F97316]';
   }
 };
 
@@ -114,7 +114,7 @@ export const GeneralTaskItem = ({ task, onDeleted }: GeneralTaskItemProps) => {
   return (
     <Card 
       className={cn(
-        "p-4 hover:shadow-md transition-shadow",
+        "p-4 transition-all duration-300",
         getCategoryColor(task.category),
         task.urgent && "bg-red-50/50"
       )}
