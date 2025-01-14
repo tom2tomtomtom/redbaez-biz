@@ -176,6 +176,7 @@ export type Database = {
           client_id: number | null
           completed_at: string | null
           created_at: string | null
+          created_by: string | null
           due_date: string | null
           id: string
           notes: string | null
@@ -186,6 +187,7 @@ export type Database = {
           client_id?: number | null
           completed_at?: string | null
           created_at?: string | null
+          created_by?: string | null
           due_date?: string | null
           id?: string
           notes?: string | null
@@ -196,6 +198,7 @@ export type Database = {
           client_id?: number | null
           completed_at?: string | null
           created_at?: string | null
+          created_by?: string | null
           due_date?: string | null
           id?: string
           notes?: string | null
@@ -208,6 +211,13 @@ export type Database = {
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_next_steps_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]

@@ -43,7 +43,7 @@ export const UpdateNextStepButton = ({ clientId }: UpdateNextStepButtonProps) =>
         console.error('Error fetching profile:', profileError);
         throw new Error('Could not find user profile');
       }
-      
+
       // Insert next step with created_by field
       const { error } = await supabase
         .from('client_next_steps')

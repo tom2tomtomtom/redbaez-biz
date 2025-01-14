@@ -25,6 +25,10 @@ type HistoryEntry = {
   due_date: string | null;
   created_at: string;
   completed_at: string | null;
+  created_by: string | null;
+  profiles?: {
+    full_name: string | null;
+  } | null;
 };
 
 export const NextStepsHistory: React.FC<NextStepsHistoryProps> = ({ clientId }) => {
@@ -34,7 +38,7 @@ export const NextStepsHistory: React.FC<NextStepsHistoryProps> = ({ clientId }) 
       console.log('Fetching history for client:', clientId);
       const { data, error } = await supabase
         .from('next_steps_history')
-        .select('*')
+        .select('*, profiles:created_by(full_name)')
         .eq('client_id', clientId)
         .order('created_at', { ascending: false });
 
@@ -72,6 +76,11 @@ export const NextStepsHistory: React.FC<NextStepsHistoryProps> = ({ clientId }) 
                     <div className="flex justify-between items-start">
                       <div className="text-sm text-gray-500">
                         {format(new Date(entry.created_at), 'MMM d, yyyy h:mm a')}
+                        {entry.profiles?.full_name && (
+                          <span className="ml-2 text-gray-400">
+                            by {entry.profiles.full_name}
+                          </span>
+                        )}
                       </div>
                     </div>
                     <div className="font-medium">Notes:</div>
