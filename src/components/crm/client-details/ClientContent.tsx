@@ -177,7 +177,6 @@ export const ClientContent = ({ client, isEditing, parsedAdditionalContacts }: C
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
-      {/* Client Name Section */}
       <div className="bg-white rounded-lg shadow-sm p-6">
         <h2 className="text-2xl font-bold text-gray-900">{client.name}</h2>
         {client.type && (
@@ -185,7 +184,6 @@ export const ClientContent = ({ client, isEditing, parsedAdditionalContacts }: C
         )}
       </div>
 
-      {/* Client Background Section */}
       <div className="bg-white rounded-lg shadow-sm p-6">
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-lg font-semibold">Background</h3>
@@ -224,7 +222,6 @@ export const ClientContent = ({ client, isEditing, parsedAdditionalContacts }: C
         )}
       </div>
 
-      {/* Next Steps Section */}
       <div className="bg-white rounded-lg shadow-sm p-6">
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-lg font-semibold">Next Steps</h3>
@@ -240,13 +237,11 @@ export const ClientContent = ({ client, isEditing, parsedAdditionalContacts }: C
         <TaskHistory clientId={client.id} />
       </div>
 
-      {/* Status Section */}
       <StatusTab 
         clientId={client.id} 
         currentStatus={client.status}
       />
 
-      {/* Contact Information */}
       <ContactInfoCard
         contactName={client.contact_name}
         companySize={client.company_size}
@@ -261,9 +256,9 @@ export const ClientContent = ({ client, isEditing, parsedAdditionalContacts }: C
         industry={client.industry}
         website={client.website}
         type={client.type}
+        clientId={client.id}
       />
 
-      {/* Strategic Analysis (Key Metrics) */}
       <KeyMetricsCard
         annualRevenue={client.annual_revenue}
         likelihood={client.likelihood}
