@@ -3,14 +3,17 @@ import { supabase } from '@/integrations/supabase/client';
 import { Tables } from '@/integrations/supabase/types';
 import { GeneralTaskRow } from '@/integrations/supabase/types/general-tasks.types';
 
+export type NextStepData = Tables<'client_next_steps'> & { client_name?: string };
+export type TaskData = GeneralTaskRow;
+
 export type PriorityItem = {
   type: 'task';
   date: string | null;
-  data: GeneralTaskRow;
+  data: TaskData;
 } | {
   type: 'next_step';
   date: string | null;
-  data: Tables<'client_next_steps'> & { client_name?: string };
+  data: NextStepData;
 };
 
 const fetchGeneralTasks = async () => {
