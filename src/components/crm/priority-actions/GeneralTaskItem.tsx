@@ -38,19 +38,19 @@ const getCategoryColor = (task: GeneralTaskRow, isClientTask: boolean) => {
   // Marketing tasks
   if (category === 'marketing') {
     console.log('Marketing task colors');
-    return 'bg-[#D946EF] bg-opacity-50 hover:bg-[#D946EF]';
+    return 'bg-[#D946EF]/50 hover:bg-[#D946EF]';
   }
   
   // Product Development tasks
   if (category === 'product development') {
     console.log('Product development task colors');
-    return 'bg-[#0EA5E9] bg-opacity-50 hover:bg-[#0EA5E9]';
+    return 'bg-[#0EA5E9]/50 hover:bg-[#0EA5E9]';
   }
   
   // Partnership tasks
   if (category === 'partnerships') {
     console.log('Partnerships task colors');
-    return 'bg-[#8B5CF6] bg-opacity-50 hover:bg-[#8B5CF6]';
+    return 'bg-[#8B5CF6]/50 hover:bg-[#8B5CF6]';
   }
   
   // Business Admin tasks
