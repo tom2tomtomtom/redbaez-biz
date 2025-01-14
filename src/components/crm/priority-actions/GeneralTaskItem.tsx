@@ -38,9 +38,14 @@ const getCategoryColor = (task: GeneralTaskRow, isClientTask: boolean) => {
 export const GeneralTaskItem = ({ task, isClientTask = false }: { task: GeneralTaskRow; isClientTask?: boolean }) => {
   const colorClasses = getCategoryColor(task, isClientTask);
   
-  // Format the title and description for display
+  // Format the title and description for display, avoiding duplication
   const displayTitle = task.title.replace(/[\[\]]/g, '').trim();
-  const displayDescription = task.description?.replace(/[\[\]]/g, '').trim() || 'No description provided';
+  let displayDescription = task.description?.replace(/[\[\]]/g, '').trim() || 'No description provided';
+  
+  // If the description starts with the title, remove it to avoid duplication
+  if (displayDescription.startsWith(displayTitle)) {
+    displayDescription = displayDescription.slice(displayTitle.length).trim();
+  }
 
   return (
     <div className={cn(
