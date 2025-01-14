@@ -18,10 +18,12 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { TaskDialog } from "@/components/crm/priority-actions/TaskDialog";
 
 const Index = () => {
   const [searchInput, setSearchInput] = useState('');
   const [showClientList, setShowClientList] = useState(false);
+  const [isNewTaskOpen, setIsNewTaskOpen] = useState(false);
 
   const { data: clients, isLoading } = useQuery({
     queryKey: ['clients'],
@@ -50,11 +52,17 @@ const Index = () => {
                 <Users className="mr-2 h-4 w-4" />
                 {showClientList ? 'Hide Clients' : 'View All Clients'}
               </Button>
-              <Button className="gap-2">
-                <Plus className="h-4 w-4" />
-                Add New Client
-              </Button>
-              <Button variant="secondary" className="gap-2">
+              <Link to="/client/new">
+                <Button className="gap-2">
+                  <Plus className="h-4 w-4" />
+                  Add New Client
+                </Button>
+              </Link>
+              <Button 
+                variant="secondary" 
+                className="gap-2"
+                onClick={() => setIsNewTaskOpen(true)}
+              >
                 <FileText className="h-4 w-4" />
                 Add New Task
               </Button>
@@ -126,6 +134,15 @@ const Index = () => {
           </div>
         )}
       </div>
+
+      <TaskDialog 
+        isOpen={isNewTaskOpen}
+        onOpenChange={setIsNewTaskOpen}
+        task={null}
+        onSaved={() => {
+          setIsNewTaskOpen(false);
+        }}
+      />
     </div>
   );
 };
