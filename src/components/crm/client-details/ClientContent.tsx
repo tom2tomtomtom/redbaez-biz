@@ -5,6 +5,7 @@ import { KeyMetricsCard } from './KeyMetricsCard';
 import { ContactInfoCard } from './ContactInfoCard';
 import { StatusTab } from './StatusTab';
 import { TaskHistory } from './TaskHistory';
+import { UpdateNextStepButton } from './components/UpdateNextStepButton';
 
 interface ClientContentProps {
   client: any;
@@ -31,14 +32,20 @@ export const ClientContent = ({ client, isEditing, parsedAdditionalContacts }: C
         </div>
       )}
 
+      {/* Next Steps Section */}
+      <div className="bg-white rounded-lg shadow-sm p-6">
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-lg font-semibold">Next Steps</h3>
+          <UpdateNextStepButton clientId={client.id} />
+        </div>
+        <TaskHistory clientId={client.id} />
+      </div>
+
       {/* Status Section */}
       <StatusTab 
         clientId={client.id} 
         currentStatus={client.status}
       />
-
-      {/* Task History (Next Steps) */}
-      <TaskHistory clientId={client.id} />
 
       {/* Contact Information */}
       <ContactInfoCard
