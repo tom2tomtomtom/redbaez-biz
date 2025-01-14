@@ -17,7 +17,7 @@ export async function generateRecommendations(prompt: string, apiKey: string) {
       messages: [
         {
           role: 'system',
-          content: 'You are a strategic advisor. Create highly specific recommendations that reference actual events and developments. Return ONLY a JSON array with type and suggestion fields.'
+          content: 'You are a strategic advisor. Create highly specific recommendations that reference actual events and developments. Return ONLY a JSON array with type and suggestion fields. Do not include any square brackets in the suggestions.'
         },
         {
           role: 'user',
@@ -44,7 +44,13 @@ export async function generateRecommendations(prompt: string, apiKey: string) {
 
   try {
     const content = aiResponse.choices[0].message.content;
-    return JSON.parse(content.replace(/```json\n?|\n?```/g, '').trim());
+    const parsed = JSON.parse(content.replace(/```json\n?|\n?```/g, '').trim());
+    
+    // Clean any remaining square brackets from suggestions
+    return parsed.map((rec: any) => ({
+      ...rec,
+      suggestion: rec.suggestion.replace(/[\[\]]/g, '')
+    }));
   } catch (error) {
     console.error('Error parsing AI response:', error);
     throw new Error(`Failed to parse AI recommendations: ${error.message}`);
