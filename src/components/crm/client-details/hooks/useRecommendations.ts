@@ -92,7 +92,10 @@ export const useRecommendations = (clientId: number) => {
         // Only store if it's the first (latest) occurrence of this type
         if (!latestRecommendations.has(rec.type)) {
           latestRecommendations.set(rec.type, rec);
-        } map values back to array
+        }
+      });
+
+      // Convert map values back to array
       return Array.from(latestRecommendations.values());
     }
   });
