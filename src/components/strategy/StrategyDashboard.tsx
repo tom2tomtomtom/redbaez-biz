@@ -6,6 +6,7 @@ import { useGeneralTasks } from "./hooks/useGeneralTasks";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { TaskDialog } from "@/components/crm/priority-actions/TaskDialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface StrategyDashboardProps {
   category: "marketing" | "partnerships" | "product development";
@@ -14,7 +15,11 @@ interface StrategyDashboardProps {
 export const StrategyDashboard = ({ category }: StrategyDashboardProps) => {
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [isNewTaskOpen, setIsNewTaskOpen] = useState(false);
-  const { data: tasks, isLoading } = useGeneralTasks(category, refreshTrigger);
+  
+  const { data: allTasks, isLoading } = useGeneralTasks(category, refreshTrigger);
+  
+  const activeTasks = allTasks?.filter(task => task.status !== 'completed') || [];
+  const completedTasks = allTasks?.filter(task => task.status === 'completed') || [];
 
   const handleIdeaGenerated = () => {
     setRefreshTrigger(prev => prev + 1);
@@ -38,11 +43,27 @@ export const StrategyDashboard = ({ category }: StrategyDashboardProps) => {
       
       <Card className="p-6">
         <h2 className="text-2xl font-semibold mb-4">Tasks & Action Items</h2>
-        <TaskList 
-          tasks={tasks || []} 
-          isLoading={isLoading} 
-          onTasksUpdated={handleIdeaGenerated}
-        />
+        <Tabs defaultValue="active" className="w-full">
+          <TabsList className="grid w-full grid-cols-2 mb-4">
+            <TabsTrigger value="active">Active Tasks ({activeTasks.length})</TabsTrigger>
+            <TabsTrigger value="completed">Task History ({completedTasks.length})</TabsTrigger>
+          </TabsList>
+          <TabsContent value="active">
+            <TaskList 
+              tasks={activeTasks} 
+              isLoading={isLoading} 
+              onTasksUpdated={handleIdeaGenerated}
+            />
+          </TabsContent>
+          <TabsContent value="completed">
+            <TaskList 
+              tasks={completedTasks} 
+              isLoading={isLoading} 
+              onTasksUpdated={handleIdeaGenerated}
+              isHistory
+            />
+          </TabsContent>
+        </Tabs>
       </Card>
 
       <TaskDialog 
