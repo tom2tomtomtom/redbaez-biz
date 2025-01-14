@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { PriorityItem } from './hooks/usePriorityData';
 import { GeneralTaskRow } from '@/integrations/supabase/types/general-tasks.types';
 import { CompletionDialog } from './components/CompletionDialog';
@@ -16,9 +16,9 @@ export const PriorityItemsList = ({ items, onTaskClick }: PriorityItemsListProps
   const { handleCompletedChange, handleUrgentChange, handleDelete } = useItemStatusChange();
 
   // Update localItems when items prop changes
-  if (JSON.stringify(localItems) !== JSON.stringify(items)) {
+  useEffect(() => {
     setLocalItems(items);
-  }
+  }, [items]);
 
   const activeItems = localItems.filter(item => 
     (item.type === 'task' && 
@@ -31,10 +31,9 @@ export const PriorityItemsList = ({ items, onTaskClick }: PriorityItemsListProps
   const handleItemDelete = async (item: PriorityItem) => {
     const success = await handleDelete(item);
     if (success) {
-      // Remove the item from local state immediately
-      setLocalItems(prevItems => prevItems.filter(i => 
-        !(i.type === item.type && i.data.id === item.data.id)
-      ));
+      setLocalItems(prevItems => 
+        prevItems.filter(i => !(i.type === item.type && i.data.id === item.data.id))
+      );
     }
   };
 
