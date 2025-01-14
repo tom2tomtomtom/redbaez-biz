@@ -57,7 +57,7 @@ const Index = () => {
       </main>
 
       <Sheet open={showClientList} onOpenChange={setShowClientList}>
-        <SheetContent className="w-full sm:max-w-xl">
+        <SheetContent side="right" className="w-full sm:max-w-xl overflow-y-auto h-screen">
           <ClientListSection clients={clients} isLoading={isLoading} />
         </SheetContent>
       </Sheet>
