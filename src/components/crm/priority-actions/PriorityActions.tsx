@@ -79,7 +79,7 @@ export const PriorityActions = ({
         )}
       </CardHeader>
       <CardContent>
-        <div className="max-h-[500px] overflow-y-auto">
+        <div>
           <PriorityItemsList 
             items={allItems}
             onTaskClick={handleTaskClick}
