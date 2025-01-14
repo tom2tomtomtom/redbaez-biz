@@ -4,6 +4,7 @@ import { IntelSearch } from './intel-search/IntelSearch';
 import { ClientSearch } from './client-search/ClientSearch';
 import { BusinessSummary } from './business-summary/BusinessSummary';
 import { CalendarView } from '../calendar/CalendarView';
+import { useToast } from '@/components/ui/use-toast';
 
 interface CRMDashboardProps {
   onClientAdded?: () => void;
@@ -21,6 +22,31 @@ export const CRMDashboard = ({ onClientAdded }: CRMDashboardProps) => {
   const [nextSteps, setNextSteps] = useState('');
   const [nextDueDate, setNextDueDate] = useState('');
   const [searchInput, setSearchInput] = useState('');
+  const { toast } = useToast();
+
+  const handleClientAdded = () => {
+    toast({
+      title: "Success",
+      description: "Client added successfully",
+    });
+    
+    // Reset form
+    setContacts([{ 
+      firstName: '', 
+      lastName: '', 
+      title: '', 
+      email: '', 
+      address: '', 
+      phone: '' 
+    }]);
+    setNextSteps('');
+    setNextDueDate('');
+    
+    // Call parent callback if provided
+    if (onClientAdded) {
+      onClientAdded();
+    }
+  };
 
   return (
     <div className="flex flex-col space-y-4 animate-fade-in">
@@ -32,7 +58,7 @@ export const CRMDashboard = ({ onClientAdded }: CRMDashboardProps) => {
           onContactsChange={setContacts}
           onNextStepsChange={setNextSteps}
           onNextDueDateChange={setNextDueDate}
-          onClientAdded={onClientAdded}
+          onClientAdded={handleClientAdded}
         />
       </div>
     </div>

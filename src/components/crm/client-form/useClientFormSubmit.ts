@@ -11,6 +11,8 @@ export const useClientFormSubmit = ({ clientId, onSuccess }: UseClientFormSubmit
   const queryClient = useQueryClient();
 
   const handleSubmit = async (formData: ClientFormData) => {
+    console.log('Submitting form data:', formData);
+    
     if (!formData.name) {
       toast({
         title: "Error",
@@ -44,6 +46,8 @@ export const useClientFormSubmit = ({ clientId, onSuccess }: UseClientFormSubmit
         annual_revenue_forecast: formData.annual_revenue_forecast || 0,
       };
 
+      console.log('Prepared client data:', clientData);
+
       if (clientId) {
         const { error } = await supabase
           .from('clients')
@@ -61,16 +65,23 @@ export const useClientFormSubmit = ({ clientId, onSuccess }: UseClientFormSubmit
           onSuccess();
         }
       } else {
+        console.log('Inserting new client');
         const { data: newClient, error } = await supabase
           .from('clients')
           .insert(clientData)
           .select()
           .single();
 
-        if (error) throw error;
+        if (error) {
+          console.error('Error inserting client:', error);
+          throw error;
+        }
+
+        console.log('New client created:', newClient);
 
         // Create next step if notes and due date are provided
         if (formData.notes && formData.next_due_date && newClient) {
+          console.log('Creating next step for client:', newClient.id);
           const { error: nextStepError } = await supabase
             .from('client_next_steps')
             .insert({
@@ -91,12 +102,13 @@ export const useClientFormSubmit = ({ clientId, onSuccess }: UseClientFormSubmit
         queryClient.invalidateQueries({ queryKey: ['client-next-steps'] });
         queryClient.invalidateQueries({ queryKey: ['next-steps-history'] });
 
-        toast({
-          title: "Success",
-          description: "New client added successfully",
-        });
+        if (onSuccess) {
+          console.log('Calling onSuccess callback');
+          onSuccess();
+        }
 
         if (newClient) {
+          console.log('Navigating to client page:', newClient.id);
           navigate(`/client/${newClient.id}`);
         }
       }
