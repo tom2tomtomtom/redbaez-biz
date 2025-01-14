@@ -2,9 +2,11 @@ import { Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 export function MainNav() {
   const { isAuthenticated, isLoading } = useAuth();
+  const { toast } = useToast();
 
   if (isLoading) {
     return null; // Or a loading spinner
@@ -15,7 +17,22 @@ export function MainNav() {
   }
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+      
+      toast({
+        title: "Logged out successfully",
+        duration: 2000
+      });
+    } catch (error) {
+      console.error('Logout error:', error);
+      toast({
+        title: "Error logging out",
+        description: "Please try again",
+        variant: "destructive"
+      });
+    }
   };
 
   return (
