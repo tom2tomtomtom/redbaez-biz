@@ -1,69 +1,122 @@
-# Welcome to your Lovable project
+# Redbaez Business Management System
 
-## Project info
+A comprehensive business management system built with React, TypeScript, and Supabase, featuring CRM capabilities, task management, and business analytics.
 
-**URL**: https://lovable.dev/projects/6877b20a-4777-4404-ab09-20435f9836ff
+## Core Features
 
-## How can I edit this code?
+### 1. CRM Dashboard
+- Client management with detailed profiles
+- Revenue tracking and forecasting
+- Task and next steps management
+- Client interaction history
 
-There are several ways of editing your application.
+### 2. Priority Actions
+- Task management system
+- Urgent tasks highlighting
+- Due date tracking
+- Category-based organization (Marketing, Product Development, Partnerships, Business Admin)
 
-**Use Lovable**
+### 3. Business Analytics
+- Revenue summaries and forecasts
+- Client status tracking
+- Performance metrics
+- Interactive charts and visualizations
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/6877b20a-4777-4404-ab09-20435f9836ff) and start prompting.
+## Technical Stack
 
-Changes made via Lovable will be committed automatically to this repo.
+- **Frontend Framework**: React with TypeScript
+- **Build Tool**: Vite
+- **UI Components**: shadcn/ui
+- **Styling**: Tailwind CSS
+- **State Management**: TanStack Query (React Query)
+- **Backend & Authentication**: Supabase
+- **Routing**: React Router DOM
 
-**Use your preferred IDE**
+## Project Structure
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+```
+src/
+├── components/
+│   ├── crm/                    # CRM-related components
+│   │   ├── client-details/     # Client profile components
+│   │   ├── dashboard/          # Dashboard components
+│   │   ├── priority-actions/   # Task management components
+│   │   └── revenue-summary/    # Revenue tracking components
+│   └── ui/                     # Reusable UI components
+├── integrations/
+│   └── supabase/              # Supabase configuration and types
+├── pages/                     # Main route components
+└── hooks/                     # Custom React hooks
+```
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+## Database Schema
 
-Follow these steps:
+### Key Tables
+- `clients`: Main client information
+- `client_next_steps`: Client-related tasks and follow-ups
+- `general_tasks`: System-wide task management
+- `client_forecasts`: Revenue forecasting data
+- `calendar_events`: Client meeting and event tracking
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+## Getting Started
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+1. **Clone the Repository**
+```bash
+git clone <repository-url>
+cd redbaez-business-system
+```
 
-# Step 3: Install the necessary dependencies.
-npm i
+2. **Install Dependencies**
+```bash
+npm install
+```
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+3. **Environment Setup**
+Create a `.env` file with the following variables:
+```env
+VITE_SUPABASE_URL=your_supabase_url
+VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+```
+
+4. **Start Development Server**
+```bash
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+## Key Features Documentation
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+### Client Management
+- Create and manage client profiles
+- Track client interactions and meetings
+- Manage client-specific tasks and next steps
+- Monitor revenue and forecasts per client
 
-**Use GitHub Codespaces**
+### Task Management
+- Create and track tasks across different categories
+- Priority-based task organization
+- Due date tracking and urgent task highlighting
+- Task completion workflow
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+### Revenue Tracking
+- Monthly revenue summaries
+- Forecast vs. actual revenue tracking
+- Client-specific revenue monitoring
+- Annual revenue projections
 
-## What technologies are used for this project?
+## Authentication and Authorization
 
-This project is built with .
+The application uses Supabase for authentication and implements row-level security (RLS) policies for data access control. Users must be authenticated to access the system's features.
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+## Deployment
 
-## How can I deploy this project?
+The application can be deployed using any static hosting service that supports single-page applications (SPAs). Current deployment is handled through Lovable's built-in deployment system.
 
-Simply open [Lovable](https://lovable.dev/projects/6877b20a-4777-4404-ab09-20435f9836ff) and click on Share -> Publish.
+## Contributing
 
-## I want to use a custom domain - is that possible?
+1. Create a feature branch
+2. Make your changes
+3. Submit a pull request
 
-We don't support custom domains (yet). If you want to deploy your project under your own domain then we recommend using Netlify. Visit our docs for more details: [Custom domains](https://docs.lovable.dev/tips-tricks/custom-domain/)
+## Support
+
+For support and questions, please contact the development team or refer to the internal documentation.
