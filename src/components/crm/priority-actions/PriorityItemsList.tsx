@@ -14,23 +14,21 @@ export const PriorityItemsList = ({
   onComplete,
   onUrgentChange
 }: PriorityItemsListProps) => {
-  // Show only items that:
-  // 1. For tasks: are incomplete AND have a due date
-  // 2. For next steps: are not completed
+  // Show items that are either:
+  // 1. Tasks that are incomplete
+  // 2. Next steps that are not completed
   const activeItems = items.filter(item => {
     if (item.type === 'task') {
-      const task = item.data as any;
-      return task.status !== 'completed' && task.next_due_date !== null;
+      return item.data.status !== 'completed';
     } else {
-      const nextStep = item.data as any;
-      return !nextStep.completed_at;
+      return !item.data.completed_at;
     }
   });
 
   if (activeItems.length === 0) {
     return (
       <div className="text-center text-gray-500 py-4">
-        No active items
+        No active priority items
       </div>
     );
   }
@@ -39,7 +37,7 @@ export const PriorityItemsList = ({
     <div className="space-y-4">
       {activeItems.map((item) => (
         <PriorityListItem
-          key={item.data.id}
+          key={`${item.type}-${item.data.id}`}
           item={item}
           onTaskClick={onTaskClick}
           onComplete={onComplete}

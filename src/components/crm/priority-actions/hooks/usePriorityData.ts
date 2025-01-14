@@ -17,8 +17,6 @@ const fetchGeneralTasks = async () => {
   const { data, error } = await supabase
     .from('general_tasks')
     .select('*')
-    .neq('status', 'completed')
-    .not('next_due_date', 'is', null)  // Only fetch tasks with a due date
     .order('next_due_date', { ascending: true });
     
   if (error) throw error;
@@ -45,12 +43,14 @@ const fetchNextSteps = async () => {
 };
 
 const sortByUrgencyAndDate = (a: PriorityItem, b: PriorityItem) => {
-  const aUrgent = 'urgent' in a.data ? a.data.urgent : false;
-  const bUrgent = 'urgent' in b.data ? b.data.urgent : false;
+  // First sort by urgency
+  const aUrgent = a.data.urgent || false;
+  const bUrgent = b.data.urgent || false;
 
   if (aUrgent && !bUrgent) return -1;
   if (!aUrgent && bUrgent) return 1;
 
+  // Then sort by date
   const aDate = a.type === 'task' ? a.data.next_due_date : a.data.due_date;
   const bDate = b.type === 'task' ? b.data.next_due_date : b.data.due_date;
 
