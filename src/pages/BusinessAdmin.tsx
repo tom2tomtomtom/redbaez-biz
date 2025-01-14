@@ -1,5 +1,5 @@
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { useGeneralTasks } from '@/hooks/useGeneralTasks';
+import { useGeneralTasks } from '@/components/strategy/hooks/useGeneralTasks';
 import { useState } from 'react';
 import { PriorityActions } from '@/components/crm/priority-actions/PriorityActions';
 import { MainNav } from '@/components/ui/main-nav';
