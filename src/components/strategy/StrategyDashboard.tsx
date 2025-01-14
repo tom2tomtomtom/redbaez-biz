@@ -5,6 +5,8 @@ import { TaskList } from "./TaskList";
 import { useGeneralTasks } from "./hooks/useGeneralTasks";
 import { TaskDialog } from "@/components/crm/priority-actions/TaskDialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
+import { Plus } from "lucide-react";
 
 interface StrategyDashboardProps {
   category: "marketing" | "partnerships" | "product development";
@@ -47,7 +49,13 @@ export const StrategyDashboard = ({ category }: StrategyDashboardProps) => {
       </Card>
       
       <Card className="p-6">
-        <h2 className="text-2xl font-semibold mb-4">Tasks & Action Items</h2>
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-2xl font-semibold">Tasks & Action Items</h2>
+          <Button onClick={() => setIsNewTaskOpen(true)}>
+            <Plus className="mr-2 h-4 w-4" />
+            New Task
+          </Button>
+        </div>
         <Tabs defaultValue="active" className="w-full">
           <TabsList className="grid w-full grid-cols-2 mb-4">
             <TabsTrigger value="active">Active Tasks ({activeTasks.length})</TabsTrigger>
