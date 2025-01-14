@@ -29,29 +29,27 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background">
       <MainNav />
-      <main className="container mx-auto p-4 space-y-6">
+      <main className="container mx-auto p-4 space-y-8">
         <DashboardHeader 
           showClientList={showClientList}
           onToggleClientList={() => setShowClientList(!showClientList)}
           onNewTaskClick={() => setIsNewTaskOpen(true)}
         />
 
-        {!showClientList && (
+        <div className="space-y-8">
           <SearchSection 
             searchInput={searchInput}
             onSearchInputChange={setSearchInput}
           />
-        )}
 
-        <div className="space-y-6">
-          <div className="rounded-lg bg-card p-6 shadow-sm">
-            <h2 className="text-xl font-semibold mb-4 text-left">Priority Actions</h2>
-            <div className="max-h-[600px] overflow-y-auto">
+          <div className="rounded-lg bg-card p-8 shadow-sm">
+            <h2 className="text-2xl font-semibold mb-6 text-left">Priority Actions</h2>
+            <div className="max-h-[800px] overflow-y-auto">
               <PriorityActions hideAddButton />
             </div>
           </div>
 
-          <div className="rounded-lg bg-card p-6 shadow-sm">
+          <div className="rounded-lg bg-card p-8 shadow-sm">
             {showClientList ? (
               <ClientListSection clients={clients} isLoading={isLoading} />
             ) : (

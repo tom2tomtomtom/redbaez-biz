@@ -14,9 +14,6 @@ export const PriorityItemsList = ({ items, onTaskClick }: PriorityItemsListProps
   const [itemToComplete, setItemToComplete] = useState<PriorityItem | null>(null);
   const { handleCompletedChange, handleUrgentChange } = useItemStatusChange();
 
-  // Show only items that:
-  // 1. For tasks: are incomplete AND have a due date
-  // 2. For next steps: are not completed
   const activeItems = items.filter(item => 
     (item.type === 'task' && 
      item.data.status !== 'completed' && 
@@ -27,7 +24,7 @@ export const PriorityItemsList = ({ items, onTaskClick }: PriorityItemsListProps
 
   if (activeItems.length === 0) {
     return (
-      <div className="p-3 bg-gray-50 rounded-lg border border-gray-100">
+      <div className="p-4 bg-gray-50 rounded-lg border border-gray-100">
         <p className="text-gray-600 text-center">No priority actions found</p>
       </div>
     );
@@ -41,7 +38,7 @@ export const PriorityItemsList = ({ items, onTaskClick }: PriorityItemsListProps
         onComplete={(item) => handleCompletedChange(item, true)}
       />
 
-      <div className="space-y-4">
+      <div className="space-y-6">
         {activeItems.map((item, index) => (
           <PriorityListItem
             key={`${item.type}-${item.data.id}`}
