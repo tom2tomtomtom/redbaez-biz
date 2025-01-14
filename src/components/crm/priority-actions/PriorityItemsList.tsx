@@ -37,6 +37,16 @@ export const PriorityItemsList = ({ items, onTaskClick }: PriorityItemsListProps
     }
   };
 
+  const handleComplete = async (item: PriorityItem) => {
+    const success = await handleCompletedChange(item, true);
+    if (success) {
+      setLocalItems(prevItems => 
+        prevItems.filter(i => !(i.type === item.type && i.data.id === item.data.id))
+      );
+    }
+    setItemToComplete(null);
+  };
+
   if (activeItems.length === 0) {
     return (
       <div className="p-4 bg-gray-50 rounded-lg border border-gray-100">
@@ -50,7 +60,7 @@ export const PriorityItemsList = ({ items, onTaskClick }: PriorityItemsListProps
       <CompletionDialog
         itemToComplete={itemToComplete}
         onOpenChange={() => setItemToComplete(null)}
-        onComplete={(item) => handleCompletedChange(item, true)}
+        onComplete={handleComplete}
       />
 
       <div className="space-y-6">

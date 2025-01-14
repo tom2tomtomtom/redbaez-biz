@@ -9,6 +9,7 @@ export type GeneralTaskRow = {
   updated_at: string | null
   urgent: boolean | null
   client_id: number | null
+  updated_by: string | null
 }
 
 export type GeneralTaskInsert = Omit<GeneralTaskRow, 'id' | 'created_at' | 'updated_at'> & {
