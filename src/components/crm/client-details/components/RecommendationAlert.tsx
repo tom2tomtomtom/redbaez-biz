@@ -1,44 +1,50 @@
-import { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Calendar } from 'lucide-react';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { useToast } from '@/components/ui/use-toast';
-import { supabase } from '@/integrations/supabase/client';
+import { AlertCircle, AlertTriangle, ArrowRight, CheckCircle2, Info } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Switch } from "@/components/ui/switch";
+import { format } from "date-fns";
+import { useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "@/components/ui/use-toast";
+import { cn } from "@/lib/utils";
 
 interface RecommendationAlertProps {
-  type: string;
+  type: 'revenue' | 'engagement' | 'risk' | 'opportunity';
+  priority: 'high' | 'medium' | 'low';
   suggestion: string;
-  priority: string;
   clientId: number;
   clientName: string;
-  onImplemented?: () => void;
 }
 
 export const RecommendationAlert = ({
   type,
-  suggestion,
   priority,
+  suggestion,
   clientId,
-  clientName,
-  onImplemented
+  clientName
 }: RecommendationAlertProps) => {
-  const [isImplementing, setIsImplementing] = useState(false);
-  const { toast } = useToast();
-  const [isUrgent] = useState(priority === 'high');
+  const [date, setDate] = useState<Date | undefined>(new Date());
+  const [isUrgent, setIsUrgent] = useState(false);
 
   const handleImplement = async () => {
-    setIsImplementing(true);
+    if (!date) {
+      toast({
+        title: "Error",
+        description: "Please select a due date",
+        variant: "destructive",
+      });
+      return;
+    }
 
     try {
-      // Get the next week's date for the task
-      const date = new Date();
-      date.setDate(date.getDate() + 7);
-
-      // First update the recommendation status
+      // First mark the recommendation as implemented
       const { error: recommendationError } = await supabase
         .from('client_recommendations')
         .update({ implemented: true })
         .eq('client_id', clientId)
+        .eq('type', type)
         .eq('suggestion', suggestion);
 
       if (recommendationError) throw recommendationError;
@@ -47,7 +53,7 @@ export const RecommendationAlert = ({
       const { error } = await supabase
         .from('general_tasks')
         .insert({
-          title: `${clientName} - Strategic Recommendation`,
+          title: `Strategic Recommendation for ${clientName}`,
           description: suggestion,
           category: type,
           next_due_date: date.toISOString(),
@@ -59,42 +65,85 @@ export const RecommendationAlert = ({
       if (error) throw error;
 
       toast({
-        title: 'Recommendation implemented',
-        description: 'A follow-up task has been created.',
+        title: "Success",
+        description: "Recommendation implemented and task created",
       });
-
-      if (onImplemented) {
-        onImplemented();
-      }
     } catch (error) {
       console.error('Error implementing recommendation:', error);
       toast({
-        title: 'Error',
-        description: 'Failed to implement recommendation. Please try again.',
-        variant: 'destructive',
+        title: "Error",
+        description: "Failed to implement recommendation",
+        variant: "destructive",
       });
-    } finally {
-      setIsImplementing(false);
+    }
+  };
+
+  const getIcon = () => {
+    switch (type) {
+      case 'revenue':
+        return <AlertCircle className="h-4 w-4" />;
+      case 'engagement':
+        return <Info className="h-4 w-4" />;
+      case 'risk':
+        return <AlertTriangle className="h-4 w-4" />;
+      case 'opportunity':
+        return <CheckCircle2 className="h-4 w-4" />;
+    }
+  };
+
+  const getVariant = () => {
+    switch (type) {
+      case 'revenue':
+        return 'default';
+      case 'engagement':
+        return 'info';
+      case 'risk':
+        return 'destructive';
+      case 'opportunity':
+        return 'success';
     }
   };
 
   return (
-    <Alert className="my-2">
-      <AlertTitle className="flex items-center gap-2">
-        <Calendar className="h-4 w-4" />
-        Strategic Recommendation
-      </AlertTitle>
-      <AlertDescription className="mt-2 space-y-2">
-        <p>{suggestion}</p>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={handleImplement}
-          disabled={isImplementing}
-        >
-          {isImplementing ? 'Implementing...' : 'Implement'}
-        </Button>
-      </AlertDescription>
+    <Alert variant={getVariant()}>
+      <div className="flex items-start gap-4">
+        {getIcon()}
+        <div className="flex-1">
+          <AlertTitle className="mb-2">{type.charAt(0).toUpperCase() + type.slice(1)} Recommendation</AlertTitle>
+          <AlertDescription>
+            <div className="space-y-4">
+              <p>{suggestion}</p>
+              <div className="flex items-center gap-4">
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline">
+                      {date ? format(date, "PPP") : "Pick a date"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0">
+                    <Calendar
+                      mode="single"
+                      selected={date}
+                      onSelect={setDate}
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
+                <div className="flex items-center gap-2">
+                  <Switch
+                    checked={isUrgent}
+                    onCheckedChange={setIsUrgent}
+                  />
+                  <span className="text-sm">Mark as urgent</span>
+                </div>
+                <Button onClick={handleImplement} className="ml-auto">
+                  Implement <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          </AlertDescription>
+        </div>
+      </div>
     </Alert>
   );
 };
