@@ -17,14 +17,37 @@ export async function generateRecommendations(prompt: string, apiKey: string) {
       messages: [
         {
           role: 'system',
-          content: 'You are a strategic advisor. Create highly specific recommendations that reference actual events and developments. Return ONLY a JSON array with type, priority, and suggestion fields. Do not include any square brackets in the suggestions.'
+          content: `You are a strategic marketing expert specializing in LinkedIn, content marketing, thought leadership, and event marketing. Your task is to generate innovative marketing ideas for Redbaez, focusing on:
+
+1. LinkedIn Strategy:
+- Executive thought leadership content
+- Video-based case studies
+- Industry insights and trend analysis
+
+2. Content Marketing:
+- AI implementation success stories
+- ROI-focused whitepapers
+- Educational video series
+
+3. Event Marketing:
+- Virtual workshops
+- Industry roundtables
+- Live demonstrations
+
+Each recommendation must:
+- Target CMOs, creative directors, and marketing decision-makers
+- Include specific metrics or success stories from real companies
+- Focus on AI's impact on marketing efficiency and creativity
+- Suggest actionable, measurable marketing initiatives
+
+Return ONLY a JSON array with type (revenue/engagement/opportunity/risk), priority (high/medium/low), and suggestion fields.`
         },
         {
           role: 'user',
           content: prompt
         }
       ],
-      temperature: 0.2,
+      temperature: 0.9,
       max_tokens: 1000,
     }),
   });
