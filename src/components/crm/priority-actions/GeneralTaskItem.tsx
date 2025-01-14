@@ -56,12 +56,12 @@ const getCategoryColor = (task: GeneralTaskRow, isClientTask: boolean) => {
   // Business Admin tasks
   if (category === 'business admin') {
     console.log('Business admin task colors');
-    return 'bg-gray-200 hover:bg-gray-300';
+    return 'bg-gray-200/50 hover:bg-gray-300/70';
   }
   
   // Default case
   console.log('Default case, category:', category);
-  return 'bg-gray-200 hover:bg-gray-300';
+  return 'bg-gray-200/50 hover:bg-gray-300/70';
 };
 
 export const GeneralTaskItem = ({ task, onDeleted }: GeneralTaskItemProps) => {
