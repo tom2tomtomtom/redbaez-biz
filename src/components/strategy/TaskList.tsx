@@ -27,7 +27,15 @@ export const TaskList = ({ tasks, isLoading, onTasksUpdated, isHistory = false }
     );
   }
 
-  const sortedTasks = [...tasks].sort((a, b) => {
+  const filteredTasks = tasks.filter(task => {
+    if (isHistory) {
+      return task.status === 'completed';
+    }
+    // Match the same filtering logic as the priority list
+    return task.status !== 'completed' && task.next_due_date !== null;
+  });
+
+  const sortedTasks = [...filteredTasks].sort((a, b) => {
     if (isHistory) {
       // Sort completed tasks by updated_at in descending order
       return new Date(b.updated_at || 0).getTime() - new Date(a.updated_at || 0).getTime();
@@ -53,7 +61,7 @@ export const TaskList = ({ tasks, isLoading, onTasksUpdated, isHistory = false }
         <div className="text-center text-gray-500 py-8">
           {isHistory 
             ? "No completed tasks yet"
-            : "No active tasks. Try generating some ideas!"
+            : "No active tasks. Try creating a new task!"
           }
         </div>
       ) : (
