@@ -15,7 +15,7 @@ interface GeneralTaskItemProps {
 }
 
 const getCategoryColor = (category: string | undefined, isClientTask: boolean) => {
-  // If it's a client task, always return orange colors
+  // If it's a client task or a strategic idea connected to a client, always return orange colors
   if (isClientTask) {
     return 'bg-[#FEC6A1]/50 hover:bg-[#FEC6A1]';
   }
