@@ -30,14 +30,19 @@ type HistoryEntry = {
   } | null;
 }
 
-export const TaskHistory = () => {
+type TaskHistoryProps = {
+  clientId: number;
+}
+
+export const TaskHistory = ({ clientId }: TaskHistoryProps) => {
   const { data: history, isLoading } = useQuery<HistoryEntry[]>({
-    queryKey: ['task-history'],
+    queryKey: ['task-history', clientId],
     queryFn: async () => {
-      console.log('Fetching task history');
+      console.log('Fetching task history for client:', clientId);
       const { data, error } = await supabase
         .from('next_steps_history')
         .select('*, profiles(full_name), clients(name)')
+        .eq('client_id', clientId)
         .order('created_at', { ascending: false });
 
       if (error) {
@@ -79,11 +84,6 @@ export const TaskHistory = () => {
                         {entry.profiles?.full_name || 'Unknown user'}
                       </div>
                     </div>
-                    {entry.clients?.name && (
-                      <div className="text-sm text-blue-600">
-                        Client: {entry.clients.name}
-                      </div>
-                    )}
                     <div className="text-sm">{entry.notes || 'No notes'}</div>
                     {entry.due_date && (
                       <div className="text-sm text-gray-500">

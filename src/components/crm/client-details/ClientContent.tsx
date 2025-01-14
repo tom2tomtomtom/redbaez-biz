@@ -1,101 +1,34 @@
 import React from 'react';
-import { ClientRow } from '@/integrations/supabase/types/client-types';
 import { Contact } from './ContactInfoCard';
-import { ContactInfoCard } from './ContactInfoCard';
 import { AdditionalInfoCard } from './AdditionalInfoCard';
 import { KeyMetricsCard } from './KeyMetricsCard';
+import { ContactInfoCard } from './ContactInfoCard';
 import { StatusTab } from './StatusTab';
-import { StrategicRecommendations } from './StrategicRecommendations';
-import { NextStepsHistory } from './NextStepsHistory';
 import { TaskHistory } from './TaskHistory';
-import { UpdateNextStepButton } from './components/UpdateNextStepButton';
-import { Card } from '@/components/ui/card';
 
 interface ClientContentProps {
-  client: ClientRow;
+  client: any;
   isEditing: boolean;
   parsedAdditionalContacts: Contact[];
 }
 
-export const ClientContent: React.FC<ClientContentProps> = ({
-  client,
-  isEditing,
-  parsedAdditionalContacts,
-}) => {
-  const revenueData = Array.from({ length: 12 }, (_, i) => {
-    const date = new Date();
-    date.setMonth(date.getMonth() - i);
-    const month = date.toLocaleString('default', { month: 'short' });
-    const actualKey = `actual_${month.toLowerCase()}` as keyof typeof client;
-    const forecastKey = `forecast_${month.toLowerCase()}` as keyof typeof client;
-    
-    return {
-      month,
-      actual: Number(client[actualKey] || 0),
-      forecast: Number(client[forecastKey] || 0),
-    };
-  }).reverse();
-
+export const ClientContent = ({ client, isEditing, parsedAdditionalContacts }: ClientContentProps) => {
   return (
-    <div className="space-y-6 p-8 text-left">
-      {/* Background Section */}
-      <Card className="p-6">
-        <h2 className="text-2xl font-bold mb-4">{client.name}</h2>
-        <div className="space-y-4">
-          <h3 className="text-xl font-semibold">Background</h3>
-          <p className="text-muted-foreground">{client.background || 'No background information available.'}</p>
-        </div>
-      </Card>
-
-      {/* Tasks and Status Section */}
-      <Card className="p-6">
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-xl font-semibold">Tasks & Status</h2>
-            <div className="flex items-center gap-4">
-              <TaskHistory />
-              <UpdateNextStepButton clientId={client.id} />
-            </div>
-          </div>
-          
-          <StatusTab 
-            clientId={client.id} 
-            currentStatus={client.status || ''}
-          />
-          
-          <NextStepsHistory clientId={client.id} />
-        </div>
-      </Card>
-
-      <div className="grid gap-6 md:grid-cols-2">
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="lg:col-span-2 space-y-6">
         <ContactInfoCard
-          contactName={client.contact_name}
-          contactEmail={client.contact_email}
-          contactPhone={client.contact_phone}
+          client={client}
           additionalContacts={parsedAdditionalContacts}
-          companySize={client.company_size}
-          clientId={client.id}
         />
-        <AdditionalInfoCard
-          industry={client.industry || ''}
-          website={client.website || ''}
-          type={client.type}
-        />
+        <AdditionalInfoCard client={client} />
       </div>
-
-      <KeyMetricsCard
-        annualRevenue={client.annual_revenue}
-        likelihood={client.likelihood}
-        revenueData={revenueData}
-        annualRevenueSignedOff={client.annual_revenue_signed_off || 0}
-        annualRevenueForecast={client.annual_revenue_forecast || 0}
-        clientId={client.id}
-      />
-      
-      <StrategicRecommendations 
-        clientId={client.id}
-        clientName={client.name}
-      />
+      <div className="space-y-6">
+        <KeyMetricsCard client={client} />
+        <div className="flex flex-col gap-4">
+          <StatusTab client={client} />
+          <TaskHistory clientId={client.id} />
+        </div>
+      </div>
     </div>
   );
 };
