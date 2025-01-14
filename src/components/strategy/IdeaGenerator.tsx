@@ -61,8 +61,8 @@ export const IdeaGenerator = ({ category, onIdeaGenerated }: IdeaGeneratorProps)
         // Convert recommendations to tasks without due dates
         for (const rec of data.recommendations) {
           const { error: insertError } = await supabase.from('general_tasks').insert({
-            title: rec.suggestion || 'New Strategic Task',
-            description: `Priority: ${rec.priority}\nType: ${rec.type}\n\n${rec.suggestion}`,
+            title: rec.suggestion,
+            description: `Type: ${rec.type}\nPriority: ${rec.priority}`,
             category: category,
             status: 'incomplete'
             // Removed next_due_date field to create tasks without due dates
@@ -122,7 +122,7 @@ export const IdeaGenerator = ({ category, onIdeaGenerated }: IdeaGeneratorProps)
         task={selectedIdea ? {
           id: '',
           title: selectedIdea.suggestion,
-          description: `Priority: ${selectedIdea.priority}\nType: ${selectedIdea.type}`,
+          description: `Type: ${selectedIdea.type}\nPriority: ${selectedIdea.priority}`,
           category: category,
           status: 'incomplete',
           next_due_date: null,
