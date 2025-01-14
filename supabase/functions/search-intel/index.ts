@@ -1,20 +1,20 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
+import { corsHeaders } from '../_shared/cors.ts'
 
-const PERPLEXITY_API_KEY = Deno.env.get('PERPLEXITY_API_KEY')!;
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+const PERPLEXITY_API_KEY = Deno.env.get('PERPLEXITY_API_KEY')
 
 serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
+    return new Response('ok', { headers: corsHeaders })
   }
 
   try {
-    const { query } = await req.json();
+    const { query } = await req.json()
+    console.log('Searching for:', query)
+
+    if (!query) {
+      throw new Error('No search query provided')
+    }
 
     const response = await fetch('https://api.perplexity.ai/chat/completions', {
       method: 'POST',
@@ -27,39 +27,50 @@ serve(async (req) => {
         messages: [
           {
             role: 'system',
-            content: 'You are a helpful assistant that provides business intelligence insights. Format your response as a bulleted list, with each point on a new line starting with a bullet point (-). Be precise and concise.'
+            content: 'You are a business intelligence analyst. Provide detailed, factual information about companies. Format your response as a bulleted list of key insights. Focus on business model, revenue, market position, and recent developments.'
           },
           {
             role: 'user',
-            content: query
+            content: `Please provide detailed information about ${query}. Include their business model, target market, key products/services, and any recent news or developments.`
           }
         ],
         temperature: 0.2,
+        top_p: 0.9,
         max_tokens: 1000,
+        return_images: false,
+        return_related_questions: false,
+        search_domain_filter: ['perplexity.ai'],
+        search_recency_filter: 'month',
+        frequency_penalty: 1,
+        presence_penalty: 0
       }),
-    });
+    })
 
-    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(`API request failed: ${response.statusText}`)
+    }
+
+    const data = await response.json()
+    console.log('API Response:', data)
+
+    const insight = data.choices[0].message.content
+    console.log('Processed insight:', insight)
 
     return new Response(
-      JSON.stringify(data.choices[0].message.content),
-      { 
-        headers: { 
-          ...corsHeaders,
-          "Content-Type": "application/json" 
-        } 
+      JSON.stringify(insight),
+      {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 200,
       },
-    );
+    )
   } catch (error) {
+    console.error('Error:', error)
     return new Response(
       JSON.stringify({ error: error.message }),
-      { 
-        status: 500, 
-        headers: { 
-          ...corsHeaders,
-          "Content-Type": "application/json" 
-        } 
+      {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 400,
       },
-    );
+    )
   }
-});
+})

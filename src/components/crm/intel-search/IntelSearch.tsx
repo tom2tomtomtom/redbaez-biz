@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -16,6 +16,13 @@ export const IntelSearch = ({ searchInput, onSearchInputChange }: IntelSearchPro
   const { data: insight, isLoading, error } = useIntelSearch(query);
   const { toast } = useToast();
 
+  // Auto-search when component mounts if searchInput is provided
+  useEffect(() => {
+    if (searchInput) {
+      setQuery(searchInput);
+    }
+  }, [searchInput]);
+
   const handleSearch = () => {
     if (!searchInput.trim()) {
       toast({
@@ -25,9 +32,11 @@ export const IntelSearch = ({ searchInput, onSearchInputChange }: IntelSearchPro
       return;
     }
     setQuery(searchInput);
+    console.log('Searching for:', searchInput);
   };
 
   const formatInsight = (text: string) => {
+    if (!text) return [];
     // Split by bullet points or numbered lists
     const points = text.split(/(?:\r?\n|\r)(?:[-•*]|\d+\.)\s+/).filter(Boolean);
     
