@@ -18,6 +18,7 @@ export const StrategyDashboard = ({ category }: StrategyDashboardProps) => {
   
   const activeTasks = allTasks?.filter(task => task.status !== 'completed' && task.next_due_date) || [];
   const completedTasks = allTasks?.filter(task => task.status === 'completed') || [];
+  const generatedIdeas = allTasks?.filter(task => task.status !== 'completed' && !task.next_due_date) || [];
 
   const handleIdeaGenerated = () => {
     setRefreshTrigger(prev => prev + 1);
@@ -33,6 +34,16 @@ export const StrategyDashboard = ({ category }: StrategyDashboardProps) => {
           category={category} 
           onIdeaGenerated={handleIdeaGenerated}
         />
+        {generatedIdeas.length > 0 && (
+          <div className="mt-6">
+            <h3 className="text-lg font-medium mb-4">Generated Ideas</h3>
+            <TaskList 
+              tasks={generatedIdeas}
+              isLoading={isLoading}
+              onTasksUpdated={handleIdeaGenerated}
+            />
+          </div>
+        )}
       </Card>
       
       <Card className="p-6">
@@ -44,7 +55,7 @@ export const StrategyDashboard = ({ category }: StrategyDashboardProps) => {
           </TabsList>
           <TabsContent value="active">
             <TaskList 
-              tasks={allTasks || []} 
+              tasks={activeTasks}
               isLoading={isLoading} 
               onTasksUpdated={handleIdeaGenerated}
             />
