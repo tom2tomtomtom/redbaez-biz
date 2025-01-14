@@ -48,6 +48,12 @@ export function MainNav() {
             Overview
           </Link>
           <Link
+            to="/business-admin"
+            className="text-sm transition-colors md:text-base text-gray-600 hover:text-primary"
+          >
+            Business Admin
+          </Link>
+          <Link
             to="/marketing"
             className="text-sm transition-colors md:text-base text-gray-600 hover:text-primary"
           >
@@ -64,12 +70,6 @@ export function MainNav() {
             className="text-sm transition-colors md:text-base text-gray-600 hover:text-primary whitespace-nowrap"
           >
             Product Development
-          </Link>
-          <Link
-            to="/business-admin"
-            className="text-sm transition-colors md:text-base text-gray-600 hover:text-primary"
-          >
-            Business Admin
           </Link>
           <Link
             to="/ai-news"
