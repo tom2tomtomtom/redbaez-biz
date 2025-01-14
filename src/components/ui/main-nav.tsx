@@ -33,6 +33,7 @@ export function MainNav() {
       >
         Business Admin
       </Link>
+      <div className="flex-grow"></div>
       <Link
         to="/ai-news"
         className="text-sm font-medium text-muted-foreground transition-colors hover:text-primary"
