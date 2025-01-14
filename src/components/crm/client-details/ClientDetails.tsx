@@ -6,6 +6,7 @@ import { LoadingState } from './components/LoadingState';
 import { ErrorState } from './components/ErrorState';
 import { useClientData } from './hooks/useClientData';
 import { Contact } from './ContactInfoCard';
+import { MainNav } from '@/components/ui/main-nav';
 
 export const ClientDetails = () => {
   const { id } = useParams();
@@ -16,14 +17,17 @@ export const ClientDetails = () => {
   // If we're on the "new" route, render the client form
   if (id === 'new') {
     return (
-      <ClientForm
-        contacts={contacts}
-        nextSteps={nextSteps}
-        nextDueDate={nextDueDate}
-        onContactsChange={setContacts}
-        onNextStepsChange={setNextSteps}
-        onNextDueDateChange={setNextDueDate}
-      />
+      <>
+        <MainNav />
+        <ClientForm
+          contacts={contacts}
+          nextSteps={nextSteps}
+          nextDueDate={nextDueDate}
+          onContactsChange={setContacts}
+          onNextStepsChange={setNextSteps}
+          onNextDueDateChange={setNextDueDate}
+        />
+      </>
     );
   }
 
@@ -38,15 +42,30 @@ export const ClientDetails = () => {
   const { data: client, isLoading, error } = useClientData(clientId);
 
   if (isLoading) {
-    return <LoadingState />;
+    return (
+      <>
+        <MainNav />
+        <LoadingState />
+      </>
+    );
   }
 
   if (error) {
-    return <ErrorState message={error.message} />;
+    return (
+      <>
+        <MainNav />
+        <ErrorState message={error.message} />
+      </>
+    );
   }
 
   if (!client) {
-    return <ErrorState message="Client not found" />;
+    return (
+      <>
+        <MainNav />
+        <ErrorState message="Client not found" />
+      </>
+    );
   }
 
   // Parse and validate additional_contacts from JSON for existing clients
@@ -65,10 +84,13 @@ export const ClientDetails = () => {
     [];
 
   return (
-    <ClientContent 
-      client={client}
-      isEditing={false}
-      parsedAdditionalContacts={parsedAdditionalContacts}
-    />
+    <>
+      <MainNav />
+      <ClientContent 
+        client={client}
+        isEditing={false}
+        parsedAdditionalContacts={parsedAdditionalContacts}
+      />
+    </>
   );
 };
