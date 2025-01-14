@@ -12,7 +12,12 @@ export const useGeneralTasks = (category: string, refreshTrigger: number) => {
         .neq('status', 'completed')
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching tasks:', error);
+        throw error;
+      }
+
+      console.log('Fetched tasks:', data); // Debug log
       return data;
     }
   });

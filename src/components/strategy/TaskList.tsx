@@ -110,7 +110,7 @@ export const TaskList = ({ tasks, isLoading, onTasksUpdated, isHistory = false }
 
           {!isHistory && ideas.length > 0 && (
             <div className="space-y-4">
-              <h3 className="font-medium text-sm text-gray-500">Generated Ideas</h3>
+              <h3 className="font-medium text-sm text-gray-500">Generated Ideas ({ideas.length})</h3>
               <div className="space-y-4">
                 {ideas.map((task) => (
                   <div key={task.id} className="relative space-y-2">
