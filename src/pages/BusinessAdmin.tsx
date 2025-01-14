@@ -23,7 +23,22 @@ export const BusinessAdmin = () => {
   const [editingTask, setEditingTask] = useState<Tables<'general_tasks'> | null>(null);
   const queryClient = useQueryClient();
 
-  // Fetch business admin tasks
+  // Mock recent activities data
+  const recentActivities: RecentActivity[] = [
+    {
+      id: '1',
+      description: 'Monthly financial report generated',
+      date: new Date().toISOString(),
+      details: 'Q1 2024 financial summary completed'
+    },
+    {
+      id: '2',
+      description: 'Team meeting scheduled',
+      date: new Date().toISOString(),
+      details: 'Quarterly planning session'
+    }
+  ];
+
   const { data: tasks } = useQuery({
     queryKey: ['generalTasks', 'business-admin'],
     queryFn: async () => {
@@ -77,22 +92,6 @@ export const BusinessAdmin = () => {
     setEditingTask(task);
     setIsDialogOpen(true);
   };
-
-  // Mock recent activities data
-  const recentActivities: RecentActivity[] = [
-    {
-      id: '1',
-      description: 'Monthly financial report generated',
-      date: new Date().toISOString(),
-      details: 'Q1 2024 financial summary completed'
-    },
-    {
-      id: '2',
-      description: 'Team meeting scheduled',
-      date: new Date().toISOString(),
-      details: 'Quarterly planning session'
-    }
-  ];
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100/50">
@@ -189,8 +188,7 @@ export const BusinessAdmin = () => {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {/* Recent activities list */}
-              {recentActivities?.map((activity) => (
+              {recentActivities.map((activity) => (
                 <div key={activity.id} className="flex items-center">
                   <div className="ml-4">
                     <p className="text-sm font-medium">{activity.description}</p>
