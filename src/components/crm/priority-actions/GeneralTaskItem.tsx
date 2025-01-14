@@ -30,25 +30,27 @@ const getCategoryColor = (task: GeneralTaskRow, isClientTask: boolean) => {
     return 'bg-[#F1F0FB]/50 hover:bg-[#F1F0FB]';
   }
   
-  const categoryColor = (() => {
-    switch (task.category.toLowerCase()) {
-      case 'marketing':
-        console.log('Marketing task, returning pink');
-        return 'bg-[#FFDEE2]/50 hover:bg-[#FFDEE2]';
-      case 'product development':
-        return 'bg-[#D3E4FD]/50 hover:bg-[#D3E4FD]';
-      case 'partnerships':
-        return 'bg-[#F2FCE2]/50 hover:bg-[#F2FCE2]';
-      case 'business admin':
-        return 'bg-[#F1F0FB]/50 hover:bg-[#F1F0FB]';
-      default:
-        console.log('Default case, category:', task.category.toLowerCase());
-        return 'bg-[#FDE1D3]/50 hover:bg-[#FDE1D3]';
-    }
-  })();
+  // Normalize the category by trimming whitespace and converting to lowercase
+  const normalizedCategory = task.category.trim().toLowerCase();
+  console.log('Normalized category:', normalizedCategory);
   
-  console.log('Returning color:', categoryColor);
-  return categoryColor;
+  switch (normalizedCategory) {
+    case 'marketing':
+      console.log('Marketing task, returning pink');
+      return 'bg-[#FFDEE2]/50 hover:bg-[#FFDEE2]';
+    case 'product development':
+      console.log('Product development task, returning blue');
+      return 'bg-[#D3E4FD]/50 hover:bg-[#D3E4FD]';
+    case 'partnerships':
+      console.log('Partnerships task, returning green');
+      return 'bg-[#F2FCE2]/50 hover:bg-[#F2FCE2]';
+    case 'business admin':
+      console.log('Business admin task, returning gray');
+      return 'bg-[#F1F0FB]/50 hover:bg-[#F1F0FB]';
+    default:
+      console.log('Default case, category:', normalizedCategory);
+      return 'bg-[#F1F0FB]/50 hover:bg-[#F1F0FB]';
+  }
 };
 
 export const GeneralTaskItem = ({ task, onDeleted }: GeneralTaskItemProps) => {
