@@ -1,59 +1,44 @@
-interface Client {
-  forecast_jan?: number;
-  forecast_feb?: number;
-  forecast_mar?: number;
-  forecast_apr?: number;
-  forecast_may?: number;
-  forecast_jun?: number;
-  forecast_jul?: number;
-  forecast_aug?: number;
-  forecast_sep?: number;
-  forecast_oct?: number;
-  forecast_nov?: number;
-  forecast_dec?: number;
-  actual_jan?: number;
-  actual_feb?: number;
-  actual_mar?: number;
-  actual_apr?: number;
-  actual_may?: number;
-  actual_jun?: number;
-  actual_jul?: number;
-  actual_aug?: number;
-  actual_sep?: number;
-  actual_oct?: number;
-  actual_nov?: number;
-  actual_dec?: number;
-}
-
-const months = [
-  'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-  'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
-];
-
-export const calculateRevenueData = (clients: Client[]) => {
-  const forecastData = months.map((month, index) => {
-    const monthKey = month.toLowerCase() as keyof Client;
-    const forecastKey = `forecast_${monthKey}` as keyof Client;
-    const totalAmount = clients.reduce((sum, client) => 
-      sum + (client[forecastKey] as number || 0), 0);
+export const calculateRevenueData = (clients: any[]) => {
+  const forecastData = [];
+  const achievedData = [];
+  
+  // Group by month
+  const monthlyData = clients.reduce((acc: any, client: any) => {
+    const date = new Date(client.created_at);
+    const monthYear = `${date.getMonth() + 1}/${date.getFullYear()}`;
     
-    return {
-      month,
-      amount: totalAmount
-    };
-  });
-
-  const achievedData = months.map((month, index) => {
-    const monthKey = month.toLowerCase() as keyof Client;
-    const actualKey = `actual_${monthKey}` as keyof Client;
-    const totalAmount = clients.reduce((sum, client) => 
-      sum + (client[actualKey] as number || 0), 0);
+    if (!acc[monthYear]) {
+      acc[monthYear] = {
+        forecast: 0,
+        achieved: 0
+      };
+    }
     
-    return {
+    // Sum up forecast revenue (annual_revenue * likelihood)
+    if (client.annual_revenue && client.likelihood) {
+      acc[monthYear].forecast += (client.annual_revenue * (client.likelihood / 100));
+    }
+    
+    // Sum up achieved revenue (for clients with status = 'customer')
+    if (client.status === 'customer' && client.annual_revenue) {
+      acc[monthYear].achieved += client.annual_revenue;
+    }
+    
+    return acc;
+  }, {});
+  
+  // Convert to array format for charts
+  Object.entries(monthlyData).forEach(([month, data]: [string, any]) => {
+    forecastData.push({
       month,
-      amount: totalAmount
-    };
+      revenue: Math.round(data.forecast)
+    });
+    
+    achievedData.push({
+      month,
+      revenue: Math.round(data.achieved)
+    });
   });
-
+  
   return { forecastData, achievedData };
 };

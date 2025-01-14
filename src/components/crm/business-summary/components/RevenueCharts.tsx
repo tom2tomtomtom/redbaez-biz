@@ -1,33 +1,54 @@
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { 
+  BarChart, 
+  Bar, 
+  XAxis, 
+  YAxis, 
+  CartesianGrid, 
+  Tooltip, 
+  ResponsiveContainer,
+  LineChart,
+  Line
+} from 'recharts';
 
 interface RevenueChartsProps {
-  forecastData: Array<{ month: string; amount: number }>;
-  achievedData: Array<{ month: string; amount: number }>;
+  forecastData: any[];
+  achievedData: any[];
 }
 
 export const RevenueCharts = ({ forecastData, achievedData }: RevenueChartsProps) => {
-  const combinedData = forecastData.map((item, index) => ({
-    month: item.month,
-    forecast: item.amount,
-    achieved: achievedData[index]?.amount || 0,
-  }));
-
   return (
-    <div className="w-full h-[300px]">
-      <ResponsiveContainer width="100%" height="100%">
-        <LineChart
-          data={combinedData}
-          margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-        >
-          <CartesianGrid strokeDasharray="3 3" />
-          <XAxis dataKey="month" />
-          <YAxis />
-          <Tooltip />
-          <Legend />
-          <Line type="monotone" dataKey="forecast" stroke="#8884d8" name="Forecast Revenue" />
-          <Line type="monotone" dataKey="achieved" stroke="#82ca9d" name="Achieved Revenue" />
-        </LineChart>
-      </ResponsiveContainer>
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+      {/* Revenue Forecast Chart */}
+      <div className="p-4 bg-white rounded-lg shadow">
+        <h3 className="text-lg font-semibold mb-4">Revenue Forecast</h3>
+        <div className="h-[300px]">
+          <ResponsiveContainer width="100%" height="100%">
+            <LineChart data={forecastData}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="month" />
+              <YAxis />
+              <Tooltip />
+              <Line type="monotone" dataKey="revenue" stroke="#8884d8" />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+
+      {/* Achieved Revenue Chart */}
+      <div className="p-4 bg-white rounded-lg shadow">
+        <h3 className="text-lg font-semibold mb-4">Achieved Revenue</h3>
+        <div className="h-[300px]">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={achievedData}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="month" />
+              <YAxis />
+              <Tooltip />
+              <Bar dataKey="revenue" fill="#1A1F2C" />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
     </div>
   );
 };

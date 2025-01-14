@@ -3,17 +3,14 @@ import { supabase } from '@/integrations/supabase/client';
 import { Tables } from '@/integrations/supabase/types';
 import { GeneralTaskRow } from '@/integrations/supabase/types/general-tasks.types';
 
-export type NextStepData = Tables<'client_next_steps'> & { client_name?: string };
-export type TaskData = GeneralTaskRow;
-
 export type PriorityItem = {
   type: 'task';
   date: string | null;
-  data: TaskData;
+  data: GeneralTaskRow;
 } | {
   type: 'next_step';
   date: string | null;
-  data: NextStepData;
+  data: Tables<'client_next_steps'> & { client_name?: string };
 };
 
 const fetchGeneralTasks = async () => {
@@ -21,7 +18,7 @@ const fetchGeneralTasks = async () => {
     .from('general_tasks')
     .select('*')
     .neq('status', 'completed')
-    .not('next_due_date', 'is', null)
+    .not('next_due_date', 'is', null)  // Only fetch tasks with a due date
     .order('next_due_date', { ascending: true });
     
   if (error) throw error;
@@ -48,8 +45,8 @@ const fetchNextSteps = async () => {
 };
 
 const sortByUrgencyAndDate = (a: PriorityItem, b: PriorityItem) => {
-  const aUrgent = a.data.urgent || false;
-  const bUrgent = b.data.urgent || false;
+  const aUrgent = 'urgent' in a.data ? a.data.urgent : false;
+  const bUrgent = 'urgent' in b.data ? b.data.urgent : false;
 
   if (aUrgent && !bUrgent) return -1;
   if (!aUrgent && bUrgent) return 1;

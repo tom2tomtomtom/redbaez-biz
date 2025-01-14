@@ -33,12 +33,6 @@ export function MainNav() {
       >
         AI News
       </Link>
-      <Link
-        to="/business-admin"
-        className="text-sm font-medium text-muted-foreground transition-colors hover:text-primary"
-      >
-        Business Admin
-      </Link>
     </nav>
   );
 }

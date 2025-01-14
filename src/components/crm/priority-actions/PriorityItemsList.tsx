@@ -14,12 +14,16 @@ export const PriorityItemsList = ({ items, onTaskClick }: PriorityItemsListProps
   const [itemToComplete, setItemToComplete] = useState<PriorityItem | null>(null);
   const { handleCompletedChange, handleUrgentChange } = useItemStatusChange();
 
-  const activeItems = items.filter(item => {
-    if (item.type === 'task') {
-      return item.data.status !== 'completed' && item.data.next_due_date !== null;
-    }
-    return !item.data.completed_at;
-  });
+  // Show only items that:
+  // 1. For tasks: are incomplete AND have a due date
+  // 2. For next steps: are not completed
+  const activeItems = items.filter(item => 
+    (item.type === 'task' && 
+     item.data.status !== 'completed' && 
+     item.data.next_due_date !== null) ||
+    (item.type === 'next_step' && 
+     !item.data.completed_at)
+  );
 
   if (activeItems.length === 0) {
     return (

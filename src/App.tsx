@@ -13,7 +13,6 @@ import { Partnerships } from "./pages/Partnerships";
 import { ProductDevelopment } from "./pages/ProductDevelopment";
 import { AiNews } from "./pages/AiNews";
 import { CRMDashboard } from "./components/crm/CRMDashboard";
-import { BusinessAdmin } from "./pages/BusinessAdmin";
 
 const queryClient = new QueryClient();
 
@@ -101,14 +100,6 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <AiNews />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/business-admin"
-              element={
-                <ProtectedRoute>
-                  <BusinessAdmin />
                 </ProtectedRoute>
               }
             />
