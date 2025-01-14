@@ -10,7 +10,7 @@ export const useGeneralTasks = (category: string, refreshTrigger: number) => {
       const { data, error } = await supabase
         .from('general_tasks')
         .select('*, clients(name)')
-        .eq('category', category.toLowerCase())
+        .eq('category', category)
         .eq('status', 'incomplete')
         .order('created_at', { ascending: false });
 
