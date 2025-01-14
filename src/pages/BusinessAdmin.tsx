@@ -82,40 +82,11 @@ export const BusinessAdmin = () => {
     }
   });
 
-  // Calculate total achieved and forecast revenue from monthly columns
-  const totalAchievedRevenue = clientsData?.reduce((sum, client) => {
-    return sum + (
-      (client.actual_jan || 0) +
-      (client.actual_feb || 0) +
-      (client.actual_mar || 0) +
-      (client.actual_apr || 0) +
-      (client.actual_may || 0) +
-      (client.actual_jun || 0) +
-      (client.actual_jul || 0) +
-      (client.actual_aug || 0) +
-      (client.actual_sep || 0) +
-      (client.actual_oct || 0) +
-      (client.actual_nov || 0) +
-      (client.actual_dec || 0)
-    );
-  }, 0) || 0;
-
-  const totalForecastRevenue = clientsData?.reduce((sum, client) => {
-    return sum + (
-      (client.forecast_jan || 0) +
-      (client.forecast_feb || 0) +
-      (client.forecast_mar || 0) +
-      (client.forecast_apr || 0) +
-      (client.forecast_may || 0) +
-      (client.forecast_jun || 0) +
-      (client.forecast_jul || 0) +
-      (client.forecast_aug || 0) +
-      (client.forecast_sep || 0) +
-      (client.forecast_oct || 0) +
-      (client.forecast_nov || 0) +
-      (client.forecast_dec || 0)
-    );
-  }, 0) || 0;
+  // Calculate total achieved and forecast revenue using annual totals
+  const { totalAchievedRevenue, totalForecastRevenue } = clientsData?.reduce((acc, client) => ({
+    totalAchievedRevenue: acc.totalAchievedRevenue + (client.annual_revenue_signed_off || 0),
+    totalForecastRevenue: acc.totalForecastRevenue + (client.annual_revenue_forecast || 0)
+  }), { totalAchievedRevenue: 0, totalForecastRevenue: 0 }) || { totalAchievedRevenue: 0, totalForecastRevenue: 0 };
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100/50">
