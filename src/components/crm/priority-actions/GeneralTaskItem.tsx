@@ -53,20 +53,20 @@ export const GeneralTaskItem = ({ task, isClientTask = false }: { task: GeneralT
     <div className={cn(
       "p-4 rounded-lg transition-colors",
       colorClasses,
-      "relative group"
+      "relative group text-left"
     )}>
       <div className="flex items-start justify-between gap-4">
         <div className="flex-1">
-          <h3 className="font-medium text-gray-900">{displayTitle}</h3>
-          <p className="mt-1 text-sm text-gray-500">{displayDescription}</p>
+          <h3 className="font-medium text-gray-900 text-left">{displayTitle}</h3>
+          <p className="mt-1 text-sm text-gray-500 text-left whitespace-pre-wrap">{displayDescription}</p>
           {task.next_due_date && (
-            <p className="mt-2 text-sm text-gray-500">
+            <p className="mt-2 text-sm text-gray-500 text-left">
               Due: {new Date(task.next_due_date).toLocaleDateString()}
             </p>
           )}
         </div>
         {task.urgent && (
-          <span className="px-2 py-1 text-xs font-medium text-red-700 bg-red-100 rounded-full">
+          <span className="px-2 py-1 text-xs font-medium text-red-700 bg-red-100 rounded-full shrink-0">
             Urgent
           </span>
         )}

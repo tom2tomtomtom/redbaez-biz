@@ -44,14 +44,14 @@ const Index = () => {
         )}
 
         <div className="space-y-6">
-          <div className="rounded-lg bg-card p-4 shadow-sm">
-            <h2 className="text-lg font-semibold mb-4">Priority Actions</h2>
-            <div className="max-h-[500px] overflow-y-auto">
+          <div className="rounded-lg bg-card p-6 shadow-sm">
+            <h2 className="text-xl font-semibold mb-4 text-left">Priority Actions</h2>
+            <div className="max-h-[600px] overflow-y-auto">
               <PriorityActions hideAddButton />
             </div>
           </div>
 
-          <div className="rounded-lg bg-card p-4 shadow-sm">
+          <div className="rounded-lg bg-card p-6 shadow-sm">
             {showClientList ? (
               <ClientListSection clients={clients} isLoading={isLoading} />
             ) : (

@@ -41,7 +41,7 @@ export const PriorityItemsList = ({ items, onTaskClick }: PriorityItemsListProps
         onComplete={(item) => handleCompletedChange(item, true)}
       />
 
-      <div className="space-y-3">
+      <div className="space-y-4">
         {activeItems.map((item, index) => (
           <PriorityListItem
             key={`${item.type}-${item.data.id}`}
