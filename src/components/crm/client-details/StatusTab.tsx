@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -37,6 +37,9 @@ export const StatusTab = ({ clientId, currentStatus }: StatusTabProps) => {
       return data;
     },
   });
+
+  // Get the latest status notes
+  const currentStatusNotes = statusHistory?.[0]?.notes || '';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -92,9 +95,9 @@ export const StatusTab = ({ clientId, currentStatus }: StatusTabProps) => {
       case 'inactive':
         return 'secondary';
       case 'pending':
-        return 'warning';
+        return 'secondary';
       case 'completed':
-        return 'success';
+        return 'default';
       default:
         return 'secondary';
     }
@@ -141,10 +144,15 @@ export const StatusTab = ({ clientId, currentStatus }: StatusTabProps) => {
             </Button>
           </form>
         ) : (
-          <div className="flex items-center space-x-2">
-            <Badge variant={getStatusBadgeVariant(currentStatus || '')}>
-              {currentStatus || 'Not Set'}
-            </Badge>
+          <div className="space-y-3">
+            <div className="flex items-center space-x-2">
+              <Badge variant={getStatusBadgeVariant(currentStatus || '')}>
+                {currentStatus || 'Not Set'}
+              </Badge>
+            </div>
+            {currentStatusNotes && (
+              <p className="text-sm text-gray-600">{currentStatusNotes}</p>
+            )}
           </div>
         )}
       </div>

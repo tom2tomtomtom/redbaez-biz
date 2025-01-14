@@ -19,6 +19,16 @@ interface ClientContentProps {
   parsedAdditionalContacts: Contact[];
 }
 
+interface DueItem {
+  id: string;
+  type: 'task' | 'next-step' | 'idea';
+  dueDate: string;
+  title?: string;
+  notes?: string;
+  description?: string;
+  urgent?: boolean;
+}
+
 export const ClientContent = ({ client, isEditing, parsedAdditionalContacts }: ClientContentProps) => {
   // Fetch all related tasks and next steps
   const { data: allItems, isLoading } = useQuery({
@@ -60,21 +70,25 @@ export const ClientContent = ({ client, isEditing, parsedAdditionalContacts }: C
     if (isLoading) return <div>Loading items...</div>;
     if (!allItems) return null;
 
-    const allDueItems = [
+    const allDueItems: DueItem[] = [
       ...allItems.tasks.map(task => ({
         ...task,
-        type: 'task',
-        dueDate: task.next_due_date
+        type: 'task' as const,
+        dueDate: task.next_due_date,
+        title: task.title,
+        description: task.description
       })),
       ...allItems.nextSteps.map(step => ({
         ...step,
-        type: 'next-step',
-        dueDate: step.due_date
+        type: 'next-step' as const,
+        dueDate: step.due_date,
+        notes: step.notes
       })),
       ...allItems.ideas.map(idea => ({
         ...idea,
-        type: 'idea',
-        dueDate: idea.due_date
+        type: 'idea' as const,
+        dueDate: idea.due_date,
+        description: idea.description
       }))
     ].sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime());
 
