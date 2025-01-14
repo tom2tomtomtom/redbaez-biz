@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/use-toast";
-import { format } from "date-fns";
 
 interface TaskListProps {
   tasks: GeneralTaskRow[];
@@ -56,7 +55,7 @@ export const TaskList = ({ tasks, isLoading, onTasksUpdated, isHistory = false }
     return task.status !== 'completed';
   });
 
-  // Separate tasks into ideas and active tasks
+  // Separate tasks into ideas (no due date) and active tasks (with due date)
   const ideas = filteredTasks.filter(task => !task.next_due_date);
   const activeTasks = filteredTasks.filter(task => task.next_due_date);
 
@@ -82,16 +81,11 @@ export const TaskList = ({ tasks, isLoading, onTasksUpdated, isHistory = false }
               <h3 className="font-medium text-sm text-gray-500">Active Tasks ({activeTasks.length})</h3>
               <div className="space-y-4">
                 {activeTasks.map((task) => (
-                  <div key={task.id} className="relative">
+                  <div key={task.id}>
                     <GeneralTaskItem 
                       task={task}
                       isClientTask={!!task.client_id}
                     />
-                    {isHistory && task.updated_at && (
-                      <div className="absolute top-2 right-2 text-xs text-gray-500">
-                        Completed: {format(new Date(task.updated_at), 'MMM d, yyyy')}
-                      </div>
-                    )}
                   </div>
                 ))}
               </div>
