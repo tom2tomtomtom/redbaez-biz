@@ -34,7 +34,7 @@ export const ClientContent: React.FC<ClientContentProps> = ({
   }).reverse();
 
   return (
-    <div className="space-y-6 p-8">
+    <div className="space-y-6 p-8 text-left">
       <div className="flex flex-col space-y-2">
         <h1 className="text-2xl font-bold tracking-tight">{client.name}</h1>
         <p className="text-muted-foreground">{client.background}</p>
