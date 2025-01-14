@@ -34,7 +34,7 @@ export const ClientContent: React.FC<ClientContentProps> = ({
   }).reverse();
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 p-8">
       <div className="flex flex-col space-y-2">
         <h1 className="text-2xl font-bold tracking-tight">{client.name}</h1>
         <p className="text-muted-foreground">{client.background}</p>
@@ -46,11 +46,12 @@ export const ClientContent: React.FC<ClientContentProps> = ({
           contactEmail={client.contact_email}
           contactPhone={client.contact_phone}
           additionalContacts={parsedAdditionalContacts}
+          companySize={client.company_size}
+          clientId={client.id}
         />
         <AdditionalInfoCard
-          industry={client.industry}
-          companySize={client.company_size}
-          website={client.website}
+          industry={client.industry || ''}
+          website={client.website || ''}
           type={client.type}
         />
       </div>
@@ -64,7 +65,7 @@ export const ClientContent: React.FC<ClientContentProps> = ({
         clientId={client.id}
       />
 
-      <StatusTab client={client} />
+      <StatusTab clientId={client.id} />
       
       <StrategicRecommendations 
         clientId={client.id}
