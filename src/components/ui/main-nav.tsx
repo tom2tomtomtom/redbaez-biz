@@ -38,7 +38,7 @@ export function MainNav() {
   }
 
   return (
-    <nav className="sticky top-0 z-50 w-full bg-white border-b shadow-sm">
+    <nav className="w-full border-b border-gray-200">
       <div className="flex items-center justify-between px-4 py-3 mx-auto max-w-7xl md:px-6">
         <div className="flex items-center space-x-4 overflow-x-auto no-scrollbar lg:space-x-6">
           <Link
