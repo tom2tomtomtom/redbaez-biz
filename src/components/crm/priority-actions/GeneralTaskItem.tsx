@@ -95,6 +95,11 @@ export const GeneralTaskItem = ({ task, onDeleted }: GeneralTaskItemProps) => {
     }
   };
 
+  // Parse the description to extract type and priority
+  const descriptionLines = task.description?.split('\n') || [];
+  const taskType = descriptionLines.find(line => line.startsWith('Type:'))?.replace('Type:', '').trim();
+  const taskPriority = descriptionLines.find(line => line.startsWith('Priority:'))?.replace('Priority:', '').trim();
+
   return (
     <Card 
       className={cn(
@@ -110,8 +115,11 @@ export const GeneralTaskItem = ({ task, onDeleted }: GeneralTaskItemProps) => {
           </div>
           <div className="space-y-1">
             <span className="font-medium">{task.title}</span>
-            {task.description && (
-              <p className="text-sm text-gray-600">{task.description}</p>
+            {(taskType || taskPriority) && (
+              <div className="text-sm text-gray-600 space-y-0.5">
+                {taskType && <p>Type: {taskType}</p>}
+                {taskPriority && <p>Priority: {taskPriority}</p>}
+              </div>
             )}
           </div>
         </div>
