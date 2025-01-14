@@ -10,6 +10,7 @@ interface PriorityListItemProps {
   onTaskClick: (task: GeneralTaskRow) => void;
   onComplete: () => void;
   onUrgentChange: (checked: boolean) => void;
+  onDelete: () => void;
 }
 
 export const PriorityListItem = ({
@@ -17,7 +18,8 @@ export const PriorityListItem = ({
   index,
   onTaskClick,
   onComplete,
-  onUrgentChange
+  onUrgentChange,
+  onDelete
 }: PriorityListItemProps) => {
   return (
     <div 
@@ -30,6 +32,7 @@ export const PriorityListItem = ({
         item={item}
         onComplete={onComplete}
         onUrgentChange={onUrgentChange}
+        onDelete={onDelete}
       />
       <div className="transition-all duration-300 transform hover:scale-[1.01] hover:shadow-md rounded-lg">
         {item.type === 'task' ? (

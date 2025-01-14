@@ -1,25 +1,26 @@
 import { Switch } from "@/components/ui/switch";
-import { CheckCircle } from "lucide-react";
+import { CheckCircle, Trash2 } from "lucide-react";
 import { PriorityItem } from "../hooks/usePriorityData";
+import { cn } from "@/lib/utils";
 
 interface ItemControlsProps {
   item: PriorityItem;
   onComplete: () => void;
   onUrgentChange: (checked: boolean) => void;
+  onDelete: () => void;
 }
 
 export const ItemControls = ({ 
   item, 
   onComplete, 
-  onUrgentChange 
+  onUrgentChange,
+  onDelete
 }: ItemControlsProps) => {
   const isCompleted = item.type === 'next_step' 
     ? item.data.completed_at !== null
     : item.data.status === 'completed';
 
   const handleUrgentChange = async (checked: boolean) => {
-    // Add a small delay to allow the toggle animation to complete
-    // before the item moves in the list
     setTimeout(() => {
       onUrgentChange(checked);
     }, 300);
@@ -30,13 +31,21 @@ export const ItemControls = ({
       <div className="flex items-center gap-2">
         <button
           onClick={onComplete}
-          className={`transition-all duration-300 transform hover:scale-110 active:scale-95 ${
+          className={cn(
+            "transition-all duration-300 transform hover:scale-110 active:scale-95",
             isCompleted ? 'text-green-500' : 'text-gray-400 hover:text-gray-600'
-          }`}
+          )}
         >
-          <CheckCircle className={`h-5 w-5 transition-all duration-300 ${
+          <CheckCircle className={cn(
+            "h-5 w-5 transition-all duration-300",
             isCompleted ? 'animate-scale-in' : ''
-          }`} />
+          )} />
+        </button>
+        <button
+          onClick={onDelete}
+          className="transition-all duration-300 transform hover:scale-110 active:scale-95 text-gray-400 hover:text-red-500"
+        >
+          <Trash2 className="h-5 w-5" />
         </button>
         <div className="transition-transform duration-300 hover:scale-105">
           <Switch

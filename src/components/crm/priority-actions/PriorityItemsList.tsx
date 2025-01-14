@@ -12,7 +12,7 @@ interface PriorityItemsListProps {
 
 export const PriorityItemsList = ({ items, onTaskClick }: PriorityItemsListProps) => {
   const [itemToComplete, setItemToComplete] = useState<PriorityItem | null>(null);
-  const { handleCompletedChange, handleUrgentChange } = useItemStatusChange();
+  const { handleCompletedChange, handleUrgentChange, handleDelete } = useItemStatusChange();
 
   const activeItems = items.filter(item => 
     (item.type === 'task' && 
@@ -47,6 +47,7 @@ export const PriorityItemsList = ({ items, onTaskClick }: PriorityItemsListProps
             onTaskClick={onTaskClick}
             onComplete={() => setItemToComplete(item)}
             onUrgentChange={(checked) => handleUrgentChange(item, checked)}
+            onDelete={() => handleDelete(item)}
           />
         ))}
       </div>

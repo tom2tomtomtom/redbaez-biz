@@ -22,7 +22,6 @@ export const useItemStatusChange = () => {
         if (error) throw error;
       }
 
-      // Invalidate all relevant queries to ensure proper reordering
       queryClient.invalidateQueries({ queryKey: ['generalTasks'] });
       queryClient.invalidateQueries({ queryKey: ['priorityNextSteps'] });
       queryClient.invalidateQueries({ queryKey: ['nextSteps'] });
@@ -38,6 +37,43 @@ export const useItemStatusChange = () => {
       toast({
         title: "Error",
         description: "Failed to update completion status",
+        variant: "destructive",
+      });
+      return false;
+    }
+  };
+
+  const handleDelete = async (item: PriorityItem) => {
+    try {
+      if (item.type === 'task') {
+        const { error } = await supabase
+          .from('general_tasks')
+          .delete()
+          .eq('id', item.data.id);
+        if (error) throw error;
+      } else if (item.type === 'next_step') {
+        const { error } = await supabase
+          .from('client_next_steps')
+          .delete()
+          .eq('id', item.data.id);
+        if (error) throw error;
+      }
+
+      queryClient.invalidateQueries({ queryKey: ['generalTasks'] });
+      queryClient.invalidateQueries({ queryKey: ['priorityNextSteps'] });
+      queryClient.invalidateQueries({ queryKey: ['nextSteps'] });
+
+      toast({
+        title: "Item deleted",
+        description: "Successfully deleted the item",
+      });
+
+      return true;
+    } catch (error) {
+      console.error('Error deleting item:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete the item",
         variant: "destructive",
       });
       return false;
@@ -64,7 +100,6 @@ export const useItemStatusChange = () => {
 
       if (error) throw error;
 
-      // Invalidate all relevant queries to ensure proper reordering
       queryClient.invalidateQueries({ queryKey: ['generalTasks'] });
       queryClient.invalidateQueries({ queryKey: ['priorityNextSteps'] });
       queryClient.invalidateQueries({ queryKey: ['nextSteps'] });
@@ -88,6 +123,7 @@ export const useItemStatusChange = () => {
 
   return {
     handleCompletedChange,
-    handleUrgentChange
+    handleUrgentChange,
+    handleDelete
   };
 };
