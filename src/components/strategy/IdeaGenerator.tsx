@@ -58,14 +58,14 @@ export const IdeaGenerator = ({ category, onIdeaGenerated }: IdeaGeneratorProps)
       if (data?.recommendations) {
         console.log('Processing recommendations:', data.recommendations);
         
-        // Convert recommendations to tasks
+        // Convert recommendations to tasks without due dates
         for (const rec of data.recommendations) {
           const { error: insertError } = await supabase.from('general_tasks').insert({
             title: rec.suggestion || 'New Strategic Task',
             description: `Priority: ${rec.priority}\nType: ${rec.type}\n\n${rec.suggestion}`,
             category: category,
-            status: 'incomplete',
-            next_due_date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString() // Default to 1 week
+            status: 'incomplete'
+            // Removed next_due_date field to create tasks without due dates
           });
 
           if (insertError) {
