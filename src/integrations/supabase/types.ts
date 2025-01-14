@@ -173,6 +173,7 @@ export type Database = {
       }
       client_next_steps: {
         Row: {
+          category: string
           client_id: number | null
           completed_at: string | null
           created_at: string | null
@@ -184,6 +185,7 @@ export type Database = {
           urgent: boolean | null
         }
         Insert: {
+          category: string
           client_id?: number | null
           completed_at?: string | null
           created_at?: string | null
@@ -195,6 +197,7 @@ export type Database = {
           urgent?: boolean | null
         }
         Update: {
+          category?: string
           client_id?: number | null
           completed_at?: string | null
           created_at?: string | null

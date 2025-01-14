@@ -32,51 +32,26 @@ export const useGeneralTasks = (category: string, refreshTrigger: number) => {
         throw nextStepsError;
       }
 
-      // Fetch strategic recommendations
-      const { data: recommendations, error: recommendationsError } = await supabase
-        .from('recommendations')
-        .select('*, clients(name)')
-        .eq('category', category.toLowerCase())
-        .eq('status', 'pending')
-        .order('due_date', { ascending: true });
-
-      if (recommendationsError) {
-        console.error('Error fetching recommendations:', recommendationsError);
-        throw recommendationsError;
-      }
-
-      // Convert next steps and recommendations to general task format
+      // Convert next steps to general task format
       const nextStepTasks = nextSteps?.map(step => ({
         id: `next-step-${step.id}`,
         title: `Next Step for ${step.clients?.name || 'Unknown Client'}`,
         description: step.notes,
         category: category.toLowerCase(),
-        status: step.completed_at ? 'completed' : null,
+        status: step.completed_at ? 'completed' : 'incomplete',
         next_due_date: step.due_date,
         created_at: step.created_at,
         updated_at: step.updated_at,
         urgent: step.urgent,
-        client_id: step.client_id
+        client_id: step.client_id,
+        type: 'next_step',
+        original_data: step
       })) || [];
 
-      const recommendationTasks = recommendations?.map(rec => ({
-        id: `recommendation-${rec.id}`,
-        title: `Strategic Recommendation for ${rec.clients?.name || 'Unknown Client'}`,
-        description: rec.description,
-        category: category.toLowerCase(),
-        status: rec.status === 'completed' ? 'completed' : null,
-        next_due_date: rec.due_date,
-        created_at: rec.created_at,
-        updated_at: rec.created_at,
-        urgent: false,
-        client_id: rec.client_id
-      })) || [];
-
-      // Combine all tasks
+      // Combine all tasks and add type identifier
       const allTasks = [
-        ...(tasks || []),
-        ...nextStepTasks,
-        ...recommendationTasks
+        ...(tasks?.map(task => ({ ...task, type: 'task' })) || []),
+        ...nextStepTasks
       ];
 
       console.log('Combined tasks:', allTasks); // Debug log

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { GeneralTaskRow } from "@/integrations/supabase/types/general-tasks.types";
 import { GeneralTaskItem } from "../crm/priority-actions/GeneralTaskItem";
+import { NextStepItem } from "../crm/priority-actions/NextStepItem";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,7 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/use-toast";
 
 interface TaskListProps {
-  tasks: GeneralTaskRow[];
+  tasks: any[];
   isLoading: boolean;
   onTasksUpdated: () => void;
   isHistory?: boolean;
@@ -81,11 +82,15 @@ export const TaskList = ({ tasks, isLoading, onTasksUpdated, isHistory = false }
         <div className="space-y-4">
           {sortedTasks.map((task) => (
             <div key={task.id} className="relative space-y-2">
-              <GeneralTaskItem 
-                task={task}
-                isClientTask={!!task.client_id}
-              />
-              {!isHistory && !task.next_due_date && (
+              {task.type === 'next_step' ? (
+                <NextStepItem nextStep={task.original_data} />
+              ) : (
+                <GeneralTaskItem 
+                  task={task}
+                  isClientTask={!!task.client_id}
+                />
+              )}
+              {!isHistory && !task.next_due_date && task.type !== 'next_step' && (
                 <div className="flex items-center gap-2 px-6">
                   <Input
                     type="date"
