@@ -1,72 +1,55 @@
-import React, { useState } from 'react';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Badge } from '@/components/ui/badge';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Calendar } from '@/components/ui/calendar';
-import { format } from 'date-fns';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
-import { cn } from '@/lib/utils';
-import { CalendarIcon, Plus, Trash2 } from 'lucide-react';
+import { Calendar } from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from '@/components/ui/use-toast';
-import { useQueryClient } from '@tanstack/react-query';
-import { Switch } from '@/components/ui/switch';
 
 interface RecommendationAlertProps {
   type: string;
-  priority: string;
   suggestion: string;
+  priority: string;
   clientId: number;
   clientName: string;
+  onImplemented?: () => void;
 }
 
-export const RecommendationAlert: React.FC<RecommendationAlertProps> = ({
+export const RecommendationAlert = ({
   type,
-  priority,
   suggestion,
+  priority,
   clientId,
-  clientName
-}) => {
-  const [date, setDate] = useState<Date>();
-  const [isOpen, setIsOpen] = useState(false);
-  const [isUrgent, setIsUrgent] = useState(false);
-  const [isDiscarded, setIsDiscarded] = useState(false);
-  const queryClient = useQueryClient();
+  clientName,
+  onImplemented
+}: RecommendationAlertProps) => {
+  const [isImplementing, setIsImplementing] = useState(false);
+  const { toast } = useToast();
+  const [isUrgent] = useState(priority === 'high');
 
-  const getPriorityColor = (priority: string) => {
-    switch (priority) {
-      case 'high':
-        return 'destructive';
-      case 'medium':
-        return 'default';
-      case 'low':
-        return 'secondary';
-      default:
-        return 'default';
-    }
-  };
-
-  const createTask = async () => {
-    if (!date) {
-      toast({
-        title: "Error",
-        description: "Please select a due date",
-        variant: "destructive",
-      });
-      return;
-    }
+  const handleImplement = async () => {
+    setIsImplementing(true);
 
     try {
+      // Get the next week's date for the task
+      const date = new Date();
+      date.setDate(date.getDate() + 7);
+
+      // First update the recommendation status
+      const { error: recommendationError } = await supabase
+        .from('client_recommendations')
+        .update({ implemented: true })
+        .eq('client_id', clientId)
+        .eq('suggestion', suggestion);
+
+      if (recommendationError) throw recommendationError;
+
+      // Then create a task for follow-up
       const { error } = await supabase
         .from('general_tasks')
         .insert({
-          title: `${clientName} - ${type} recommendation`,
+          title: `${clientName} - Strategic Recommendation`,
           description: suggestion,
-          category: type,
+          category: 'revenue',
           next_due_date: date.toISOString(),
           urgent: isUrgent,
           status: 'in_progress',
@@ -76,107 +59,41 @@ export const RecommendationAlert: React.FC<RecommendationAlertProps> = ({
       if (error) throw error;
 
       toast({
-        title: "Success",
-        description: "Task created successfully",
+        title: 'Recommendation implemented',
+        description: 'A follow-up task has been created.',
       });
 
-      // Mark as discarded after successful task creation
-      setIsDiscarded(true);
-      queryClient.invalidateQueries({ queryKey: ['generalTasks'] });
-      setIsOpen(false);
+      if (onImplemented) {
+        onImplemented();
+      }
     } catch (error) {
-      console.error('Error creating task:', error);
+      console.error('Error implementing recommendation:', error);
       toast({
-        title: "Error",
-        description: "Failed to create task",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to implement recommendation. Please try again.',
+        variant: 'destructive',
       });
+    } finally {
+      setIsImplementing(false);
     }
   };
 
-  const handleDiscard = () => {
-    setIsDiscarded(true);
-    toast({
-      title: "Idea Discarded",
-      description: "The idea has been removed from the list",
-    });
-  };
-
-  if (isDiscarded) {
-    return null;
-  }
-
   return (
-    <Alert className="relative border-l-4 border-orange-500 bg-orange-50/50">
-      <AlertTitle className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          {type.charAt(0).toUpperCase() + type.slice(1)}
-          <Badge variant={getPriorityColor(priority)}>
-            {priority}
-          </Badge>
-        </div>
-        <div className="flex items-center gap-2">
-          <Switch
-            checked={isUrgent}
-            onCheckedChange={setIsUrgent}
-            className="data-[state=checked]:bg-orange-500"
-          />
-          <Button
-            variant="ghost"
-            size="sm"
-            className="text-red-500 hover:text-red-700 hover:bg-transparent"
-            onClick={handleDiscard}
-          >
-            <Trash2 className="h-4 w-4" />
-          </Button>
-          <Button 
-            variant="outline" 
-            size="sm"
-            onClick={() => setIsOpen(true)}
-          >
-            Create Task
-          </Button>
-          <Popover open={isOpen} onOpenChange={setIsOpen}>
-            <PopoverContent className="w-auto p-4" align="end">
-              <div className="space-y-4">
-                <div className="flex flex-col gap-2">
-                  <label className="text-sm font-medium">Select Due Date</label>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className={cn(
-                          "w-full justify-start text-left font-normal",
-                          !date && "text-muted-foreground"
-                        )}
-                      >
-                        <CalendarIcon className="mr-2 h-4 w-4" />
-                        {date ? format(date, "PPP") : "Pick a date"}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0">
-                      <Calendar
-                        mode="single"
-                        selected={date}
-                        onSelect={setDate}
-                        initialFocus
-                      />
-                    </PopoverContent>
-                  </Popover>
-                </div>
-                <Button 
-                  className="w-full" 
-                  onClick={createTask}
-                >
-                  Create Task
-                </Button>
-              </div>
-            </PopoverContent>
-          </Popover>
-        </div>
+    <Alert className="my-2">
+      <AlertTitle className="flex items-center gap-2">
+        <Calendar className="h-4 w-4" />
+        Strategic Recommendation
       </AlertTitle>
-      <AlertDescription className="mt-2 text-gray-700">
-        {suggestion}
+      <AlertDescription className="mt-2 space-y-2">
+        <p>{suggestion}</p>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={handleImplement}
+          disabled={isImplementing}
+        >
+          {isImplementing ? 'Implementing...' : 'Implement'}
+        </Button>
       </AlertDescription>
     </Alert>
   );

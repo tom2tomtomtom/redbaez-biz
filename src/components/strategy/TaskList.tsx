@@ -43,8 +43,8 @@ export const TaskList = ({ tasks, isLoading, onTasksUpdated }: TaskListProps) =>
           {tasks.map((task) => (
             <GeneralTaskItem 
               key={task.id} 
-              task={task} 
-              onDeleted={onTasksUpdated}
+              task={task}
+              isClientTask={!!task.client_id}
             />
           ))}
         </div>
