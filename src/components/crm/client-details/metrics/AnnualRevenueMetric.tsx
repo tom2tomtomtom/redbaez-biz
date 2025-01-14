@@ -11,7 +11,7 @@ export const AnnualRevenueMetric = ({
   annualRevenueSignedOff,
   annualRevenueForecast,
 }: AnnualRevenueMetricProps) => {
-  const totalRevenue = annualRevenueSignedOff + annualRevenueForecast;
+  const totalRevenue = (annualRevenueSignedOff || 0) + (annualRevenueForecast || 0);
 
   return (
     <div className="p-4 bg-blue-50/50 rounded-lg transition-all duration-300 hover:bg-blue-50">
@@ -21,10 +21,10 @@ export const AnnualRevenueMetric = ({
       </p>
       <div className="space-y-1">
         <p className="text-sm text-blue-500">
-          Actual: ${annualRevenueSignedOff.toLocaleString()}
+          Actual: ${(annualRevenueSignedOff || 0).toLocaleString()}
         </p>
         <p className="text-sm text-blue-500">
-          Forecast: ${annualRevenueForecast.toLocaleString()}
+          Forecast: ${(annualRevenueForecast || 0).toLocaleString()}
         </p>
       </div>
     </div>
