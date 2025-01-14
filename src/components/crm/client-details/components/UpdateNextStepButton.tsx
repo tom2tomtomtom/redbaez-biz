@@ -44,7 +44,7 @@ export const UpdateNextStepButton = ({ clientId }: UpdateNextStepButtonProps) =>
         throw new Error('Could not find user profile');
       }
 
-      // Insert next step with created_by field
+      // Insert next step with created_by field and category
       const { error } = await supabase
         .from('client_next_steps')
         .insert({
@@ -52,7 +52,8 @@ export const UpdateNextStepButton = ({ clientId }: UpdateNextStepButtonProps) =>
           notes: notes,
           due_date: dueDate || null,
           urgent: isUrgent,
-          created_by: profileData.id
+          created_by: profileData.id,
+          category: 'general' // Default to general category
         });
 
       if (error) {
