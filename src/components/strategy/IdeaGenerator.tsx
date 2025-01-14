@@ -23,11 +23,23 @@ export const IdeaGenerator = ({ category, onIdeaGenerated }: IdeaGeneratorProps)
   const generateIdea = async (prompt: string) => {
     try {
       setIsGenerating(true);
-      // Clear existing ideas immediately when starting generation
-      onIdeaGenerated();
       
       console.log('Generating ideas for category:', category);
 
+      // First, delete existing incomplete tasks for this category
+      const { error: deleteError } = await supabase
+        .from('general_tasks')
+        .delete()
+        .eq('category', category)
+        .is('next_due_date', null)
+        .eq('status', 'incomplete');
+
+      if (deleteError) {
+        console.error('Error deleting existing tasks:', deleteError);
+        throw deleteError;
+      }
+
+      // Now generate new ideas
       const { data, error } = await supabase.functions.invoke('analyze-client', {
         body: { 
           prompt: prompt || undefined,
@@ -67,6 +79,7 @@ export const IdeaGenerator = ({ category, onIdeaGenerated }: IdeaGeneratorProps)
           description: "Click on any idea to convert it into a task.",
         });
 
+        // Only trigger refresh after all operations are complete
         onIdeaGenerated();
       } else {
         throw new Error('No recommendations received from the API');
