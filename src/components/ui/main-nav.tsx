@@ -8,14 +8,6 @@ export function MainNav() {
   const { isAuthenticated, isLoading } = useAuth();
   const { toast } = useToast();
 
-  if (isLoading) {
-    return null; // Or a loading spinner
-  }
-
-  if (!isAuthenticated) {
-    return null;
-  }
-
   const handleLogout = async () => {
     try {
       const { error } = await supabase.auth.signOut();
@@ -34,6 +26,16 @@ export function MainNav() {
       });
     }
   };
+
+  // Show nothing while checking authentication
+  if (isLoading) {
+    return null;
+  }
+
+  // Show nothing if not authenticated
+  if (!isAuthenticated) {
+    return null;
+  }
 
   return (
     <nav className="flex items-center space-x-4 lg:space-x-6 bg-white border-b px-4 md:px-6 py-3 overflow-x-auto">
@@ -69,14 +71,14 @@ export function MainNav() {
       </Link>
       <Link
         to="/ai-news"
-        className="text-sm md:text-base text-gray-600 hover:text-primary transition-colors ml-auto"
+        className="text-sm md:text-base text-gray-600 hover:text-primary transition-colors"
       >
         AI News
       </Link>
       <Button 
         variant="ghost" 
         onClick={handleLogout}
-        className="text-sm md:text-base text-gray-600 hover:text-primary transition-colors"
+        className="text-sm md:text-base text-gray-600 hover:text-primary transition-colors ml-auto"
       >
         Logout
       </Button>
