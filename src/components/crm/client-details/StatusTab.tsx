@@ -103,6 +103,18 @@ export const StatusTab = ({ clientId, currentStatus }: StatusTabProps) => {
     }
   };
 
+  const formatNotes = (notes: string) => {
+    if (!notes) return '';
+    
+    // Split text into paragraphs on double newlines
+    const paragraphs = notes.split(/\n\n+/);
+    
+    // Split remaining single newlines into lines
+    return paragraphs.map(paragraph => 
+      paragraph.split(/\n/).map(line => line.trim()).filter(Boolean).join(' ')
+    ).join('\n\n');
+  };
+
   return (
     <div className="space-y-6 bg-white rounded-lg shadow-sm p-6">
       {/* Current Status Section */}
@@ -151,7 +163,9 @@ export const StatusTab = ({ clientId, currentStatus }: StatusTabProps) => {
               </Badge>
             </div>
             {currentStatusNotes && (
-              <p className="text-sm text-gray-600">{currentStatusNotes}</p>
+              <div className="text-sm text-gray-600 whitespace-pre-line">
+                {formatNotes(currentStatusNotes)}
+              </div>
             )}
           </div>
         )}
@@ -172,7 +186,9 @@ export const StatusTab = ({ clientId, currentStatus }: StatusTabProps) => {
                 </span>
               </div>
               {entry.notes && (
-                <p className="text-sm text-gray-700">{entry.notes}</p>
+                <div className="text-sm text-gray-700 whitespace-pre-line">
+                  {formatNotes(entry.notes)}
+                </div>
               )}
             </div>
           ))}
