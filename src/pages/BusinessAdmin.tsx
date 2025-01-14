@@ -10,6 +10,14 @@ import { TaskDialog } from "@/components/crm/priority-actions/TaskDialog";
 import { GeneralTaskItem } from "@/components/crm/priority-actions/GeneralTaskItem";
 import { Tables } from "@/integrations/supabase/types";
 
+// Define the type for recent activities
+type RecentActivity = {
+  id: string;
+  description: string;
+  date: string;
+  details?: string;
+};
+
 export const BusinessAdmin = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Tables<'general_tasks'> | null>(null);
@@ -69,6 +77,22 @@ export const BusinessAdmin = () => {
     setEditingTask(task);
     setIsDialogOpen(true);
   };
+
+  // Mock recent activities data
+  const recentActivities: RecentActivity[] = [
+    {
+      id: '1',
+      description: 'Monthly financial report generated',
+      date: new Date().toISOString(),
+      details: 'Q1 2024 financial summary completed'
+    },
+    {
+      id: '2',
+      description: 'Team meeting scheduled',
+      date: new Date().toISOString(),
+      details: 'Quarterly planning session'
+    }
+  ];
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100/50">

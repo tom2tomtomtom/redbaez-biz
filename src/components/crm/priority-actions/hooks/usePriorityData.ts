@@ -18,7 +18,7 @@ const fetchGeneralTasks = async () => {
     .from('general_tasks')
     .select('*')
     .neq('status', 'completed')
-    .not('next_due_date', 'is', null)  // Only fetch tasks with a due date
+    .not('next_due_date', 'is', null)
     .order('next_due_date', { ascending: true });
     
   if (error) throw error;
@@ -45,8 +45,8 @@ const fetchNextSteps = async () => {
 };
 
 const sortByUrgencyAndDate = (a: PriorityItem, b: PriorityItem) => {
-  const aUrgent = 'urgent' in a.data ? a.data.urgent : false;
-  const bUrgent = 'urgent' in b.data ? b.data.urgent : false;
+  const aUrgent = a.data.urgent || false;
+  const bUrgent = b.data.urgent || false;
 
   if (aUrgent && !bUrgent) return -1;
   if (!aUrgent && bUrgent) return 1;
