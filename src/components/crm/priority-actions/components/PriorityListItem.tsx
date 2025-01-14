@@ -3,6 +3,7 @@ import { GeneralTaskItem } from '../GeneralTaskItem';
 import { NextStepItem } from '../NextStepItem';
 import { ItemControls } from './ItemControls';
 import { GeneralTaskRow } from '@/integrations/supabase/types/general-tasks.types';
+import { useNavigate } from 'react-router-dom';
 
 interface PriorityListItemProps {
   item: PriorityItem;
@@ -21,6 +22,20 @@ export const PriorityListItem = ({
   onUrgentChange,
   onDelete
 }: PriorityListItemProps) => {
+  const navigate = useNavigate();
+
+  const handleClick = () => {
+    if (item.type === 'task') {
+      if (item.data.client_id) {
+        navigate(`/client/${item.data.client_id}`);
+      } else {
+        onTaskClick(item.data);
+      }
+    } else if (item.data.client_id) {
+      navigate(`/client/${item.data.client_id}`);
+    }
+  };
+
   return (
     <div 
       className="relative transition-all duration-500 transform animate-fade-in"
@@ -34,14 +49,12 @@ export const PriorityListItem = ({
         onUrgentChange={onUrgentChange}
         onDelete={onDelete}
       />
-      <div className="transition-all duration-300 transform hover:scale-[1.01] hover:shadow-md rounded-lg">
+      <div 
+        className="transition-all duration-300 transform hover:scale-[1.01] hover:shadow-md rounded-lg cursor-pointer"
+        onClick={handleClick}
+      >
         {item.type === 'task' ? (
-          <div 
-            onClick={() => onTaskClick(item.data)}
-            className="cursor-pointer"
-          >
-            <GeneralTaskItem task={item.data} />
-          </div>
+          <GeneralTaskItem task={item.data} />
         ) : (
           <NextStepItem nextStep={item.data} />
         )}
