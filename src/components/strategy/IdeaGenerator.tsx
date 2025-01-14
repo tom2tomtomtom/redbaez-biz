@@ -2,7 +2,6 @@ import { useState } from "react";
 import { toast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { TaskDialog } from "@/components/crm/priority-actions/TaskDialog";
-import { Tables } from "@/integrations/supabase/types";
 import { IdeaGenerationForm } from "./components/IdeaGenerationForm";
 import { CreateTaskDialog } from "./components/CreateTaskDialog";
 
@@ -26,20 +25,6 @@ export const IdeaGenerator = ({ category, onIdeaGenerated }: IdeaGeneratorProps)
       setIsGenerating(true);
       console.log('Generating ideas for category:', category);
 
-      // First, delete ALL existing tasks for this category
-      const { error: deleteError } = await supabase
-        .from('general_tasks')
-        .delete()
-        .eq('category', category);
-
-      if (deleteError) {
-        console.error('Error deleting existing tasks:', deleteError);
-        throw deleteError;
-      }
-
-      // Wait a moment to ensure deletion is complete
-      await new Promise(resolve => setTimeout(resolve, 500));
-
       const { data, error } = await supabase.functions.invoke('analyze-client', {
         body: { 
           prompt: prompt || undefined,
@@ -58,14 +43,14 @@ export const IdeaGenerator = ({ category, onIdeaGenerated }: IdeaGeneratorProps)
       if (data?.recommendations) {
         console.log('Processing recommendations:', data.recommendations);
         
-        // Convert recommendations to tasks without due dates
+        // Convert recommendations to tasks
         for (const rec of data.recommendations) {
           const { error: insertError } = await supabase.from('general_tasks').insert({
             title: rec.suggestion,
             description: `Type: ${rec.type}\nPriority: ${rec.priority}`,
             category: category,
-            status: 'incomplete'
-            // Removed next_due_date field to create tasks without due dates
+            status: 'incomplete',
+            next_due_date: null // Create as ideas first
           });
 
           if (insertError) {
@@ -87,7 +72,7 @@ export const IdeaGenerator = ({ category, onIdeaGenerated }: IdeaGeneratorProps)
       console.error('Error generating ideas:', error);
       toast({
         title: "Error",
-        description: "Failed to generate ideas. Please check the browser console and Edge Function logs for details.",
+        description: "Failed to generate ideas. Please try again.",
         variant: "destructive",
       });
     } finally {
