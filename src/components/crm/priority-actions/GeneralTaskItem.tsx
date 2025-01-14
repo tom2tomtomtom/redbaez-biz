@@ -14,7 +14,12 @@ interface GeneralTaskItemProps {
   onDeleted?: () => void;
 }
 
-const getCategoryColor = (category: string | undefined) => {
+const getCategoryColor = (category: string | undefined, isClientTask: boolean) => {
+  // If it's a client task, always return orange colors
+  if (isClientTask) {
+    return 'bg-[#FEC6A1] hover:bg-[#F97316]';
+  }
+  
   if (!category) return 'bg-[#F1F0FB] hover:bg-[#8B5CF6]';
   
   switch (category.toLowerCase()) {
@@ -38,6 +43,20 @@ export const GeneralTaskItem = ({ task, onDeleted }: GeneralTaskItemProps) => {
   );
   const [isConverting, setIsConverting] = useState(false);
   const queryClient = useQueryClient();
+
+  // Parse the title to extract client name and task description
+  const isClientTask = task.title.includes(']') && task.title.includes('[');
+  let clientName = '';
+  let taskDescription = isClientTask ? (task.description || '') : task.description;
+  let displayTitle = task.title;
+
+  if (isClientTask) {
+    const matches = task.title.match(/\[(.*?)\]/g);
+    if (matches && matches.length >= 2) {
+      clientName = matches[0].replace(/[\[\]]/g, '').trim();
+      displayTitle = clientName;
+    }
+  }
 
   const handleDateChange = async (newDate: string) => {
     try {
@@ -97,25 +116,11 @@ export const GeneralTaskItem = ({ task, onDeleted }: GeneralTaskItemProps) => {
     }
   };
 
-  // Parse the title to extract client name and task description
-  const isClientTask = task.title.includes(']') && task.title.includes('[');
-  let clientName = '';
-  let taskDescription = isClientTask ? (task.description || '') : task.description;
-  let displayTitle = task.title;
-
-  if (isClientTask) {
-    const matches = task.title.match(/\[(.*?)\]/g);
-    if (matches && matches.length >= 2) {
-      clientName = matches[0].replace(/[\[\]]/g, '').trim();
-      displayTitle = clientName;
-    }
-  }
-
   return (
     <Card 
       className={cn(
         "p-4 transition-all duration-300",
-        getCategoryColor(task.category),
+        getCategoryColor(task.category, isClientTask),
         task.urgent && "bg-red-50/50"
       )}
     >
