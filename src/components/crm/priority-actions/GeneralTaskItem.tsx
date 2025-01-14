@@ -17,22 +17,22 @@ interface GeneralTaskItemProps {
 const getCategoryColor = (category: string | undefined, isClientTask: boolean) => {
   // If it's a client task, always return orange colors
   if (isClientTask) {
-    return 'bg-[#FEC6A1] hover:bg-[#F97316]';
+    return 'bg-[#FEC6A1]/50 hover:bg-[#FEC6A1]';
   }
   
-  if (!category) return 'bg-[#F1F0FB] hover:bg-[#8B5CF6]';
+  if (!category) return 'bg-[#F1F0FB]/50 hover:bg-[#F1F0FB]';
   
   switch (category.toLowerCase()) {
     case 'marketing':
-      return 'bg-[#FFDEE2] hover:bg-[#D946EF]';
+      return 'bg-[#FFDEE2]/50 hover:bg-[#FFDEE2]';
     case 'product development':
-      return 'bg-[#D3E4FD] hover:bg-[#0EA5E9]';
+      return 'bg-[#D3E4FD]/50 hover:bg-[#D3E4FD]';
     case 'partnerships':
-      return 'bg-[#F2FCE2] hover:bg-[#22C55E]';
+      return 'bg-[#F2FCE2]/50 hover:bg-[#F2FCE2]';
     case 'business admin':
-      return 'bg-[#F1F0FB] hover:bg-[#8B5CF6]';
+      return 'bg-[#F1F0FB]/50 hover:bg-[#F1F0FB]';
     default:
-      return 'bg-[#FDE1D3] hover:bg-[#F97316]';
+      return 'bg-[#FDE1D3]/50 hover:bg-[#FDE1D3]';
   }
 };
 
