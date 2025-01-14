@@ -1,11 +1,35 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { MainNav } from "@/components/ui/main-nav";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Briefcase, ChartBar, DollarSign, Users } from "lucide-react";
+import { Briefcase, ChartBar, DollarSign, Users, Plus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
+import { Button } from "@/components/ui/button";
+import { useState } from "react";
+import { TaskDialog } from "@/components/crm/priority-actions/TaskDialog";
+import { GeneralTaskItem } from "@/components/crm/priority-actions/GeneralTaskItem";
+import { Tables } from "@/integrations/supabase/types";
 
 export const BusinessAdmin = () => {
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [editingTask, setEditingTask] = useState<Tables<'general_tasks'> | null>(null);
+  const queryClient = useQueryClient();
+
+  // Fetch business admin tasks
+  const { data: tasks } = useQuery({
+    queryKey: ['generalTasks', 'business-admin'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('general_tasks')
+        .select('*')
+        .eq('category', 'Business Admin')
+        .order('next_due_date', { ascending: true });
+      
+      if (error) throw error;
+      return data || [];
+    }
+  });
+
   // Fetch all clients for revenue calculations
   const { data: clientsData } = useQuery({
     queryKey: ['clients'],
@@ -29,72 +53,61 @@ export const BusinessAdmin = () => {
     }
   });
 
-  // Fetch recent activities
-  const { data: recentActivities } = useQuery({
-    queryKey: ['recent-activities'],
-    queryFn: async () => {
-      const { data: statusHistory } = await supabase
-        .from('client_status_history')
-        .select(`
-          id,
-          created_at,
-          status,
-          notes,
-          clients (
-            name
-          )
-        `)
-        .order('created_at', { ascending: false })
-        .limit(5);
-
-      const { data: nextSteps } = await supabase
-        .from('client_next_steps')
-        .select(`
-          id,
-          created_at,
-          notes,
-          clients (
-            name
-          )
-        `)
-        .order('created_at', { ascending: false })
-        .limit(5);
-
-      const allActivities = [
-        ...(statusHistory?.map(sh => ({
-          id: sh.id,
-          type: 'status',
-          date: sh.created_at,
-          description: `${sh.clients?.name}: Status changed to ${sh.status}`,
-          details: sh.notes
-        })) || []),
-        ...(nextSteps?.map(ns => ({
-          id: ns.id,
-          type: 'next_step',
-          date: ns.created_at,
-          description: `${ns.clients?.name}: New next step added`,
-          details: ns.notes
-        })) || [])
-      ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-        .slice(0, 5);
-
-      return allActivities;
-    }
-  });
-
   // Calculate total achieved and forecast revenue using annual totals
   const { totalAchievedRevenue, totalForecastRevenue } = clientsData?.reduce((acc, client) => ({
     totalAchievedRevenue: acc.totalAchievedRevenue + (client.annual_revenue_signed_off || 0),
     totalForecastRevenue: acc.totalForecastRevenue + (client.annual_revenue_forecast || 0)
   }), { totalAchievedRevenue: 0, totalForecastRevenue: 0 }) || { totalAchievedRevenue: 0, totalForecastRevenue: 0 };
 
+  const handleTaskSaved = () => {
+    queryClient.invalidateQueries({ queryKey: ['generalTasks'] });
+    setIsDialogOpen(false);
+    setEditingTask(null);
+  };
+
+  const handleTaskClick = (task: Tables<'general_tasks'>) => {
+    setEditingTask(task);
+    setIsDialogOpen(true);
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100/50">
       <MainNav />
       <div className="container mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold mb-6">Business Administration</h1>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-3xl font-bold">Business Administration</h1>
+          <Button onClick={() => {
+            setEditingTask(null);
+            setIsDialogOpen(true);
+          }}>
+            <Plus className="mr-2 h-4 w-4" />
+            Add Task
+          </Button>
+        </div>
+
+        {/* Tasks Section */}
+        <Card className="mb-8">
+          <CardHeader>
+            <CardTitle>Business Admin Tasks</CardTitle>
+            <CardDescription>Manage and track business administration tasks</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {!tasks?.length ? (
+                <p className="text-center text-gray-500 py-4">No business admin tasks found</p>
+              ) : (
+                tasks.map((task) => (
+                  <div key={task.id} onClick={() => handleTaskClick(task)} className="cursor-pointer">
+                    <GeneralTaskItem task={task} />
+                  </div>
+                ))
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Summary Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Total Clients</CardTitle>
@@ -144,71 +157,41 @@ export const BusinessAdmin = () => {
           </Card>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Recent Activity</CardTitle>
-              <CardDescription>Overview of recent business activities</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {recentActivities?.map((activity) => (
-                  <div key={activity.id} className="flex items-center">
-                    <div className="ml-4">
-                      <p className="text-sm font-medium">{activity.description}</p>
-                      <p className="text-sm text-muted-foreground">
-                        {format(new Date(activity.date), 'PPp')}
+        {/* Recent Activity */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Recent Activity</CardTitle>
+            <CardDescription>Overview of recent business activities</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {/* Recent activities list */}
+              {recentActivities?.map((activity) => (
+                <div key={activity.id} className="flex items-center">
+                  <div className="ml-4">
+                    <p className="text-sm font-medium">{activity.description}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {format(new Date(activity.date), 'PPp')}
+                    </p>
+                    {activity.details && (
+                      <p className="text-sm text-muted-foreground mt-1">
+                        {activity.details}
                       </p>
-                      {activity.details && (
-                        <p className="text-sm text-muted-foreground mt-1">
-                          {activity.details}
-                        </p>
-                      )}
-                    </div>
+                    )}
                   </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Business Metrics</CardTitle>
-              <CardDescription>Key performance indicators</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div>
-                  <p className="text-sm font-medium">Client Retention Rate</p>
-                  <p className="text-2xl font-bold">
-                    {activeProjectsCount && clientsData?.length
-                      ? `${((activeProjectsCount / clientsData.length) * 100).toFixed(1)}%`
-                      : '0%'}
-                  </p>
                 </div>
-                <div>
-                  <p className="text-sm font-medium">Average Revenue per Client</p>
-                  <p className="text-2xl font-bold">
-                    ${clientsData?.length && totalAchievedRevenue
-                      ? (totalAchievedRevenue / clientsData.length).toLocaleString(undefined, {
-                          maximumFractionDigits: 0,
-                        })
-                      : '0'}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-sm font-medium">Forecast to Achieved Ratio</p>
-                  <p className="text-2xl font-bold">
-                    {totalAchievedRevenue
-                      ? `${((totalForecastRevenue / totalAchievedRevenue) * 100).toFixed(1)}%`
-                      : '0%'}
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
       </div>
+
+      <TaskDialog
+        isOpen={isDialogOpen}
+        onOpenChange={setIsDialogOpen}
+        task={editingTask}
+        onSaved={handleTaskSaved}
+      />
     </div>
   );
 };
