@@ -64,12 +64,13 @@ export const RecommendationAlert: React.FC<RecommendationAlertProps> = ({
       const { error } = await supabase
         .from('general_tasks')
         .insert({
-          title: `[${clientName}] [${type}] ${suggestion.substring(0, 50)}...`,
-          description: `Client: ${clientName}\n\nRecommendation: ${suggestion}`,
+          title: `${clientName} - ${type} recommendation`,
+          description: suggestion,
           category: type,
           next_due_date: date.toISOString(),
           urgent: isUrgent,
-          status: 'in_progress'
+          status: 'in_progress',
+          client_id: clientId
         });
 
       if (error) throw error;
