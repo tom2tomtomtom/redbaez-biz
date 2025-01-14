@@ -31,20 +31,17 @@ export const TaskForm = ({ task, onSaved, onCancel }: TaskFormProps) => {
     setIsSubmitting(true);
 
     try {
-      const taskData = {
-        title,
-        description,
-        category,
-        next_due_date: dueDate ? new Date(dueDate).toISOString() : null,
-        urgent,
-      };
-
       if (task?.id) {
         const { error } = await supabase
           .from('general_tasks')
-          .update(taskData)
-          .eq('id', task.id)
-          .single();
+          .update({
+            title,
+            description,
+            category,
+            next_due_date: dueDate ? new Date(dueDate).toISOString() : null,
+            urgent,
+          })
+          .eq('id', task.id);
 
         if (error) throw error;
         toast({
@@ -54,8 +51,13 @@ export const TaskForm = ({ task, onSaved, onCancel }: TaskFormProps) => {
       } else {
         const { error } = await supabase
           .from('general_tasks')
-          .insert(taskData)
-          .single();
+          .insert({
+            title,
+            description,
+            category,
+            next_due_date: dueDate ? new Date(dueDate).toISOString() : null,
+            urgent,
+          });
 
         if (error) throw error;
         toast({

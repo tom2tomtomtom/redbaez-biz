@@ -3,13 +3,13 @@ import { MainNav } from "@/components/ui/main-nav";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Briefcase, ChartBar, DollarSign, Users, Plus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { TaskDialog } from "@/components/crm/priority-actions/TaskDialog";
 import { GeneralTaskItem } from "@/components/crm/priority-actions/GeneralTaskItem";
 import { Tables } from "@/integrations/supabase/types";
-
-// ... keep existing code (imports and component start)
+import { PriorityActions } from "@/components/crm/priority-actions/PriorityActions";
 
 export const BusinessAdmin = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -54,7 +54,7 @@ export const BusinessAdmin = () => {
     }
   });
 
-  // Calculate total achieved and forecast revenue using annual totals
+  // Calculate total achieved and forecast revenue
   const { totalAchievedRevenue, totalForecastRevenue } = clientsData?.reduce((acc, client) => ({
     totalAchievedRevenue: acc.totalAchievedRevenue + (client.annual_revenue_signed_off || 0),
     totalForecastRevenue: acc.totalForecastRevenue + (client.annual_revenue_forecast || 0)
@@ -71,6 +71,21 @@ export const BusinessAdmin = () => {
     setIsDialogOpen(true);
   };
 
+  // Fetch recent activities
+  const { data: recentActivities } = useQuery({
+    queryKey: ['client-status-history'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('client_status_history')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(5);
+      
+      if (error) throw error;
+      return data || [];
+    }
+  });
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100/50">
       <MainNav />
@@ -86,26 +101,10 @@ export const BusinessAdmin = () => {
           </Button>
         </div>
 
-        {/* Tasks Section */}
-        <Card className="mb-8">
-          <CardHeader>
-            <CardTitle>Business Admin Tasks</CardTitle>
-            <CardDescription>Manage and track business administration tasks</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {!tasks?.length ? (
-                <p className="text-center text-gray-500 py-4">No business admin tasks found</p>
-              ) : (
-                tasks.map((task) => (
-                  <div key={task.id} onClick={() => handleTaskClick(task)} className="cursor-pointer">
-                    <GeneralTaskItem task={task} />
-                  </div>
-                ))
-              )}
-            </div>
-          </CardContent>
-        </Card>
+        {/* Priority Actions Section */}
+        <div className="mb-8">
+          <PriorityActions category="Business Admin" />
+        </div>
 
         {/* Summary Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
@@ -158,15 +157,24 @@ export const BusinessAdmin = () => {
           </Card>
         </div>
 
-        {/* Recent Activity Card */}
+        {/* Recent Activity */}
         <Card>
           <CardHeader>
             <CardTitle>Recent Activity</CardTitle>
             <CardDescription>Overview of recent business activities</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="text-center text-gray-500 py-4">
-              No recent activities to display
+            <div className="space-y-4">
+              {recentActivities?.map((activity) => (
+                <div key={activity.id} className="flex items-center">
+                  <div className="ml-4">
+                    <p className="text-sm font-medium">{activity.notes}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {format(new Date(activity.created_at), 'PPp')}
+                    </p>
+                  </div>
+                </div>
+              ))}
             </div>
           </CardContent>
         </Card>
@@ -177,6 +185,7 @@ export const BusinessAdmin = () => {
         onOpenChange={setIsDialogOpen}
         task={editingTask}
         onSaved={handleTaskSaved}
+        defaultCategory="Business Admin"
       />
     </div>
   );
