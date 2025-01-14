@@ -81,28 +81,30 @@ export const ClientForm = ({
   };
 
   return (
-    <Card className="transition-all duration-300 hover:shadow-lg">
-      <CardHeader>
-        <CardTitle>{isEditing ? 'Edit Client Information' : 'New Client Information'}</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <FormContent
-          formState={formState}
-          revenueState={revenueState}
-          contacts={contacts}
-          nextSteps={nextSteps}
-          nextDueDate={nextDueDate}
-          onContactsChange={onContactsChange}
-          onNextStepsChange={onNextStepsChange}
-          onNextDueDateChange={onNextDueDateChange}
-        />
-        <FormActions
-          onCancel={onCancel}
-          onSubmit={onSubmit}
-          isSubmitting={isSubmitting}
-          isEditing={isEditing}
-        />
-      </CardContent>
-    </Card>
+    <div className="container max-w-4xl mx-auto px-4 py-8">
+      <Card className="transition-all duration-300 hover:shadow-lg">
+        <CardHeader>
+          <CardTitle>{isEditing ? 'Edit Client Information' : 'New Client Information'}</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <FormContent
+            formState={formState}
+            revenueState={revenueState}
+            contacts={contacts}
+            nextSteps={nextSteps}
+            nextDueDate={nextDueDate}
+            onContactsChange={onContactsChange}
+            onNextStepsChange={onNextStepsChange}
+            onNextDueDateChange={onNextDueDateChange}
+          />
+          <FormActions
+            onCancel={onCancel}
+            onSubmit={onSubmit}
+            isSubmitting={isSubmitting}
+            isEditing={isEditing}
+          />
+        </CardContent>
+      </Card>
+    </div>
   );
 };
