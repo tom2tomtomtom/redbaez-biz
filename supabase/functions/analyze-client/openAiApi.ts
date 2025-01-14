@@ -4,7 +4,7 @@ export const corsHeaders = {
 };
 
 export async function generateRecommendations(prompt: string, apiKey: string) {
-  console.log('Starting recommendation generation with prompt:', prompt);
+  console.log('Generating recommendations with prompt:', prompt);
   
   const response = await fetch('https://api.openai.com/v1/chat/completions', {
     method: 'POST',
@@ -21,56 +21,40 @@ export async function generateRecommendations(prompt: string, apiKey: string) {
           Your expertise includes LinkedIn strategy, content marketing, thought leadership, and event marketing.
           Create highly specific recommendations that reference actual events, trends, and case studies.
           Focus on innovative ideas that blend entertainment with education and drive engagement.
-          Return ONLY a JSON array with type, priority, and suggestion fields.
-          Do not include any square brackets in the suggestions.`
+          Return ONLY a valid JSON array with type, priority, and suggestion fields.
+          Do not include any additional text or formatting.`
         },
         {
           role: 'user',
           content: prompt
         }
       ],
-      temperature: 0.9,
-      max_tokens: 1000,
+      response_format: { "type": "json_object" },
+      temperature: 0.7,
     }),
   });
 
   if (!response.ok) {
     const errorText = await response.text();
-    console.error('Error from OpenAI API:', errorText);
-    throw new Error(`Failed to get response from OpenAI API: ${errorText}`);
+    console.error('OpenAI API error:', errorText);
+    throw new Error(`OpenAI API error: ${response.status} ${errorText}`);
   }
 
-  const aiResponse = await response.json();
-  console.log('Received AI response:', aiResponse);
-
-  if (!aiResponse?.choices?.[0]?.message?.content) {
-    throw new Error('Invalid response format from AI');
-  }
+  const data = await response.json();
+  console.log('Raw OpenAI response:', data);
 
   try {
-    const content = aiResponse.choices[0].message.content;
-    console.log('Raw content from AI:', content);
+    // Extract the content and ensure it's valid JSON
+    const content = data.choices[0].message.content;
+    console.log('Parsing content:', content);
     
-    // Remove any markdown code block syntax
-    const cleanedContent = content.replace(/```json\n?|\n?```/g, '').trim();
-    console.log('Cleaned content:', cleanedContent);
+    const parsed = JSON.parse(content);
+    console.log('Parsed recommendations:', parsed);
     
-    // Parse the JSON
-    const parsed = JSON.parse(cleanedContent);
-    console.log('Parsed JSON:', parsed);
-    
-    // Clean any remaining square brackets from suggestions
-    const cleaned = parsed.map((rec: any) => ({
-      ...rec,
-      suggestion: rec.suggestion.replace(/[\[\]]/g, '').trim(),
-      type: rec.type.toLowerCase(),
-      priority: priority.toLowerCase()
-    }));
-    
-    console.log('Final cleaned recommendations:', cleaned);
-    return cleaned;
+    // Ensure we're returning the recommendations array
+    return parsed.recommendations || [];
   } catch (error) {
-    console.error('Error parsing AI response:', error);
+    console.error('Error parsing OpenAI response:', error);
     throw new Error(`Failed to parse AI recommendations: ${error.message}`);
   }
 }
