@@ -22,7 +22,7 @@ const getCategoryColor = (task: GeneralTaskRow, isClientTask: boolean) => {
   // always return orange colors
   if (isClientTask || task.client_id) {
     console.log('Returning client color');
-    return 'bg-[#FEC6A1]/50 hover:bg-[#FEC6A1]';
+    return 'bg-[#FEC6A1] hover:bg-[#FEC6A1]/80';
   }
   
   if (!task.category) {
@@ -32,17 +32,17 @@ const getCategoryColor = (task: GeneralTaskRow, isClientTask: boolean) => {
   
   switch (task.category) {
     case 'marketing':
-      console.log('Marketing task, returning pink');
-      return 'bg-pink-200 hover:bg-pink-300';
+      console.log('Marketing task, returning magenta');
+      return 'bg-[#D946EF]/20 hover:bg-[#D946EF]/30';
     case 'product development':
-      console.log('Product development task, returning blue');
-      return 'bg-blue-200 hover:bg-blue-300';
+      console.log('Product development task, returning ocean blue');
+      return 'bg-[#0EA5E9]/20 hover:bg-[#0EA5E9]/30';
     case 'partnerships':
-      console.log('Partnerships task, returning green');
-      return 'bg-green-200 hover:bg-green-300';
+      console.log('Partnerships task, returning purple');
+      return 'bg-[#8B5CF6]/20 hover:bg-[#8B5CF6]/30';
     case 'business admin':
-      console.log('Business admin task, returning purple');
-      return 'bg-purple-200 hover:bg-purple-300';
+      console.log('Business admin task, returning gray');
+      return 'bg-gray-200 hover:bg-gray-300';
     default:
       console.log('Default case, category:', task.category);
       return 'bg-gray-200 hover:bg-gray-300';
