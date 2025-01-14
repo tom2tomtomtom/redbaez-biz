@@ -17,6 +17,7 @@ interface GeneralTaskItemProps {
 const getCategoryColor = (task: GeneralTaskRow, isClientTask: boolean) => {
   console.log('Task category:', task.category);
   console.log('Is client task:', isClientTask);
+  console.log('Task details:', task);
   
   // If it's a client task, a strategic idea connected to a client, or a next step for a client
   // always return orange colors
@@ -37,8 +38,8 @@ const getCategoryColor = (task: GeneralTaskRow, isClientTask: boolean) => {
   
   // Marketing tasks
   if (category === 'marketing') {
-    console.log('Marketing task colors');
-    return 'bg-[#F0D4FA]/50 hover:bg-[#F0D4FA]/70';  // Lighter purple color
+    console.log('Marketing task colors - applying bg-[#F0D4FA]/50');
+    return 'marketing-task-bg bg-[#F0D4FA]/50 hover:bg-[#F0D4FA]/70';  // Added specific class for debugging
   }
   
   // Product Development tasks
