@@ -30,16 +30,16 @@ const getCategoryColor = (task: GeneralTaskRow, isClientTask: boolean) => {
     return 'bg-gray-200 hover:bg-gray-300';
   }
   
-  switch (task.category) {
+  switch (task.category.toLowerCase()) {
     case 'marketing':
       console.log('Marketing task, returning magenta');
-      return 'bg-[#D946EF]/20 hover:bg-[#D946EF]/30';
+      return 'bg-[#D946EF]/20 hover:bg-[#D946EF]/40';
     case 'product development':
       console.log('Product development task, returning ocean blue');
-      return 'bg-[#0EA5E9]/20 hover:bg-[#0EA5E9]/30';
+      return 'bg-[#0EA5E9]/20 hover:bg-[#0EA5E9]/40';
     case 'partnerships':
       console.log('Partnerships task, returning purple');
-      return 'bg-[#8B5CF6]/20 hover:bg-[#8B5CF6]/30';
+      return 'bg-[#8B5CF6]/20 hover:bg-[#8B5CF6]/40';
     case 'business admin':
       console.log('Business admin task, returning gray');
       return 'bg-gray-200 hover:bg-gray-300';
