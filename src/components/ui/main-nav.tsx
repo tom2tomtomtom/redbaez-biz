@@ -38,50 +38,54 @@ export function MainNav() {
   }
 
   return (
-    <nav className="flex items-center space-x-4 lg:space-x-6 bg-white border-b px-4 md:px-6 py-3 overflow-x-auto">
-      <Link
-        to="/"
-        className="text-sm md:text-base font-medium text-gray-900 hover:text-primary transition-colors"
-      >
-        Overview
-      </Link>
-      <Link
-        to="/marketing"
-        className="text-sm md:text-base text-gray-600 hover:text-primary transition-colors"
-      >
-        Marketing
-      </Link>
-      <Link
-        to="/partnerships"
-        className="text-sm md:text-base text-gray-600 hover:text-primary transition-colors"
-      >
-        Partnerships
-      </Link>
-      <Link
-        to="/product-development"
-        className="text-sm md:text-base text-gray-600 hover:text-primary transition-colors"
-      >
-        Product Development
-      </Link>
-      <Link
-        to="/business-admin"
-        className="text-sm md:text-base text-gray-600 hover:text-primary transition-colors"
-      >
-        Business Admin
-      </Link>
-      <Link
-        to="/ai-news"
-        className="text-sm md:text-base text-gray-600 hover:text-primary transition-colors"
-      >
-        AI News
-      </Link>
-      <Button 
-        variant="ghost" 
-        onClick={handleLogout}
-        className="text-sm md:text-base text-gray-600 hover:text-primary transition-colors ml-auto"
-      >
-        Logout
-      </Button>
+    <nav className="sticky top-0 z-50 w-full bg-white border-b shadow-sm">
+      <div className="flex items-center justify-between px-4 py-3 mx-auto max-w-7xl md:px-6">
+        <div className="flex items-center space-x-4 overflow-x-auto no-scrollbar lg:space-x-6">
+          <Link
+            to="/"
+            className="text-sm font-medium transition-colors md:text-base text-gray-900 hover:text-primary"
+          >
+            Overview
+          </Link>
+          <Link
+            to="/marketing"
+            className="text-sm transition-colors md:text-base text-gray-600 hover:text-primary"
+          >
+            Marketing
+          </Link>
+          <Link
+            to="/partnerships"
+            className="text-sm transition-colors md:text-base text-gray-600 hover:text-primary"
+          >
+            Partnerships
+          </Link>
+          <Link
+            to="/product-development"
+            className="text-sm transition-colors md:text-base text-gray-600 hover:text-primary whitespace-nowrap"
+          >
+            Product Development
+          </Link>
+          <Link
+            to="/business-admin"
+            className="text-sm transition-colors md:text-base text-gray-600 hover:text-primary"
+          >
+            Business Admin
+          </Link>
+          <Link
+            to="/ai-news"
+            className="text-sm transition-colors md:text-base text-gray-600 hover:text-primary"
+          >
+            AI News
+          </Link>
+        </div>
+        <Button 
+          variant="ghost" 
+          onClick={handleLogout}
+          className="text-sm transition-colors md:text-base text-gray-600 hover:text-primary ml-4"
+        >
+          Logout
+        </Button>
+      </div>
     </nav>
   );
 }
