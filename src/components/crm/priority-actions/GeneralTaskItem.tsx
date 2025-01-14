@@ -28,7 +28,7 @@ const getCategoryColor = (task: GeneralTaskRow, isClientTask: boolean) => {
   // Check if the task has a valid category
   if (!task.category) {
     console.log('No category, returning default color');
-    return 'bg-gray-200 hover:bg-gray-300';
+    return 'bg-gray-200/50 hover:bg-gray-300/70';
   }
   
   // Now handle specific categories
@@ -38,7 +38,7 @@ const getCategoryColor = (task: GeneralTaskRow, isClientTask: boolean) => {
   // Marketing tasks
   if (category === 'marketing') {
     console.log('Marketing task colors');
-    return 'bg-[#D946EF]/50 hover:bg-[#D946EF]/70';
+    return 'bg-[#F0D4FA]/50 hover:bg-[#F0D4FA]/70';  // Lighter purple color
   }
   
   // Product Development tasks
