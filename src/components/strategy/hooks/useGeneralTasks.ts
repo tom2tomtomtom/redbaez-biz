@@ -9,6 +9,7 @@ export const useGeneralTasks = (category: string, refreshTrigger: number) => {
         .from('general_tasks')
         .select('*')
         .eq('category', category)
+        .neq('status', 'completed')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
