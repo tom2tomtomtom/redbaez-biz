@@ -7,8 +7,8 @@ interface NextStepItemProps {
 }
 
 const getTypeColor = (type: string) => {
-  // Always return orange colors for client tasks
-  return 'bg-[#FEC6A1]/50 hover:bg-[#FEC6A1]';
+  // Always return orange colors for client tasks, ensuring consistent coloring
+  return 'bg-[#FEC6A1]/50 hover:bg-[#FEC6A1] transition-all duration-300';
 };
 
 export const NextStepItem = ({ nextStep }: NextStepItemProps) => {
@@ -22,7 +22,7 @@ export const NextStepItem = ({ nextStep }: NextStepItemProps) => {
 
   return (
     <div 
-      className={`p-3 rounded-lg transition-all duration-300 hover:shadow-md text-left ${getTypeColor(nextStep.client_name || '')} ${
+      className={`p-3 rounded-lg ${getTypeColor(nextStep.client_name || '')} ${
         nextStep.urgent ? 'bg-red-50/50' : ''
       }`}
       onClick={handleClick}
