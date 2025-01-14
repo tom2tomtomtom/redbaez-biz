@@ -9,11 +9,13 @@ import { DashboardHeader } from "@/components/crm/dashboard/DashboardHeader";
 import { SearchSection } from "@/components/crm/dashboard/SearchSection";
 import { ClientListSection } from "@/components/crm/dashboard/ClientListSection";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
+import { useNavigate } from "react-router-dom";
 
 const Index = () => {
   const [searchInput, setSearchInput] = useState('');
   const [showClientList, setShowClientList] = useState(false);
   const [isNewTaskOpen, setIsNewTaskOpen] = useState(false);
+  const navigate = useNavigate();
 
   const { data: clients, isLoading } = useQuery({
     queryKey: ['clients'],
