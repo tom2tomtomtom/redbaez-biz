@@ -43,37 +43,37 @@ export function MainNav() {
         <div className="flex items-center space-x-4 overflow-x-auto no-scrollbar lg:space-x-6">
           <Link
             to="/"
-            className="text-xl font-bold transition-colors text-gray-900 hover:text-primary"
+            className="text-sm font-medium transition-colors md:text-base text-gray-900 hover:text-primary"
           >
             Overview
           </Link>
           <Link
             to="/business-admin"
-            className="text-lg transition-colors text-gray-600 hover:text-primary"
+            className="text-sm transition-colors md:text-base text-gray-600 hover:text-primary"
           >
             Business Admin
           </Link>
           <Link
             to="/marketing"
-            className="text-lg transition-colors text-gray-600 hover:text-primary"
+            className="text-sm transition-colors md:text-base text-gray-600 hover:text-primary"
           >
             Marketing
           </Link>
           <Link
             to="/partnerships"
-            className="text-lg transition-colors text-gray-600 hover:text-primary"
+            className="text-sm transition-colors md:text-base text-gray-600 hover:text-primary"
           >
             Partnerships
           </Link>
           <Link
             to="/product-development"
-            className="text-lg transition-colors text-gray-600 hover:text-primary whitespace-nowrap"
+            className="text-sm transition-colors md:text-base text-gray-600 hover:text-primary whitespace-nowrap"
           >
             Product Development
           </Link>
           <Link
             to="/ai-news"
-            className="text-lg transition-colors text-gray-600 hover:text-primary"
+            className="text-sm transition-colors md:text-base text-gray-600 hover:text-primary"
           >
             AI News
           </Link>
