@@ -18,15 +18,15 @@ export const StrategyDashboard = ({ category }: StrategyDashboardProps) => {
   
   const { data: allTasks, isLoading } = useGeneralTasks(category, refreshTrigger);
   
-  // Modified filtering logic to consider tasks without due dates as active
+  // Separate tasks into distinct groups - tasks with due dates are active, without are ideas
   const activeTasks = allTasks?.filter(task => 
-    task.status !== 'completed'
+    task.status !== 'completed' && task.next_due_date !== null
   ) || [];
   const completedTasks = allTasks?.filter(task => 
     task.status === 'completed'
   ) || [];
   const generatedIdeas = allTasks?.filter(task => 
-    task.status !== 'completed' && !task.next_due_date
+    task.status !== 'completed' && task.next_due_date === null
   ) || [];
 
   const handleIdeaGenerated = () => {
