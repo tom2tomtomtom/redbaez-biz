@@ -10,7 +10,7 @@ export const useGeneralTasks = (category: string, refreshTrigger: number) => {
       const { data, error } = await supabase
         .from('general_tasks')
         .select('*, clients(name)')
-        .eq('category', category)
+        .eq('category', category.toLowerCase())
         .order('created_at', { ascending: false });
 
       if (error) {
@@ -18,7 +18,7 @@ export const useGeneralTasks = (category: string, refreshTrigger: number) => {
         throw error;
       }
 
-      console.log('Fetched tasks:', data); // Debug log
+      console.log('Raw tasks data:', data); // Debug log for raw data
       return data;
     }
   });

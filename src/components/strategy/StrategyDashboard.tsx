@@ -22,7 +22,7 @@ export const StrategyDashboard = ({ category }: StrategyDashboardProps) => {
   
   // Separate tasks into distinct groups - tasks with due dates are active, without are ideas
   const activeTasks = allTasks?.filter(task => {
-    const isActive = task.status !== 'completed' && task.next_due_date !== null;
+    const isActive = task.status !== 'completed';
     console.log('Task:', task.id, 'isActive:', isActive, 'status:', task.status, 'next_due_date:', task.next_due_date);
     return isActive;
   }) || [];
