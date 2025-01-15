@@ -30,40 +30,31 @@ const fetchMonthlyRevenue = async () => {
   const monthlyData = months.map(month => {
     const monthLower = month.toLowerCase();
     
-    const clientDetails = clients.reduce((acc: any[], client: any) => {
-      const actualKey = `actual_${monthLower}`;
-      const forecastKey = `forecast_${monthLower}`;
-      
-      const actual = client[actualKey] || 0;
-      const forecast = actual > 0 ? 0 : (client[forecastKey] || 0);
-      
-      if (actual > 0) {
-        acc.push({
-          name: client.name,
-          amount: actual,
-          type: 'actual'
-        });
-      }
-      if (forecast > 0) {
-        acc.push({
-          name: client.name,
-          amount: forecast,
-          type: 'forecast'
-        });
-      }
-      return acc;
-    }, []);
+    const actualClients = clients
+      .filter(client => client[`actual_${monthLower}`] > 0)
+      .map(client => ({
+        name: client.name,
+        amount: client[`actual_${monthLower}`] || 0,
+        type: 'actual'
+      }));
 
-    const totals = clientDetails.reduce((acc, detail) => ({
-      actual: acc.actual + (detail.type === 'actual' ? detail.amount : 0),
-      forecast: acc.forecast + (detail.type === 'forecast' ? detail.amount : 0)
-    }), { actual: 0, forecast: 0 });
+    const forecastClients = clients
+      .filter(client => client[`actual_${monthLower}`] === 0 && client[`forecast_${monthLower}`] > 0)
+      .map(client => ({
+        name: client.name,
+        amount: client[`forecast_${monthLower}`] || 0,
+        type: 'forecast'
+      }));
+
+    const actual = actualClients.reduce((sum, client) => sum + client.amount, 0);
+    const forecast = forecastClients.reduce((sum, client) => sum + client.amount, 0);
 
     return {
       month,
-      actual: Math.round(totals.actual),
-      forecast: Math.round(totals.forecast),
-      clientDetails
+      actual: Math.round(actual),
+      forecast: Math.round(forecast),
+      actualClients,
+      forecastClients
     };
   });
 
@@ -83,12 +74,18 @@ const fetchMonthlyRevenue = async () => {
 
 const CustomTooltip = ({ active, payload, label }: TooltipProps<number, string>) => {
   if (active && payload && payload.length > 0) {
-    const clientDetails = payload[0].payload.clientDetails || [];
+    const dataKey = payload[0].dataKey as 'actual' | 'forecast';
+    const clients = dataKey === 'actual' 
+      ? payload[0].payload.actualClients 
+      : payload[0].payload.forecastClients;
+
+    const title = dataKey === 'actual' ? 'Actual Revenue' : 'Forecast Revenue';
+
     return (
       <div className="bg-white p-4 rounded-lg shadow-lg border">
-        <p className="font-semibold mb-2">{label}</p>
+        <p className="font-semibold mb-2">{label} - {title}</p>
         <div className="space-y-2">
-          {clientDetails
+          {clients
             .sort((a: any, b: any) => b.amount - a.amount)
             .map((client: any, index: number) => (
               <div key={index} className="flex justify-between gap-4">
@@ -98,6 +95,9 @@ const CustomTooltip = ({ active, payload, label }: TooltipProps<number, string>)
                 </span>
               </div>
             ))}
+          {clients.length === 0 && (
+            <div className="text-sm text-gray-500">No clients for this period</div>
+          )}
         </div>
       </div>
     );
