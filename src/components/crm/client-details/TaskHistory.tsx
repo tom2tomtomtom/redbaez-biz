@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from '@/components/ui/button';
 import { History } from 'lucide-react';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 
 type HistoryEntry = {
   id: string;
@@ -55,17 +56,17 @@ export const TaskHistory = ({ clientId }: TaskHistoryProps) => {
   });
 
   return (
-    <Dialog>
-      <DialogTrigger asChild>
-        <Button variant="outline" className="gap-2">
-          <History className="h-4 w-4" />
+    <Sheet>
+      <SheetTrigger asChild>
+        <Button variant="outline" className="w-full">
+          <History className="mr-2 h-4 w-4" />
           View Task History
         </Button>
-      </DialogTrigger>
-      <DialogContent className="max-w-2xl">
-        <DialogHeader>
-          <DialogTitle>Task History</DialogTitle>
-        </DialogHeader>
+      </SheetTrigger>
+      <SheetContent className="w-[400px] sm:w-[540px] overflow-y-auto">
+        <SheetHeader>
+          <SheetTitle>Task History</SheetTitle>
+        </SheetHeader>
         <ScrollArea className="h-[400px] pr-4">
           {isLoading ? (
             <div className="flex items-center justify-center h-full">
@@ -105,7 +106,7 @@ export const TaskHistory = ({ clientId }: TaskHistoryProps) => {
             </div>
           )}
         </ScrollArea>
-      </DialogContent>
-    </Dialog>
+      </SheetContent>
+    </Sheet>
   );
 };
