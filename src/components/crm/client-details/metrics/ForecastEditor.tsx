@@ -3,7 +3,6 @@ import { format } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
-import { Label } from '@/components/ui/label';
 import { useClientForecasts } from '@/hooks/useClientForecasts';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
@@ -11,29 +10,39 @@ interface ForecastEditorProps {
   clientId: number;
 }
 
+interface MonthlyValues {
+  forecast: number;
+  actual: number;
+}
+
+type MonthlyData = {
+  [key: string]: MonthlyValues;
+};
+
 export const ForecastEditor = ({ clientId }: ForecastEditorProps) => {
   const { updateForecast } = useClientForecasts(clientId);
   const [isEditing, setIsEditing] = useState(false);
   const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
   const currentYear = new Date().getFullYear();
   
-  // Initialize state for all months
-  const [monthlyData, setMonthlyData] = useState(() => 
+  // Initialize state for all months with null values
+  const [monthlyData, setMonthlyData] = useState<MonthlyData>(() => 
     months.reduce((acc, month) => ({
       ...acc,
       [month.toLowerCase()]: {
         forecast: 0,
         actual: 0
       }
-    }), {})
+    }), {} as MonthlyData)
   );
 
   const handleValueChange = (month: string, type: 'forecast' | 'actual', value: string) => {
+    const numericValue = value === '' ? 0 : parseFloat(value);
     setMonthlyData(prev => ({
       ...prev,
       [month.toLowerCase()]: {
         ...prev[month.toLowerCase()],
-        [type]: parseFloat(value) || 0
+        [type]: numericValue
       }
     }));
   };
@@ -97,17 +106,19 @@ export const ForecastEditor = ({ clientId }: ForecastEditorProps) => {
                 <TableCell>
                   <Input
                     type="number"
-                    value={monthlyData[month.toLowerCase()].forecast}
+                    value={monthlyData[month.toLowerCase()].forecast || ''}
                     onChange={(e) => handleValueChange(month, 'forecast', e.target.value)}
                     className="w-full"
+                    placeholder="Enter forecast"
                   />
                 </TableCell>
                 <TableCell>
                   <Input
                     type="number"
-                    value={monthlyData[month.toLowerCase()].actual}
+                    value={monthlyData[month.toLowerCase()].actual || ''}
                     onChange={(e) => handleValueChange(month, 'actual', e.target.value)}
                     className="w-full"
+                    placeholder="Enter actual"
                   />
                 </TableCell>
               </TableRow>
