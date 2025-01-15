@@ -29,23 +29,33 @@ export const AiNews = () => {
   const { data: newsItems, isLoading, refetch } = useQuery({
     queryKey: ['ai-news'],
     queryFn: async () => {
+      console.log('Fetching AI news from database...');
       const { data, error } = await supabase
         .from('ai_news')
         .select('*')
         .order('created_at', { ascending: false })
         .limit(20);
       
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching news:', error);
+        throw error;
+      }
+      console.log('Successfully fetched news items:', data?.length);
       return data as NewsItem[];
     },
   });
 
   const refreshNews = async () => {
     try {
+      console.log('Starting news refresh...');
       const { error } = await supabase.functions.invoke('fetch-ai-news');
-      if (error) throw error;
+      if (error) {
+        console.error('Error invoking fetch-ai-news function:', error);
+        throw error;
+      }
       
-      refetch();
+      console.log('Successfully invoked fetch-ai-news function, refetching data...');
+      await refetch();
       toast.success('News refreshed successfully');
     } catch (error) {
       console.error('Error refreshing news:', error);
