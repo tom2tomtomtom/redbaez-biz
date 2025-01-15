@@ -15,7 +15,7 @@ interface NewsResponse {
 
 const SYSTEM_PROMPT = `You are an AI news curator. Generate exactly 5 recent AI news items from THIS WEEK ONLY.
 
-Your response MUST be a valid JSON string matching this EXACT structure:
+Your response must be a valid JSON string with NO TRAILING COMMAS and must exactly match this structure:
 {
   "news": [
     {
@@ -34,9 +34,14 @@ Focus on:
 - AI innovation and research
 - AI ethics and safety
 
-Be precise and factual. Return EXACTLY 5 items.
-VERY IMPORTANT: Only include news from the past 7 days.
-Do not include any text before or after the JSON.`;
+Rules:
+1. Return EXACTLY 5 items
+2. Only include news from the past 7 days
+3. Ensure each item has all required fields
+4. Use ONLY the specified categories
+5. Ensure valid JSON format with NO trailing commas
+6. Do not include any text before or after the JSON
+7. Keep summaries under 500 characters`;
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -70,19 +75,20 @@ Deno.serve(async (req) => {
             content: 'Generate 5 recent AI news items from this week only.'
           }
         ],
-        temperature: 0.05,
+        temperature: 0.1,
         max_tokens: 1000,
+        frequency_penalty: 1,
         return_images: false,
         return_related_questions: false,
         search_domain_filter: [],
-        search_recency_filter: 'week', // Added recency filter
+        search_recency_filter: 'week',
       }),
     })
 
     if (!response.ok) {
       const error = await response.text()
       console.error('Perplexity API error:', error)
-      throw new Error('Failed to fetch AI news from Perplexity')
+      throw new Error(`Perplexity API error: ${response.status} - ${error}`)
     }
 
     const data = await response.json()
@@ -119,6 +125,17 @@ Deno.serve(async (req) => {
 
       const supabase = createClient(supabaseUrl, supabaseKey)
       console.log('Storing news items in database...')
+
+      // Clear existing news items first
+      const { error: deleteError } = await supabase
+        .from('ai_news')
+        .delete()
+        .neq('id', 0) // Delete all records
+      
+      if (deleteError) {
+        console.error('Error clearing existing news:', deleteError)
+        throw deleteError
+      }
 
       // Store each news item
       for (const item of newsItems.news) {
