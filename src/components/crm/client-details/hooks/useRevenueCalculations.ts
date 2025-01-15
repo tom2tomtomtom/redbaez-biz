@@ -18,8 +18,8 @@ export const useRevenueCalculations = (client: any) => {
     const forecastKey = `forecast_${monthLower}`;
     
     // Ensure we're getting numeric values and handle null/undefined
-    const actualRevenue = parseFloat(client[actualKey] || '0');
-    const forecastRevenue = parseFloat(client[forecastKey] || '0');
+    const actualRevenue = client[actualKey] !== null ? Number(client[actualKey]) : 0;
+    const forecastRevenue = client[forecastKey] !== null ? Number(client[forecastKey]) : 0;
     
     console.log(`Month: ${month}, Actual: ${actualRevenue}, Forecast: ${forecastRevenue}`);
     

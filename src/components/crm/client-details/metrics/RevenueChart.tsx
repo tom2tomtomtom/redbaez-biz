@@ -57,17 +57,19 @@ export const RevenueChart = ({
             />
             <Bar 
               dataKey="actual" 
-              fill="#4338ca" // Changed to a more visible indigo color
+              fill="#1d4ed8" // Darker blue for better visibility
               name="Actual Revenue"
               minPointSize={3}
               radius={[4, 4, 0, 0]}
+              opacity={0.9}
             />
             <Bar 
               dataKey="forecast" 
-              fill="#60a5fa" // Changed to a lighter blue for forecast
+              fill="#3b82f6" // Lighter blue for forecast
               name="Forecast Revenue"
               minPointSize={3}
               radius={[4, 4, 0, 0]}
+              opacity={0.9}
             />
           </BarChart>
         </ResponsiveContainer>
