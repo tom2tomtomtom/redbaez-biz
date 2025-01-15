@@ -8,7 +8,7 @@ import {
   CartesianGrid, 
   Tooltip, 
   ResponsiveContainer,
-  TooltipProps,
+  TooltipProps 
 } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -91,7 +91,6 @@ const CustomTooltip = ({ active, payload, label }: TooltipProps<number, string>)
     const dataKey = payload[0].dataKey as 'actual' | 'forecast';
     const data = payload[0].payload as MonthlyData;
     const clients = dataKey === 'actual' ? data.actualClients : data.forecastClients;
-
     const title = dataKey === 'actual' ? 'Actual Revenue' : 'Forecast Revenue';
 
     return (
