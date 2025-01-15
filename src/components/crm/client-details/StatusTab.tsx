@@ -6,6 +6,9 @@ import { useQuery } from '@tanstack/react-query';
 import { StatusForm } from './status/StatusForm';
 import { CurrentStatus } from './status/CurrentStatus';
 import { StatusHistory } from './status/StatusHistory';
+import { Button } from '@/components/ui/button';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
+import { History } from 'lucide-react';
 
 interface StatusTabProps {
   clientId: number;
@@ -120,7 +123,22 @@ export const StatusTab = ({ clientId, currentStatus }: StatusTabProps) => {
         />
       )}
       
-      <StatusHistory history={statusHistory || []} />
+      <Sheet>
+        <SheetTrigger asChild>
+          <Button variant="outline" className="w-full">
+            <History className="mr-2 h-4 w-4" />
+            View Status History
+          </Button>
+        </SheetTrigger>
+        <SheetContent className="w-[400px] sm:w-[540px] overflow-y-auto">
+          <SheetHeader>
+            <SheetTitle>Status History</SheetTitle>
+          </SheetHeader>
+          <div className="mt-6">
+            <StatusHistory history={statusHistory || []} />
+          </div>
+        </SheetContent>
+      </Sheet>
     </div>
   );
 };
