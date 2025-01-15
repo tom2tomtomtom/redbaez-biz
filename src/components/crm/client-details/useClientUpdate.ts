@@ -18,6 +18,8 @@ export const useClientUpdate = (clientId: string | undefined, onSuccess?: () => 
 
   return useMutation({
     mutationFn: async ({ formData, contacts }: UpdateClientData) => {
+      console.log('Updating client with contacts:', contacts);
+      
       // Handle empty contacts array or undefined contacts
       const { primaryContact, additionalContacts } = contacts?.length 
         ? formatContacts(contacts) 
@@ -26,7 +28,9 @@ export const useClientUpdate = (clientId: string | undefined, onSuccess?: () => 
       const clientData = {
         ...formData,
         name: formData.name,
-        contact_name: primaryContact ? `${primaryContact.firstName} ${primaryContact.lastName}`.trim() : formData.contact_name,
+        contact_name: primaryContact 
+          ? `${primaryContact.firstName} ${primaryContact.lastName}`.trim() 
+          : formData.contact_name,
         contact_email: primaryContact?.email || formData.contact_email,
         contact_phone: primaryContact?.phone || formData.contact_phone,
         additional_contacts: additionalContacts || formData.additional_contacts,
@@ -45,13 +49,9 @@ export const useClientUpdate = (clientId: string | undefined, onSuccess?: () => 
       return data;
     },
     onMutate: async (variables) => {
-      // Cancel any outgoing refetches
       await queryClient.cancelQueries({ queryKey: ['client', numericId] });
-
-      // Snapshot the previous value
       const previousClient = queryClient.getQueryData(['client', numericId]);
-
-      // Optimistically update the cache
+      
       queryClient.setQueryData(['client', numericId], (old: any) => ({
         ...old,
         ...variables.formData,
@@ -61,7 +61,6 @@ export const useClientUpdate = (clientId: string | undefined, onSuccess?: () => 
     },
     onError: (error, variables, context) => {
       console.error('Error updating client:', error);
-      // Revert back to the previous value if there's an error
       if (context?.previousClient) {
         queryClient.setQueryData(['client', numericId], context.previousClient);
       }
@@ -72,7 +71,6 @@ export const useClientUpdate = (clientId: string | undefined, onSuccess?: () => 
       });
     },
     onSuccess: (data) => {
-      // Update both the individual client and the clients list
       queryClient.setQueryData(['client', numericId], data);
       queryClient.invalidateQueries({ queryKey: ['client', numericId] });
       queryClient.invalidateQueries({ queryKey: ['clients'] });
@@ -88,6 +86,13 @@ export const useClientUpdate = (clientId: string | undefined, onSuccess?: () => 
 };
 
 const formatContacts = (contacts: Contact[]) => {
+  if (!Array.isArray(contacts) || contacts.length === 0) {
+    return {
+      primaryContact: null,
+      additionalContacts: null
+    };
+  }
+
   const [primaryContact, ...additionalContacts] = contacts;
   return {
     primaryContact,
