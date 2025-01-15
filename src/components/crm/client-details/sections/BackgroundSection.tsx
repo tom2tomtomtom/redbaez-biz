@@ -5,6 +5,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Edit2, Save } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/components/ui/use-toast';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface BackgroundSectionProps {
   clientId: number;
@@ -14,6 +15,7 @@ interface BackgroundSectionProps {
 export const BackgroundSection = ({ clientId, background }: BackgroundSectionProps) => {
   const [isEditingBackground, setIsEditingBackground] = useState(false);
   const [editedBackground, setEditedBackground] = useState(background || '');
+  const queryClient = useQueryClient();
 
   const handleSaveBackground = async () => {
     try {
@@ -23,6 +25,9 @@ export const BackgroundSection = ({ clientId, background }: BackgroundSectionPro
         .eq('id', clientId);
 
       if (error) throw error;
+
+      // Invalidate and refetch client data
+      await queryClient.invalidateQueries({ queryKey: ['client', clientId] });
 
       toast({
         title: "Success",
