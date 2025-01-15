@@ -34,7 +34,8 @@ Focus on:
 - AI innovation and research
 - AI ethics and safety
 
-Be precise and factual. Return EXACTLY 5 items.`;
+Be precise and factual. Return EXACTLY 5 items.
+Do not include any text before or after the JSON.`;
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
