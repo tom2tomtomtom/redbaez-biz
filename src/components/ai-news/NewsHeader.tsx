@@ -12,6 +12,7 @@ interface NewsHeaderProps {
   onRefresh: () => void;
   onGenerateNewsletter: () => void;
   isGenerating: boolean;
+  isRefreshing: boolean;
   hasNewsItems: boolean;
 }
 
@@ -19,6 +20,7 @@ export const NewsHeader = ({
   onRefresh,
   onGenerateNewsletter,
   isGenerating,
+  isRefreshing,
   hasNewsItems,
 }: NewsHeaderProps) => {
   return (
@@ -60,9 +62,9 @@ export const NewsHeader = ({
           onClick={onRefresh} 
           variant="outline" 
           className="gap-2"
-          disabled={isGenerating}
+          disabled={isRefreshing}
         >
-          {isGenerating ? (
+          {isRefreshing ? (
             <Loader2 className="h-4 w-4 animate-spin" />
           ) : (
             <RefreshCw className="h-4 w-4" />

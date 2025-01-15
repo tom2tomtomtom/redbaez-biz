@@ -19,7 +19,9 @@ interface NewsItem {
 }
 
 export const AiNews = () => {
-  const [isGenerating, setIsGenerating] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isGeneratingNewsletter, setIsGeneratingNewsletter] = useState(false);
+  const [isGeneratingArticle, setIsGeneratingArticle] = useState(false);
   const [showArticleDialog, setShowArticleDialog] = useState(false);
   const [showNewsletterDialog, setShowNewsletterDialog] = useState(false);
   const [generatedArticle, setGeneratedArticle] = useState("");
@@ -47,6 +49,7 @@ export const AiNews = () => {
 
   const refreshNews = async () => {
     try {
+      setIsRefreshing(true);
       console.log('Starting news refresh...');
       const { error } = await supabase.functions.invoke('fetch-ai-news');
       if (error) {
@@ -60,6 +63,8 @@ export const AiNews = () => {
     } catch (error) {
       console.error('Error refreshing news:', error);
       toast.error('Failed to refresh news');
+    } finally {
+      setIsRefreshing(false);
     }
   };
 
@@ -77,7 +82,7 @@ export const AiNews = () => {
   };
 
   const generateLinkedInArticle = async (item: NewsItem) => {
-    setIsGenerating(true);
+    setIsGeneratingArticle(true);
     setSelectedNewsItem(item);
     
     try {
@@ -100,7 +105,7 @@ export const AiNews = () => {
       console.error('Error generating LinkedIn article:', error);
       toast.error('Failed to generate LinkedIn article');
     } finally {
-      setIsGenerating(false);
+      setIsGeneratingArticle(false);
     }
   };
 
@@ -110,7 +115,7 @@ export const AiNews = () => {
       return;
     }
 
-    setIsGenerating(true);
+    setIsGeneratingNewsletter(true);
     
     try {
       const { data, error } = await supabase.functions.invoke('generate-newsletter', {
@@ -135,7 +140,7 @@ export const AiNews = () => {
       console.error('Error generating newsletter:', error);
       toast.error('Failed to generate newsletter');
     } finally {
-      setIsGenerating(false);
+      setIsGeneratingNewsletter(false);
     }
   };
 
@@ -156,7 +161,8 @@ export const AiNews = () => {
         <NewsHeader
           onRefresh={refreshNews}
           onGenerateNewsletter={generateNewsletter}
-          isGenerating={isGenerating}
+          isGenerating={isGeneratingNewsletter}
+          isRefreshing={isRefreshing}
           hasNewsItems={!!newsItems?.length}
         />
 
@@ -174,7 +180,7 @@ export const AiNews = () => {
                 item={item}
                 onShare={shareNews}
                 onGenerateLinkedInArticle={generateLinkedInArticle}
-                isGenerating={isGenerating}
+                isGenerating={isGeneratingArticle}
                 selectedNewsItem={selectedNewsItem}
               />
             ))
