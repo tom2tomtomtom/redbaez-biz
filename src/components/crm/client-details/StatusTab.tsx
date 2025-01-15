@@ -9,6 +9,7 @@ import { StatusHistory } from './status/StatusHistory';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { History } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface StatusTabProps {
   clientId: number;
@@ -40,6 +41,67 @@ export const StatusTab = ({ clientId, currentStatus }: StatusTabProps) => {
 
   // Get the latest status notes
   const currentStatusNotes = statusHistory?.[0]?.notes || '';
+
+  const handleStatusChange = async (newStatus: string) => {
+    setIsSubmitting(true);
+    let previousData: any = null;
+
+    try {
+      // Optimistically update the client data in cache
+      previousData = queryClient.getQueryData(['client', clientId]);
+      queryClient.setQueryData(['client', clientId], (old: any) => ({
+        ...old,
+        status: newStatus,
+      }));
+
+      // Insert new status history record
+      const { error: historyError } = await supabase
+        .from('client_status_history')
+        .insert({
+          client_id: clientId,
+          status: newStatus,
+          notes: `Status changed to ${newStatus}`,
+        });
+
+      if (historyError) throw historyError;
+
+      // Update client's current status
+      const { error: clientError, data: updatedClient } = await supabase
+        .from('clients')
+        .update({ status: newStatus })
+        .eq('id', clientId)
+        .select()
+        .single();
+
+      if (clientError) throw clientError;
+
+      // Update cache with the server response
+      queryClient.setQueryData(['client', clientId], updatedClient);
+      setStatus(newStatus);
+
+      toast({
+        title: "Status Updated",
+        description: "The client's status has been successfully updated.",
+      });
+      
+      // Invalidate queries to refresh data
+      queryClient.invalidateQueries({ queryKey: ['client', clientId] });
+      queryClient.invalidateQueries({ queryKey: ['statusHistory', clientId] });
+    } catch (error) {
+      console.error('Error updating status:', error);
+      // Revert cache to previous state on error
+      if (previousData) {
+        queryClient.setQueryData(['client', clientId], previousData);
+      }
+      toast({
+        title: "Error",
+        description: "Failed to update status. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -106,6 +168,33 @@ export const StatusTab = ({ clientId, currentStatus }: StatusTabProps) => {
 
   return (
     <div className="space-y-6 bg-white rounded-lg shadow-sm p-6">
+      <div className="flex flex-col space-y-4">
+        <div className="flex items-center justify-between">
+          <h3 className="text-lg font-semibold text-gray-900">Current Status</h3>
+          <Select
+            value={currentStatus || ''}
+            onValueChange={handleStatusChange}
+            disabled={isSubmitting}
+          >
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Select status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="active">Active</SelectItem>
+              <SelectItem value="inactive">Inactive</SelectItem>
+              <SelectItem value="pending">Pending</SelectItem>
+              <SelectItem value="completed">Completed</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        
+        {currentStatusNotes && (
+          <div className="text-sm text-gray-600">
+            {currentStatusNotes}
+          </div>
+        )}
+      </div>
+
       {isEditingStatus ? (
         <StatusForm
           status={status}
@@ -116,11 +205,13 @@ export const StatusTab = ({ clientId, currentStatus }: StatusTabProps) => {
           onSubmit={handleSubmit}
         />
       ) : (
-        <CurrentStatus
-          status={currentStatus || ''}
-          notes={currentStatusNotes}
-          onEditClick={() => setIsEditingStatus(true)}
-        />
+        <Button
+          variant="outline"
+          onClick={() => setIsEditingStatus(true)}
+          className="mt-4"
+        >
+          Add Status Note
+        </Button>
       )}
       
       <Sheet>
