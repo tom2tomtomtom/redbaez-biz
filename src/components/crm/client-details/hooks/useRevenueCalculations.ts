@@ -7,23 +7,27 @@ interface RevenueData {
 export const useRevenueCalculations = (client: any) => {
   const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
   
-  const revenueData = months.map((month) => {
+  const revenueData = months.map((month): RevenueData => {
     const monthLower = month.toLowerCase();
-    const actualRevenue = client[`actual_${monthLower}`] || 0;
+    const actualKey = `actual_${monthLower}`;
+    const forecastKey = `forecast_${monthLower}`;
     
-    // If there's actual revenue, set forecast to 0
-    const forecastRevenue = actualRevenue > 0 ? 0 : (client[`forecast_${monthLower}`] || 0);
+    // Get actual and forecast values, defaulting to 0 if undefined
+    const actualRevenue = client?.[actualKey] || 0;
+    const forecastRevenue = client?.[forecastKey] || 0;
     
     return {
       month,
-      actual: actualRevenue,
-      forecast: forecastRevenue
+      actual: Number(actualRevenue),
+      forecast: Number(forecastRevenue)
     };
   });
 
-  const totalActualRevenue = Object.entries(client)
+  const totalActualRevenue = Object.entries(client || {})
     .filter(([key]) => key.startsWith('actual_'))
     .reduce((sum, [_, value]) => sum + (Number(value) || 0), 0);
+
+  console.log('Calculated revenue data:', { revenueData, totalActualRevenue });
 
   return {
     revenueData,

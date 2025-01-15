@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { MonthlyForecast, ForecastUpdate } from '@/types/forecast';
 import { format, parseISO } from 'date-fns';
+import { toast } from '@/components/ui/use-toast';
 
 export function useClientForecasts(clientId: number) {
   const queryClient = useQueryClient();
@@ -68,8 +69,22 @@ export function useClientForecasts(clientId: number) {
       return { totalForecast, totalActual };
     },
     onSuccess: () => {
+      // Invalidate both the forecasts and client data
       queryClient.invalidateQueries({ queryKey: ['client-forecasts', clientId] });
       queryClient.invalidateQueries({ queryKey: ['client', clientId] });
+      
+      toast({
+        title: "Success",
+        description: "Revenue updated successfully",
+      });
+    },
+    onError: (error) => {
+      console.error('Error updating revenue:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update revenue",
+        variant: "destructive",
+      });
     }
   });
 

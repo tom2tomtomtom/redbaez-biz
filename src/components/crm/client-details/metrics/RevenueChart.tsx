@@ -13,6 +13,8 @@ interface RevenueChartProps {
 export const RevenueChart = ({
   revenueData,
 }: RevenueChartProps) => {
+  console.log('Revenue chart data:', revenueData);
+  
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
@@ -20,11 +22,16 @@ export const RevenueChart = ({
       </div>
       <div className="h-48">
         <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={revenueData} margin={{ top: 10, right: 0, left: 0, bottom: 0 }}>
+          <BarChart 
+            data={revenueData} 
+            margin={{ top: 10, right: 0, left: 0, bottom: 0 }}
+          >
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="month" />
             <YAxis />
-            <Tooltip />
+            <Tooltip 
+              formatter={(value) => `$${Number(value).toLocaleString()}`}
+            />
             <Legend />
             <Bar 
               dataKey="actual" 
