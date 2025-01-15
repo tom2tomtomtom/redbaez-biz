@@ -65,7 +65,6 @@ export const useItemStatusChange = () => {
 
       if (error) throw error;
 
-      // Invalidate all relevant queries to refresh the data
       queryClient.invalidateQueries({ queryKey: ['generalTasks'] });
       queryClient.invalidateQueries({ queryKey: ['priorityNextSteps'] });
       queryClient.invalidateQueries({ queryKey: ['nextSteps'] });
@@ -93,24 +92,26 @@ export const useItemStatusChange = () => {
       let error;
 
       if (item.type === 'task') {
-        const result = await supabase
+        const { error: updateError } = await supabase
           .from('general_tasks')
           .update({ urgent: checked })
           .eq('id', item.data.id);
-        error = result.error;
+        error = updateError;
       } else if (item.type === 'next_step') {
-        const result = await supabase
+        const { error: updateError } = await supabase
           .from('client_next_steps')
           .update({ urgent: checked })
           .eq('id', item.data.id);
-        error = result.error;
+        error = updateError;
       }
 
       if (error) throw error;
 
+      // Invalidate all relevant queries to refresh the data
       queryClient.invalidateQueries({ queryKey: ['generalTasks'] });
+      queryClient.invalidateQueries({ queryKey: ['clientNextSteps'] });
       queryClient.invalidateQueries({ queryKey: ['priorityNextSteps'] });
-      queryClient.invalidateQueries({ queryKey: ['nextSteps'] });
+      queryClient.invalidateQueries({ queryKey: ['client'] });
 
       toast({
         title: checked ? "Marked as urgent" : "Removed urgent flag",
