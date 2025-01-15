@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { Mail, Phone, Star, Plus, X } from 'lucide-react';
+import { Mail, Phone, Star, Plus, X, Edit2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useClientUpdate } from './useClientUpdate';
@@ -118,12 +118,14 @@ export const ContactInfoCard = ({
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle className="text-lg font-medium">Contact Information</CardTitle>
         {!isEditing && (
-          <Button 
-            variant="outline" 
+          <Button
+            variant="ghost"
+            size="sm"
             onClick={() => setIsEditing(true)}
             className="ml-auto"
           >
-            Edit Contact Info
+            <Edit2 className="h-4 w-4 mr-2" />
+            Edit
           </Button>
         )}
       </CardHeader>

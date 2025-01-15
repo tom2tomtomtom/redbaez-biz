@@ -1,6 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { AlertCircle, Pencil } from 'lucide-react';
+import { AlertCircle, Edit2 } from 'lucide-react';
 
 interface ClientHeaderProps {
   clientName: string;
@@ -29,11 +29,12 @@ export const ClientHeader = ({
       </div>
       <Button
         onClick={onEditClick}
-        variant="outline"
-        className="flex items-center gap-2"
+        variant="ghost"
+        size="sm"
+        className="flex items-center"
       >
-        <Pencil size={16} />
-        Edit Client Info
+        <Edit2 className="h-4 w-4 mr-2" />
+        Edit
       </Button>
     </div>
   );
