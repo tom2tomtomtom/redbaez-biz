@@ -37,6 +37,8 @@ export const ContactInfoCard = ({
   const [editedSize, setEditedSize] = useState(companySize || '');
   const [editedEmail, setEditedEmail] = useState(contactEmail || '');
   const [editedPhone, setEditedPhone] = useState(contactPhone || '');
+  const [editedTitle, setEditedTitle] = useState('');
+  const [editedAddress, setEditedAddress] = useState('');
   const [contacts, setContacts] = useState<Contact[]>(additionalContacts || []);
   const [showNewContactForm, setShowNewContactForm] = useState(false);
   const [newContact, setNewContact] = useState<Contact>({
@@ -66,7 +68,7 @@ export const ContactInfoCard = ({
         contact_phone: editedPhone,
         additional_contacts: contacts
       },
-      contacts: [] // Maintain existing contacts array structure
+      contacts: []
     });
   };
 
@@ -146,6 +148,15 @@ export const ContactInfoCard = ({
                       />
                     </div>
                     <div>
+                      <label className="text-sm text-gray-500">Title</label>
+                      <Input
+                        value={editedTitle}
+                        onChange={(e) => setEditedTitle(e.target.value)}
+                        className="mt-1"
+                        placeholder="Enter title"
+                      />
+                    </div>
+                    <div>
                       <label className="text-sm text-gray-500">Company Size</label>
                       <Input
                         value={editedSize}
@@ -171,6 +182,15 @@ export const ContactInfoCard = ({
                         className="mt-1"
                       />
                     </div>
+                    <div>
+                      <label className="text-sm text-gray-500">Address</label>
+                      <Input
+                        value={editedAddress}
+                        onChange={(e) => setEditedAddress(e.target.value)}
+                        className="mt-1"
+                        placeholder="Enter address"
+                      />
+                    </div>
                     <div className="flex gap-2 mt-4">
                       <Button onClick={handleSave} className="w-full">
                         Save Changes
@@ -187,6 +207,7 @@ export const ContactInfoCard = ({
                 ) : (
                   <>
                     <h3 className="font-medium text-gray-900">{contactName || 'No contact name'}</h3>
+                    <p className="text-sm text-gray-500">{editedTitle || 'Title not specified'}</p>
                     <p className="text-sm text-gray-500">{companySize || 'Company size not specified'}</p>
                     <div className="mt-4 space-y-2">
                       <div className="flex items-center text-sm text-gray-600">
@@ -197,6 +218,9 @@ export const ContactInfoCard = ({
                         <Phone size={14} className="mr-2" />
                         {contactPhone || 'No phone provided'}
                       </div>
+                      <p className="text-sm text-gray-600 mt-2">
+                        {editedAddress || 'No address provided'}
+                      </p>
                     </div>
                   </>
                 )}
@@ -235,6 +259,9 @@ export const ContactInfoCard = ({
                   <Phone size={14} className="mr-2" />
                   {contact.phone || 'No phone provided'}
                 </div>
+                <p className="text-sm text-gray-600 mt-2">
+                  {contact.address || 'No address provided'}
+                </p>
               </div>
             </div>
           ))}
@@ -285,6 +312,14 @@ export const ContactInfoCard = ({
                     type="tel"
                     value={newContact.phone}
                     onChange={(e) => setNewContact({...newContact, phone: e.target.value})}
+                    className="mt-1"
+                  />
+                </div>
+                <div>
+                  <label className="text-sm text-gray-500">Address</label>
+                  <Input
+                    value={newContact.address}
+                    onChange={(e) => setNewContact({...newContact, address: e.target.value})}
                     className="mt-1"
                   />
                 </div>
