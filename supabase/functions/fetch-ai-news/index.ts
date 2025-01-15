@@ -13,7 +13,7 @@ interface NewsResponse {
   news: NewsItem[];
 }
 
-const SYSTEM_PROMPT = `You are an AI news curator. Generate exactly 5 recent AI news items from THIS WEEK ONLY.
+const getSystemPrompt = (topic?: string) => `You are an AI news curator. Generate exactly 5 recent AI news items from THIS WEEK ONLY${topic ? ` related to "${topic}"` : ''}.
 
 Your response MUST be a valid JSON string matching this EXACT structure:
 {
@@ -51,7 +51,8 @@ Deno.serve(async (req) => {
       throw new Error('Missing Perplexity API key')
     }
 
-    console.log('Fetching news from Perplexity API...')
+    const { topic } = await req.json().catch(() => ({}));
+    console.log('Fetching news from Perplexity API...', topic ? `for topic: ${topic}` : 'for general AI news');
     
     const response = await fetch('https://api.perplexity.ai/chat/completions', {
       method: 'POST',
@@ -64,21 +65,21 @@ Deno.serve(async (req) => {
         messages: [
           {
             role: 'system',
-            content: SYSTEM_PROMPT
+            content: getSystemPrompt(topic)
           },
           {
             role: 'user',
-            content: 'Generate 5 recent AI news items from this week only, searching across multiple sources.'
+            content: `Generate 5 recent AI news items from this week only${topic ? ` about ${topic}` : ''}, searching across multiple sources.`
           }
         ],
-        temperature: 0.7, // Increased temperature for more variety
+        temperature: 0.7,
         max_tokens: 1000,
         return_images: false,
         return_related_questions: false,
-        search_domain_filter: [], // Keep empty to search broadly
+        search_domain_filter: [],
         search_recency_filter: 'week',
-        frequency_penalty: 0.5, // Added to encourage more diverse responses
-        presence_penalty: 0.5, // Added to encourage more diverse responses
+        frequency_penalty: 0.5,
+        presence_penalty: 0.5,
       }),
     })
 
