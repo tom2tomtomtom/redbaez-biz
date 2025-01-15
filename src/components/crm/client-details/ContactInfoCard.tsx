@@ -60,15 +60,25 @@ export const ContactInfoCard = ({
   });
 
   const handleSave = () => {
+    // Create a primary contact from the edited fields
+    const primaryContact = {
+      firstName: editedName.split(' ')[0] || '',
+      lastName: editedName.split(' ').slice(1).join(' ') || '',
+      title: editedTitle,
+      email: editedEmail,
+      phone: editedPhone,
+      address: editedAddress
+    };
+
+    // Update with both primary contact and additional contacts
     updateMutation.mutate({
       formData: {
         contact_name: editedName,
         company_size: editedSize,
         contact_email: editedEmail,
         contact_phone: editedPhone,
-        additional_contacts: contacts
       },
-      contacts: []
+      contacts: [primaryContact, ...contacts]
     });
   };
 
@@ -89,7 +99,17 @@ export const ContactInfoCard = ({
       formData: {
         additional_contacts: updatedContacts
       },
-      contacts: []
+      contacts: [
+        {
+          firstName: editedName.split(' ')[0] || '',
+          lastName: editedName.split(' ').slice(1).join(' ') || '',
+          title: editedTitle,
+          email: editedEmail,
+          phone: editedPhone,
+          address: editedAddress
+        },
+        ...updatedContacts
+      ]
     });
 
     setNewContact({
@@ -111,7 +131,17 @@ export const ContactInfoCard = ({
       formData: {
         additional_contacts: updatedContacts
       },
-      contacts: []
+      contacts: [
+        {
+          firstName: editedName.split(' ')[0] || '',
+          lastName: editedName.split(' ').slice(1).join(' ') || '',
+          title: editedTitle,
+          email: editedEmail,
+          phone: editedPhone,
+          address: editedAddress
+        },
+        ...updatedContacts
+      ]
     });
   };
 
