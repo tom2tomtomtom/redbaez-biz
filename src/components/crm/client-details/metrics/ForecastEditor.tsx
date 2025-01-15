@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { useClientForecasts } from '@/hooks/useClientForecasts';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface ForecastEditorProps {
   clientId: number;
@@ -20,6 +21,7 @@ type MonthlyData = {
 };
 
 export const ForecastEditor = ({ clientId }: ForecastEditorProps) => {
+  const queryClient = useQueryClient();
   const { updateForecast } = useClientForecasts(clientId);
   const [isEditing, setIsEditing] = useState(false);
   const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -36,7 +38,6 @@ export const ForecastEditor = ({ clientId }: ForecastEditorProps) => {
   );
 
   const handleValueChange = (month: string, type: 'forecast' | 'actual', value: string) => {
-    // Convert empty string to 0, otherwise parse as integer to avoid floating point issues
     const numericValue = value === '' ? 0 : parseInt(value, 10);
     setMonthlyData(prev => ({
       ...prev,
@@ -49,18 +50,15 @@ export const ForecastEditor = ({ clientId }: ForecastEditorProps) => {
 
   const handleSubmit = async () => {
     try {
-      // Update each month's data
       for (const [month, values] of Object.entries(monthlyData)) {
         const monthDate = new Date(`${currentYear}-${months.findIndex(m => m.toLowerCase() === month) + 1}-01`);
         
-        // Update forecast - ensure we're sending integer values
         await updateForecast.mutate({
           month: format(monthDate, 'yyyy-MM-dd'),
           amount: Math.round(values.forecast),
           isActual: false
         });
 
-        // Update actual - ensure we're sending integer values
         await updateForecast.mutate({
           month: format(monthDate, 'yyyy-MM-dd'),
           amount: Math.round(values.actual),
@@ -68,6 +66,10 @@ export const ForecastEditor = ({ clientId }: ForecastEditorProps) => {
         });
       }
 
+      // Invalidate relevant queries to trigger updates
+      queryClient.invalidateQueries({ queryKey: ['monthly-revenue'] });
+      queryClient.invalidateQueries({ queryKey: ['client', clientId] });
+      
       setIsEditing(false);
     } catch (error) {
       console.error('Error updating revenue:', error);
