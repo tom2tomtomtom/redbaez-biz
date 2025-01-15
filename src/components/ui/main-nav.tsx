@@ -29,6 +29,9 @@ export function MainNav() {
           <Link to="/" className="transition-colors hover:text-primary">
             Overview
           </Link>
+          <Link to="/business-admin" className="transition-colors hover:text-primary">
+            Business Admin
+          </Link>
           <Link to="/marketing" className="transition-colors hover:text-primary">
             Marketing
           </Link>
@@ -40,9 +43,6 @@ export function MainNav() {
           </Link>
           <Link to="/ai-news" className="transition-colors hover:text-primary">
             AI News
-          </Link>
-          <Link to="/business-admin" className="transition-colors hover:text-primary">
-            Business Admin
           </Link>
         </nav>
         <div className="ml-auto flex items-center space-x-4">
