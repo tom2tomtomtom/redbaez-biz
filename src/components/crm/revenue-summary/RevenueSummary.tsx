@@ -13,6 +13,20 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 
+interface ClientDetail {
+  name: string;
+  amount: number;
+  type: 'actual' | 'forecast';
+}
+
+interface MonthlyData {
+  month: string;
+  actual: number;
+  forecast: number;
+  actualClients: ClientDetail[];
+  forecastClients: ClientDetail[];
+}
+
 const fetchMonthlyRevenue = async () => {
   const { data: clients, error } = await supabase
     .from('clients')
@@ -35,7 +49,7 @@ const fetchMonthlyRevenue = async () => {
       .map(client => ({
         name: client.name,
         amount: client[`actual_${monthLower}`] || 0,
-        type: 'actual'
+        type: 'actual' as const
       }));
 
     const forecastClients = clients
@@ -43,7 +57,7 @@ const fetchMonthlyRevenue = async () => {
       .map(client => ({
         name: client.name,
         amount: client[`forecast_${monthLower}`] || 0,
-        type: 'forecast'
+        type: 'forecast' as const
       }));
 
     const actual = actualClients.reduce((sum, client) => sum + client.amount, 0);
@@ -75,9 +89,8 @@ const fetchMonthlyRevenue = async () => {
 const CustomTooltip = ({ active, payload, label }: TooltipProps<number, string>) => {
   if (active && payload && payload.length > 0) {
     const dataKey = payload[0].dataKey as 'actual' | 'forecast';
-    const clients = dataKey === 'actual' 
-      ? payload[0].payload.actualClients 
-      : payload[0].payload.forecastClients;
+    const data = payload[0].payload as MonthlyData;
+    const clients = dataKey === 'actual' ? data.actualClients : data.forecastClients;
 
     const title = dataKey === 'actual' ? 'Actual Revenue' : 'Forecast Revenue';
 
@@ -85,17 +98,18 @@ const CustomTooltip = ({ active, payload, label }: TooltipProps<number, string>)
       <div className="bg-white p-4 rounded-lg shadow-lg border">
         <p className="font-semibold mb-2">{label} - {title}</p>
         <div className="space-y-2">
-          {clients
-            .sort((a: any, b: any) => b.amount - a.amount)
-            .map((client: any, index: number) => (
-              <div key={index} className="flex justify-between gap-4">
-                <span className="text-sm">{client.name}</span>
-                <span className="text-sm font-medium">
-                  ${client.amount.toLocaleString()}
-                </span>
-              </div>
-            ))}
-          {clients.length === 0 && (
+          {clients && clients.length > 0 ? (
+            clients
+              .sort((a, b) => b.amount - a.amount)
+              .map((client, index) => (
+                <div key={index} className="flex justify-between gap-4">
+                  <span className="text-sm">{client.name}</span>
+                  <span className="text-sm font-medium">
+                    ${client.amount.toLocaleString()}
+                  </span>
+                </div>
+              ))
+          ) : (
             <div className="text-sm text-gray-500">No clients for this period</div>
           )}
         </div>
