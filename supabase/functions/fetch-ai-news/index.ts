@@ -85,8 +85,7 @@ Deno.serve(async (req) => {
           return_related_questions: false,
           search_domain_filter: [],
           search_recency_filter: 'week',
-          frequency_penalty: 0.5,
-          presence_penalty: 0.5,
+          frequency_penalty: 0.5
         }),
       });
 
@@ -160,7 +159,7 @@ Deno.serve(async (req) => {
         throw new Error(`Invalid news format: ${e.message}`);
       }
     } catch (apiError) {
-      console.error('Perplexity API call failed:', apiError);
+      console.error('Error fetching from Perplexity API:', apiError);
       throw new Error(`Failed to fetch from Perplexity API: ${apiError.message}`);
     }
   } catch (error) {
