@@ -23,7 +23,7 @@ const queryClient = new QueryClient({
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <ThemeProvider defaultTheme="light" storageKey="redbaez-theme">
+      <ThemeProvider>
         <Router>
           <Routes>
             <Route path="/" element={<Index />} />
