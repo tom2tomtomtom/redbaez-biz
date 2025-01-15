@@ -18,15 +18,18 @@ export const useClientUpdate = (clientId: string | undefined, onSuccess?: () => 
 
   return useMutation({
     mutationFn: async ({ formData, contacts }: UpdateClientData) => {
-      const { primaryContact, additionalContacts } = formatContacts(contacts);
+      // Handle empty contacts array or undefined contacts
+      const { primaryContact, additionalContacts } = contacts?.length 
+        ? formatContacts(contacts) 
+        : { primaryContact: null, additionalContacts: null };
       
       const clientData = {
         ...formData,
         name: formData.name,
-        contact_name: `${primaryContact.firstName} ${primaryContact.lastName}`.trim(),
-        contact_email: primaryContact.email,
-        contact_phone: primaryContact.phone,
-        additional_contacts: additionalContacts,
+        contact_name: primaryContact ? `${primaryContact.firstName} ${primaryContact.lastName}`.trim() : formData.contact_name,
+        contact_email: primaryContact?.email || formData.contact_email,
+        contact_phone: primaryContact?.phone || formData.contact_phone,
+        additional_contacts: additionalContacts || formData.additional_contacts,
       };
 
       console.log('Updating client with data:', clientData);
