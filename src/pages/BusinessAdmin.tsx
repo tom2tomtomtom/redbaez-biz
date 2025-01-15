@@ -31,18 +31,11 @@ export const BusinessAdmin = () => {
         </div>
         
         <div className="grid gap-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Business Admin Tasks</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <PriorityActions 
-                hideAddButton={false}
-                category="Business Admin"
-                onTaskClick={handleTaskClick}
-              />
-            </CardContent>
-          </Card>
+          <PriorityActions 
+            hideAddButton={false}
+            category="Business Admin"
+            onTaskClick={handleTaskClick}
+          />
         </div>
 
         <TaskDialog
