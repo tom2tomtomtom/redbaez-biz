@@ -84,7 +84,7 @@ export const UpdateNextStepButton = ({ clientId }: UpdateNextStepButtonProps) =>
       });
       
       // Invalidate all relevant queries
-      queryClient.invalidateQueries({ queryKey: ['client-next-steps'] });
+      queryClient.invalidateQueries({ queryKey: ['client-items', clientId] });
       queryClient.invalidateQueries({ queryKey: ['next-steps-history'] });
       queryClient.invalidateQueries({ queryKey: ['client'] });
       queryClient.invalidateQueries({ queryKey: ['priorityClients'] });
