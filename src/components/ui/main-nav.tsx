@@ -24,7 +24,7 @@ export function MainNav() {
 
   return (
     <div className="border-b">
-      <div className="flex h-16 items-center px-4">
+      <div className="flex h-16 items-center px-8 mx-auto max-w-screen-2xl">
         <nav className="flex items-center space-x-6 text-sm font-medium">
           <Link to="/" className="transition-colors hover:text-primary">
             Overview
