@@ -5,6 +5,11 @@ interface RevenueData {
 }
 
 export const useRevenueCalculations = (client: any) => {
+  if (!client) {
+    console.log('No client data provided to useRevenueCalculations');
+    return { revenueData: [], totalActualRevenue: 0 };
+  }
+
   const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
   
   const revenueData = months.map((month): RevenueData => {
@@ -12,9 +17,9 @@ export const useRevenueCalculations = (client: any) => {
     const actualKey = `actual_${monthLower}`;
     const forecastKey = `forecast_${monthLower}`;
     
-    // Ensure we're getting numeric values
-    const actualRevenue = Number(client?.[actualKey] || 0);
-    const forecastRevenue = Number(client?.[forecastKey] || 0);
+    // Ensure we're getting numeric values and handle null/undefined
+    const actualRevenue = parseFloat(client[actualKey] || '0');
+    const forecastRevenue = parseFloat(client[forecastKey] || '0');
     
     console.log(`Month: ${month}, Actual: ${actualRevenue}, Forecast: ${forecastRevenue}`);
     

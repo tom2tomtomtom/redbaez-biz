@@ -57,14 +57,14 @@ export const RevenueChart = ({
             />
             <Bar 
               dataKey="actual" 
-              fill="#1A1F2C"
+              fill="#4338ca" // Changed to a more visible indigo color
               name="Actual Revenue"
               minPointSize={3}
               radius={[4, 4, 0, 0]}
             />
             <Bar 
               dataKey="forecast" 
-              fill="hsl(var(--primary)/0.5)" 
+              fill="#60a5fa" // Changed to a lighter blue for forecast
               name="Forecast Revenue"
               minPointSize={3}
               radius={[4, 4, 0, 0]}
