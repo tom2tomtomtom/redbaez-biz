@@ -129,7 +129,8 @@ export const IdeaGenerator = ({ category, onIdeaGenerated }: IdeaGeneratorProps)
           updated_at: new Date().toISOString(),
           urgent: false,
           client_id: null,
-          updated_by: null
+          updated_by: null,
+          created_by: null
         } : null}
         onSaved={() => {
           setIsTaskDialogOpen(false);
