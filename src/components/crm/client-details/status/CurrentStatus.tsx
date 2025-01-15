@@ -30,8 +30,12 @@ export const CurrentStatus = ({ status, notes, onEditClick }: CurrentStatusProps
         </div>
         {notes && (
           <div className="prose prose-sm max-w-none">
-            <div className="text-gray-700 whitespace-pre-line leading-relaxed">
-              {formatNotes(notes)}
+            <div className="text-gray-700 space-y-4">
+              {formatNotes(notes).split('\n\n').map((paragraph, index) => (
+                <p key={index} className="leading-relaxed">
+                  {paragraph}
+                </p>
+              ))}
             </div>
           </div>
         )}
