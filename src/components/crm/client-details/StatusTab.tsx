@@ -41,10 +41,11 @@ export const StatusTab = ({ clientId, currentStatus }: StatusTabProps) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
+    let previousData: any = null;
 
     try {
       // Optimistically update the client data in cache
-      const previousData = queryClient.getQueryData(['client', clientId]);
+      previousData = queryClient.getQueryData(['client', clientId]);
       queryClient.setQueryData(['client', clientId], (old: any) => ({
         ...old,
         status: status,
