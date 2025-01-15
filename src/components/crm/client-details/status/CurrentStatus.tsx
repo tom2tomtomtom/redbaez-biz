@@ -15,12 +15,10 @@ export const CurrentStatus = ({ status, notes, onEditClick }: CurrentStatusProps
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-lg font-semibold text-gray-900">Current Status</h3>
         <Button
-          variant="outline"
           size="sm"
           onClick={onEditClick}
-          className="hover:bg-gray-100"
         >
-          Edit Status
+          Update Status
         </Button>
       </div>
       
