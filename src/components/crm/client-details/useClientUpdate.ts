@@ -22,7 +22,7 @@ export const useClientUpdate = (clientId: string | undefined, onSuccess?: () => 
       
       const clientData = {
         ...formData,
-        name: formData.name, // Ensure name is included in the update
+        name: formData.name,
         contact_name: `${primaryContact.firstName} ${primaryContact.lastName}`.trim(),
         contact_email: primaryContact.email,
         contact_phone: primaryContact.phone,
@@ -31,30 +31,55 @@ export const useClientUpdate = (clientId: string | undefined, onSuccess?: () => 
 
       console.log('Updating client with data:', clientData);
       
-      const { error } = await supabase
+      const { error, data } = await supabase
         .from('clients')
         .update(clientData)
-        .eq('id', numericId);
+        .eq('id', numericId)
+        .select()
+        .single();
 
       if (error) throw error;
-      return { success: true };
+      return data;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['client'] });
-      queryClient.invalidateQueries({ queryKey: ['clients'] });
-      toast({
-        title: "Success",
-        description: "Client updated successfully",
-      });
-      if (onSuccess) onSuccess();
+    onMutate: async (variables) => {
+      // Cancel any outgoing refetches
+      await queryClient.cancelQueries({ queryKey: ['client', numericId] });
+
+      // Snapshot the previous value
+      const previousClient = queryClient.getQueryData(['client', numericId]);
+
+      // Optimistically update the cache
+      queryClient.setQueryData(['client', numericId], (old: any) => ({
+        ...old,
+        ...variables.formData,
+      }));
+
+      return { previousClient };
     },
-    onError: (error) => {
+    onError: (error, variables, context) => {
       console.error('Error updating client:', error);
+      // Revert back to the previous value if there's an error
+      if (context?.previousClient) {
+        queryClient.setQueryData(['client', numericId], context.previousClient);
+      }
       toast({
         title: "Error",
         description: "Failed to update client",
         variant: "destructive",
       });
+    },
+    onSuccess: (data) => {
+      // Update both the individual client and the clients list
+      queryClient.setQueryData(['client', numericId], data);
+      queryClient.invalidateQueries({ queryKey: ['client', numericId] });
+      queryClient.invalidateQueries({ queryKey: ['clients'] });
+      
+      toast({
+        title: "Success",
+        description: "Client updated successfully",
+      });
+      
+      if (onSuccess) onSuccess();
     }
   });
 };

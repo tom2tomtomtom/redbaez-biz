@@ -463,6 +463,7 @@ export type Database = {
           category: string
           client_id: number | null
           created_at: string | null
+          created_by: string | null
           description: string | null
           id: string
           next_due_date: string | null
@@ -476,6 +477,7 @@ export type Database = {
           category: string
           client_id?: number | null
           created_at?: string | null
+          created_by?: string | null
           description?: string | null
           id?: string
           next_due_date?: string | null
@@ -489,6 +491,7 @@ export type Database = {
           category?: string
           client_id?: number | null
           created_at?: string | null
+          created_by?: string | null
           description?: string | null
           id?: string
           next_due_date?: string | null
@@ -504,6 +507,13 @@ export type Database = {
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "general_tasks_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
           {
