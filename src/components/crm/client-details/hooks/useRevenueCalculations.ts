@@ -17,11 +17,8 @@ export const useRevenueCalculations = (client: any) => {
     const actualKey = `actual_${monthLower}`;
     const forecastKey = `forecast_${monthLower}`;
     
-    // Ensure we're getting numeric values and handle null/undefined
-    const actualRevenue = client[actualKey] !== null ? Number(client[actualKey]) : 0;
-    const forecastRevenue = client[forecastKey] !== null ? Number(client[forecastKey]) : 0;
-    
-    console.log(`Month: ${month}, Actual: ${actualRevenue}, Forecast: ${forecastRevenue}`);
+    const actualRevenue = client[actualKey] || 0;
+    const forecastRevenue = client[forecastKey] || 0;
     
     return {
       month,
@@ -32,7 +29,7 @@ export const useRevenueCalculations = (client: any) => {
 
   const totalActualRevenue = revenueData.reduce((sum, data) => sum + data.actual, 0);
 
-  console.log('Revenue data array:', revenueData);
+  console.log('Revenue data calculated:', revenueData);
   console.log('Total actual revenue:', totalActualRevenue);
 
   return {

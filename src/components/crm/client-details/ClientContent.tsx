@@ -10,6 +10,7 @@ import { UpdateNextStepButton } from './components/UpdateNextStepButton';
 import { supabase } from '@/integrations/supabase/client';
 import { BackgroundSection } from './sections/BackgroundSection';
 import { DueItemsSection } from './sections/DueItemsSection';
+import { useRevenueCalculations } from './hooks/useRevenueCalculations';
 
 interface ClientContentProps {
   client: any;
@@ -18,7 +19,8 @@ interface ClientContentProps {
 }
 
 export const ClientContent = ({ client, isEditing, parsedAdditionalContacts }: ClientContentProps) => {
-  // Fetch all related tasks and next steps
+  const { revenueData, totalActualRevenue } = useRevenueCalculations(client);
+
   const { data: allItems, isLoading } = useQuery({
     queryKey: ['client-items', client.id],
     queryFn: async () => {
@@ -129,7 +131,7 @@ export const ClientContent = ({ client, isEditing, parsedAdditionalContacts }: C
       <KeyMetricsCard
         annualRevenue={client.annual_revenue}
         likelihood={client.likelihood}
-        revenueData={[]}
+        revenueData={revenueData}
         annualRevenueSignedOff={client.annual_revenue_signed_off || 0}
         annualRevenueForecast={client.annual_revenue_forecast || 0}
         clientId={client.id}
