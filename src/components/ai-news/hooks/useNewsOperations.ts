@@ -22,7 +22,6 @@ export const useNewsOperations = () => {
   const [generatedArticle, setGeneratedArticle] = useState("");
   const [generatedNewsletter, setGeneratedNewsletter] = useState("");
   const [selectedNewsItem, setSelectedNewsItem] = useState<NewsItem | null>(null);
-  const [searchTopic, setSearchTopic] = useState("");
 
   const { data: newsItems, isLoading, refetch } = useQuery({
     queryKey: ['ai-news'],
@@ -59,28 +58,6 @@ export const useNewsOperations = () => {
     } catch (error) {
       console.error('Error refreshing news:', error);
       toast.error('Failed to refresh news');
-    } finally {
-      setIsRefreshing(false);
-    }
-  };
-
-  const searchNews = async () => {
-    try {
-      setIsRefreshing(true);
-      console.log('Searching news for topic:', searchTopic);
-      const { error } = await supabase.functions.invoke('fetch-ai-news', {
-        body: { topic: searchTopic }
-      });
-      if (error) {
-        console.error('Error searching news:', error);
-        throw error;
-      }
-      
-      await refetch();
-      toast.success('News updated with search results');
-    } catch (error) {
-      console.error('Error searching news:', error);
-      toast.error('Failed to search news');
     } finally {
       setIsRefreshing(false);
     }
@@ -185,10 +162,7 @@ export const useNewsOperations = () => {
     generatedArticle,
     generatedNewsletter,
     selectedNewsItem,
-    searchTopic,
-    setSearchTopic,
     refreshNews,
-    searchNews,
     shareNews,
     generateLinkedInArticle,
     generateNewsletter,

@@ -1,6 +1,5 @@
-import { Newspaper, RefreshCw, FileText, Loader2, Search } from "lucide-react";
+import { Newspaper, RefreshCw, FileText, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -15,9 +14,6 @@ interface NewsHeaderProps {
   isGenerating: boolean;
   isRefreshing: boolean;
   hasNewsItems: boolean;
-  searchTopic: string;
-  onSearchChange: (value: string) => void;
-  onSearch: () => void;
 }
 
 export const NewsHeader = ({
@@ -26,16 +22,7 @@ export const NewsHeader = ({
   isGenerating,
   isRefreshing,
   hasNewsItems,
-  searchTopic,
-  onSearchChange,
-  onSearch,
 }: NewsHeaderProps) => {
-  const handleKeyPress = (event: React.KeyboardEvent<HTMLInputElement>) => {
-    if (event.key === 'Enter') {
-      onSearch();
-    }
-  };
-
   return (
     <div className="mb-8 flex items-center justify-between">
       <div className="flex items-center gap-3">
@@ -46,24 +33,6 @@ export const NewsHeader = ({
         </div>
       </div>
       <div className="flex gap-4">
-        <div className="flex gap-2">
-          <Input
-            placeholder="Search news by topic..."
-            value={searchTopic}
-            onChange={(e) => onSearchChange(e.target.value)}
-            onKeyPress={handleKeyPress}
-            className="w-[200px]"
-          />
-          <Button 
-            onClick={onSearch}
-            variant="outline"
-            className="gap-2"
-            disabled={isRefreshing}
-          >
-            <Search className="h-4 w-4" />
-            Search
-          </Button>
-        </div>
         <Select defaultValue="all">
           <SelectTrigger className="w-[180px]">
             <SelectValue placeholder="Filter by category" />

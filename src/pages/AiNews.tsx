@@ -18,10 +18,7 @@ export const AiNews = () => {
     generatedArticle,
     generatedNewsletter,
     selectedNewsItem,
-    searchTopic,
-    setSearchTopic,
     refreshNews,
-    searchNews,
     shareNews,
     generateLinkedInArticle,
     generateNewsletter,
@@ -39,9 +36,6 @@ export const AiNews = () => {
           isGenerating={isGeneratingNewsletter}
           isRefreshing={isRefreshing}
           hasNewsItems={!!newsItems?.length}
-          searchTopic={searchTopic}
-          onSearchChange={setSearchTopic}
-          onSearch={searchNews}
         />
 
         <NewsContent
