@@ -53,7 +53,7 @@ const fetchMonthlyRevenue = async () => {
       }));
 
     const forecastClients = clients
-      .filter(client => client[`actual_${monthLower}`] === 0 && client[`forecast_${monthLower}`] > 0)
+      .filter(client => client[`forecast_${monthLower}`] > 0)
       .map(client => ({
         name: client.name,
         amount: client[`forecast_${monthLower}`] || 0,
