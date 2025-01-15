@@ -130,6 +130,17 @@ Deno.serve(async (req) => {
         const supabase = createClient(supabaseUrl, supabaseKey);
         console.log('Storing news items in database...');
 
+        // First, clear existing news items to avoid duplicates
+        const { error: deleteError } = await supabase
+          .from('ai_news')
+          .delete()
+          .neq('id', 0); // Delete all records
+        
+        if (deleteError) {
+          console.error('Error clearing existing news:', deleteError);
+          throw deleteError;
+        }
+
         // Store each news item
         for (const item of newsItems.news) {
           const { error } = await supabase
