@@ -57,6 +57,10 @@ Deno.serve(async (req) => {
     console.log('Fetching news from Perplexity API...', topic ? `for topic: ${topic}` : 'for general AI news');
     
     try {
+      console.log('Making request to Perplexity API with system prompt...');
+      const systemPrompt = getSystemPrompt(topic);
+      console.log('System prompt:', systemPrompt);
+      
       const response = await fetch('https://api.perplexity.ai/chat/completions', {
         method: 'POST',
         headers: {
@@ -68,7 +72,7 @@ Deno.serve(async (req) => {
           messages: [
             {
               role: 'system',
-              content: getSystemPrompt(topic)
+              content: systemPrompt
             },
             {
               role: 'user',
@@ -84,7 +88,7 @@ Deno.serve(async (req) => {
           frequency_penalty: 0.5,
           presence_penalty: 0.5,
         }),
-      })
+      });
 
       if (!response.ok) {
         const errorText = await response.text();
