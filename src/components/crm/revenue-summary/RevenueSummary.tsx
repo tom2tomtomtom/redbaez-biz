@@ -8,6 +8,7 @@ import {
   CartesianGrid, 
   Tooltip, 
   ResponsiveContainer,
+  TooltipProps,
 } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -25,28 +26,44 @@ const fetchMonthlyRevenue = async () => {
     'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
   ];
 
-  // Calculate total actual and forecast revenue for each month
+  // Calculate total actual and forecast revenue for each month with client details
   const monthlyData = months.map(month => {
     const monthLower = month.toLowerCase();
     
-    const totals = clients.reduce((acc: any, client: any) => {
+    const clientDetails = clients.reduce((acc: any[], client: any) => {
       const actualKey = `actual_${monthLower}`;
       const forecastKey = `forecast_${monthLower}`;
       
       const actual = client[actualKey] || 0;
-      // Only count forecast if there's no actual revenue
       const forecast = actual > 0 ? 0 : (client[forecastKey] || 0);
       
-      return {
-        actual: acc.actual + actual,
-        forecast: acc.forecast + forecast
-      };
-    }, { actual: 0, forecast: 0 });
+      if (actual > 0) {
+        acc.push({
+          name: client.name,
+          amount: actual,
+          type: 'actual'
+        });
+      }
+      if (forecast > 0) {
+        acc.push({
+          name: client.name,
+          amount: forecast,
+          type: 'forecast'
+        });
+      }
+      return acc;
+    }, []);
+
+    const totals = clientDetails.reduce((acc, detail) => ({
+      actual: acc.actual + (detail.type === 'actual' ? detail.amount : 0),
+      forecast: acc.forecast + (detail.type === 'forecast' ? detail.amount : 0)
+    }), { actual: 0, forecast: 0 });
 
     return {
       month,
       actual: Math.round(totals.actual),
-      forecast: Math.round(totals.forecast)
+      forecast: Math.round(totals.forecast),
+      clientDetails
     };
   });
 
@@ -62,6 +79,30 @@ const fetchMonthlyRevenue = async () => {
     monthlyData,
     annualTotals
   };
+};
+
+const CustomTooltip = ({ active, payload, label }: TooltipProps<number, string>) => {
+  if (active && payload && payload.length > 0) {
+    const clientDetails = payload[0].payload.clientDetails || [];
+    return (
+      <div className="bg-white p-4 rounded-lg shadow-lg border">
+        <p className="font-semibold mb-2">{label}</p>
+        <div className="space-y-2">
+          {clientDetails
+            .sort((a: any, b: any) => b.amount - a.amount)
+            .map((client: any, index: number) => (
+              <div key={index} className="flex justify-between gap-4">
+                <span className="text-sm">{client.name}</span>
+                <span className="text-sm font-medium">
+                  ${client.amount.toLocaleString()}
+                </span>
+              </div>
+            ))}
+        </div>
+      </div>
+    );
+  }
+  return null;
 };
 
 export const RevenueSummary = () => {
@@ -145,7 +186,7 @@ export const RevenueSummary = () => {
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="month" />
               <YAxis />
-              <Tooltip />
+              <Tooltip content={<CustomTooltip />} />
               <Bar dataKey="actual" fill="#1A1F2C" name="Actual Revenue" />
               <Bar dataKey="forecast" fill="hsl(var(--primary)/0.5)" name="Forecast Revenue" />
             </BarChart>
