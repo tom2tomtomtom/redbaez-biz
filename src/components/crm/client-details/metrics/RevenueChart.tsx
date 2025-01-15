@@ -24,11 +24,11 @@ export const RevenueChart = ({
       <div className="flex justify-between items-center">
         <p className="text-sm text-gray-600">Monthly Revenue</p>
       </div>
-      <div className="h-[300px]"> {/* Increased height for better visibility */}
+      <div className="h-[300px]">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart 
             data={revenueData} 
-            margin={{ top: 10, right: 30, left: 60, bottom: 20 }}
+            margin={{ top: 20, right: 30, left: 65, bottom: 20 }}
           >
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis 
@@ -36,13 +36,14 @@ export const RevenueChart = ({
               angle={-45}
               textAnchor="end"
               height={60}
+              tickMargin={20}
             />
             <YAxis 
               tickFormatter={formatYAxis}
               width={80}
             />
             <Tooltip 
-              formatter={(value) => `$${Number(value).toLocaleString()}`}
+              formatter={(value) => [`$${Number(value).toLocaleString()}`, value === 'actual' ? 'Actual Revenue' : 'Forecast Revenue']}
               contentStyle={{
                 backgroundColor: 'white',
                 border: '1px solid #ccc',
@@ -59,12 +60,14 @@ export const RevenueChart = ({
               fill="#1A1F2C"
               name="Actual Revenue"
               minPointSize={3}
+              radius={[4, 4, 0, 0]}
             />
             <Bar 
               dataKey="forecast" 
               fill="hsl(var(--primary)/0.5)" 
               name="Forecast Revenue"
               minPointSize={3}
+              radius={[4, 4, 0, 0]}
             />
           </BarChart>
         </ResponsiveContainer>

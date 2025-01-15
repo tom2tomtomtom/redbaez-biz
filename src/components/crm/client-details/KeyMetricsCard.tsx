@@ -27,6 +27,8 @@ export const KeyMetricsCard = ({
   annualRevenueForecast,
   clientId,
 }: KeyMetricsCardProps) => {
+  console.log('KeyMetricsCard revenue data:', revenueData);
+  
   return (
     <Card className="col-span-1 lg:col-span-12 p-6">
       <div className="grid gap-6 md:grid-cols-2">
@@ -38,10 +40,10 @@ export const KeyMetricsCard = ({
         <DealLikelihood likelihood={likelihood} clientId={clientId} />
       </div>
       <div className="mt-6 grid gap-6 md:grid-cols-2">
-        <div>
+        <div className="col-span-2">
           <RevenueChart revenueData={revenueData} />
         </div>
-        <div>
+        <div className="col-span-2">
           <ForecastEditor clientId={clientId} />
         </div>
       </div>
