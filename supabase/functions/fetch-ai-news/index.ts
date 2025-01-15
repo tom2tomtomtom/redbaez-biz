@@ -13,7 +13,7 @@ interface NewsResponse {
   news: NewsItem[];
 }
 
-const SYSTEM_PROMPT = `You are an AI news curator. Generate exactly 5 recent AI news items.
+const SYSTEM_PROMPT = `You are an AI news curator. Generate exactly 5 recent AI news items from THIS WEEK ONLY.
 
 Your response MUST be a valid JSON string matching this EXACT structure:
 {
@@ -35,6 +35,7 @@ Focus on:
 - AI ethics and safety
 
 Be precise and factual. Return EXACTLY 5 items.
+VERY IMPORTANT: Only include news from the past 7 days.
 Do not include any text before or after the JSON.`;
 
 Deno.serve(async (req) => {
@@ -66,13 +67,15 @@ Deno.serve(async (req) => {
           },
           {
             role: 'user',
-            content: 'Generate 5 recent AI news items.'
+            content: 'Generate 5 recent AI news items from this week only.'
           }
         ],
         temperature: 0.05,
         max_tokens: 1000,
         return_images: false,
         return_related_questions: false,
+        search_domain_filter: [],
+        search_recency_filter: 'week', // Added recency filter
       }),
     })
 
