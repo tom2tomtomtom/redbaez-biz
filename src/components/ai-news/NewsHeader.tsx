@@ -1,6 +1,5 @@
-import { Newspaper } from "lucide-react";
+import { Newspaper, RefreshCw, FileText, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { RefreshCw, FileText } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -50,11 +49,24 @@ export const NewsHeader = ({
           className="gap-2"
           disabled={isGenerating || !hasNewsItems}
         >
-          <FileText className="h-4 w-4" />
+          {isGenerating ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <FileText className="h-4 w-4" />
+          )}
           Generate Newsletter
         </Button>
-        <Button onClick={onRefresh} variant="outline" className="gap-2">
-          <RefreshCw className="h-4 w-4" />
+        <Button 
+          onClick={onRefresh} 
+          variant="outline" 
+          className="gap-2"
+          disabled={isGenerating}
+        >
+          {isGenerating ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <RefreshCw className="h-4 w-4" />
+          )}
           Refresh News
         </Button>
       </div>

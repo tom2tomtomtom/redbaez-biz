@@ -1,5 +1,5 @@
 import { format } from "date-fns";
-import { Share2, Linkedin } from "lucide-react";
+import { Share2, Linkedin, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -30,6 +30,8 @@ export const NewsCard = ({
   isGenerating,
   selectedNewsItem,
 }: NewsCardProps) => {
+  const isGeneratingForThis = isGenerating && selectedNewsItem?.id === item.id;
+
   return (
     <Card className="transition-all hover:shadow-lg">
       <CardHeader>
@@ -57,10 +59,14 @@ export const NewsCard = ({
               variant="ghost"
               size="icon"
               onClick={() => onGenerateLinkedInArticle(item)}
-              disabled={isGenerating && selectedNewsItem?.id === item.id}
+              disabled={isGeneratingForThis}
               className="shrink-0"
             >
-              <Linkedin className="h-4 w-4" />
+              {isGeneratingForThis ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Linkedin className="h-4 w-4" />
+              )}
             </Button>
           </div>
         </div>
