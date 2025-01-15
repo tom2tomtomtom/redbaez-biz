@@ -24,7 +24,7 @@ export const RevenueChart = ({
       <div className="flex justify-between items-center">
         <p className="text-sm text-gray-600">Monthly Revenue</p>
       </div>
-      <div className="h-[300px]">
+      <div className="h-[300px] bg-white p-4 rounded-lg">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart 
             data={revenueData} 
@@ -57,19 +57,17 @@ export const RevenueChart = ({
             />
             <Bar 
               dataKey="actual" 
-              fill="#1d4ed8" // Darker blue for better visibility
+              fill="#1A1F2C"
               name="Actual Revenue"
               minPointSize={3}
               radius={[4, 4, 0, 0]}
-              opacity={0.9}
             />
             <Bar 
               dataKey="forecast" 
-              fill="#3b82f6" // Lighter blue for forecast
+              fill="#8884d8"
               name="Forecast Revenue"
               minPointSize={3}
               radius={[4, 4, 0, 0]}
-              opacity={0.9}
             />
           </BarChart>
         </ResponsiveContainer>
