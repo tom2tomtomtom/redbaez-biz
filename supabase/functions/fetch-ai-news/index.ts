@@ -36,6 +36,7 @@ Focus on:
 
 Be precise and factual. Return EXACTLY 5 items.
 VERY IMPORTANT: Only include news from the past 7 days.
+Search broadly across multiple reliable sources.
 Do not include any text before or after the JSON.`;
 
 Deno.serve(async (req) => {
@@ -67,15 +68,17 @@ Deno.serve(async (req) => {
           },
           {
             role: 'user',
-            content: 'Generate 5 recent AI news items from this week only.'
+            content: 'Generate 5 recent AI news items from this week only, searching across multiple sources.'
           }
         ],
-        temperature: 0.05,
+        temperature: 0.7, // Increased temperature for more variety
         max_tokens: 1000,
         return_images: false,
         return_related_questions: false,
-        search_domain_filter: [],
-        search_recency_filter: 'week', // Added recency filter
+        search_domain_filter: [], // Keep empty to search broadly
+        search_recency_filter: 'week',
+        frequency_penalty: 0.5, // Added to encourage more diverse responses
+        presence_penalty: 0.5, // Added to encourage more diverse responses
       }),
     })
 
