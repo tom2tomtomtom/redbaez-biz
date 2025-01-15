@@ -87,6 +87,7 @@ export const StatusTab = ({ clientId, currentStatus }: StatusTabProps) => {
       // Invalidate queries to refresh data
       queryClient.invalidateQueries({ queryKey: ['client', clientId] });
       queryClient.invalidateQueries({ queryKey: ['statusHistory', clientId] });
+      queryClient.invalidateQueries({ queryKey: ['clients'] }); // Add this line to refresh the clients list
     } catch (error) {
       console.error('Error updating status:', error);
       // Revert cache to previous state on error
@@ -150,6 +151,7 @@ export const StatusTab = ({ clientId, currentStatus }: StatusTabProps) => {
       // Invalidate queries to refresh data
       queryClient.invalidateQueries({ queryKey: ['client', clientId] });
       queryClient.invalidateQueries({ queryKey: ['statusHistory', clientId] });
+      queryClient.invalidateQueries({ queryKey: ['clients'] }); // Add this line to refresh the clients list
     } catch (error) {
       console.error('Error updating status:', error);
       // Revert cache to previous state on error
