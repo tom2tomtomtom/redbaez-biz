@@ -8,6 +8,7 @@ import Index from './pages/Index';
 import { BusinessAdmin } from './pages/BusinessAdmin';
 import { AiNews } from './pages/AiNews';
 import { ClientDetails } from './components/crm/client-details/ClientDetails';
+import { ThemeProvider } from './hooks/use-theme';
 import './App.css';
 
 const queryClient = new QueryClient({
@@ -22,18 +23,20 @@ const queryClient = new QueryClient({
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <Router>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/marketing" element={<Marketing />} />
-          <Route path="/partnerships" element={<Partnerships />} />
-          <Route path="/product-development" element={<ProductDevelopment />} />
-          <Route path="/ai-news" element={<AiNews />} />
-          <Route path="/business-admin" element={<BusinessAdmin />} />
-          <Route path="/client/:id" element={<ClientDetails />} />
-        </Routes>
-      </Router>
+      <ThemeProvider defaultTheme="light" storageKey="redbaez-theme">
+        <Router>
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/marketing" element={<Marketing />} />
+            <Route path="/partnerships" element={<Partnerships />} />
+            <Route path="/product-development" element={<ProductDevelopment />} />
+            <Route path="/ai-news" element={<AiNews />} />
+            <Route path="/business-admin" element={<BusinessAdmin />} />
+            <Route path="/client/:id" element={<ClientDetails />} />
+          </Routes>
+        </Router>
+      </ThemeProvider>
     </QueryClientProvider>
   );
 }

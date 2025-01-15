@@ -6,6 +6,7 @@ import { Users } from "lucide-react";
 import { ClientListSection } from "@/components/crm/dashboard/ClientListSection";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { ThemeToggle } from "./theme-toggle";
 
 export function MainNav() {
   const [showClientList, setShowClientList] = useState(false);
@@ -46,6 +47,7 @@ export function MainNav() {
           </Link>
         </nav>
         <div className="ml-auto flex items-center space-x-4">
+          <ThemeToggle />
           <Button 
             variant="outline"
             onClick={() => setShowClientList(true)}
