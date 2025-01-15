@@ -13,15 +13,15 @@ export const RevenueStats = ({ annualTotals }: RevenueStatsProps) => {
         <p className="text-sm text-gray-600">Total Annual Revenue</p>
         <p className="text-2xl font-bold">${totalAnnualRevenue.toLocaleString()}</p>
       </div>
-      <div className="p-4 bg-blue-50 rounded-lg">
-        <p className="text-sm text-blue-600">Confirmed Revenue</p>
-        <p className="text-2xl font-bold text-blue-600">
+      <div className="p-4 bg-[#1A1F2C] rounded-lg">
+        <p className="text-sm text-white">Actual Revenue</p>
+        <p className="text-2xl font-bold text-white">
           ${annualTotals.confirmed.toLocaleString()}
         </p>
       </div>
-      <div className="p-4 bg-green-50 rounded-lg">
-        <p className="text-sm text-green-600">Forecast Revenue</p>
-        <p className="text-2xl font-bold text-green-600">
+      <div className="p-4 bg-[hsl(var(--primary)/0.1)] rounded-lg">
+        <p className="text-sm text-primary">Forecast Revenue</p>
+        <p className="text-2xl font-bold text-primary">
           ${annualTotals.forecast.toLocaleString()}
         </p>
       </div>
