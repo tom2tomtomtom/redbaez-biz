@@ -18,6 +18,9 @@ export default {
       }
     },
     extend: {
+      boxShadow: {
+        'neon': '0 0 10px rgba(234, 56, 76, 0.3), 0 0 20px rgba(234, 56, 76, 0.2), 0 0 30px rgba(234, 56, 76, 0.1)',
+      },
       colors: {
         border: 'hsl(var(--border))',
         input: 'hsl(var(--input))',
