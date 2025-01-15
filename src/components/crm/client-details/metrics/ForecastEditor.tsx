@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { format } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
@@ -25,7 +24,6 @@ export const ForecastEditor = ({ clientId }: ForecastEditorProps) => {
   const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
   const currentYear = new Date().getFullYear();
   
-  // Initialize state for all months with null values
   const [monthlyData, setMonthlyData] = useState<MonthlyData>(() => 
     months.reduce((acc, month) => ({
       ...acc,
@@ -37,7 +35,8 @@ export const ForecastEditor = ({ clientId }: ForecastEditorProps) => {
   );
 
   const handleValueChange = (month: string, type: 'forecast' | 'actual', value: string) => {
-    const numericValue = value === '' ? 0 : parseFloat(value);
+    // Convert empty string to 0, otherwise parse as integer to avoid floating point issues
+    const numericValue = value === '' ? 0 : parseInt(value, 10);
     setMonthlyData(prev => ({
       ...prev,
       [month.toLowerCase()]: {
@@ -53,17 +52,17 @@ export const ForecastEditor = ({ clientId }: ForecastEditorProps) => {
       for (const [month, values] of Object.entries(monthlyData)) {
         const monthDate = new Date(`${currentYear}-${months.findIndex(m => m.toLowerCase() === month) + 1}-01`);
         
-        // Update forecast
+        // Update forecast - ensure we're sending integer values
         await updateForecast.mutate({
           month: format(monthDate, 'yyyy-MM-dd'),
-          amount: values.forecast,
+          amount: Math.round(values.forecast),
           isActual: false
         });
 
-        // Update actual
+        // Update actual - ensure we're sending integer values
         await updateForecast.mutate({
           month: format(monthDate, 'yyyy-MM-dd'),
-          amount: values.actual,
+          amount: Math.round(values.actual),
           isActual: true
         });
       }
@@ -110,6 +109,8 @@ export const ForecastEditor = ({ clientId }: ForecastEditorProps) => {
                     onChange={(e) => handleValueChange(month, 'forecast', e.target.value)}
                     className="w-full"
                     placeholder="Enter forecast"
+                    min="0"
+                    step="1"
                   />
                 </TableCell>
                 <TableCell>
@@ -119,6 +120,8 @@ export const ForecastEditor = ({ clientId }: ForecastEditorProps) => {
                     onChange={(e) => handleValueChange(month, 'actual', e.target.value)}
                     className="w-full"
                     placeholder="Enter actual"
+                    min="0"
+                    step="1"
                   />
                 </TableCell>
               </TableRow>
