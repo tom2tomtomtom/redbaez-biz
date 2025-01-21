@@ -41,7 +41,9 @@ Rules:
 4. Use ONLY the specified categories
 5. Ensure valid JSON format with NO trailing commas
 6. Do not include any text before or after the JSON
-7. Keep summaries under 500 characters`;
+7. Keep summaries under 500 characters
+8. Each news item MUST be from a different source
+9. Use reputable tech news sources`;
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -72,15 +74,16 @@ Deno.serve(async (req) => {
           },
           {
             role: 'user',
-            content: 'Generate 5 recent AI news items from this week only.'
+            content: 'Generate 5 recent AI news items from this week only, each from a different reputable source.'
           }
         ],
-        temperature: 0.1,
+        temperature: 0.3,
         max_tokens: 1000,
         frequency_penalty: 1,
+        presence_penalty: 1,
         return_images: false,
         return_related_questions: false,
-        search_domain_filter: [],
+        search_domain_filter: [], // Removed domain restriction
         search_recency_filter: 'week',
       }),
     })
@@ -114,6 +117,13 @@ Deno.serve(async (req) => {
       if (newsItems.news.length !== 5) {
         console.error('Wrong number of news items:', newsItems.news.length)
         throw new Error('Response must contain exactly 5 news items')
+      }
+
+      // Verify source diversity
+      const sources = new Set(newsItems.news.map(item => item.source))
+      if (sources.size !== newsItems.news.length) {
+        console.error('Duplicate sources found:', sources)
+        throw new Error('Each news item must be from a different source')
       }
 
       const supabaseUrl = Deno.env.get('SUPABASE_URL')
