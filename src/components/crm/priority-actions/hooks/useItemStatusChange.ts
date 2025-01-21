@@ -6,6 +6,20 @@ import { PriorityItem } from './usePriorityData';
 export const useItemStatusChange = () => {
   const queryClient = useQueryClient();
 
+  const invalidateQueries = async (clientId?: number) => {
+    // Invalidate general tasks queries
+    await queryClient.invalidateQueries({ queryKey: ['generalTasks'] });
+    await queryClient.invalidateQueries({ queryKey: ['task-history'] });
+    await queryClient.invalidateQueries({ queryKey: ['priorityNextSteps'] });
+    await queryClient.invalidateQueries({ queryKey: ['nextSteps'] });
+    
+    // If there's a client ID, invalidate client-specific queries
+    if (clientId) {
+      await queryClient.invalidateQueries({ queryKey: ['client', clientId] });
+      await queryClient.invalidateQueries({ queryKey: ['client-items', clientId] });
+    }
+  };
+
   const handleCompletedChange = async (item: PriorityItem, completed: boolean) => {
     try {
       if (item.type === 'task') {
@@ -22,9 +36,7 @@ export const useItemStatusChange = () => {
         if (error) throw error;
       }
 
-      queryClient.invalidateQueries({ queryKey: ['generalTasks'] });
-      queryClient.invalidateQueries({ queryKey: ['priorityNextSteps'] });
-      queryClient.invalidateQueries({ queryKey: ['nextSteps'] });
+      await invalidateQueries(item.data.client_id);
 
       toast({
         title: completed ? "Item completed" : "Item reopened",
@@ -65,10 +77,7 @@ export const useItemStatusChange = () => {
 
       if (error) throw error;
 
-      queryClient.invalidateQueries({ queryKey: ['generalTasks'] });
-      queryClient.invalidateQueries({ queryKey: ['priorityNextSteps'] });
-      queryClient.invalidateQueries({ queryKey: ['nextSteps'] });
-      queryClient.invalidateQueries({ queryKey: ['client'] });
+      await invalidateQueries(item.data.client_id);
 
       toast({
         title: "Item deleted",
@@ -107,11 +116,7 @@ export const useItemStatusChange = () => {
 
       if (error) throw error;
 
-      // Invalidate all relevant queries to refresh the data
-      queryClient.invalidateQueries({ queryKey: ['generalTasks'] });
-      queryClient.invalidateQueries({ queryKey: ['clientNextSteps'] });
-      queryClient.invalidateQueries({ queryKey: ['priorityNextSteps'] });
-      queryClient.invalidateQueries({ queryKey: ['client'] });
+      await invalidateQueries(item.data.client_id);
 
       toast({
         title: checked ? "Marked as urgent" : "Removed urgent flag",
