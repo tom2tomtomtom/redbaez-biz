@@ -23,28 +23,42 @@ interface DueItemsSectionProps {
 }
 
 export const DueItemsSection = ({ items, isLoading }: DueItemsSectionProps) => {
-  const { handleComplete, handleDelete } = useItemStatusChange();
+  const { handleCompletedChange, handleDelete } = useItemStatusChange();
 
   if (isLoading) return <div>Loading items...</div>;
 
   const onComplete = async (item: DueItem) => {
-    if (item.type === 'task') {
-      await handleComplete(item.id, 'task', item.client_id);
-    } else if (item.type === 'next-step') {
-      await handleComplete(item.id, 'next-step', item.client_id);
-    } else if (item.type === 'idea') {
-      await handleComplete(item.id, 'idea', item.client_id);
-    }
+    const priorityItem = {
+      type: item.type,
+      data: {
+        id: item.id,
+        client_id: item.client_id,
+        // Include other required fields based on type
+        title: item.title || '',
+        description: item.description || '',
+        notes: item.notes || '',
+        urgent: item.urgent || false,
+        due_date: item.dueDate
+      }
+    };
+    await handleCompletedChange(priorityItem, true);
   };
 
   const onDelete = async (item: DueItem) => {
-    if (item.type === 'task') {
-      await handleDelete(item.id, 'task', item.client_id);
-    } else if (item.type === 'next-step') {
-      await handleDelete(item.id, 'next-step', item.client_id);
-    } else if (item.type === 'idea') {
-      await handleDelete(item.id, 'idea', item.client_id);
-    }
+    const priorityItem = {
+      type: item.type,
+      data: {
+        id: item.id,
+        client_id: item.client_id,
+        // Include other required fields based on type
+        title: item.title || '',
+        description: item.description || '',
+        notes: item.notes || '',
+        urgent: item.urgent || false,
+        due_date: item.dueDate
+      }
+    };
+    await handleDelete(priorityItem);
   };
 
   return (
