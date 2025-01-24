@@ -4,7 +4,8 @@ import { Badge } from '@/components/ui/badge';
 import { CalendarDays, Check, Trash2 } from 'lucide-react';
 import { useItemStatusChange } from '../../priority-actions/hooks/useItemStatusChange';
 import { Button } from '@/components/ui/button';
-import { toast } from '@/components/ui/use-toast';
+import { toast } from '@/hooks/use-toast';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface DueItem {
   id: string;
@@ -24,6 +25,7 @@ interface DueItemsSectionProps {
 
 export const DueItemsSection = ({ items, isLoading }: DueItemsSectionProps) => {
   const { handleCompletedChange, handleDelete } = useItemStatusChange();
+  const queryClient = useQueryClient();
 
   if (isLoading) return <div>Loading items...</div>;
 
@@ -49,6 +51,11 @@ export const DueItemsSection = ({ items, isLoading }: DueItemsSectionProps) => {
           }
         };
         await handleCompletedChange(taskItem, true);
+        
+        // Invalidate relevant queries to update UI
+        queryClient.invalidateQueries({ queryKey: ['client-items'] });
+        queryClient.invalidateQueries({ queryKey: ['generalTasks'] });
+        
         toast({
           title: "Task completed",
           description: "The task has been marked as complete.",
@@ -71,6 +78,11 @@ export const DueItemsSection = ({ items, isLoading }: DueItemsSectionProps) => {
           }
         };
         await handleCompletedChange(nextStepItem, true);
+        
+        // Invalidate relevant queries to update UI
+        queryClient.invalidateQueries({ queryKey: ['client-items'] });
+        queryClient.invalidateQueries({ queryKey: ['clientNextSteps'] });
+        
         toast({
           title: "Next step completed",
           description: "The next step has been marked as complete.",
@@ -108,6 +120,11 @@ export const DueItemsSection = ({ items, isLoading }: DueItemsSectionProps) => {
           }
         };
         await handleDelete(taskItem);
+        
+        // Invalidate relevant queries to update UI
+        queryClient.invalidateQueries({ queryKey: ['client-items'] });
+        queryClient.invalidateQueries({ queryKey: ['generalTasks'] });
+        
         toast({
           title: "Task deleted",
           description: "The task has been deleted successfully.",
@@ -130,6 +147,11 @@ export const DueItemsSection = ({ items, isLoading }: DueItemsSectionProps) => {
           }
         };
         await handleDelete(nextStepItem);
+        
+        // Invalidate relevant queries to update UI
+        queryClient.invalidateQueries({ queryKey: ['client-items'] });
+        queryClient.invalidateQueries({ queryKey: ['clientNextSteps'] });
+        
         toast({
           title: "Next step deleted",
           description: "The next step has been deleted successfully.",
