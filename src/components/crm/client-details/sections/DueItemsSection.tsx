@@ -1,5 +1,4 @@
 import React from 'react';
-import { format } from 'date-fns';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { CalendarDays, Check, Trash2 } from 'lucide-react';
@@ -29,16 +28,22 @@ export const DueItemsSection = ({ items, isLoading }: DueItemsSectionProps) => {
 
   const onComplete = async (item: DueItem) => {
     const priorityItem = {
-      type: item.type,
+      type: item.type === 'task' ? 'task' as const : 'next_step' as const,
+      date: item.dueDate,
       data: {
         id: item.id,
         client_id: item.client_id,
-        // Include other required fields based on type
         title: item.title || '',
         description: item.description || '',
         notes: item.notes || '',
         urgent: item.urgent || false,
-        due_date: item.dueDate
+        next_due_date: item.dueDate,
+        status: 'incomplete',
+        category: 'general',
+        created_at: null,
+        updated_at: null,
+        created_by: null,
+        updated_by: null
       }
     };
     await handleCompletedChange(priorityItem, true);
@@ -46,16 +51,22 @@ export const DueItemsSection = ({ items, isLoading }: DueItemsSectionProps) => {
 
   const onDelete = async (item: DueItem) => {
     const priorityItem = {
-      type: item.type,
+      type: item.type === 'task' ? 'task' as const : 'next_step' as const,
+      date: item.dueDate,
       data: {
         id: item.id,
         client_id: item.client_id,
-        // Include other required fields based on type
         title: item.title || '',
         description: item.description || '',
         notes: item.notes || '',
         urgent: item.urgent || false,
-        due_date: item.dueDate
+        next_due_date: item.dueDate,
+        status: 'incomplete',
+        category: 'general',
+        created_at: null,
+        updated_at: null,
+        created_by: null,
+        updated_by: null
       }
     };
     await handleDelete(priorityItem);
@@ -87,7 +98,7 @@ export const DueItemsSection = ({ items, isLoading }: DueItemsSectionProps) => {
             <div className="flex items-center gap-4">
               <div className="flex items-center text-sm text-gray-500">
                 <CalendarDays className="h-4 w-4 mr-1" />
-                {format(new Date(item.dueDate), 'MMM d, yyyy')}
+                {new Date(item.dueDate).toLocaleDateString()}
               </div>
               <div className="flex items-center gap-2">
                 <Button
