@@ -12,6 +12,7 @@ export const useItemStatusChange = () => {
     await queryClient.invalidateQueries({ queryKey: ['task-history'] });
     await queryClient.invalidateQueries({ queryKey: ['priorityNextSteps'] });
     await queryClient.invalidateQueries({ queryKey: ['nextSteps'] });
+    await queryClient.invalidateQueries({ queryKey: ['client-items'] });
     
     // If there's a client ID, invalidate client-specific queries
     if (clientId) {
