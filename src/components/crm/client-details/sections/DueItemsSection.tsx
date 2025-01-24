@@ -27,49 +27,87 @@ export const DueItemsSection = ({ items, isLoading }: DueItemsSectionProps) => {
   if (isLoading) return <div>Loading items...</div>;
 
   const onComplete = async (item: DueItem) => {
-    const priorityItem = {
-      type: item.type === 'task' ? 'task' as const : 'next_step' as const,
-      date: item.dueDate,
-      data: {
-        id: item.id,
-        client_id: item.client_id,
-        title: item.title || '',
-        description: item.description || '',
-        notes: item.notes || '',
-        urgent: item.urgent || false,
-        next_due_date: item.dueDate,
-        status: 'incomplete',
-        category: 'general',
-        created_at: null,
-        updated_at: null,
-        created_by: null,
-        updated_by: null
-      }
-    };
-    await handleCompletedChange(priorityItem, true);
+    if (item.type === 'task') {
+      const taskItem = {
+        type: 'task' as const,
+        date: item.dueDate,
+        data: {
+          id: item.id,
+          client_id: item.client_id || null,
+          title: item.title || '',
+          description: item.description || '',
+          category: 'general',
+          status: 'incomplete',
+          next_due_date: item.dueDate,
+          urgent: item.urgent || false,
+          created_at: null,
+          updated_at: null,
+          created_by: null,
+          updated_by: null
+        }
+      };
+      await handleCompletedChange(taskItem, true);
+    } else if (item.type === 'next-step') {
+      const nextStepItem = {
+        type: 'next_step' as const,
+        date: item.dueDate,
+        data: {
+          id: item.id,
+          client_id: item.client_id || null,
+          notes: item.notes || '',
+          due_date: item.dueDate,
+          completed_at: null,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          urgent: item.urgent || false,
+          created_by: '',
+          category: 'general'
+        }
+      };
+      await handleCompletedChange(nextStepItem, true);
+    }
   };
 
   const onDelete = async (item: DueItem) => {
-    const priorityItem = {
-      type: item.type === 'task' ? 'task' as const : 'next_step' as const,
-      date: item.dueDate,
-      data: {
-        id: item.id,
-        client_id: item.client_id,
-        title: item.title || '',
-        description: item.description || '',
-        notes: item.notes || '',
-        urgent: item.urgent || false,
-        next_due_date: item.dueDate,
-        status: 'incomplete',
-        category: 'general',
-        created_at: null,
-        updated_at: null,
-        created_by: null,
-        updated_by: null
-      }
-    };
-    await handleDelete(priorityItem);
+    if (item.type === 'task') {
+      const taskItem = {
+        type: 'task' as const,
+        date: item.dueDate,
+        data: {
+          id: item.id,
+          client_id: item.client_id || null,
+          title: item.title || '',
+          description: item.description || '',
+          category: 'general',
+          status: 'incomplete',
+          next_due_date: item.dueDate,
+          urgent: item.urgent || false,
+          created_at: null,
+          updated_at: null,
+          created_by: null,
+          updated_by: null
+        }
+      };
+      await handleDelete(taskItem);
+    } else if (item.type === 'next-step') {
+      const nextStepItem = {
+        type: 'next_step' as const,
+        date: item.dueDate,
+        data: {
+          id: item.id,
+          client_id: item.client_id || null,
+          notes: item.notes || '',
+          due_date: item.dueDate,
+          completed_at: null,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          urgent: item.urgent || false,
+          created_by: '',
+          category: 'general'
+        }
+      };
+      await handleDelete(nextStepItem);
+    }
   };
 
   return (
