@@ -5,6 +5,7 @@ import { ClientSearch } from './client-search/ClientSearch';
 import { BusinessSummary } from './business-summary/BusinessSummary';
 import { CalendarView } from '../calendar/CalendarView';
 import { useToast } from '@/components/ui/use-toast';
+import { useNavigate } from 'react-router-dom';
 
 interface CRMDashboardProps {
   onClientAdded?: () => void;
@@ -23,6 +24,7 @@ export const CRMDashboard = ({ onClientAdded }: CRMDashboardProps) => {
   const [nextDueDate, setNextDueDate] = useState('');
   const [searchInput, setSearchInput] = useState('');
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   const handleClientAdded = () => {
     toast({
@@ -46,6 +48,9 @@ export const CRMDashboard = ({ onClientAdded }: CRMDashboardProps) => {
     if (onClientAdded) {
       onClientAdded();
     }
+
+    // Navigate to the clients list
+    navigate('/');
   };
 
   return (
