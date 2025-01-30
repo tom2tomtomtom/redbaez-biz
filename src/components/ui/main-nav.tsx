@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import { useState } from "react";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { Users } from "lucide-react";
+import { Users, PlusCircle } from "lucide-react";
 import { ClientListSection } from "@/components/crm/dashboard/ClientListSection";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -56,6 +56,12 @@ export function MainNav() {
             <Users className="h-4 w-4" />
             View All Clients
           </Button>
+          <Link to="/client/new">
+            <Button variant="default" className="gap-2">
+              <PlusCircle className="h-4 w-4" />
+              Add Client
+            </Button>
+          </Link>
         </div>
       </div>
 

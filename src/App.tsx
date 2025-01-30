@@ -9,6 +9,7 @@ import { BusinessAdmin } from './pages/BusinessAdmin';
 import { AiNews } from './pages/AiNews';
 import { ClientDetails } from './components/crm/client-details/ClientDetails';
 import { ThemeProvider } from './hooks/use-theme';
+import { ClientForm } from './components/crm/client-form/ClientForm';
 import './App.css';
 
 const queryClient = new QueryClient({
@@ -34,6 +35,7 @@ function App() {
             <Route path="/ai-news" element={<AiNews />} />
             <Route path="/business-admin" element={<BusinessAdmin />} />
             <Route path="/client/:id" element={<ClientDetails />} />
+            <Route path="/client/new" element={<ClientForm />} />
           </Routes>
         </Router>
       </ThemeProvider>
