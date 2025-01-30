@@ -35,7 +35,19 @@ function App() {
             <Route path="/ai-news" element={<AiNews />} />
             <Route path="/business-admin" element={<BusinessAdmin />} />
             <Route path="/client/:id" element={<ClientDetails />} />
-            <Route path="/client/new" element={<ClientForm />} />
+            <Route 
+              path="/client/new" 
+              element={
+                <ClientForm
+                  contacts={[]}
+                  nextSteps=""
+                  nextDueDate=""
+                  onContactsChange={() => {}}
+                  onNextStepsChange={() => {}}
+                  onNextDueDateChange={() => {}}
+                />
+              } 
+            />
           </Routes>
         </Router>
       </ThemeProvider>
