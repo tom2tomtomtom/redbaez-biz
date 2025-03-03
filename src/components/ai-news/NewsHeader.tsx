@@ -1,12 +1,13 @@
+
 import { Newspaper, RefreshCw, FileText, Loader2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Button } from "../ui/button";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
+} from "../ui/select";
 
 interface NewsHeaderProps {
   onRefresh: () => void;

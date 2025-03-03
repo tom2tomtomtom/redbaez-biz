@@ -1,3 +1,4 @@
+
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3'
 import { corsHeaders } from '../_shared/cors.ts'
 
@@ -83,7 +84,7 @@ Deno.serve(async (req) => {
         presence_penalty: 1,
         return_images: false,
         return_related_questions: false,
-        search_domain_filter: [], // Removed domain restriction
+        search_domain_filter: [], 
         search_recency_filter: 'week',
       }),
     })

@@ -1,3 +1,4 @@
+
 import { NewsCard } from "./NewsCard";
 
 interface NewsItem {

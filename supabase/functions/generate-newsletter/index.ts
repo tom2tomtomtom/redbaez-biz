@@ -1,9 +1,11 @@
-import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1'
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
+import { corsHeaders } from '../_shared/cors.ts'
+
+interface NewsItem {
+  title: string;
+  summary: string | null;
+  category: string | null;
 }
 
 serve(async (req) => {
@@ -13,6 +15,10 @@ serve(async (req) => {
 
   try {
     const { newsItems } = await req.json()
+    
+    if (!Array.isArray(newsItems) || newsItems.length === 0) {
+      throw new Error('No news items provided')
+    }
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -25,25 +31,30 @@ serve(async (req) => {
         messages: [
           {
             role: 'system',
-            content: `You are a thought leader who explores AI-related concepts using unconventional, thought-provoking analogies that challenge readers' expectations. Create a newsletter section that synthesizes recent AI news into engaging, insightful content.
-
-Your writing style:
-- Uses fresh, unexpected comparisons that offer new perspectives on AI technology
-- Maintains a conversational yet intellectually engaging tone
-- Avoids clichés and overused metaphors
-- Blends subtle humor with deep insights
-- Presents complex ideas clearly while provoking curiosity
-- Encourages deeper reflection on AI's implications in professional and societal contexts
-
-Format the newsletter with clear sections and engaging headlines.`
+            content: `You are an AI newsletter writer who creates concise, informative, and engaging newsletters about recent AI news. 
+            
+Your newsletters should:
+1. Have a professional but friendly tone
+2. Begin with a compelling introduction summarizing key trends
+3. Group news items by category (Tools, Training, Innovation, Ethics)
+4. Provide brief but insightful commentary for each item
+5. End with a forward-looking conclusion
+6. Format the newsletter with markdown for readability
+7. Keep it under 1000 words
+8. Include a catchy title at the beginning
+`
           },
           {
             role: 'user',
-            content: `Create a newsletter section based on these recent AI news items: ${JSON.stringify(newsItems)}`
+            content: `Create a professional AI newsletter using these recent news items:
+            
+${JSON.stringify(newsItems, null, 2)}
+
+Organize them by category and add insightful commentary.`
           }
         ],
-        temperature: 0.7,
-        max_tokens: 1000,
+        temperature: 0.6,
+        max_tokens: 1500,
       }),
     })
 

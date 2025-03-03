@@ -1,207 +1,98 @@
-# RedBaez Business Management System
 
-## Overview
-A comprehensive business management system built with React, TypeScript, and Supabase. The application helps manage clients, track revenue, handle tasks, and analyze business metrics through an intuitive interface.
+# AI News and LinkedIn Post Generator
+
+This project provides a comprehensive solution for fetching AI news articles and generating LinkedIn posts and newsletters based on those articles.
+
+## Features
+
+- Fetch and display the latest AI news articles
+- Generate professional LinkedIn posts from any news article
+- Create comprehensive newsletters from multiple news items
+- Share news articles to social media or copy links
+- Filter news by category
 
 ## Tech Stack
-- **Frontend Framework**: React 18 + TypeScript + Vite
-- **UI Components**: Shadcn/ui (built on Radix UI)
-- **Styling**: Tailwind CSS
-- **State Management**: TanStack Query (React Query) v5
-- **Backend & Database**: Supabase (PostgreSQL)
-- **Authentication**: Supabase Auth
-- **Charts**: Recharts
-- **Form Handling**: React Hook Form + Zod validation
-- **Routing**: React Router v6
-- **Notifications**: Sonner toast notifications
 
-## Core Features
+- **Frontend**: React, TypeScript, Tailwind CSS
+- **Backend**: Supabase Edge Functions
+- **Database**: Supabase PostgreSQL
+- **AI**: OpenAI GPT-4o-mini, Perplexity API
 
-### 1. Client Management
-- **Client Profiles**
-  - Detailed client information tracking
-  - Contact management with multiple contacts per client
-  - Company details and background information
-  - Client status monitoring and updates
-  
-- **Revenue Tracking**
-  - Monthly and annual revenue tracking
-  - Revenue forecasting with visual charts
-  - Actual vs. forecast comparison
-  - Client-specific revenue monitoring
+## Prerequisites
 
-### 2. Task Management
-- **Priority Actions**
-  - Urgent task highlighting
-  - Due date tracking
-  - Task categorization (Business Admin, Marketing, etc.)
-  - Client-specific task association
+1. Supabase account and project
+2. OpenAI API key
+3. Perplexity API key
 
-- **Task Categories**
-  - Business administration tasks
-  - Marketing initiatives
-  - Product development tracking
-  - Partnership management
+## Setup Instructions
 
-### 3. Business Intelligence
-- **AI-Powered Features**
-  - News aggregation relevant to business
-  - Strategic recommendations
-  - Client analysis
-  - Market insights
+### 1. Database Setup
 
-- **Analytics Dashboard**
-  - Revenue metrics visualization
-  - Client engagement tracking
-  - Task completion analytics
-  - Performance indicators
+Run the following SQL in your Supabase SQL Editor:
 
-## Project Structure
+```sql
+CREATE TABLE IF NOT EXISTS public.ai_news (
+  id BIGSERIAL PRIMARY KEY,
+  title TEXT NOT NULL,
+  source TEXT NOT NULL,
+  summary TEXT,
+  url TEXT,
+  category TEXT,
+  image_url TEXT,
+  published_date TIMESTAMPTZ DEFAULT now(),
+  created_at TIMESTAMPTZ DEFAULT now()
+);
 
-```
-src/
-├── components/
-│   ├── crm/                    # Client relationship management
-│   │   ├── client-details/     # Client profile components
-│   │   ├── client-form/        # Client creation/editing
-│   │   ├── dashboard/          # CRM dashboard
-│   │   ├── priority-actions/   # Task management
-│   │   └── revenue-summary/    # Revenue analytics
-│   ├── ui/                     # Reusable UI components
-│   └── ai-news/               # AI news aggregation
-├── pages/                     # Route components
-├── integrations/             # External service integrations
-└── hooks/                    # Custom React hooks
+-- Add RLS policy to make the table accessible to everyone
+ALTER TABLE public.ai_news ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Allow public access to ai_news" ON public.ai_news
+  FOR ALL USING (true);
 ```
 
-## Database Schema
+### 2. Supabase Secrets
 
-### Key Tables
-1. **clients**
-   - Core client information
-   - Contact details
-   - Revenue tracking fields
-   - Status and metadata
+Set up the following secrets in your Supabase project (Settings > API > Edge Function Secrets):
 
-2. **client_forecasts**
-   - Monthly revenue forecasts
-   - Actual revenue tracking
-   - Historical data
+- `OPENAI_API_KEY`: Your OpenAI API key
+- `PERPLEXITY_API_KEY`: Your Perplexity API key
 
-3. **client_next_steps**
-   - Action items
-   - Due dates
-   - Completion tracking
+### 3. Deploy Edge Functions
 
-4. **general_tasks**
-   - System-wide tasks
-   - Category management
-   - Priority tracking
+Deploy the following Edge Functions:
+- `fetch-ai-news`
+- `generate-linkedin-article`
+- `generate-newsletter`
 
-5. **ai_news**
-   - Aggregated news items
-   - Relevance scoring
-   - Source tracking
+### 4. Frontend Setup
 
-## Authentication
-- Email/password authentication
-- Protected routes
-- Role-based access
-- Session management
-- User profiles
+1. Update the Supabase URL and anon key in `src/lib/supabase.ts`
+2. Install dependencies:
 
-## Getting Started
-
-### Prerequisites
-- Node.js v16+
-- npm or yarn
-- Supabase account
-
-### Installation
-1. Clone the repository
 ```bash
-git clone [repository-url]
-cd redbaez-business-management
+npm install @supabase/supabase-js @tanstack/react-query date-fns lucide-react sonner tailwind-merge clsx class-variance-authority
 ```
 
-2. Install dependencies
-```bash
-npm install
-```
+3. Add the necessary UI components from shadcn/ui (button, card, dialog, badge, scroll-area)
 
-3. Environment Setup
-Create a `.env` file:
-```env
-VITE_SUPABASE_URL=your_supabase_url
-VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
-```
+4. Include the AI News page in your router
 
-4. Start Development Server
-```bash
-npm run dev
-```
+## Usage
 
-## Development Guidelines
+1. Navigate to the AI News page
+2. Click "Refresh News" to fetch the latest AI news
+3. Use the LinkedIn button on any news card to generate a LinkedIn post
+4. Use "Generate Newsletter" to create a comprehensive newsletter from all news items
 
-### Code Style
-- Follow TypeScript best practices
-- Use functional components
-- Implement proper error handling
-- Write meaningful component documentation
-- Follow the Airbnb React/JSX Style Guide
+## Dependencies
 
-### State Management
-- Use React Query for server state
-- Implement local state with useState/useReducer
-- Utilize context for shared state
-- Follow proper caching strategies
-
-### Component Structure
-- Create small, focused components
-- Implement proper prop typing
-- Use composition over inheritance
-- Follow the Single Responsibility Principle
-
-## Deployment
-
-### Build Process
-```bash
-npm run build
-```
-
-### Deployment Options
-- Vercel (recommended)
-- Netlify
-- GitHub Pages
-- Any static hosting service
-
-### Environment Variables
-Required variables for production:
-- `VITE_SUPABASE_URL`
-- `VITE_SUPABASE_ANON_KEY`
-
-## Security Considerations
-- Implement proper input validation
-- Use HTTPS for all API calls
-- Follow Supabase security best practices
-- Regular security audits
-- Proper error handling
-
-## Performance Optimization
-- Implement code splitting
-- Use proper caching strategies
-- Optimize images and assets
-- Monitor and analyze performance
-
-## Contributing
-1. Fork the repository
-2. Create a feature branch
-3. Commit changes
-4. Push to the branch
-5. Create a Pull Request
-
-## Support
-For support, please contact [support email/channel]
+- `@supabase/supabase-js`: For Supabase client
+- `@tanstack/react-query`: For data fetching and caching
+- `date-fns`: For date formatting
+- `lucide-react`: For icons
+- `sonner`: For toast notifications
+- `tailwind-merge` and `clsx`: For class utilities
+- `class-variance-authority`: For UI component variants
 
 ## License
-This project is proprietary and confidential.
+
+MIT

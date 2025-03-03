@@ -1,8 +1,8 @@
-import { MainNav } from "@/components/ui/main-nav";
-import { NewsHeader } from "@/components/ai-news/NewsHeader";
-import { NewsContent } from "@/components/ai-news/NewsContent";
-import { GenerationDialogs } from "@/components/ai-news/GenerationDialogs";
-import { useNewsOperations } from "@/components/ai-news/hooks/useNewsOperations";
+
+import { NewsHeader } from "../components/ai-news/NewsHeader";
+import { NewsContent } from "../components/ai-news/NewsContent";
+import { GenerationDialogs } from "../components/ai-news/GenerationDialogs";
+import { useNewsOperations } from "../components/ai-news/hooks/useNewsOperations";
 
 export const AiNews = () => {
   const {
@@ -28,7 +28,6 @@ export const AiNews = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100/50">
-      <MainNav />
       <div className="container mx-auto px-4 py-8">
         <NewsHeader
           onRefresh={refreshNews}

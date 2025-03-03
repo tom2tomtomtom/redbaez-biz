@@ -1,4 +1,4 @@
 
 project_id = "your-project-id"
-[functions.generate-linkedin-article]
+[functions.generate-newsletter]
 verify_jwt = false

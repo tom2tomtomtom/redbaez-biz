@@ -1,4 +1,4 @@
 
 project_id = "your-project-id"
-[functions.generate-linkedin-article]
+[functions.fetch-ai-news]
 verify_jwt = false
