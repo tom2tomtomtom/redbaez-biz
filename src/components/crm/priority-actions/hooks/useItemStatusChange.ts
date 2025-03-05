@@ -13,18 +13,19 @@ export const useItemStatusChange = () => {
     // Invalidate all potentially affected queries
     await queryClient.invalidateQueries();
     
-    // Be more specific with critical query invalidations
+    // Always invalidate these specific queries
     await queryClient.invalidateQueries({ queryKey: ['generalTasks'] });
-    await queryClient.invalidateQueries({ queryKey: ['task-history'] });
-    await queryClient.invalidateQueries({ queryKey: ['priorityNextSteps'] });
-    await queryClient.invalidateQueries({ queryKey: ['nextSteps'] });
-    await queryClient.invalidateQueries({ queryKey: ['client-items'] });
+    await queryClient.invalidateQueries({ queryKey: ['clientNextSteps'] });
     
     // If there's a client ID, invalidate client-specific queries
     if (clientId) {
       await queryClient.invalidateQueries({ queryKey: ['client', clientId] });
       await queryClient.invalidateQueries({ queryKey: ['client-items', clientId] });
     }
+    
+    // Force immediate refetch of critical queries
+    queryClient.refetchQueries({ queryKey: ['generalTasks'] });
+    queryClient.refetchQueries({ queryKey: ['clientNextSteps'] });
   };
 
   const handleCompletedChange = async (item: PriorityItem, completed: boolean) => {
@@ -45,14 +46,8 @@ export const useItemStatusChange = () => {
         if (error) throw error;
       }
 
-      // Invalidate relevant queries to update UI
+      // Immediately invalidate and refetch queries
       await invalidateQueries(item.data.client_id);
-      
-      // After a short delay, refetch to ensure we have the latest data
-      setTimeout(() => {
-        queryClient.refetchQueries({ queryKey: ['generalTasks'] });
-        queryClient.refetchQueries({ queryKey: ['clientNextSteps'] });
-      }, 500);
 
       toast({
         title: completed ? "Item completed" : "Item reopened",
@@ -93,14 +88,8 @@ export const useItemStatusChange = () => {
 
       if (error) throw error;
 
-      // Invalidate relevant queries to update UI
+      // Immediately invalidate and refetch queries
       await invalidateQueries(item.data.client_id);
-      
-      // After a short delay, refetch to ensure we have the latest data
-      setTimeout(() => {
-        queryClient.refetchQueries({ queryKey: ['generalTasks'] });
-        queryClient.refetchQueries({ queryKey: ['clientNextSteps'] });
-      }, 500);
 
       toast({
         title: "Item deleted",
@@ -139,6 +128,7 @@ export const useItemStatusChange = () => {
 
       if (error) throw error;
 
+      // Immediately invalidate and refetch queries
       await invalidateQueries(item.data.client_id);
 
       toast({
