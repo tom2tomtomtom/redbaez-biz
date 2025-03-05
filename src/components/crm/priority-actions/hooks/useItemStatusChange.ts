@@ -10,10 +10,13 @@ export const useItemStatusChange = () => {
   const invalidateQueries = async (clientId?: number) => {
     console.log('Invalidating queries after task update/delete');
     
-    // Invalidate all potentially affected queries
-    await queryClient.invalidateQueries();
+    // First refetch the critical queries immediately
+    await Promise.all([
+      queryClient.refetchQueries({ queryKey: ['generalTasks'] }),
+      queryClient.refetchQueries({ queryKey: ['clientNextSteps'] })
+    ]);
     
-    // Always invalidate these specific queries
+    // Then invalidate everything else to ensure data consistency
     await queryClient.invalidateQueries({ queryKey: ['generalTasks'] });
     await queryClient.invalidateQueries({ queryKey: ['clientNextSteps'] });
     
@@ -22,10 +25,6 @@ export const useItemStatusChange = () => {
       await queryClient.invalidateQueries({ queryKey: ['client', clientId] });
       await queryClient.invalidateQueries({ queryKey: ['client-items', clientId] });
     }
-    
-    // Force immediate refetch of critical queries
-    queryClient.refetchQueries({ queryKey: ['generalTasks'] });
-    queryClient.refetchQueries({ queryKey: ['clientNextSteps'] });
   };
 
   const handleCompletedChange = async (item: PriorityItem, completed: boolean) => {

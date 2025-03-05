@@ -1,3 +1,5 @@
+
+import { useEffect, useState } from 'react';
 import { PriorityItem } from '../hooks/usePriorityData';
 import { GeneralTaskItem } from '../GeneralTaskItem';
 import { NextStepItem } from '../NextStepItem';
@@ -23,6 +25,7 @@ export const PriorityListItem = ({
   onDelete
 }: PriorityListItemProps) => {
   const navigate = useNavigate();
+  const [isVisible, setIsVisible] = useState(true);
 
   const handleClick = () => {
     if (item.type === 'task') {
@@ -36,18 +39,32 @@ export const PriorityListItem = ({
     }
   };
 
+  const handleComplete = () => {
+    setIsVisible(false);
+    setTimeout(() => {
+      onComplete();
+    }, 300); // Delay actual completion to allow animation
+  };
+
+  const handleDelete = () => {
+    setIsVisible(false);
+    setTimeout(() => {
+      onDelete();
+    }, 300); // Delay actual deletion to allow animation
+  };
+
   return (
     <div 
-      className="relative transition-all duration-500 transform animate-fade-in"
+      className={`relative transition-all duration-500 transform animate-fade-in ${isVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-95 h-0 mb-0 mt-0 overflow-hidden'}`}
       style={{
         transitionDelay: `${index * 50}ms`,
       }}
     >
       <ItemControls
         item={item}
-        onComplete={onComplete}
+        onComplete={handleComplete}
         onUrgentChange={onUrgentChange}
-        onDelete={onDelete}
+        onDelete={handleDelete}
       />
       <div 
         className="transition-all duration-300 transform hover:scale-[1.01] hover:shadow-md rounded-lg cursor-pointer"

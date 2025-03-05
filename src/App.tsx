@@ -1,3 +1,4 @@
+
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Login } from './pages/Login';
@@ -15,8 +16,11 @@ import './App.css';
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 5 * 60 * 1000, // 5 minutes
+      staleTime: 0, // Set global staleTime to 0 to always fetch fresh data
+      gcTime: 1000 * 60, // Keep data in cache for 1 minute after it becomes unused
       retry: 1,
+      refetchOnWindowFocus: true, // Refetch when window gets focus
+      refetchOnMount: true, // Refetch when component mounts
     },
   },
 });

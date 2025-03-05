@@ -52,7 +52,7 @@ export const useGeneralTasks = (category: string, refreshTrigger: number) => {
       const allTasks = [
         ...(tasks?.map(task => ({ ...task, type: 'task' })) || []),
         ...nextStepTasks
-      ];
+      ].filter(task => task.status !== 'completed'); // Filter out completed tasks
 
       console.log('Combined tasks:', allTasks.length); // Debug log
       return allTasks;

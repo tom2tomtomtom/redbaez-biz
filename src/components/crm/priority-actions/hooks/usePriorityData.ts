@@ -61,7 +61,7 @@ export const usePriorityData = (category?: string, refreshKey?: number) => {
     staleTime: 0, // Always fetch fresh data
     gcTime: 0, // Don't cache at all
     refetchOnWindowFocus: true, // Refetch when window gets focus
-    refetchOnMount: true // Refetch data when component mounts
+    refetchOnMount: true, // Refetch data when component mounts
   });
 
   const nextStepsQuery = useQuery({
@@ -106,7 +106,7 @@ export const usePriorityData = (category?: string, refreshKey?: number) => {
     isLoading: tasksQuery.isLoading || (!category && nextStepsQuery.isLoading),
     error: tasksQuery.error || (!category && nextStepsQuery.error),
     refetch: () => {
-      console.log('Manually refetching data');
+      console.log('Manually refetching priority data');
       tasksQuery.refetch();
       if (!category) {
         nextStepsQuery.refetch();
