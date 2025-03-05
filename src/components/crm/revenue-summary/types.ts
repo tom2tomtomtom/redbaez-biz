@@ -1,3 +1,4 @@
+
 export interface ClientDetail {
   name: string;
   amount: number;
@@ -20,4 +21,5 @@ export interface AnnualTotals {
 export interface RevenueData {
   monthlyData: MonthlyData[];
   annualTotals: AnnualTotals;
+  clients?: any[]; // Adding the clients property that was missing
 }
