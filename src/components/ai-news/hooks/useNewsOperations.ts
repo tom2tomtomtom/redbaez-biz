@@ -1,8 +1,8 @@
 
 import { useState } from "react";
-import { supabase } from "../../../lib/supabase";
+import { supabase } from "@/lib/supabase";
 import { useQuery } from "@tanstack/react-query";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/use-toast";
 
 interface NewsItem {
   id: number;
@@ -55,10 +55,17 @@ export const useNewsOperations = () => {
       
       console.log('Successfully invoked fetch-ai-news function, refetching data...');
       await refetch();
-      toast.success('News refreshed successfully');
+      toast({
+        title: "Success",
+        description: "News refreshed successfully",
+      });
     } catch (error) {
       console.error('Error refreshing news:', error);
-      toast.error('Failed to refresh news');
+      toast({
+        title: "Error",
+        description: "Failed to refresh news",
+        variant: "destructive",
+      });
     } finally {
       setIsRefreshing(false);
     }
@@ -73,7 +80,10 @@ export const useNewsOperations = () => {
       }).catch((error) => console.log('Error sharing:', error));
     } else if (item.url) {
       navigator.clipboard.writeText(item.url);
-      toast.success('Link copied to clipboard');
+      toast({
+        title: "Success",
+        description: "Link copied to clipboard",
+      });
     }
   };
 
@@ -99,7 +109,11 @@ export const useNewsOperations = () => {
       }
     } catch (error) {
       console.error('Error generating LinkedIn article:', error);
-      toast.error('Failed to generate LinkedIn article');
+      toast({
+        title: "Error",
+        description: "Failed to generate LinkedIn article",
+        variant: "destructive",
+      });
     } finally {
       setIsGeneratingArticle(false);
     }
@@ -107,7 +121,11 @@ export const useNewsOperations = () => {
 
   const generateNewsletter = async () => {
     if (!newsItems?.length) {
-      toast.error('No news items available');
+      toast({
+        title: "Error",
+        description: "No news items available",
+        variant: "destructive",
+      });
       return;
     }
 
@@ -134,7 +152,11 @@ export const useNewsOperations = () => {
       }
     } catch (error) {
       console.error('Error generating newsletter:', error);
-      toast.error('Failed to generate newsletter');
+      toast({
+        title: "Error",
+        description: "Failed to generate newsletter",
+        variant: "destructive",
+      });
     } finally {
       setIsGeneratingNewsletter(false);
     }
@@ -142,12 +164,18 @@ export const useNewsOperations = () => {
 
   const copyArticle = () => {
     navigator.clipboard.writeText(generatedArticle);
-    toast.success('Article copied to clipboard');
+    toast({
+      title: "Success",
+      description: "Article copied to clipboard",
+    });
   };
 
   const copyNewsletter = () => {
     navigator.clipboard.writeText(generatedNewsletter);
-    toast.success('Newsletter copied to clipboard');
+    toast({
+      title: "Success",
+      description: "Newsletter copied to clipboard",
+    });
   };
 
   return {

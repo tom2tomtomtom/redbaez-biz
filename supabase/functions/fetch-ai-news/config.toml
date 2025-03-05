@@ -1,4 +1,9 @@
 
+# Set project ID
 project_id = "your-project-id"
+
 [functions.fetch-ai-news]
 verify_jwt = false
+
+[functions.fetch-ai-news.import_map]
+imports = {}

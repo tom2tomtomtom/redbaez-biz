@@ -1,4 +1,9 @@
 
+# Set project ID
 project_id = "your-project-id"
+
 [functions.generate-linkedin-article]
 verify_jwt = false
+
+[functions.generate-linkedin-article.import_map]
+imports = {}
