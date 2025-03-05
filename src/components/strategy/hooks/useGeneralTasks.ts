@@ -1,3 +1,4 @@
+
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -24,7 +25,6 @@ export const useGeneralTasks = (category: string, refreshTrigger: number) => {
         .from('client_next_steps')
         .select('*, clients(name)')
         .ilike('category', category)
-        .is('completed_at', null)
         .order('due_date', { ascending: true });
 
       if (nextStepsError) {

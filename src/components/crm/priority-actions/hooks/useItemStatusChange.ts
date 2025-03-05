@@ -1,3 +1,4 @@
+
 import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/components/ui/use-toast';
@@ -23,6 +24,8 @@ export const useItemStatusChange = () => {
 
   const handleCompletedChange = async (item: PriorityItem, completed: boolean) => {
     try {
+      console.log(`Updating item (${item.type}:${item.data.id}) completed status to: ${completed}`);
+      
       if (item.type === 'task') {
         const { error } = await supabase
           .from('general_tasks')
@@ -37,6 +40,7 @@ export const useItemStatusChange = () => {
         if (error) throw error;
       }
 
+      // Invalidate relevant queries to update UI
       await invalidateQueries(item.data.client_id);
 
       toast({
@@ -78,6 +82,7 @@ export const useItemStatusChange = () => {
 
       if (error) throw error;
 
+      // Invalidate relevant queries to update UI
       await invalidateQueries(item.data.client_id);
 
       toast({

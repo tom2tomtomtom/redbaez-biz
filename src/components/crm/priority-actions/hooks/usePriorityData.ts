@@ -1,3 +1,4 @@
+
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Tables } from '@/integrations/supabase/types';
@@ -19,7 +20,7 @@ const fetchGeneralTasks = async (category?: string) => {
   let query = supabase
     .from('general_tasks')
     .select('*')
-    .neq('status', 'completed');
+    .eq('status', 'incomplete');
 
   if (category) {
     // Convert both the category and the database value to lowercase for comparison

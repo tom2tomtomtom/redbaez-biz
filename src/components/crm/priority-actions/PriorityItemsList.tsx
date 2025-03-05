@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { PriorityItem } from './hooks/usePriorityData';
 import { GeneralTaskRow } from '@/integrations/supabase/types/general-tasks.types';
@@ -20,17 +21,20 @@ export const PriorityItemsList = ({ items, onTaskClick }: PriorityItemsListProps
     setLocalItems(items);
   }, [items]);
 
-  const activeItems = localItems.filter(item => 
-    (item.type === 'task' && 
-     item.data.status !== 'completed' && 
-     item.data.next_due_date !== null) ||
-    (item.type === 'next_step' && 
-     !item.data.completed_at)
-  );
+  const activeItems = localItems.filter(item => {
+    if (item.type === 'task') {
+      return item.data.status !== 'completed';
+    }
+    if (item.type === 'next_step') {
+      return !item.data.completed_at;
+    }
+    return true;
+  });
 
   const handleItemDelete = async (item: PriorityItem) => {
     const success = await handleDelete(item);
     if (success) {
+      // Remove the item from local state to give immediate feedback
       setLocalItems(prevItems => 
         prevItems.filter(i => !(i.type === item.type && i.data.id === item.data.id))
       );
@@ -40,6 +44,7 @@ export const PriorityItemsList = ({ items, onTaskClick }: PriorityItemsListProps
   const handleComplete = async (item: PriorityItem) => {
     const success = await handleCompletedChange(item, true);
     if (success) {
+      // Remove the item from local state to give immediate feedback
       setLocalItems(prevItems => 
         prevItems.filter(i => !(i.type === item.type && i.data.id === item.data.id))
       );
@@ -66,7 +71,7 @@ export const PriorityItemsList = ({ items, onTaskClick }: PriorityItemsListProps
       <div className="space-y-6">
         {activeItems.map((item, index) => (
           <PriorityListItem
-            key={`${item.type}-${item.data.id}`}
+            key={`${item.type}-${item.data.id}-${index}`}
             item={item}
             index={index}
             onTaskClick={onTaskClick}
