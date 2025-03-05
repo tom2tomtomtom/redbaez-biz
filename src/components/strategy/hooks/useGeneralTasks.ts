@@ -59,6 +59,6 @@ export const useGeneralTasks = (category: string, refreshTrigger: number) => {
     },
     // Force refetch on every category or refreshTrigger change to ensure latest data
     staleTime: 0, 
-    cacheTime: 0
+    gcTime: 0  // Replaced cacheTime with gcTime which is the equivalent in React Query v5
   });
 };
