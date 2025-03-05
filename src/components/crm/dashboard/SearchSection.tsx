@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { ClientSearch } from '@/components/crm/client-search/ClientSearch';
 import { IntelSearch } from '@/components/crm/intel-search/IntelSearch';
@@ -13,7 +14,7 @@ export const SearchSection: React.FC<SearchSectionProps> = ({
 }) => {
   return (
     <div className="w-full">
-      <div className="flex items-start justify-between gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <ClientSearch />
         <IntelSearch 
           searchInput={searchInput}

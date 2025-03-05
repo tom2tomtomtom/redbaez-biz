@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -41,7 +42,7 @@ export const IntelSearch = ({ searchInput, onSearchInputChange }: IntelSearchPro
   };
 
   return (
-    <Card className="flex-1 transition-all duration-300 hover:shadow-lg">
+    <Card className="h-full transition-all duration-300 hover:shadow-lg">
       <CardHeader className="pb-2">
         <CardTitle className="text-sm font-medium">Intel Search</CardTitle>
       </CardHeader>
@@ -69,19 +70,19 @@ export const IntelSearch = ({ searchInput, onSearchInputChange }: IntelSearchPro
         </div>
 
         {isLoading && (
-          <div className="animate-pulse bg-gray-100 rounded-md p-4">
+          <div className="animate-pulse bg-gray-100 rounded-md p-4 min-h-[200px]">
             Loading insights...
           </div>
         )}
 
         {error && (
-          <div className="text-red-500 p-4 rounded-md bg-red-50">
+          <div className="text-red-500 p-4 rounded-md bg-red-50 min-h-[100px]">
             Error fetching insights. Please try again.
           </div>
         )}
 
         {insight && (
-          <div className="space-y-3 p-4 rounded-md bg-blue-50">
+          <div className="space-y-3 p-4 rounded-md bg-blue-50 max-h-[400px] overflow-y-auto">
             {formatInsight(insight).map((point, index) => (
               <div 
                 key={index}

@@ -9,7 +9,6 @@ import { TaskDialog } from "@/components/crm/priority-actions/TaskDialog";
 import { DashboardHeader } from "@/components/crm/dashboard/DashboardHeader";
 import { SearchSection } from "@/components/crm/dashboard/SearchSection";
 import { ClientListSection } from "@/components/crm/dashboard/ClientListSection";
-import { IntelSearch } from "@/components/crm/intel-search/IntelSearch";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { useNavigate } from "react-router-dom";
 
@@ -42,16 +41,10 @@ const Index = () => {
         />
 
         <div className="space-y-8">
-          <div className="flex flex-col lg:flex-row gap-6">
-            <SearchSection 
-              searchInput={searchInput}
-              onSearchInputChange={setSearchInput}
-            />
-            <IntelSearch
-              searchInput={searchInput}
-              onSearchInputChange={setSearchInput}
-            />
-          </div>
+          <SearchSection 
+            searchInput={searchInput}
+            onSearchInputChange={setSearchInput}
+          />
 
           <div className="rounded-lg bg-card p-8 shadow-sm">
             <h2 className="text-2xl font-semibold mb-6 text-left">Priority Actions</h2>
