@@ -1,6 +1,6 @@
 
 # Set project ID
-project_id = "your-project-id"
+project_id = "ryomveanixzshfatalcd"
 
 [functions.generate-linkedin-article]
 verify_jwt = false

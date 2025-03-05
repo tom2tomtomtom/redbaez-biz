@@ -1,6 +1,6 @@
 
 # Set project ID
-project_id = "your-project-id"
+project_id = "ryomveanixzshfatalcd"
 
 [functions.generate-newsletter]
 verify_jwt = false
