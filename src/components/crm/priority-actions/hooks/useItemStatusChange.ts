@@ -8,7 +8,12 @@ export const useItemStatusChange = () => {
   const queryClient = useQueryClient();
 
   const invalidateQueries = async (clientId?: number) => {
-    // Invalidate general tasks queries
+    console.log('Invalidating queries after task update/delete');
+    
+    // Invalidate all potentially affected queries
+    await queryClient.invalidateQueries();
+    
+    // Be more specific with critical query invalidations
     await queryClient.invalidateQueries({ queryKey: ['generalTasks'] });
     await queryClient.invalidateQueries({ queryKey: ['task-history'] });
     await queryClient.invalidateQueries({ queryKey: ['priorityNextSteps'] });
@@ -42,6 +47,12 @@ export const useItemStatusChange = () => {
 
       // Invalidate relevant queries to update UI
       await invalidateQueries(item.data.client_id);
+      
+      // After a short delay, refetch to ensure we have the latest data
+      setTimeout(() => {
+        queryClient.refetchQueries({ queryKey: ['generalTasks'] });
+        queryClient.refetchQueries({ queryKey: ['clientNextSteps'] });
+      }, 500);
 
       toast({
         title: completed ? "Item completed" : "Item reopened",
@@ -84,6 +95,12 @@ export const useItemStatusChange = () => {
 
       // Invalidate relevant queries to update UI
       await invalidateQueries(item.data.client_id);
+      
+      // After a short delay, refetch to ensure we have the latest data
+      setTimeout(() => {
+        queryClient.refetchQueries({ queryKey: ['generalTasks'] });
+        queryClient.refetchQueries({ queryKey: ['clientNextSteps'] });
+      }, 500);
 
       toast({
         title: "Item deleted",

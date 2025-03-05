@@ -9,15 +9,21 @@ import { useItemStatusChange } from './hooks/useItemStatusChange';
 interface PriorityItemsListProps {
   items: PriorityItem[];
   onTaskClick: (task: GeneralTaskRow) => void;
+  onTaskUpdated?: () => void;
 }
 
-export const PriorityItemsList = ({ items, onTaskClick }: PriorityItemsListProps) => {
+export const PriorityItemsList = ({ 
+  items, 
+  onTaskClick,
+  onTaskUpdated 
+}: PriorityItemsListProps) => {
   const [itemToComplete, setItemToComplete] = useState<PriorityItem | null>(null);
   const [localItems, setLocalItems] = useState<PriorityItem[]>(items);
   const { handleCompletedChange, handleUrgentChange, handleDelete } = useItemStatusChange();
 
   // Update localItems when items prop changes
   useEffect(() => {
+    console.log('PriorityItemsList received new items:', items.length);
     setLocalItems(items);
   }, [items]);
 
@@ -38,6 +44,11 @@ export const PriorityItemsList = ({ items, onTaskClick }: PriorityItemsListProps
       setLocalItems(prevItems => 
         prevItems.filter(i => !(i.type === item.type && i.data.id === item.data.id))
       );
+      
+      // Notify parent component that task was updated
+      if (onTaskUpdated) {
+        onTaskUpdated();
+      }
     }
   };
 
@@ -48,8 +59,20 @@ export const PriorityItemsList = ({ items, onTaskClick }: PriorityItemsListProps
       setLocalItems(prevItems => 
         prevItems.filter(i => !(i.type === item.type && i.data.id === item.data.id))
       );
+      
+      // Notify parent component that task was updated
+      if (onTaskUpdated) {
+        onTaskUpdated();
+      }
     }
     setItemToComplete(null);
+  };
+  
+  const handleUrgentStatusChange = async (item: PriorityItem, checked: boolean) => {
+    const success = await handleUrgentChange(item, checked);
+    if (success && onTaskUpdated) {
+      onTaskUpdated();
+    }
   };
 
   if (activeItems.length === 0) {
@@ -76,7 +99,7 @@ export const PriorityItemsList = ({ items, onTaskClick }: PriorityItemsListProps
             index={index}
             onTaskClick={onTaskClick}
             onComplete={() => setItemToComplete(item)}
-            onUrgentChange={(checked) => handleUrgentChange(item, checked)}
+            onUrgentChange={(checked) => handleUrgentStatusChange(item, checked)}
             onDelete={() => handleItemDelete(item)}
           />
         ))}

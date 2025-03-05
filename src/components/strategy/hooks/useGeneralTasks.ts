@@ -56,6 +56,9 @@ export const useGeneralTasks = (category: string, refreshTrigger: number) => {
 
       console.log('Combined tasks:', allTasks); // Debug log
       return allTasks;
-    }
+    },
+    // Force refetch on every category or refreshTrigger change to ensure latest data
+    staleTime: 0, 
+    cacheTime: 0
   });
 };

@@ -1,7 +1,8 @@
+
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Tables } from '@/integrations/supabase/types';
 import { useQueryClient } from '@tanstack/react-query';
 import { PriorityActionsSkeleton } from './PriorityActionsSkeleton';
@@ -22,16 +23,25 @@ export const PriorityActions = ({
 }: PriorityActionsProps) => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Tables<'general_tasks'> | null>(null);
+  const [refreshKey, setRefreshKey] = useState(0); // Add refresh key to force re-render
   const queryClient = useQueryClient();
   const { allItems, isLoading, error } = usePriorityData(category);
 
   console.log('Priority Actions - all items:', allItems); // Debug log
+
+  // Force refresh when component mounts
+  useEffect(() => {
+    queryClient.invalidateQueries({ queryKey: ['generalTasks'] });
+    queryClient.invalidateQueries({ queryKey: ['clientNextSteps'] });
+  }, [queryClient]);
 
   const handleTaskSaved = () => {
     queryClient.invalidateQueries({ queryKey: ['generalTasks'] });
     queryClient.invalidateQueries({ queryKey: ['clientNextSteps'] });
     setIsDialogOpen(false);
     setEditingTask(null);
+    // Force refresh
+    setRefreshKey(prev => prev + 1);
   };
 
   const handleTaskClick = (task: Tables<'general_tasks'>) => {
@@ -41,6 +51,13 @@ export const PriorityActions = ({
       setEditingTask(task);
       setIsDialogOpen(true);
     }
+  };
+  
+  const handleTaskUpdated = () => {
+    // Force refresh after task update or delete
+    queryClient.invalidateQueries({ queryKey: ['generalTasks'] });
+    queryClient.invalidateQueries({ queryKey: ['clientNextSteps'] });
+    setRefreshKey(prev => prev + 1);
   };
 
   if (isLoading) {
@@ -85,13 +102,16 @@ export const PriorityActions = ({
       <CardContent>
         <div>
           <PriorityItemsList 
+            key={refreshKey} // Force re-render on refreshKey change
             items={allItems}
             onTaskClick={handleTaskClick}
+            onTaskUpdated={handleTaskUpdated}
           />
         </div>
       </CardContent>
 
       <TaskDialog
+        key={`dialog-${refreshKey}`} // Force re-render dialog too
         isOpen={isDialogOpen}
         onOpenChange={setIsDialogOpen}
         task={editingTask}

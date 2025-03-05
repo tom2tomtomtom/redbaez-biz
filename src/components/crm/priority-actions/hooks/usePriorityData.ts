@@ -56,12 +56,18 @@ export const usePriorityData = (category?: string) => {
   const tasksQuery = useQuery({
     queryKey: ['generalTasks', category],
     queryFn: () => fetchGeneralTasks(category),
+    staleTime: 0, // Always fetch fresh data
+    refetchOnWindowFocus: true, // Refetch when window gets focus
+    refetchOnMount: true // Refetch data when component mounts
   });
 
   const nextStepsQuery = useQuery({
     queryKey: ['clientNextSteps'],
     queryFn: fetchNextSteps,
     enabled: !category, // Only fetch next steps if no category filter
+    staleTime: 0, // Always fetch fresh data
+    refetchOnWindowFocus: true,
+    refetchOnMount: true
   });
 
   const allItems: PriorityItem[] = [
