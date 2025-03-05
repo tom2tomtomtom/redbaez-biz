@@ -9,6 +9,7 @@ import { PriorityActionsSkeleton } from './PriorityActionsSkeleton';
 import { TaskDialog } from './TaskDialog';
 import { PriorityItemsList } from './PriorityItemsList';
 import { usePriorityData } from './hooks/usePriorityData';
+import { toast } from '@/hooks/use-toast';
 
 interface PriorityActionsProps {
   hideAddButton?: boolean;
@@ -25,9 +26,9 @@ export const PriorityActions = ({
   const [editingTask, setEditingTask] = useState<Tables<'general_tasks'> | null>(null);
   const [refreshKey, setRefreshKey] = useState(0); // Add refresh key to force re-render
   const queryClient = useQueryClient();
-  const { allItems, isLoading, error } = usePriorityData(category);
+  const { allItems, isLoading, error, refetch } = usePriorityData(category, refreshKey);
 
-  console.log('Priority Actions - all items:', allItems); // Debug log
+  console.log('Priority Actions - all items:', allItems.length); // Debug log
 
   // Force refresh when component mounts
   useEffect(() => {
@@ -36,12 +37,18 @@ export const PriorityActions = ({
   }, [queryClient]);
 
   const handleTaskSaved = () => {
+    toast({
+      title: "Success",
+      description: "Task updated successfully",
+    });
     queryClient.invalidateQueries({ queryKey: ['generalTasks'] });
     queryClient.invalidateQueries({ queryKey: ['clientNextSteps'] });
     setIsDialogOpen(false);
     setEditingTask(null);
     // Force refresh
     setRefreshKey(prev => prev + 1);
+    // Also directly refetch
+    refetch();
   };
 
   const handleTaskClick = (task: Tables<'general_tasks'>) => {
@@ -55,9 +62,12 @@ export const PriorityActions = ({
   
   const handleTaskUpdated = () => {
     // Force refresh after task update or delete
+    console.log('Task updated, refreshing data...');
     queryClient.invalidateQueries({ queryKey: ['generalTasks'] });
     queryClient.invalidateQueries({ queryKey: ['clientNextSteps'] });
     setRefreshKey(prev => prev + 1);
+    // Also directly refetch
+    refetch();
   };
 
   if (isLoading) {

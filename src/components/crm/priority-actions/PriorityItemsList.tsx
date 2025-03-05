@@ -5,6 +5,7 @@ import { GeneralTaskRow } from '@/integrations/supabase/types/general-tasks.type
 import { CompletionDialog } from './components/CompletionDialog';
 import { PriorityListItem } from './components/PriorityListItem';
 import { useItemStatusChange } from './hooks/useItemStatusChange';
+import { toast } from '@/hooks/use-toast';
 
 interface PriorityItemsListProps {
   items: PriorityItem[];
@@ -18,7 +19,7 @@ export const PriorityItemsList = ({
   onTaskUpdated 
 }: PriorityItemsListProps) => {
   const [itemToComplete, setItemToComplete] = useState<PriorityItem | null>(null);
-  const [localItems, setLocalItems] = useState<PriorityItem[]>(items);
+  const [localItems, setLocalItems] = useState<PriorityItem[]>([]);
   const { handleCompletedChange, handleUrgentChange, handleDelete } = useItemStatusChange();
 
   // Update localItems when items prop changes
@@ -40,6 +41,11 @@ export const PriorityItemsList = ({
   const handleItemDelete = async (item: PriorityItem) => {
     const success = await handleDelete(item);
     if (success) {
+      toast({
+        title: "Success",
+        description: "Item deleted successfully",
+      });
+      
       // Remove the item from local state to give immediate feedback
       setLocalItems(prevItems => 
         prevItems.filter(i => !(i.type === item.type && i.data.id === item.data.id))
@@ -55,6 +61,11 @@ export const PriorityItemsList = ({
   const handleComplete = async (item: PriorityItem) => {
     const success = await handleCompletedChange(item, true);
     if (success) {
+      toast({
+        title: "Success",
+        description: "Item marked as completed",
+      });
+      
       // Remove the item from local state to give immediate feedback
       setLocalItems(prevItems => 
         prevItems.filter(i => !(i.type === item.type && i.data.id === item.data.id))
@@ -70,10 +81,19 @@ export const PriorityItemsList = ({
   
   const handleUrgentStatusChange = async (item: PriorityItem, checked: boolean) => {
     const success = await handleUrgentChange(item, checked);
-    if (success && onTaskUpdated) {
-      onTaskUpdated();
+    if (success) {
+      toast({
+        title: "Success",
+        description: checked ? "Item marked as urgent" : "Item urgency removed",
+      });
+      
+      if (onTaskUpdated) {
+        onTaskUpdated();
+      }
     }
   };
+
+  console.log('PriorityItemsList rendering activeItems:', activeItems.length);
 
   if (activeItems.length === 0) {
     return (

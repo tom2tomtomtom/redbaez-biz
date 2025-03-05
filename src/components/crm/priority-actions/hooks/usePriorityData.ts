@@ -29,7 +29,7 @@ const fetchGeneralTasks = async (category?: string) => {
     
   const { data, error } = await query;
   if (error) throw error;
-  console.log('Fetched tasks:', data); // Debug log
+  console.log('Fetched tasks:', data?.length); // Debug log
   return data;
 };
 
@@ -46,26 +46,30 @@ const fetchNextSteps = async () => {
     .order('due_date', { ascending: true });
 
   if (error) throw error;
+  
+  console.log('Fetched next steps:', data?.length); // Debug log
   return data?.map(step => ({
     ...step,
     client_name: step.clients?.name
   }));
 };
 
-export const usePriorityData = (category?: string) => {
+export const usePriorityData = (category?: string, refreshKey?: number) => {
   const tasksQuery = useQuery({
-    queryKey: ['generalTasks', category],
+    queryKey: ['generalTasks', category, refreshKey],
     queryFn: () => fetchGeneralTasks(category),
     staleTime: 0, // Always fetch fresh data
+    gcTime: 0, // Don't cache at all
     refetchOnWindowFocus: true, // Refetch when window gets focus
     refetchOnMount: true // Refetch data when component mounts
   });
 
   const nextStepsQuery = useQuery({
-    queryKey: ['clientNextSteps'],
+    queryKey: ['clientNextSteps', refreshKey],
     queryFn: fetchNextSteps,
     enabled: !category, // Only fetch next steps if no category filter
     staleTime: 0, // Always fetch fresh data
+    gcTime: 0, // Don't cache at all
     refetchOnWindowFocus: true,
     refetchOnMount: true
   });
@@ -100,6 +104,13 @@ export const usePriorityData = (category?: string) => {
   return {
     allItems,
     isLoading: tasksQuery.isLoading || (!category && nextStepsQuery.isLoading),
-    error: tasksQuery.error || (!category && nextStepsQuery.error)
+    error: tasksQuery.error || (!category && nextStepsQuery.error),
+    refetch: () => {
+      console.log('Manually refetching data');
+      tasksQuery.refetch();
+      if (!category) {
+        nextStepsQuery.refetch();
+      }
+    }
   };
 };

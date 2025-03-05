@@ -54,7 +54,7 @@ export const useGeneralTasks = (category: string, refreshTrigger: number) => {
         ...nextStepTasks
       ];
 
-      console.log('Combined tasks:', allTasks); // Debug log
+      console.log('Combined tasks:', allTasks.length); // Debug log
       return allTasks;
     },
     // Force refetch on every category or refreshTrigger change to ensure latest data
