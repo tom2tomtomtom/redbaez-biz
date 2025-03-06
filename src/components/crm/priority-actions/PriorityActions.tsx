@@ -10,7 +10,6 @@ import { TaskDialog } from './TaskDialog';
 import { PriorityItemsList } from './PriorityItemsList';
 import { usePriorityData } from './hooks/usePriorityData';
 import { toast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
 
 interface PriorityActionsProps {
   hideAddButton?: boolean;
@@ -30,7 +29,7 @@ export const PriorityActions = ({
   const queryClient = useQueryClient();
   const refreshTimerRef = useRef<NodeJS.Timeout | null>(null);
   const refreshCountRef = useRef(0);
-  const isInitialLoadRef = useRef(true);
+  const maxRefreshCount = 5; // Limit automatic refreshes
   
   // Ensure category is a proper string or undefined
   const sanitizedCategory = category === undefined || category === null ? undefined : String(category);
@@ -41,76 +40,50 @@ export const PriorityActions = ({
 
   console.log('PriorityActions - rendered with items:', allItems?.length, allItems);
 
-  // Force refresh less frequently to avoid excessive API calls
-  useEffect(() => {
-    // Debug check for tasks to confirm if there's data in the DB
-    const checkForTasks = async () => {
-      try {
-        const { data, error } = await supabase
-          .from('general_tasks')
-          .select('*')
-          .limit(20);
-        
-        if (error) {
-          console.error('Error checking tasks:', error);
-        } else {
-          console.log('Direct DB check - tasks available:', data?.length, data);
-        }
-      } catch (err) {
-        console.error('Exception checking tasks:', err);
-      }
-    };
+  // Throttled refresh function to avoid excessive API calls
+  const throttledRefresh = useCallback(() => {
+    const now = Date.now();
+    const timeSinceLastRefresh = now - lastRefreshTime;
     
-    if (isInitialLoadRef.current) {
-      checkForTasks();
-      isInitialLoadRef.current = false;
+    // Enforce a minimum 5 second delay between refreshes
+    if (timeSinceLastRefresh < 5000) {
+      console.log('Skipping refresh, too soon since last refresh');
+      return;
     }
     
-    // Limit how often we refresh to prevent infinite loops or excessive API calls
-    const refreshData = () => {
-      const now = Date.now();
-      const timeSinceLastRefresh = now - lastRefreshTime;
-      
-      // Don't refresh if it's been less than 10 seconds since the last refresh
-      if (timeSinceLastRefresh < 10000) {
-        console.log('Skipping refresh, too soon since last refresh');
-        return;
-      }
-      
-      // Don't refresh if we've already refreshed too many times
-      if (refreshCountRef.current > 10) {
-        console.log('Limiting refreshes to prevent excessive API calls');
-        return;
-      }
-      
-      console.log('Refreshing priority actions data...');
-      refreshCountRef.current += 1;
-      setLastRefreshTime(now);
-      
-      queryClient.invalidateQueries({ queryKey: ['generalTasks'] });
-      queryClient.invalidateQueries({ queryKey: ['clientNextSteps'] });
-      setRefreshKey(prev => prev + 1);
-      refetch();
-    };
+    // Limit total number of automatic refreshes
+    if (refreshCountRef.current >= maxRefreshCount) {
+      console.log('Reached max refresh count, stopping automatic refreshes');
+      return;
+    }
     
-    // Initial refresh
-    refreshData();
+    console.log('Throttled refresh triggered');
+    refreshCountRef.current += 1;
+    setLastRefreshTime(now);
+    setRefreshKey(prev => prev + 1);
+  }, [lastRefreshTime]);
+  
+  // Initial data load and periodic refresh setup
+  useEffect(() => {
+    // One initial refresh when component mounts
+    throttledRefresh();
     
-    // Set up interval for periodic refreshes (60 seconds instead of 30)
+    // Set up timer for periodic refreshes, but with longer intervals (120 seconds)
     if (refreshTimerRef.current) {
       clearInterval(refreshTimerRef.current);
     }
     
-    refreshTimerRef.current = setInterval(refreshData, 60000);
+    refreshTimerRef.current = setInterval(() => {
+      throttledRefresh();
+    }, 120000); // 2 minutes
     
-    // Clean up interval on unmount
     return () => {
       if (refreshTimerRef.current) {
         clearInterval(refreshTimerRef.current);
         refreshTimerRef.current = null;
       }
     };
-  }, [queryClient, refetch, sanitizedCategory, lastRefreshTime]);
+  }, [throttledRefresh]);
 
   const handleTaskSaved = useCallback(() => {
     toast({
@@ -121,15 +94,12 @@ export const PriorityActions = ({
     // Reset the refresh count on deliberate user actions
     refreshCountRef.current = 0;
     
-    // Force refresh after task is saved
+    // Force immediate refresh
     setLastRefreshTime(Date.now());
-    queryClient.invalidateQueries({ queryKey: ['generalTasks'] });
-    queryClient.invalidateQueries({ queryKey: ['clientNextSteps'] });
+    setRefreshKey(prev => prev + 1);
     setIsDialogOpen(false);
     setEditingTask(null);
-    setRefreshKey(prev => prev + 1);
-    refetch();
-  }, [queryClient, refetch]);
+  }, []);
 
   const handleTaskClick = useCallback((task: Tables<'general_tasks'>) => {
     if (onTaskClick) {
@@ -147,16 +117,21 @@ export const PriorityActions = ({
     // Force refresh after task update or delete
     console.log('Task updated, refreshing data...');
     setLastRefreshTime(Date.now());
-    queryClient.invalidateQueries({ queryKey: ['generalTasks'] });
-    queryClient.invalidateQueries({ queryKey: ['clientNextSteps'] });
-    setRefreshKey(prev => prev + 1);
-    refetch();
-  }, [queryClient, refetch]);
+    
+    // Delay the refresh slightly to allow the database operations to complete
+    setTimeout(() => {
+      queryClient.invalidateQueries({ queryKey: ['generalTasks'] });
+      queryClient.invalidateQueries({ queryKey: ['clientNextSteps'] });
+      setRefreshKey(prev => prev + 1);
+    }, 500);
+  }, [queryClient]);
 
+  // Render loading state
   if (isLoading) {
     return <PriorityActionsSkeleton />;
   }
 
+  // Render error state
   if (error) {
     console.error('Priority Actions error:', error);
     return (
@@ -175,7 +150,6 @@ export const PriorityActions = ({
                 refreshCountRef.current = 0;
                 setLastRefreshTime(Date.now());
                 setRefreshKey(prev => prev + 1);
-                refetch();
               }}
             >
               Retry

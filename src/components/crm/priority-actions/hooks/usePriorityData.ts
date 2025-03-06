@@ -81,6 +81,9 @@ const fetchNextSteps = async () => {
   }
 };
 
+// Create a unique ID for each item to assist with deduplication and tracking
+const createUniqueId = (type: string, id: string) => `${type}-${id}`;
+
 export const usePriorityData = (category?: string, refreshKey?: number) => {
   // Sanitize the category input to prevent confusion
   const sanitizedCategory = typeof category === 'string' ? category : undefined;
@@ -116,7 +119,7 @@ export const usePriorityData = (category?: string, refreshKey?: number) => {
   
   // Add tasks to the map
   tasks.forEach(task => {
-    const key = `task-${task.id}`;
+    const key = createUniqueId('task', task.id);
     deduplicationMap.set(key, {
       type: 'task',
       date: task.next_due_date,
@@ -126,7 +129,7 @@ export const usePriorityData = (category?: string, refreshKey?: number) => {
   
   // Add next steps to the map
   nextSteps.forEach(step => {
-    const key = `next_step-${step.id}`;
+    const key = createUniqueId('next_step', step.id);
     deduplicationMap.set(key, {
       type: 'next_step',
       date: step.due_date,

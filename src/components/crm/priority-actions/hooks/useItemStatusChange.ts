@@ -7,6 +7,9 @@ import { PriorityItem } from './usePriorityData';
 export const useItemStatusChange = () => {
   const queryClient = useQueryClient();
 
+  // Create a delay function to manage timing of cache updates
+  const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
   const invalidateQueries = async (clientId?: number) => {
     console.log('Invalidating queries after task update/delete');
     
@@ -68,10 +71,9 @@ export const useItemStatusChange = () => {
         });
       }
 
-      // Invalidate queries after a small delay to allow UI to update
-      setTimeout(() => {
-        invalidateQueries(item.data.client_id);
-      }, 300);
+      // Invalidate queries after a delay to allow UI to update first
+      await delay(500);
+      await invalidateQueries(item.data.client_id);
 
       return true;
     } catch (error) {
@@ -88,16 +90,35 @@ export const useItemStatusChange = () => {
   const handleDelete = async (item: PriorityItem) => {
     try {
       let error;
+      console.log(`Attempting to delete ${item.type} with ID: ${item.data.id}`);
 
       if (item.type === 'task') {
-        console.log('Deleting task with ID:', item.data.id);
+        // Immediately remove from cache
+        queryClient.setQueryData(['generalTasks'], (oldData: any) => {
+          if (!oldData) return [];
+          return Array.isArray(oldData) 
+            ? oldData.filter(task => task.id !== item.data.id) 
+            : oldData;
+        });
+
+        // Delete from database
         const result = await supabase
           .from('general_tasks')
           .delete()
           .eq('id', item.data.id);
         error = result.error;
+        
+        console.log('Task deletion result:', result);
       } else if (item.type === 'next_step') {
-        console.log('Deleting next step with ID:', item.data.id);
+        // Immediately remove from cache
+        queryClient.setQueryData(['clientNextSteps'], (oldData: any) => {
+          if (!oldData) return [];
+          return Array.isArray(oldData) 
+            ? oldData.filter(step => step.id !== item.data.id) 
+            : oldData;
+        });
+        
+        // Delete from database
         const result = await supabase
           .from('client_next_steps')
           .delete()
@@ -114,28 +135,11 @@ export const useItemStatusChange = () => {
         throw new Error('Failed to delete ' + item.type);
       }
 
-      // Update cache immediately to remove the item
-      if (item.type === 'task') {
-        queryClient.setQueryData(['generalTasks'], (oldData: any) => {
-          if (!oldData) return oldData;
-          return Array.isArray(oldData) 
-            ? oldData.filter(task => task.id !== item.data.id) 
-            : oldData;
-        });
-      } else {
-        queryClient.setQueryData(['clientNextSteps'], (oldData: any) => {
-          if (!oldData) return oldData;
-          return Array.isArray(oldData) 
-            ? oldData.filter(step => step.id !== item.data.id) 
-            : oldData;
-        });
-      }
+      // Allow short delay before invalidating queries to prevent race conditions
+      await delay(500);
+      await invalidateQueries(item.data.client_id);
 
-      // Invalidate the queries after a delay to allow UI to update
-      setTimeout(() => {
-        invalidateQueries(item.data.client_id);
-      }, 300);
-
+      console.log(`Successfully deleted ${item.type} with ID: ${item.data.id}`);
       return true;
     } catch (error) {
       console.error('Error deleting item:', error);
@@ -153,23 +157,7 @@ export const useItemStatusChange = () => {
       let error;
 
       if (item.type === 'task') {
-        const { error: updateError } = await supabase
-          .from('general_tasks')
-          .update({ urgent: checked })
-          .eq('id', item.data.id);
-        error = updateError;
-      } else if (item.type === 'next_step') {
-        const { error: updateError } = await supabase
-          .from('client_next_steps')
-          .update({ urgent: checked })
-          .eq('id', item.data.id);
-        error = updateError;
-      }
-
-      if (error) throw error;
-
-      // Update cache immediately
-      if (item.type === 'task') {
+        // Update cache first
         queryClient.setQueryData(['generalTasks'], (oldData: any) => {
           if (!oldData) return oldData;
           return Array.isArray(oldData) 
@@ -180,7 +168,15 @@ export const useItemStatusChange = () => {
               )
             : oldData;
         });
-      } else {
+        
+        // Then update database
+        const { error: updateError } = await supabase
+          .from('general_tasks')
+          .update({ urgent: checked })
+          .eq('id', item.data.id);
+        error = updateError;
+      } else if (item.type === 'next_step') {
+        // Update cache first
         queryClient.setQueryData(['clientNextSteps'], (oldData: any) => {
           if (!oldData) return oldData;
           return Array.isArray(oldData) 
@@ -191,12 +187,20 @@ export const useItemStatusChange = () => {
               )
             : oldData;
         });
+        
+        // Then update database
+        const { error: updateError } = await supabase
+          .from('client_next_steps')
+          .update({ urgent: checked })
+          .eq('id', item.data.id);
+        error = updateError;
       }
 
+      if (error) throw error;
+
       // Invalidate after a delay
-      setTimeout(() => {
-        invalidateQueries(item.data.client_id);
-      }, 300);
+      await delay(500);
+      await invalidateQueries(item.data.client_id);
 
       return true;
     } catch (error) {

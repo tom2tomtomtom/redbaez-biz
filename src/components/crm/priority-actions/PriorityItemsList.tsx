@@ -26,20 +26,28 @@ export const PriorityItemsList = ({
   const operationInProgressRef = useRef(false);
   const previousItemsLengthRef = useRef(0);
 
+  // Unique identifier for items to assist with tracking
+  const getItemKey = useCallback((item: PriorityItem) => {
+    return `${item.type}-${item.data.id}`;
+  }, []);
+
   // Create a memoized filtering function to avoid re-rendering loops
-  const filterDeletedItems = useCallback((items: PriorityItem[]) => {
-    if (!Array.isArray(items)) return [];
+  const filterDeletedItems = useCallback((itemsToFilter: PriorityItem[]) => {
+    if (!Array.isArray(itemsToFilter)) return [];
     
-    return items.filter(item => {
-      const itemId = `${item.type}-${item.data.id}`;
+    return itemsToFilter.filter(item => {
+      const itemId = getItemKey(item);
       return !deletedItemIds.has(itemId);
     });
-  }, [deletedItemIds]);
+  }, [deletedItemIds, getItemKey]);
 
   // Update localItems when items prop changes, but only if the length changed
   // This prevents unnecessary re-renders caused by object reference changes
   useEffect(() => {
     if (Array.isArray(items)) {
+      // Log incoming items for debugging
+      console.log('PriorityItemsList received items:', items.length, items);
+      
       // Only update if the number of items changed or first load
       if (items.length !== previousItemsLengthRef.current || localItems.length === 0) {
         console.log('PriorityItemsList updating local items:', items.length);
@@ -56,7 +64,7 @@ export const PriorityItemsList = ({
       setLocalItems([]);
       previousItemsLengthRef.current = 0;
     }
-  }, [items, filterDeletedItems, localItems.length]);
+  }, [items, filterDeletedItems, localItems.length, getItemKey]);
 
   const handleItemDelete = async (item: PriorityItem) => {
     // Skip if another operation is in progress
@@ -65,7 +73,7 @@ export const PriorityItemsList = ({
       return;
     }
     
-    const itemId = `${item.type}-${item.data.id}`;
+    const itemId = getItemKey(item);
     
     // Check if this item is already being processed
     if (processingItems.has(itemId)) {
@@ -92,14 +100,16 @@ export const PriorityItemsList = ({
     
     // Remove from local state immediately for UI update
     setLocalItems(prevItems => {
-      return prevItems.filter(i => !(i.type === item.type && i.data.id === item.data.id));
+      return prevItems.filter(i => getItemKey(i) !== itemId);
     });
     
     try {
       // Actually perform the delete
+      console.log(`Attempting to delete item ${itemId}`);
       const success = await handleDelete(item);
       
       if (success) {
+        console.log(`Successfully deleted item ${itemId}`);
         toast({
           title: "Success",
           description: "Item deleted successfully",
@@ -146,7 +156,7 @@ export const PriorityItemsList = ({
       return;
     }
     
-    const itemId = `${item.type}-${item.data.id}`;
+    const itemId = getItemKey(item);
     
     // Check if this item is already being processed
     if (processingItems.has(itemId)) {
@@ -173,7 +183,7 @@ export const PriorityItemsList = ({
     
     // Remove the item from local state for immediate feedback
     setLocalItems(prevItems => {
-      return prevItems.filter(i => !(i.type === item.type && i.data.id === item.data.id));
+      return prevItems.filter(i => getItemKey(i) !== itemId);
     });
     
     try {
@@ -228,7 +238,7 @@ export const PriorityItemsList = ({
       return;
     }
     
-    const itemId = `${item.type}-${item.data.id}`;
+    const itemId = getItemKey(item);
     
     // Check if this item is already being processed
     if (processingItems.has(itemId)) {
@@ -250,8 +260,7 @@ export const PriorityItemsList = ({
       // Update local state immediately for responsive UI
       setLocalItems(prevItems => {
         return prevItems.map(i => {
-          if (i.type === item.type && i.data.id === item.data.id) {
-            // Create a new item with updated urgent flag based on item type
+          if (getItemKey(i) === itemId) {
             if (i.type === 'task') {
               return {
                 ...i,
@@ -259,16 +268,15 @@ export const PriorityItemsList = ({
                   ...i.data,
                   urgent: checked
                 }
-              };
+              } as PriorityItem;
             } else {
-              // For next_step items
               return {
                 ...i,
                 data: {
                   ...i.data,
                   urgent: checked
                 }
-              };
+              } as PriorityItem;
             }
           }
           return i;
@@ -290,8 +298,7 @@ export const PriorityItemsList = ({
         // Revert the local state change if server update failed
         setLocalItems(prevItems => {
           return prevItems.map(i => {
-            if (i.type === item.type && i.data.id === item.data.id) {
-              // Revert based on item type
+            if (getItemKey(i) === itemId) {
               if (i.type === 'task') {
                 return {
                   ...i,
@@ -299,16 +306,15 @@ export const PriorityItemsList = ({
                     ...i.data,
                     urgent: !checked // Revert to previous state
                   }
-                };
+                } as PriorityItem;
               } else {
-                // For next_step items
                 return {
                   ...i,
                   data: {
                     ...i.data,
                     urgent: !checked // Revert to previous state
                   }
-                };
+                } as PriorityItem;
               }
             }
             return i;
@@ -363,7 +369,7 @@ export const PriorityItemsList = ({
       <div className="space-y-6">
         {localItems.map((item, index) => (
           <PriorityListItem
-            key={`${item.type}-${item.data.id}-${index}`}
+            key={`${getItemKey(item)}-${index}`}
             item={item}
             index={index}
             onTaskClick={onTaskClick}
