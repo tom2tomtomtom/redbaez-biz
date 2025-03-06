@@ -13,6 +13,7 @@ interface PriorityItemsListProps {
   items: PriorityItem[];
   onItemRemoved?: () => void;
   onItemUpdated?: () => void;
+  onItemSelected?: (item: PriorityItem) => void;
   category?: string;
 }
 
@@ -20,6 +21,7 @@ export const PriorityItemsList = ({
   items, 
   onItemRemoved, 
   onItemUpdated,
+  onItemSelected,
   category 
 }: PriorityItemsListProps) => {
   const [localItems, setLocalItems] = useState<PriorityItem[]>([]);
@@ -117,7 +119,7 @@ export const PriorityItemsList = ({
                   ...i.data,
                   status: checked ? 'completed' : 'incomplete'
                 }
-              };
+              } as PriorityItem;
             }
             return i;
           })
@@ -132,7 +134,7 @@ export const PriorityItemsList = ({
                   ...i.data,
                   completed_at: checked ? new Date().toISOString() : null
                 }
-              };
+              } as PriorityItem;
             }
             return i;
           })
@@ -160,7 +162,7 @@ export const PriorityItemsList = ({
                     ...i.data,
                     status: checked ? 'incomplete' : 'completed' // Revert back
                   }
-                };
+                } as PriorityItem;
               }
               return i;
             })
@@ -175,7 +177,7 @@ export const PriorityItemsList = ({
                     ...i.data,
                     completed_at: checked ? null : new Date().toISOString() // Revert back
                   }
-                };
+                } as PriorityItem;
               }
               return i;
             })
@@ -207,7 +209,7 @@ export const PriorityItemsList = ({
                   ...i.data,
                   urgent: checked
                 }
-              };
+              } as PriorityItem;
             }
             return i;
           })
@@ -222,7 +224,7 @@ export const PriorityItemsList = ({
                   ...i.data,
                   urgent: checked
                 }
-              };
+              } as PriorityItem;
             }
             return i;
           })
@@ -250,7 +252,7 @@ export const PriorityItemsList = ({
                     ...i.data,
                     urgent: !checked // Revert back
                   }
-                };
+                } as PriorityItem;
               }
               return i;
             })
@@ -265,7 +267,7 @@ export const PriorityItemsList = ({
                     ...i.data,
                     urgent: !checked // Revert back
                   }
-                };
+                } as PriorityItem;
               }
               return i;
             })
@@ -276,6 +278,12 @@ export const PriorityItemsList = ({
       console.error('Error handling urgent status change:', error);
     } finally {
       setIsProcessingUpdate(false);
+    }
+  };
+
+  const handleItemClick = (item: PriorityItem) => {
+    if (onItemSelected) {
+      onItemSelected(item);
     }
   };
 
@@ -293,8 +301,12 @@ export const PriorityItemsList = ({
         const itemId = item.data.id;
         
         return (
-          <div key={`${item.type}-${itemId}`} className="flex items-start gap-2 p-2 border rounded-lg hover:bg-gray-50">
-            <div className="pt-1">
+          <div 
+            key={`${item.type}-${itemId}`} 
+            className="flex items-start gap-2 p-2 border rounded-lg hover:bg-gray-50 cursor-pointer"
+            onClick={() => handleItemClick(item)}
+          >
+            <div className="pt-1" onClick={(e) => e.stopPropagation()}>
               <Checkbox 
                 checked={
                   item.type === 'task' 
@@ -306,7 +318,7 @@ export const PriorityItemsList = ({
               />
             </div>
             
-            <div className="flex-1">
+            <div className="flex-1" onClick={(e) => e.stopPropagation()}>
               <PriorityActionItem 
                 item={item} 
                 onUrgentChange={(checked) => handleUrgentStatusChange(item, checked)}
@@ -316,7 +328,10 @@ export const PriorityItemsList = ({
             <Button 
               variant="ghost" 
               size="sm" 
-              onClick={() => confirmDelete(item)}
+              onClick={(e) => {
+                e.stopPropagation();
+                confirmDelete(item);
+              }}
               disabled={isProcessingDelete}
             >
               <Trash2 className="h-4 w-4 text-gray-500 hover:text-red-500" />

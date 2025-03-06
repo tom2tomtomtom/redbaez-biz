@@ -6,15 +6,19 @@ import { Category } from './Category';
 import { PriorityItemsList } from './PriorityItemsList';
 import { usePriorityData } from './hooks/usePriorityData';
 import { PriorityActionsSkeleton } from './PriorityActionsSkeleton';
+import { Tables } from '@/integrations/supabase/types';
+import { GeneralTaskRow } from '@/integrations/supabase/types/general-tasks.types';
 
 interface PriorityActionsProps {
   hideAddButton?: boolean;
   initialCategory?: string;
+  onTaskClick?: (task: GeneralTaskRow) => void;
 }
 
 export const PriorityActions = ({
   hideAddButton = false,
-  initialCategory
+  initialCategory,
+  onTaskClick
 }: PriorityActionsProps) => {
   const [category, setCategory] = useState<string | undefined>(initialCategory);
   const [refreshKey, setRefreshKey] = useState(0);
@@ -50,6 +54,12 @@ export const PriorityActions = ({
     setCategory(newCategory);
     // Force data refresh when category changes
     setRefreshKey(prev => prev + 1);
+  };
+
+  const handleItemSelected = (item: any) => {
+    if (item.type === 'task' && onTaskClick) {
+      onTaskClick(item.data);
+    }
   };
 
   console.log('PriorityActions - rendered with items:', allItems?.length, allItems);
@@ -116,6 +126,7 @@ export const PriorityActions = ({
         items={allItems || []} 
         onItemRemoved={handleRefresh}
         onItemUpdated={handleRefresh}
+        onItemSelected={handleItemSelected}
         category={category}
       />
     </div>

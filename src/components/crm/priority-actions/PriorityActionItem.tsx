@@ -1,55 +1,68 @@
+
 import { Link } from 'react-router-dom';
-import { Calendar } from 'lucide-react';
-import { ClientRow } from '@/integrations/supabase/types/clients.types';
+import { Calendar, AlertCircle } from 'lucide-react';
+import { PriorityItem } from './hooks/usePriorityData';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 
 interface PriorityActionItemProps {
-  client: ClientRow;
+  item: PriorityItem;
+  onUrgentChange: (checked: boolean) => Promise<void>;
 }
 
-export const PriorityActionItem = ({ client }: PriorityActionItemProps) => {
-  const getInitial = (name: string | undefined | null) => {
-    if (!name) return '?';
-    return name.charAt(0).toUpperCase();
+export const PriorityActionItem = ({ item, onUrgentChange }: PriorityActionItemProps) => {
+  const isTask = item.type === 'task';
+  const isNextStep = item.type === 'next_step';
+  
+  const title = isTask ? item.data.title : 
+               isNextStep ? `Next Step: ${item.data.notes || 'No details'} - ${item.data.client_name || 'Unknown Client'}` : 
+               'Unknown Item';
+  
+  const description = isTask ? item.data.description : 
+                      isNextStep ? `Client: ${item.data.client_name || 'Unknown'}` : 
+                      '';
+  
+  const dueDate = isTask ? item.data.next_due_date : 
+                  isNextStep ? item.data.due_date : 
+                  null;
+  
+  const urgent = (isTask || isNextStep) && 'urgent' in item.data ? item.data.urgent : false;
+  
+  const toggleUrgent = async () => {
+    await onUrgentChange(!urgent);
   };
 
   return (
-    <Link 
-      key={client.id} 
-      to={`/client/${client.id}`}
-      className="block"
-    >
-      <div className={`p-3 ${
-        client.status === 'incomplete' ? 'bg-red-50 border-red-100' : 'bg-orange-50 border-orange-100'
-      } rounded-lg border`}>
-        <div className="flex justify-between items-start">
-          <div className="flex items-start space-x-3">
-            <div className={`h-6 w-6 rounded-full ${
-              client.status === 'incomplete' ? 'bg-red-500' : 'bg-orange-500'
-            } flex items-center justify-center text-white text-xs font-bold`}>
-              {getInitial(client.name)}
-            </div>
-            <div>
-              <span className="font-medium">{client.name || 'Unnamed Client'}</span>
-              <p className="text-sm text-gray-600 mt-1">
-                Next Step: {client.notes || 'No next steps defined'}
-              </p>
-            </div>
-          </div>
-          <span className={`text-sm px-2 py-1 rounded-full ${
-            client.status === 'incomplete' 
-              ? 'bg-red-100 text-red-600' 
-              : 'bg-orange-100 text-orange-600'
-          }`}>
-            {client.status === 'incomplete' ? 'Incomplete' : 'Review'}
-          </span>
-        </div>
-        <div className="mt-2 text-sm flex items-center gap-2">
-          <Calendar size={14} />
-          Due: {client.next_due_date 
-            ? new Date(client.next_due_date).toLocaleDateString()
-            : 'No deadline set'}
-        </div>
+    <div className="flex flex-col space-y-1">
+      <div className="font-medium flex items-center gap-2">
+        {title}
+        {urgent && (
+          <Badge variant="destructive" className="ml-2 text-xs">
+            <AlertCircle className="h-3 w-3 mr-1" />
+            Urgent
+          </Badge>
+        )}
       </div>
-    </Link>
+      
+      {description && (
+        <p className="text-sm text-gray-600">{description}</p>
+      )}
+      
+      <div className="flex items-center justify-between">
+        <div className="text-sm text-gray-500 flex items-center gap-1">
+          <Calendar size={14} />
+          {dueDate ? new Date(dueDate).toLocaleDateString() : 'No due date'}
+        </div>
+        
+        <Button 
+          variant="ghost" 
+          size="sm"
+          className={urgent ? "text-red-500 hover:text-red-700" : "text-gray-500 hover:text-gray-700"}
+          onClick={toggleUrgent}
+        >
+          {urgent ? 'Remove Urgent' : 'Mark Urgent'}
+        </Button>
+      </div>
+    </div>
   );
 };

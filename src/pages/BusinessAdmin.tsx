@@ -1,3 +1,4 @@
+
 import { MainNav } from "@/components/ui/main-nav";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PriorityActions } from "@/components/crm/priority-actions/PriorityActions";
@@ -5,6 +6,7 @@ import { useState } from "react";
 import { TaskDialog } from "@/components/crm/priority-actions/TaskDialog";
 import { useQueryClient } from "@tanstack/react-query";
 import { Tables } from "@/integrations/supabase/types";
+import { GeneralTaskRow } from "@/integrations/supabase/types/general-tasks.types";
 
 export const BusinessAdmin = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -17,7 +19,7 @@ export const BusinessAdmin = () => {
     setEditingTask(null);
   };
 
-  const handleTaskClick = (task: Tables<'general_tasks'>) => {
+  const handleTaskClick = (task: GeneralTaskRow) => {
     setEditingTask(task);
     setIsDialogOpen(true);
   };
@@ -33,7 +35,7 @@ export const BusinessAdmin = () => {
         <div className="grid gap-6">
           <PriorityActions 
             hideAddButton={false}
-            category="Business Admin"
+            initialCategory="Business Admin"
             onTaskClick={handleTaskClick}
           />
         </div>
