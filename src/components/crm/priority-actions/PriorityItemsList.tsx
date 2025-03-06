@@ -27,8 +27,8 @@ export const PriorityItemsList = ({
 
   // Update localItems when items prop changes
   useEffect(() => {
-    console.log('PriorityItemsList updating local items:', items.length);
-    setLocalItems(items);
+    console.log('PriorityItemsList updating local items:', items?.length || 0);
+    setLocalItems(items || []);
   }, [items]);
 
   const handleItemDelete = async (item: PriorityItem) => {
@@ -86,9 +86,10 @@ export const PriorityItemsList = ({
     }
   };
 
-  console.log('PriorityItemsList rendering localItems:', localItems.length);
+  console.log('PriorityItemsList rendering localItems:', localItems?.length || 0);
 
-  if (localItems.length === 0) {
+  // Check if items array is valid
+  if (!Array.isArray(localItems) || localItems.length === 0) {
     return (
       <div className="p-4 bg-gray-50 rounded-lg border border-gray-100">
         <p className="text-gray-600 text-center">No priority actions found</p>

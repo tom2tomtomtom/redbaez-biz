@@ -24,7 +24,7 @@ const fetchGeneralTasks = async (category?: string) => {
   // Only filter for incomplete if we're not explicitly requesting completed tasks
   query = query.eq('status', 'incomplete');
     
-  if (category) {
+  if (category && category.trim() !== '') {
     // Make the category comparison case-insensitive
     query = query.ilike('category', `%${category}%`);
   }
@@ -81,7 +81,7 @@ export const usePriorityData = (category?: string, refreshKey?: number) => {
   const nextStepsQuery = useQuery({
     queryKey: ['clientNextSteps', refreshKey],
     queryFn: fetchNextSteps,
-    enabled: category === undefined, // Only fetch next steps if no category filter is provided
+    // Always fetch next steps regardless of category filter
     staleTime: 0,
     gcTime: 0,
     refetchOnWindowFocus: true,
@@ -90,7 +90,7 @@ export const usePriorityData = (category?: string, refreshKey?: number) => {
 
   // Make sure we have arrays even if the query returns null/undefined
   const tasks = tasksQuery.data || [];
-  const nextSteps = (category === undefined ? (nextStepsQuery.data || []) : []);
+  const nextSteps = nextStepsQuery.data || [];
 
   const allItems: PriorityItem[] = [
     ...tasks.map(task => ({
@@ -123,14 +123,12 @@ export const usePriorityData = (category?: string, refreshKey?: number) => {
   
   return {
     allItems,
-    isLoading: tasksQuery.isLoading || (category === undefined && nextStepsQuery.isLoading),
-    error: tasksQuery.error || (category === undefined && nextStepsQuery.error),
+    isLoading: tasksQuery.isLoading || nextStepsQuery.isLoading,
+    error: tasksQuery.error || nextStepsQuery.error,
     refetch: () => {
       console.log('Manually refetching priority data');
       tasksQuery.refetch();
-      if (category === undefined) {
-        nextStepsQuery.refetch();
-      }
+      nextStepsQuery.refetch();
     }
   };
 };

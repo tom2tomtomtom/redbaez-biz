@@ -35,7 +35,7 @@ export const PriorityActions = ({
 
   console.log('PriorityActions - rendered with items:', allItems?.length, allItems); // Detailed debug log
 
-  // Force refresh when component mounts and every 30 seconds
+  // Force refresh when component mounts and every 15 seconds (reduced from 30)
   useEffect(() => {
     // Debug check for tasks to confirm if there's data in the DB
     const checkForTasks = async () => {
@@ -43,7 +43,7 @@ export const PriorityActions = ({
         const { data, error } = await supabase
           .from('general_tasks')
           .select('*')
-          .limit(5);
+          .limit(20);
         
         if (error) {
           console.error('Error checking tasks:', error);
@@ -68,8 +68,8 @@ export const PriorityActions = ({
     
     refreshData();
     
-    // Set up interval for periodic refreshes
-    const intervalId = setInterval(refreshData, 30000);
+    // Set up interval for periodic refreshes (reduced from 30s to 15s)
+    const intervalId = setInterval(refreshData, 15000);
     
     // Clean up interval on unmount
     return () => clearInterval(intervalId);
@@ -148,14 +148,18 @@ export const PriorityActions = ({
         )}
       </CardHeader>
       <CardContent>
-        <div>
+        {allItems.length === 0 ? (
+          <div className="p-4 text-center text-gray-500">
+            No priority actions found. Check the database or add some tasks.
+          </div>
+        ) : (
           <PriorityItemsList 
             key={refreshKey} // Force re-render on refreshKey change
             items={allItems}
             onTaskClick={handleTaskClick}
             onTaskUpdated={handleTaskUpdated}
           />
-        </div>
+        )}
       </CardContent>
 
       <TaskDialog
