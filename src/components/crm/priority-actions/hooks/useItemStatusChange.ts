@@ -1,7 +1,7 @@
 
 import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from '@/components/ui/use-toast';
+import { toast } from '@/hooks/use-toast';
 import { PriorityItem } from './usePriorityData';
 
 export const useItemStatusChange = () => {
@@ -48,11 +48,6 @@ export const useItemStatusChange = () => {
       // Immediately invalidate and refetch queries
       await invalidateQueries(item.data.client_id);
 
-      toast({
-        title: completed ? "Item completed" : "Item reopened",
-        description: `Successfully ${completed ? 'completed' : 'reopened'} the item`,
-      });
-
       return true;
     } catch (error) {
       console.error('Error updating completion status:', error);
@@ -90,11 +85,6 @@ export const useItemStatusChange = () => {
       // Immediately invalidate and refetch queries
       await invalidateQueries(item.data.client_id);
 
-      toast({
-        title: "Item deleted",
-        description: "Successfully deleted the item",
-      });
-
       return true;
     } catch (error) {
       console.error('Error deleting item:', error);
@@ -129,11 +119,6 @@ export const useItemStatusChange = () => {
 
       // Immediately invalidate and refetch queries
       await invalidateQueries(item.data.client_id);
-
-      toast({
-        title: checked ? "Marked as urgent" : "Removed urgent flag",
-        description: `Successfully ${checked ? 'marked' : 'unmarked'} as urgent`,
-      });
 
       return true;
     } catch (error) {

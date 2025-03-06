@@ -42,7 +42,7 @@ const fetchNextSteps = async () => {
         name
       )
     `)
-    .is('completed_at', null)
+    .is('completed_at', null) // Only get incomplete next steps
     .order('due_date', { ascending: true });
 
   if (error) throw error;
@@ -74,9 +74,9 @@ export const usePriorityData = (category?: string, refreshKey?: number) => {
     refetchOnMount: true
   });
 
-  // Ensure we only get incomplete items
-  const tasks = tasksQuery.data?.filter(task => task.status !== 'completed') || [];
-  const nextSteps = (!category ? (nextStepsQuery.data?.filter(step => !step.completed_at) || []) : []);
+  // We have already filtered for incomplete items in the query
+  const tasks = tasksQuery.data || [];
+  const nextSteps = (!category ? (nextStepsQuery.data || []) : []);
 
   const allItems: PriorityItem[] = [
     ...tasks.map(task => ({

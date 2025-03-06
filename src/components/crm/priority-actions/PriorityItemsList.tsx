@@ -25,20 +25,7 @@ export const PriorityItemsList = ({
   // Update localItems when items prop changes
   useEffect(() => {
     console.log('PriorityItemsList received new items:', items.length);
-    
-    // Filter out completed items before setting to local state
-    const filteredItems = items.filter(item => {
-      if (item.type === 'task') {
-        return item.data.status !== 'completed';
-      }
-      if (item.type === 'next_step') {
-        return !item.data.completed_at;
-      }
-      return true;
-    });
-    
-    console.log('After filtering, active items:', filteredItems.length);
-    setLocalItems(filteredItems);
+    setLocalItems(items);
   }, [items]);
 
   const handleItemDelete = async (item: PriorityItem) => {
