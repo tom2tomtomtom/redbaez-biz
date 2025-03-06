@@ -26,9 +26,11 @@ export const PriorityActions = ({
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Tables<'general_tasks'> | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [lastRefreshTime, setLastRefreshTime] = useState(Date.now());
   const queryClient = useQueryClient();
   const refreshTimerRef = useRef<NodeJS.Timeout | null>(null);
   const refreshCountRef = useRef(0);
+  const isInitialLoadRef = useRef(true);
   
   // Ensure category is a proper string or undefined
   const sanitizedCategory = category === undefined || category === null ? undefined : String(category);
@@ -59,17 +61,31 @@ export const PriorityActions = ({
       }
     };
     
-    checkForTasks();
+    if (isInitialLoadRef.current) {
+      checkForTasks();
+      isInitialLoadRef.current = false;
+    }
     
-    // Limit how often we refresh to prevent infinite loops
+    // Limit how often we refresh to prevent infinite loops or excessive API calls
     const refreshData = () => {
-      if (refreshCountRef.current > 20) {
+      const now = Date.now();
+      const timeSinceLastRefresh = now - lastRefreshTime;
+      
+      // Don't refresh if it's been less than 10 seconds since the last refresh
+      if (timeSinceLastRefresh < 10000) {
+        console.log('Skipping refresh, too soon since last refresh');
+        return;
+      }
+      
+      // Don't refresh if we've already refreshed too many times
+      if (refreshCountRef.current > 10) {
         console.log('Limiting refreshes to prevent excessive API calls');
         return;
       }
       
       console.log('Refreshing priority actions data...');
       refreshCountRef.current += 1;
+      setLastRefreshTime(now);
       
       queryClient.invalidateQueries({ queryKey: ['generalTasks'] });
       queryClient.invalidateQueries({ queryKey: ['clientNextSteps'] });
@@ -80,12 +96,12 @@ export const PriorityActions = ({
     // Initial refresh
     refreshData();
     
-    // Set up interval for periodic refreshes (30 seconds)
+    // Set up interval for periodic refreshes (60 seconds instead of 30)
     if (refreshTimerRef.current) {
       clearInterval(refreshTimerRef.current);
     }
     
-    refreshTimerRef.current = setInterval(refreshData, 30000);
+    refreshTimerRef.current = setInterval(refreshData, 60000);
     
     // Clean up interval on unmount
     return () => {
@@ -94,7 +110,7 @@ export const PriorityActions = ({
         refreshTimerRef.current = null;
       }
     };
-  }, [queryClient, refetch, sanitizedCategory]);
+  }, [queryClient, refetch, sanitizedCategory, lastRefreshTime]);
 
   const handleTaskSaved = useCallback(() => {
     toast({
@@ -102,7 +118,11 @@ export const PriorityActions = ({
       description: "Task updated successfully",
     });
     
+    // Reset the refresh count on deliberate user actions
+    refreshCountRef.current = 0;
+    
     // Force refresh after task is saved
+    setLastRefreshTime(Date.now());
     queryClient.invalidateQueries({ queryKey: ['generalTasks'] });
     queryClient.invalidateQueries({ queryKey: ['clientNextSteps'] });
     setIsDialogOpen(false);
@@ -121,8 +141,12 @@ export const PriorityActions = ({
   }, [onTaskClick]);
   
   const handleTaskUpdated = useCallback(() => {
+    // Reset the refresh count on deliberate user actions
+    refreshCountRef.current = 0;
+    
     // Force refresh after task update or delete
     console.log('Task updated, refreshing data...');
+    setLastRefreshTime(Date.now());
     queryClient.invalidateQueries({ queryKey: ['generalTasks'] });
     queryClient.invalidateQueries({ queryKey: ['clientNextSteps'] });
     setRefreshKey(prev => prev + 1);
@@ -143,6 +167,19 @@ export const PriorityActions = ({
         <CardContent>
           <div className="p-3 bg-red-50 rounded-lg">
             Error loading priority actions: {error.message || 'Unknown error'}
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="mt-2"
+              onClick={() => {
+                refreshCountRef.current = 0;
+                setLastRefreshTime(Date.now());
+                setRefreshKey(prev => prev + 1);
+                refetch();
+              }}
+            >
+              Retry
+            </Button>
           </div>
         </CardContent>
       </Card>

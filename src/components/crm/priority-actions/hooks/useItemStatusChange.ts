@@ -10,20 +10,24 @@ export const useItemStatusChange = () => {
   const invalidateQueries = async (clientId?: number) => {
     console.log('Invalidating queries after task update/delete');
     
-    // First invalidate to mark queries as stale
-    queryClient.invalidateQueries({ queryKey: ['generalTasks'] });
-    queryClient.invalidateQueries({ queryKey: ['clientNextSteps'] });
-    
-    // Force immediate refetch
-    await Promise.all([
-      queryClient.refetchQueries({ queryKey: ['generalTasks'] }),
-      queryClient.refetchQueries({ queryKey: ['clientNextSteps'] })
-    ]);
-    
-    // If there's a client ID, invalidate client-specific queries
-    if (clientId) {
-      await queryClient.invalidateQueries({ queryKey: ['client', clientId] });
-      await queryClient.invalidateQueries({ queryKey: ['client-items', clientId] });
+    try {
+      // First invalidate to mark queries as stale
+      await queryClient.invalidateQueries({ queryKey: ['generalTasks'] });
+      await queryClient.invalidateQueries({ queryKey: ['clientNextSteps'] });
+      
+      // Force immediate refetch
+      await Promise.all([
+        queryClient.refetchQueries({ queryKey: ['generalTasks'] }),
+        queryClient.refetchQueries({ queryKey: ['clientNextSteps'] })
+      ]);
+      
+      // If there's a client ID, invalidate client-specific queries
+      if (clientId) {
+        await queryClient.invalidateQueries({ queryKey: ['client', clientId] });
+        await queryClient.invalidateQueries({ queryKey: ['client-items', clientId] });
+      }
+    } catch (err) {
+      console.error('Error invalidating queries:', err);
     }
   };
 
@@ -71,6 +75,22 @@ export const useItemStatusChange = () => {
           .delete()
           .eq('id', item.data.id);
         error = result.error;
+        
+        // Verify deletion
+        if (!error) {
+          const { data: checkData } = await supabase
+            .from('general_tasks')
+            .select('id')
+            .eq('id', item.data.id)
+            .maybeSingle();
+          
+          if (checkData) {
+            console.error('Task still exists after deletion attempt');
+            throw new Error('Failed to delete task');
+          } else {
+            console.log('Task deletion verified successfully');
+          }
+        }
       } else if (item.type === 'next_step') {
         console.log('Deleting next step with ID:', item.data.id);
         const result = await supabase
@@ -78,12 +98,46 @@ export const useItemStatusChange = () => {
           .delete()
           .eq('id', item.data.id);
         error = result.error;
+        
+        // Verify deletion
+        if (!error) {
+          const { data: checkData } = await supabase
+            .from('client_next_steps')
+            .select('id')
+            .eq('id', item.data.id)
+            .maybeSingle();
+          
+          if (checkData) {
+            console.error('Next step still exists after deletion attempt');
+            throw new Error('Failed to delete next step');
+          } else {
+            console.log('Next step deletion verified successfully');
+          }
+        }
       }
 
       if (error) throw error;
 
-      // Immediately invalidate and refetch queries
-      await invalidateQueries(item.data.client_id);
+      // Ensure cache is updated immediately
+      queryClient.setQueryData(['generalTasks'], (oldData: any) => {
+        if (!oldData) return oldData;
+        return Array.isArray(oldData) 
+          ? oldData.filter(task => task.id !== item.data.id) 
+          : oldData;
+      });
+      
+      queryClient.setQueryData(['clientNextSteps'], (oldData: any) => {
+        if (!oldData) return oldData;
+        return Array.isArray(oldData) 
+          ? oldData.filter(step => step.id !== item.data.id) 
+          : oldData;
+      });
+
+      // Immediately invalidate and refetch queries after a short delay
+      // This ensures the UI has time to remove the item before we refetch
+      setTimeout(() => {
+        invalidateQueries(item.data.client_id);
+      }, 500);
 
       return true;
     } catch (error) {

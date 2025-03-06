@@ -20,60 +20,115 @@ export const PriorityItemsList = ({
 }: PriorityItemsListProps) => {
   const [itemToComplete, setItemToComplete] = useState<PriorityItem | null>(null);
   const [localItems, setLocalItems] = useState<PriorityItem[]>([]);
+  const [deletedItemIds, setDeletedItemIds] = useState<Set<string>>(new Set());
   const { handleCompletedChange, handleUrgentChange, handleDelete } = useItemStatusChange();
 
   // Log items received
   console.log('PriorityItemsList received items:', Array.isArray(items) ? items.length : 'not an array', items);
 
-  // Update localItems when items prop changes
+  // Update localItems when items prop changes, filtering out any deleted items
   useEffect(() => {
     if (Array.isArray(items)) {
       console.log('PriorityItemsList updating local items:', items.length);
-      setLocalItems([...items]); // Create a new array reference to ensure state updates
+      
+      // Filter out any items that are in our deletedItemIds set
+      const filteredItems = items.filter(item => {
+        const itemId = `${item.type}-${item.data.id}`;
+        return !deletedItemIds.has(itemId);
+      });
+      
+      console.log('PriorityItemsList filtered items:', filteredItems.length, 'removed:', items.length - filteredItems.length);
+      setLocalItems([...filteredItems]); // Create a new array reference to ensure state updates
     } else {
       console.log('PriorityItemsList received non-array items, setting empty array');
       setLocalItems([]);
     }
-  }, [items]);
+  }, [items, deletedItemIds]);
 
   const handleItemDelete = async (item: PriorityItem) => {
+    // Add to deleted items set immediately to prevent showing
+    const itemId = `${item.type}-${item.data.id}`;
+    setDeletedItemIds(prev => {
+      const newSet = new Set(prev);
+      newSet.add(itemId);
+      return newSet;
+    });
+    
+    // Remove from local state immediately to give feedback
+    setLocalItems(prevItems => 
+      prevItems.filter(i => !(i.type === item.type && i.data.id === item.data.id))
+    );
+    
+    // Actually perform the delete
     const success = await handleDelete(item);
+    
     if (success) {
       toast({
         title: "Success",
         description: "Item deleted successfully",
       });
       
-      // Remove the item from local state to give immediate feedback
-      setLocalItems(prevItems => 
-        prevItems.filter(i => !(i.type === item.type && i.data.id === item.data.id))
-      );
-      
       // Notify parent component that task was updated
       if (onTaskUpdated) {
         onTaskUpdated();
       }
+    } else {
+      // If delete failed, remove from deleted items set and restore to local state
+      setDeletedItemIds(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(itemId);
+        return newSet;
+      });
+      
+      toast({
+        title: "Error",
+        description: "Failed to delete item, it will reappear after refresh",
+        variant: "destructive",
+      });
     }
   };
 
   const handleComplete = async (item: PriorityItem) => {
+    // Add to deleted items set immediately to prevent showing (since completed items aren't shown)
+    const itemId = `${item.type}-${item.data.id}`;
+    setDeletedItemIds(prev => {
+      const newSet = new Set(prev);
+      newSet.add(itemId);
+      return newSet;
+    });
+    
+    // Remove the item from local state to give immediate feedback
+    setLocalItems(prevItems => 
+      prevItems.filter(i => !(i.type === item.type && i.data.id === item.data.id))
+    );
+    
     const success = await handleCompletedChange(item, true);
+    
     if (success) {
       toast({
         title: "Success",
         description: "Item marked as completed",
       });
       
-      // Remove the item from local state to give immediate feedback
-      setLocalItems(prevItems => 
-        prevItems.filter(i => !(i.type === item.type && i.data.id === item.data.id))
-      );
-      
       // Notify parent component that task was updated
       if (onTaskUpdated) {
         onTaskUpdated();
       }
+    } else {
+      // If completion failed, remove from deleted items set and restore to local state
+      setDeletedItemIds(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(itemId);
+        return newSet;
+      });
+      
+      toast({
+        title: "Error",
+        description: "Failed to complete item, it will reappear after refresh",
+        variant: "destructive",
+      });
     }
+    
     setItemToComplete(null);
   };
   
@@ -84,6 +139,22 @@ export const PriorityItemsList = ({
         title: "Success",
         description: checked ? "Item marked as urgent" : "Item urgency removed",
       });
+      
+      // Update local state to reflect the change
+      setLocalItems(prevItems => 
+        prevItems.map(i => {
+          if (i.type === item.type && i.data.id === item.data.id) {
+            return {
+              ...i,
+              data: {
+                ...i.data,
+                urgent: checked
+              }
+            };
+          }
+          return i;
+        })
+      );
       
       if (onTaskUpdated) {
         onTaskUpdated();
