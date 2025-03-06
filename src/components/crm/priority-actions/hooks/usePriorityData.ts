@@ -117,28 +117,36 @@ export const usePriorityData = (category?: string, refreshKey?: number) => {
   // Create a deduplication map to ensure we don't have duplicate items
   const deduplicationMap = new Map<string, PriorityItem>();
   
-  // Add tasks to the map
+  // Add tasks to the map - only if they haven't been deleted (checking for undefined/null ids)
   tasks.forEach(task => {
-    const key = createUniqueId('task', task.id);
-    deduplicationMap.set(key, {
-      type: 'task',
-      date: task.next_due_date,
-      data: task
-    });
+    if (task && task.id) {
+      const key = createUniqueId('task', task.id);
+      deduplicationMap.set(key, {
+        type: 'task',
+        date: task.next_due_date,
+        data: task
+      });
+    }
   });
   
-  // Add next steps to the map
+  // Add next steps to the map - only if they haven't been deleted (checking for undefined/null ids)
   nextSteps.forEach(step => {
-    const key = createUniqueId('next_step', step.id);
-    deduplicationMap.set(key, {
-      type: 'next_step',
-      date: step.due_date,
-      data: step
-    });
+    if (step && step.id) {
+      const key = createUniqueId('next_step', step.id);
+      deduplicationMap.set(key, {
+        type: 'next_step',
+        date: step.due_date,
+        data: step
+      });
+    }
   });
   
   // Convert the map values to an array
   const allItems: PriorityItem[] = Array.from(deduplicationMap.values())
+    .filter(item => {
+      // Extra validation to filter out any potentially corrupted data
+      return item.data && item.data.id;
+    })
     .sort((a, b) => {
       const aUrgent = 'urgent' in a.data ? a.data.urgent : false;
       const bUrgent = 'urgent' in b.data ? b.data.urgent : false;

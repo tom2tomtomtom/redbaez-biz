@@ -1,207 +1,123 @@
 
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Plus } from 'lucide-react';
-import { useState, useEffect, useCallback, useRef } from 'react';
-import { Tables } from '@/integrations/supabase/types';
-import { useQueryClient } from '@tanstack/react-query';
-import { PriorityActionsSkeleton } from './PriorityActionsSkeleton';
-import { TaskDialog } from './TaskDialog';
+import { RefreshCcw, Plus } from 'lucide-react';
+import { Category } from './Category';
 import { PriorityItemsList } from './PriorityItemsList';
 import { usePriorityData } from './hooks/usePriorityData';
-import { toast } from '@/hooks/use-toast';
+import { PriorityActionsSkeleton } from './PriorityActionsSkeleton';
 
 interface PriorityActionsProps {
   hideAddButton?: boolean;
-  category?: string;
-  onTaskClick?: (task: Tables<'general_tasks'>) => void;
+  initialCategory?: string;
 }
 
-export const PriorityActions = ({ 
-  hideAddButton = false, 
-  category,
-  onTaskClick 
+export const PriorityActions = ({
+  hideAddButton = false,
+  initialCategory
 }: PriorityActionsProps) => {
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [editingTask, setEditingTask] = useState<Tables<'general_tasks'> | null>(null);
+  const [category, setCategory] = useState<string | undefined>(initialCategory);
   const [refreshKey, setRefreshKey] = useState(0);
-  const [lastRefreshTime, setLastRefreshTime] = useState(Date.now());
-  const queryClient = useQueryClient();
-  const refreshTimerRef = useRef<NodeJS.Timeout | null>(null);
-  const refreshCountRef = useRef(0);
-  const maxRefreshCount = 5; // Limit automatic refreshes
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [lastRefreshTime, setLastRefreshTime] = useState(0);
   
-  // Ensure category is a proper string or undefined
-  const sanitizedCategory = category === undefined || category === null ? undefined : String(category);
+  console.log('PriorityActions rendering with category:', category);
   
-  console.log('PriorityActions rendering with category:', sanitizedCategory); 
-  
-  const { allItems, isLoading, error, refetch } = usePriorityData(sanitizedCategory, refreshKey);
+  const { allItems, isLoading, refetch } = usePriorityData(category, refreshKey);
 
-  console.log('PriorityActions - rendered with items:', allItems?.length, allItems);
-
-  // Throttled refresh function to avoid excessive API calls
-  const throttledRefresh = useCallback(() => {
+  const handleRefresh = async () => {
     const now = Date.now();
-    const timeSinceLastRefresh = now - lastRefreshTime;
-    
-    // Enforce a minimum 5 second delay between refreshes
-    if (timeSinceLastRefresh < 5000) {
+    // Prevent refreshing more than once every 3 seconds
+    if (now - lastRefreshTime < 3000) {
       console.log('Skipping refresh, too soon since last refresh');
       return;
     }
-    
-    // Limit total number of automatic refreshes
-    if (refreshCountRef.current >= maxRefreshCount) {
-      console.log('Reached max refresh count, stopping automatic refreshes');
-      return;
-    }
-    
-    console.log('Throttled refresh triggered');
-    refreshCountRef.current += 1;
-    setLastRefreshTime(now);
-    setRefreshKey(prev => prev + 1);
-  }, [lastRefreshTime]);
-  
-  // Initial data load and periodic refresh setup
-  useEffect(() => {
-    // One initial refresh when component mounts
-    throttledRefresh();
-    
-    // Set up timer for periodic refreshes, but with longer intervals (120 seconds)
-    if (refreshTimerRef.current) {
-      clearInterval(refreshTimerRef.current);
-    }
-    
-    refreshTimerRef.current = setInterval(() => {
-      throttledRefresh();
-    }, 120000); // 2 minutes
-    
-    return () => {
-      if (refreshTimerRef.current) {
-        clearInterval(refreshTimerRef.current);
-        refreshTimerRef.current = null;
-      }
-    };
-  }, [throttledRefresh]);
 
-  const handleTaskSaved = useCallback(() => {
-    toast({
-      title: "Success",
-      description: "Task updated successfully",
-    });
-    
-    // Reset the refresh count on deliberate user actions
-    refreshCountRef.current = 0;
-    
-    // Force immediate refresh
-    setLastRefreshTime(Date.now());
-    setRefreshKey(prev => prev + 1);
-    setIsDialogOpen(false);
-    setEditingTask(null);
-  }, []);
-
-  const handleTaskClick = useCallback((task: Tables<'general_tasks'>) => {
-    if (onTaskClick) {
-      onTaskClick(task);
-    } else {
-      setEditingTask(task);
-      setIsDialogOpen(true);
-    }
-  }, [onTaskClick]);
-  
-  const handleTaskUpdated = useCallback(() => {
-    // Reset the refresh count on deliberate user actions
-    refreshCountRef.current = 0;
-    
-    // Force refresh after task update or delete
-    console.log('Task updated, refreshing data...');
-    setLastRefreshTime(Date.now());
-    
-    // Delay the refresh slightly to allow the database operations to complete
-    setTimeout(() => {
-      queryClient.invalidateQueries({ queryKey: ['generalTasks'] });
-      queryClient.invalidateQueries({ queryKey: ['clientNextSteps'] });
+    try {
+      setIsRefreshing(true);
+      setLastRefreshTime(now);
+      await refetch();
+      // After refetch, increment refresh key to trigger fresh data loading
       setRefreshKey(prev => prev + 1);
-    }, 500);
-  }, [queryClient]);
+    } catch (error) {
+      console.error('Error refreshing priority items:', error);
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
 
-  // Render loading state
-  if (isLoading) {
+  const handleCategoryChange = (newCategory: string | undefined) => {
+    setCategory(newCategory);
+    // Force data refresh when category changes
+    setRefreshKey(prev => prev + 1);
+  };
+
+  console.log('PriorityActions - rendered with items:', allItems?.length, allItems);
+
+  if (isLoading && !allItems?.length) {
     return <PriorityActionsSkeleton />;
   }
 
-  // Render error state
-  if (error) {
-    console.error('Priority Actions error:', error);
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Priority Actions</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="p-3 bg-red-50 rounded-lg">
-            Error loading priority actions: {error.message || 'Unknown error'}
-            <Button 
-              variant="outline" 
-              size="sm" 
-              className="mt-2"
-              onClick={() => {
-                refreshCountRef.current = 0;
-                setLastRefreshTime(Date.now());
-                setRefreshKey(prev => prev + 1);
-              }}
-            >
-              Retry
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
-
   return (
-    <Card className="transition-all duration-300 hover:shadow-lg">
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-        <CardTitle>
-          {sanitizedCategory 
-            ? `${sanitizedCategory} Tasks` 
-            : `Priority Actions for ${new Date().toLocaleString('default', { month: 'long' })}`
-          }
-        </CardTitle>
-        {!hideAddButton && (
-          <Button onClick={() => {
-            setEditingTask(null);
-            setIsDialogOpen(true);
-          }}>
-            <Plus className="mr-2 h-4 w-4" />
-            Add Task
+    <div className="space-y-4">
+      <div className="flex justify-between items-center">
+        <div className="flex flex-wrap gap-2">
+          <Category 
+            active={!category} 
+            onClick={() => handleCategoryChange(undefined)}
+          >
+            All
+          </Category>
+          <Category 
+            active={category === 'Business Admin'} 
+            onClick={() => handleCategoryChange('Business Admin')}
+          >
+            Business Admin
+          </Category>
+          <Category 
+            active={category === 'Marketing'} 
+            onClick={() => handleCategoryChange('Marketing')}
+          >
+            Marketing
+          </Category>
+          <Category 
+            active={category === 'Product Development'} 
+            onClick={() => handleCategoryChange('Product Development')}
+          >
+            Product Development
+          </Category>
+          <Category 
+            active={category === 'Partnerships'} 
+            onClick={() => handleCategoryChange('Partnerships')}
+          >
+            Partnerships
+          </Category>
+        </div>
+        
+        <div className="flex gap-2">
+          <Button 
+            variant="outline" 
+            size="icon"
+            onClick={handleRefresh}
+            disabled={isRefreshing}
+          >
+            <RefreshCcw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
           </Button>
-        )}
-      </CardHeader>
-      <CardContent>
-        {allItems.length === 0 ? (
-          <div className="p-4 text-center text-gray-500">
-            No priority actions found. Check the database or add some tasks.
-          </div>
-        ) : (
-          <PriorityItemsList 
-            key={`items-list-${refreshKey}`}
-            items={allItems}
-            onTaskClick={handleTaskClick}
-            onTaskUpdated={handleTaskUpdated}
-          />
-        )}
-      </CardContent>
-
-      <TaskDialog
-        key={`dialog-${refreshKey}`}
-        isOpen={isDialogOpen}
-        onOpenChange={setIsDialogOpen}
-        task={editingTask}
-        onSaved={handleTaskSaved}
-        defaultCategory={sanitizedCategory}
+          
+          {!hideAddButton && (
+            <Button size="icon">
+              <Plus className="h-4 w-4" />
+            </Button>
+          )}
+        </div>
+      </div>
+      
+      <PriorityItemsList 
+        items={allItems || []} 
+        onItemRemoved={handleRefresh}
+        onItemUpdated={handleRefresh}
+        category={category}
       />
-    </Card>
+    </div>
   );
 };

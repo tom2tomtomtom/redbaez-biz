@@ -1,384 +1,349 @@
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect } from 'react';
+import { PriorityActionItem } from './PriorityActionItem';
 import { PriorityItem } from './hooks/usePriorityData';
-import { GeneralTaskRow } from '@/integrations/supabase/types/general-tasks.types';
-import { CompletionDialog } from './components/CompletionDialog';
-import { PriorityListItem } from './components/PriorityListItem';
 import { useItemStatusChange } from './hooks/useItemStatusChange';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Button } from '@/components/ui/button';
+import { Trash2 } from 'lucide-react';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { toast } from '@/hooks/use-toast';
 
 interface PriorityItemsListProps {
   items: PriorityItem[];
-  onTaskClick: (task: GeneralTaskRow) => void;
-  onTaskUpdated?: () => void;
+  onItemRemoved?: () => void;
+  onItemUpdated?: () => void;
+  category?: string;
 }
 
 export const PriorityItemsList = ({ 
   items, 
-  onTaskClick,
-  onTaskUpdated 
+  onItemRemoved, 
+  onItemUpdated,
+  category 
 }: PriorityItemsListProps) => {
-  const [itemToComplete, setItemToComplete] = useState<PriorityItem | null>(null);
   const [localItems, setLocalItems] = useState<PriorityItem[]>([]);
-  const [deletedItemIds, setDeletedItemIds] = useState<Set<string>>(new Set());
-  const [processingItems, setProcessingItems] = useState<Set<string>>(new Set());
-  const { handleCompletedChange, handleUrgentChange, handleDelete } = useItemStatusChange();
-  const operationInProgressRef = useRef(false);
-  const previousItemsLengthRef = useRef(0);
+  const [openAlertDialogId, setOpenAlertDialogId] = useState<string | null>(null);
+  const [isProcessingDelete, setIsProcessingDelete] = useState(false);
+  const [isProcessingUpdate, setIsProcessingUpdate] = useState(false);
+  const { handleCompletedChange, handleDelete, handleUrgentChange } = useItemStatusChange();
 
-  // Unique identifier for items to assist with tracking
-  const getItemKey = useCallback((item: PriorityItem) => {
-    return `${item.type}-${item.data.id}`;
-  }, []);
-
-  // Create a memoized filtering function to avoid re-rendering loops
-  const filterDeletedItems = useCallback((itemsToFilter: PriorityItem[]) => {
-    if (!Array.isArray(itemsToFilter)) return [];
-    
-    return itemsToFilter.filter(item => {
-      const itemId = getItemKey(item);
-      return !deletedItemIds.has(itemId);
-    });
-  }, [deletedItemIds, getItemKey]);
-
-  // Update localItems when items prop changes, but only if the length changed
-  // This prevents unnecessary re-renders caused by object reference changes
   useEffect(() => {
-    if (Array.isArray(items)) {
-      // Log incoming items for debugging
-      console.log('PriorityItemsList received items:', items.length, items);
-      
-      // Only update if the number of items changed or first load
-      if (items.length !== previousItemsLengthRef.current || localItems.length === 0) {
-        console.log('PriorityItemsList updating local items:', items.length);
-        
-        // Filter out any items that are in our deletedItemIds set
-        const filteredItems = filterDeletedItems(items);
-        
-        console.log('PriorityItemsList filtered items:', filteredItems.length, 'removed:', items.length - filteredItems.length);
-        previousItemsLengthRef.current = items.length;
-        setLocalItems(filteredItems);
-      }
-    } else {
-      console.log('PriorityItemsList received non-array items, setting empty array');
-      setLocalItems([]);
-      previousItemsLengthRef.current = 0;
-    }
-  }, [items, filterDeletedItems, localItems.length, getItemKey]);
+    // Ensure we're only dealing with valid items
+    if (!items) return;
+    
+    console.log('PriorityItemsList received items:', items.length, items);
+    console.log('PriorityItemsList rendering localItems:', localItems.length);
 
-  const handleItemDelete = async (item: PriorityItem) => {
-    // Skip if another operation is in progress
-    if (operationInProgressRef.current) {
-      console.log('Another operation is in progress. Skipping this delete request.');
+    // Only update if received items are different
+    if (items.length !== localItems.length || JSON.stringify(items) !== JSON.stringify(localItems)) {
+      console.log('PriorityItemsList updating local items:', items.length);
+      
+      // Filter out any items that might not have valid ids
+      const validItems = items.filter(item => item && item.data && item.data.id);
+      console.log('PriorityItemsList filtered items:', validItems.length, 'removed:', items.length - validItems.length);
+      
+      setLocalItems(validItems);
+    }
+  }, [items]);
+
+  const confirmDelete = (item: PriorityItem) => {
+    if (!item || !item.data || !item.data.id) {
+      console.error('Invalid item for deletion:', item);
       return;
     }
-    
-    const itemId = getItemKey(item);
-    
-    // Check if this item is already being processed
-    if (processingItems.has(itemId)) {
-      console.log(`Already processing delete for item ${itemId}, ignoring duplicate request`);
-      return;
-    }
-    
-    // Set operation in progress flag
-    operationInProgressRef.current = true;
-    
-    // Mark as processing
-    setProcessingItems(prev => {
-      const newSet = new Set(prev);
-      newSet.add(itemId);
-      return newSet;
-    });
-    
-    // Add to deleted items set immediately to prevent showing
-    setDeletedItemIds(prev => {
-      const newSet = new Set(prev);
-      newSet.add(itemId);
-      return newSet;
-    });
-    
-    // Remove from local state immediately for UI update
-    setLocalItems(prevItems => {
-      return prevItems.filter(i => getItemKey(i) !== itemId);
-    });
+    setOpenAlertDialogId(item.data.id);
+  };
+
+  const closeDialog = () => {
+    setOpenAlertDialogId(null);
+  };
+
+  const proceedWithDelete = async (item: PriorityItem) => {
+    if (isProcessingDelete) return;
     
     try {
-      // Actually perform the delete
-      console.log(`Attempting to delete item ${itemId}`);
+      setIsProcessingDelete(true);
+      const itemId = item.data.id;
+      
+      // Immediately update local state for responsive UI
+      setLocalItems(prevItems => prevItems.filter(i => i.data.id !== itemId));
+      
+      // Remove from database
       const success = await handleDelete(item);
       
       if (success) {
-        console.log(`Successfully deleted item ${itemId}`);
+        console.log(`${item.type} deleted successfully:`, itemId);
         toast({
           title: "Success",
-          description: "Item deleted successfully",
+          description: `${item.type === 'task' ? 'Task' : 'Next step'} deleted successfully`,
         });
         
-        // Notify parent component that task was updated
-        if (onTaskUpdated) {
-          onTaskUpdated();
+        if (onItemRemoved) {
+          onItemRemoved();
         }
       } else {
-        console.log(`Delete operation failed for item ${itemId}`);
-        
-        toast({
-          title: "Warning",
-          description: "Item may not have been deleted on the server",
-          variant: "destructive",
+        console.error(`Failed to delete ${item.type}:`, itemId);
+        // If deletion failed, put the item back in the list
+        setLocalItems(prevItems => {
+          if (prevItems.some(i => i.data.id === itemId)) {
+            return prevItems; // Item already exists
+          }
+          return [...prevItems, item]; // Add the item back
         });
       }
     } catch (error) {
-      console.error(`Error deleting item ${itemId}:`, error);
-      
-      toast({
-        title: "Error",
-        description: "Could not delete the item",
-        variant: "destructive",
-      });
+      console.error('Error in deletion process:', error);
     } finally {
-      // Remove from processing set
-      setProcessingItems(prev => {
-        const newSet = new Set(prev);
-        newSet.delete(itemId);
-        return newSet;
-      });
-      
-      // Clear operation in progress flag
-      operationInProgressRef.current = false;
+      setIsProcessingDelete(false);
+      closeDialog();
     }
   };
 
-  const handleComplete = async (item: PriorityItem) => {
-    // Skip if another operation is in progress
-    if (operationInProgressRef.current) {
-      console.log('Another operation is in progress. Skipping this completion request.');
-      return;
-    }
-    
-    const itemId = getItemKey(item);
-    
-    // Check if this item is already being processed
-    if (processingItems.has(itemId)) {
-      console.log(`Already processing completion for item ${itemId}, ignoring duplicate request`);
-      return;
-    }
-    
-    // Set operation in progress flag
-    operationInProgressRef.current = true;
-    
-    // Mark as processing
-    setProcessingItems(prev => {
-      const newSet = new Set(prev);
-      newSet.add(itemId);
-      return newSet;
-    });
-    
-    // Add to deleted items set immediately to prevent showing (since completed items aren't shown)
-    setDeletedItemIds(prev => {
-      const newSet = new Set(prev);
-      newSet.add(itemId);
-      return newSet;
-    });
-    
-    // Remove the item from local state for immediate feedback
-    setLocalItems(prevItems => {
-      return prevItems.filter(i => getItemKey(i) !== itemId);
-    });
+  const handleCompletionStatusChange = async (item: PriorityItem, checked: boolean) => {
+    if (isProcessingUpdate) return;
     
     try {
-      const success = await handleCompletedChange(item, true);
+      setIsProcessingUpdate(true);
+      
+      // Update UI immediately for better responsiveness
+      if (item.type === 'task') {
+        setLocalItems(prevItems => 
+          prevItems.map(i => {
+            if (i.type === 'task' && i.data.id === item.data.id) {
+              return {
+                ...i,
+                data: {
+                  ...i.data,
+                  status: checked ? 'completed' : 'incomplete'
+                }
+              };
+            }
+            return i;
+          })
+        );
+      } else if (item.type === 'next_step') {
+        setLocalItems(prevItems => 
+          prevItems.map(i => {
+            if (i.type === 'next_step' && i.data.id === item.data.id) {
+              return {
+                ...i,
+                data: {
+                  ...i.data,
+                  completed_at: checked ? new Date().toISOString() : null
+                }
+              };
+            }
+            return i;
+          })
+        );
+      }
+      
+      // Update database
+      const success = await handleCompletedChange(item, checked);
       
       if (success) {
-        toast({
-          title: "Success",
-          description: "Item marked as completed",
-        });
-        
-        // Notify parent component that task was updated
-        if (onTaskUpdated) {
-          onTaskUpdated();
+        console.log('Task updated, refreshing data...');
+        if (onItemUpdated) {
+          onItemUpdated();
         }
       } else {
-        console.log(`Completion operation failed for item ${itemId}`);
-        
-        toast({
-          title: "Warning",
-          description: "Item may not have been completed on the server",
-          variant: "destructive",
-        });
+        console.error('Failed to update task completion status');
+        // Revert local state if update failed
+        if (item.type === 'task') {
+          setLocalItems(prevItems => 
+            prevItems.map(i => {
+              if (i.type === 'task' && i.data.id === item.data.id) {
+                return {
+                  ...i,
+                  data: {
+                    ...i.data,
+                    status: checked ? 'incomplete' : 'completed' // Revert back
+                  }
+                };
+              }
+              return i;
+            })
+          );
+        } else if (item.type === 'next_step') {
+          setLocalItems(prevItems => 
+            prevItems.map(i => {
+              if (i.type === 'next_step' && i.data.id === item.data.id) {
+                return {
+                  ...i,
+                  data: {
+                    ...i.data,
+                    completed_at: checked ? null : new Date().toISOString() // Revert back
+                  }
+                };
+              }
+              return i;
+            })
+          );
+        }
       }
     } catch (error) {
-      console.error(`Error completing item ${itemId}:`, error);
-      
-      toast({
-        title: "Error",
-        description: "Could not complete the item",
-        variant: "destructive",
-      });
+      console.error('Error handling completion status change:', error);
     } finally {
-      // Remove from processing set
-      setProcessingItems(prev => {
-        const newSet = new Set(prev);
-        newSet.delete(itemId);
-        return newSet;
-      });
-      
-      // Clear operation in progress flag
-      operationInProgressRef.current = false;
-      
-      setItemToComplete(null);
+      setIsProcessingUpdate(false);
     }
   };
-  
+
   const handleUrgentStatusChange = async (item: PriorityItem, checked: boolean) => {
-    // Skip if another operation is in progress
-    if (operationInProgressRef.current) {
-      console.log('Another operation is in progress. Skipping this urgent change request.');
-      return;
-    }
-    
-    const itemId = getItemKey(item);
-    
-    // Check if this item is already being processed
-    if (processingItems.has(itemId)) {
-      console.log(`Already processing urgent change for item ${itemId}, ignoring duplicate request`);
-      return;
-    }
-    
-    // Set operation in progress flag
-    operationInProgressRef.current = true;
-    
-    // Mark as processing
-    setProcessingItems(prev => {
-      const newSet = new Set(prev);
-      newSet.add(itemId);
-      return newSet;
-    });
+    if (isProcessingUpdate) return;
     
     try {
-      // Update local state immediately for responsive UI
-      setLocalItems(prevItems => {
-        return prevItems.map(i => {
-          if (getItemKey(i) === itemId) {
-            if (i.type === 'task') {
-              return {
-                ...i,
-                data: {
-                  ...i.data,
-                  urgent: checked
-                }
-              } as PriorityItem;
-            } else {
-              return {
-                ...i,
-                data: {
-                  ...i.data,
-                  urgent: checked
-                }
-              } as PriorityItem;
-            }
-          }
-          return i;
-        });
-      });
+      setIsProcessingUpdate(true);
       
+      // Update UI immediately for better responsiveness
+      // We need to handle both task and next_step types properly
+      if (item.type === 'task') {
+        setLocalItems(prevItems => 
+          prevItems.map(i => {
+            if (i.type === 'task' && i.data.id === item.data.id) {
+              return {
+                ...i,
+                data: {
+                  ...i.data,
+                  urgent: checked
+                }
+              };
+            }
+            return i;
+          })
+        );
+      } else if (item.type === 'next_step') {
+        setLocalItems(prevItems => 
+          prevItems.map(i => {
+            if (i.type === 'next_step' && i.data.id === item.data.id) {
+              return {
+                ...i,
+                data: {
+                  ...i.data,
+                  urgent: checked
+                }
+              };
+            }
+            return i;
+          })
+        );
+      }
+      
+      // Update database
       const success = await handleUrgentChange(item, checked);
       
       if (success) {
-        toast({
-          title: "Success",
-          description: checked ? "Item marked as urgent" : "Item urgency removed",
-        });
-        
-        if (onTaskUpdated) {
-          onTaskUpdated();
+        console.log('Urgent status updated successfully');
+        if (onItemUpdated) {
+          onItemUpdated();
         }
       } else {
-        // Revert the local state change if server update failed
-        setLocalItems(prevItems => {
-          return prevItems.map(i => {
-            if (getItemKey(i) === itemId) {
-              if (i.type === 'task') {
+        console.error('Failed to update urgent status');
+        // Revert local state if update failed
+        if (item.type === 'task') {
+          setLocalItems(prevItems => 
+            prevItems.map(i => {
+              if (i.type === 'task' && i.data.id === item.data.id) {
                 return {
                   ...i,
                   data: {
                     ...i.data,
-                    urgent: !checked // Revert to previous state
+                    urgent: !checked // Revert back
                   }
-                } as PriorityItem;
-              } else {
-                return {
-                  ...i,
-                  data: {
-                    ...i.data,
-                    urgent: !checked // Revert to previous state
-                  }
-                } as PriorityItem;
+                };
               }
-            }
-            return i;
-          });
-        });
-        
-        toast({
-          title: "Error",
-          description: "Failed to update urgent status",
-          variant: "destructive",
-        });
+              return i;
+            })
+          );
+        } else if (item.type === 'next_step') {
+          setLocalItems(prevItems => 
+            prevItems.map(i => {
+              if (i.type === 'next_step' && i.data.id === item.data.id) {
+                return {
+                  ...i,
+                  data: {
+                    ...i.data,
+                    urgent: !checked // Revert back
+                  }
+                };
+              }
+              return i;
+            })
+          );
+        }
       }
     } catch (error) {
-      console.error('Error updating urgent status:', error);
-      toast({
-        title: "Error",
-        description: "Failed to update urgent status",
-        variant: "destructive",
-      });
+      console.error('Error handling urgent status change:', error);
     } finally {
-      // Remove from processing set
-      setProcessingItems(prev => {
-        const newSet = new Set(prev);
-        newSet.delete(itemId);
-        return newSet;
-      });
-      
-      // Clear operation in progress flag
-      operationInProgressRef.current = false;
+      setIsProcessingUpdate(false);
     }
   };
 
-  console.log('PriorityItemsList rendering localItems:', localItems.length);
-
-  // Check if items array is valid
-  if (!Array.isArray(localItems) || localItems.length === 0) {
+  if (!localItems.length) {
     return (
-      <div className="p-4 bg-gray-50 rounded-lg border border-gray-100">
-        <p className="text-gray-600 text-center">No priority actions found</p>
+      <div className="p-4 text-center text-gray-500">
+        No priority items found{category ? ` for category: ${category}` : ''}.
       </div>
     );
   }
 
   return (
-    <>
-      <CompletionDialog
-        itemToComplete={itemToComplete}
-        onOpenChange={() => setItemToComplete(null)}
-        onComplete={handleComplete}
-      />
-
-      <div className="space-y-6">
-        {localItems.map((item, index) => (
-          <PriorityListItem
-            key={`${getItemKey(item)}-${index}`}
-            item={item}
-            index={index}
-            onTaskClick={onTaskClick}
-            onComplete={() => setItemToComplete(item)}
-            onUrgentChange={(checked) => handleUrgentStatusChange(item, checked)}
-            onDelete={() => handleItemDelete(item)}
-          />
-        ))}
-      </div>
-    </>
+    <div className="space-y-2">
+      {localItems.map((item) => {
+        const itemId = item.data.id;
+        
+        return (
+          <div key={`${item.type}-${itemId}`} className="flex items-start gap-2 p-2 border rounded-lg hover:bg-gray-50">
+            <div className="pt-1">
+              <Checkbox 
+                checked={
+                  item.type === 'task' 
+                    ? item.data.status === 'completed' 
+                    : item.data.completed_at !== null
+                } 
+                onCheckedChange={(checked) => handleCompletionStatusChange(item, checked as boolean)}
+                disabled={isProcessingUpdate}
+              />
+            </div>
+            
+            <div className="flex-1">
+              <PriorityActionItem 
+                item={item} 
+                onUrgentChange={(checked) => handleUrgentStatusChange(item, checked)}
+              />
+            </div>
+            
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={() => confirmDelete(item)}
+              disabled={isProcessingDelete}
+            >
+              <Trash2 className="h-4 w-4 text-gray-500 hover:text-red-500" />
+            </Button>
+            
+            <AlertDialog open={openAlertDialogId === itemId}>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This will permanently delete this {item.type === 'task' ? 'task' : 'next step'}.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel onClick={closeDialog}>Cancel</AlertDialogCancel>
+                  <AlertDialogAction 
+                    onClick={() => proceedWithDelete(item)}
+                    disabled={isProcessingDelete}
+                  >
+                    {isProcessingDelete ? 'Deleting...' : 'Delete'}
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </div>
+        );
+      })}
+    </div>
   );
 };

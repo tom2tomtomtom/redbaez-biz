@@ -92,13 +92,17 @@ export const useItemStatusChange = () => {
       let error;
       console.log(`Attempting to delete ${item.type} with ID: ${item.data.id}`);
 
+      // First, immediately remove from all caches to prevent UI from showing deleted items
       if (item.type === 'task') {
         // Immediately remove from cache
         queryClient.setQueryData(['generalTasks'], (oldData: any) => {
           if (!oldData) return [];
-          return Array.isArray(oldData) 
+          console.log('Removing task from cache, before:', oldData?.length);
+          const filtered = Array.isArray(oldData) 
             ? oldData.filter(task => task.id !== item.data.id) 
             : oldData;
+          console.log('After filter:', filtered?.length);
+          return filtered;
         });
 
         // Delete from database
@@ -113,9 +117,12 @@ export const useItemStatusChange = () => {
         // Immediately remove from cache
         queryClient.setQueryData(['clientNextSteps'], (oldData: any) => {
           if (!oldData) return [];
-          return Array.isArray(oldData) 
+          console.log('Removing next step from cache, before:', oldData?.length);
+          const filtered = Array.isArray(oldData) 
             ? oldData.filter(step => step.id !== item.data.id) 
             : oldData;
+          console.log('After filter:', filtered?.length);
+          return filtered;
         });
         
         // Delete from database
@@ -132,7 +139,7 @@ export const useItemStatusChange = () => {
 
       if (error) {
         console.error('Database error during deletion:', error);
-        throw new Error('Failed to delete ' + item.type);
+        throw new Error(`Failed to delete ${item.type}. Database error: ${error.message}`);
       }
 
       // Allow short delay before invalidating queries to prevent race conditions
