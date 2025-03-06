@@ -1,5 +1,4 @@
-
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { PriorityItem } from './hooks/usePriorityData';
 import { GeneralTaskRow } from '@/integrations/supabase/types/general-tasks.types';
 import { CompletionDialog } from './components/CompletionDialog';
@@ -23,6 +22,7 @@ export const PriorityItemsList = ({
   const [deletedItemIds, setDeletedItemIds] = useState<Set<string>>(new Set());
   const [processingItems, setProcessingItems] = useState<Set<string>>(new Set());
   const { handleCompletedChange, handleUrgentChange, handleDelete } = useItemStatusChange();
+  const operationInProgressRef = useRef(false);
 
   // Log items received
   console.log('PriorityItemsList received items:', Array.isArray(items) ? items.length : 'not an array', items);
@@ -54,6 +54,12 @@ export const PriorityItemsList = ({
   }, [items, filterDeletedItems]);
 
   const handleItemDelete = async (item: PriorityItem) => {
+    // Skip if another delete operation is in progress
+    if (operationInProgressRef.current) {
+      console.log('Another operation is in progress. Skipping this delete request.');
+      return;
+    }
+    
     const itemId = `${item.type}-${item.data.id}`;
     
     // Check if this item is already being processed
@@ -61,6 +67,9 @@ export const PriorityItemsList = ({
       console.log(`Already processing delete for item ${itemId}, ignoring duplicate request`);
       return;
     }
+    
+    // Set operation in progress flag
+    operationInProgressRef.current = true;
     
     // Mark as processing
     setProcessingItems(prev => {
@@ -96,21 +105,22 @@ export const PriorityItemsList = ({
           onTaskUpdated();
         }
       } else {
-        // If delete failed, remove from deleted items set but don't restore
-        // We'll let the next data refresh handle it
-        console.log(`Delete operation failed for item ${itemId}, it will reappear on next refresh`);
+        // If delete failed, show toast but keep item removed from UI
+        // Next refresh will restore it if needed
+        console.log(`Delete operation returned false for item ${itemId}`);
         
         toast({
-          title: "Error",
-          description: "Failed to delete item, it will reappear after refresh",
+          title: "Warning",
+          description: "Item may not have been deleted on the server",
           variant: "destructive",
         });
       }
     } catch (error) {
       console.error(`Error deleting item ${itemId}:`, error);
+      
       toast({
         title: "Error",
-        description: "Exception occurred during deletion",
+        description: "Could not delete the item",
         variant: "destructive",
       });
     } finally {
@@ -120,10 +130,19 @@ export const PriorityItemsList = ({
         newSet.delete(itemId);
         return newSet;
       });
+      
+      // Clear operation in progress flag
+      operationInProgressRef.current = false;
     }
   };
 
   const handleComplete = async (item: PriorityItem) => {
+    // Skip if another operation is in progress
+    if (operationInProgressRef.current) {
+      console.log('Another operation is in progress. Skipping this completion request.');
+      return;
+    }
+    
     const itemId = `${item.type}-${item.data.id}`;
     
     // Check if this item is already being processed
@@ -131,6 +150,9 @@ export const PriorityItemsList = ({
       console.log(`Already processing completion for item ${itemId}, ignoring duplicate request`);
       return;
     }
+    
+    // Set operation in progress flag
+    operationInProgressRef.current = true;
     
     // Mark as processing
     setProcessingItems(prev => {
@@ -165,19 +187,20 @@ export const PriorityItemsList = ({
           onTaskUpdated();
         }
       } else {
-        console.log(`Completion operation failed for item ${itemId}, it will reappear on next refresh`);
+        console.log(`Completion operation failed for item ${itemId}`);
         
         toast({
-          title: "Error",
-          description: "Failed to complete item, it will reappear after refresh",
+          title: "Warning",
+          description: "Item may not have been completed on the server",
           variant: "destructive",
         });
       }
     } catch (error) {
       console.error(`Error completing item ${itemId}:`, error);
+      
       toast({
         title: "Error",
-        description: "Exception occurred during completion",
+        description: "Could not complete the item",
         variant: "destructive",
       });
     } finally {
@@ -188,48 +211,61 @@ export const PriorityItemsList = ({
         return newSet;
       });
       
+      // Clear operation in progress flag
+      operationInProgressRef.current = false;
+      
       setItemToComplete(null);
     }
   };
   
   const handleUrgentStatusChange = async (item: PriorityItem, checked: boolean) => {
-    const success = await handleUrgentChange(item, checked);
-    if (success) {
-      toast({
-        title: "Success",
-        description: checked ? "Item marked as urgent" : "Item urgency removed",
-      });
+    try {
+      const success = await handleUrgentChange(item, checked);
       
-      // Update local state to reflect the change - fixed type safety issue here
-      setLocalItems(prevItems => 
-        prevItems.map(i => {
-          if (i.type === item.type && i.data.id === item.data.id) {
-            // Create a new item with the same structure but updated urgent flag
-            if (i.type === 'task') {
-              return {
-                ...i,
-                data: {
-                  ...i.data,
-                  urgent: checked
-                }
-              } as PriorityItem;
-            } else {
-              return {
-                ...i,
-                data: {
-                  ...i.data,
-                  urgent: checked
-                }
-              } as PriorityItem;
+      if (success) {
+        toast({
+          title: "Success",
+          description: checked ? "Item marked as urgent" : "Item urgency removed",
+        });
+        
+        // Update local state immediately for responsive UI
+        setLocalItems(prevItems => 
+          prevItems.map(i => {
+            if (i.type === item.type && i.data.id === item.data.id) {
+              // Create a new item with updated urgent flag
+              if (i.type === 'task') {
+                return {
+                  ...i,
+                  data: {
+                    ...i.data,
+                    urgent: checked
+                  }
+                };
+              } else {
+                return {
+                  ...i,
+                  data: {
+                    ...i.data,
+                    urgent: checked
+                  }
+                };
+              }
             }
-          }
-          return i;
-        })
-      );
-      
-      if (onTaskUpdated) {
-        onTaskUpdated();
+            return i;
+          })
+        );
+        
+        if (onTaskUpdated) {
+          onTaskUpdated();
+        }
       }
+    } catch (error) {
+      console.error('Error updating urgent status:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update urgent status",
+        variant: "destructive",
+      });
     }
   };
 
