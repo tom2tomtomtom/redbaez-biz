@@ -34,6 +34,7 @@ export const PriorityActions = ({
   useEffect(() => {
     // Initial refresh
     const refreshData = () => {
+      console.log('Refreshing priority actions data...');
       queryClient.invalidateQueries({ queryKey: ['generalTasks'] });
       queryClient.invalidateQueries({ queryKey: ['clientNextSteps'] });
       setRefreshKey(prev => prev + 1);
