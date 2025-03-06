@@ -28,7 +28,7 @@ export const PriorityActions = ({
   const queryClient = useQueryClient();
   const { allItems, isLoading, error, refetch } = usePriorityData(category, refreshKey);
 
-  console.log('Priority Actions - all items:', allItems.length); // Debug log
+  console.log('Priority Actions - rendered with items:', allItems?.length); // Debug log
 
   // Force refresh when component mounts and every 30 seconds
   useEffect(() => {

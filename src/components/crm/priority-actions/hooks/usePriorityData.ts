@@ -29,8 +29,8 @@ const fetchGeneralTasks = async (category?: string) => {
     
   const { data, error } = await query;
   if (error) throw error;
-  console.log('Fetched tasks:', data?.length); // Debug log
-  return data;
+  console.log('Fetched tasks:', data?.length, data); // Debug log with actual data
+  return data || [];
 };
 
 const fetchNextSteps = async () => {
@@ -47,36 +47,36 @@ const fetchNextSteps = async () => {
 
   if (error) throw error;
   
-  console.log('Fetched next steps:', data?.length); // Debug log
+  console.log('Fetched next steps:', data?.length, data); // Debug log with actual data
   return data?.map(step => ({
     ...step,
     client_name: step.clients?.name
-  }));
+  })) || [];
 };
 
 export const usePriorityData = (category?: string, refreshKey?: number) => {
   const tasksQuery = useQuery({
     queryKey: ['generalTasks', category, refreshKey],
     queryFn: () => fetchGeneralTasks(category),
-    staleTime: 0, // Always fetch fresh data
-    gcTime: 0, // Don't cache at all
-    refetchOnWindowFocus: true, // Refetch when window gets focus
-    refetchOnMount: true, // Refetch data when component mounts
+    staleTime: 0,
+    gcTime: 0,
+    refetchOnWindowFocus: true,
+    refetchOnMount: true,
   });
 
   const nextStepsQuery = useQuery({
     queryKey: ['clientNextSteps', refreshKey],
     queryFn: fetchNextSteps,
-    enabled: !category, // Only fetch next steps if no category filter
-    staleTime: 0, // Always fetch fresh data
-    gcTime: 0, // Don't cache at all
+    enabled: category === undefined, // Only fetch next steps if no category filter is provided
+    staleTime: 0,
+    gcTime: 0,
     refetchOnWindowFocus: true,
-    refetchOnMount: true
+    refetchOnMount: true,
   });
 
-  // We have already filtered for incomplete items in the query
+  // Make sure we have arrays even if the query returns null/undefined
   const tasks = tasksQuery.data || [];
-  const nextSteps = (!category ? (nextStepsQuery.data || []) : []);
+  const nextSteps = (category === undefined ? (nextStepsQuery.data || []) : []);
 
   const allItems: PriorityItem[] = [
     ...tasks.map(task => ({
@@ -105,16 +105,16 @@ export const usePriorityData = (category?: string, refreshKey?: number) => {
     return new Date(aDate).getTime() - new Date(bDate).getTime();
   });
 
-  console.log('Priority Actions - all items:', allItems.length);
+  console.log('Priority Actions - all items:', allItems.length, allItems);
   
   return {
     allItems,
-    isLoading: tasksQuery.isLoading || (!category && nextStepsQuery.isLoading),
-    error: tasksQuery.error || (!category && nextStepsQuery.error),
+    isLoading: tasksQuery.isLoading || (category === undefined && nextStepsQuery.isLoading),
+    error: tasksQuery.error || (category === undefined && nextStepsQuery.error),
     refetch: () => {
       console.log('Manually refetching priority data');
       tasksQuery.refetch();
-      if (!category) {
+      if (category === undefined) {
         nextStepsQuery.refetch();
       }
     }
