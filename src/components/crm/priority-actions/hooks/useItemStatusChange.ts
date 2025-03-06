@@ -14,15 +14,31 @@ export const useItemStatusChange = () => {
     console.log('Invalidating queries after task update/delete');
     
     try {
-      // Mark queries as stale first
-      await queryClient.invalidateQueries({ queryKey: ['generalTasks'] });
-      await queryClient.invalidateQueries({ queryKey: ['clientNextSteps'] });
+      // Force refetch instead of just invalidating
+      await queryClient.invalidateQueries({ 
+        queryKey: ['generalTasks'],
+        refetchType: 'all'
+      });
+      
+      await queryClient.invalidateQueries({ 
+        queryKey: ['clientNextSteps'],
+        refetchType: 'all'
+      });
       
       // If there's a client ID, invalidate client-specific queries
       if (clientId) {
-        await queryClient.invalidateQueries({ queryKey: ['client', clientId] });
-        await queryClient.invalidateQueries({ queryKey: ['client-items', clientId] });
+        await queryClient.invalidateQueries({ 
+          queryKey: ['client', clientId],
+          refetchType: 'all'
+        });
+        
+        await queryClient.invalidateQueries({ 
+          queryKey: ['client-items', clientId],
+          refetchType: 'all'
+        });
       }
+      
+      console.log('Query cache invalidated successfully');
     } catch (err) {
       console.error('Error invalidating queries:', err);
     }
@@ -144,6 +160,12 @@ export const useItemStatusChange = () => {
 
       // Allow short delay before invalidating queries to prevent race conditions
       await delay(500);
+      
+      // Force a complete cache reset for these queries to ensure deleted items don't reappear
+      await queryClient.resetQueries({ queryKey: ['generalTasks'] });
+      await queryClient.resetQueries({ queryKey: ['clientNextSteps'] });
+      
+      // Then properly invalidate all related queries
       await invalidateQueries(item.data.client_id);
 
       console.log(`Successfully deleted ${item.type} with ID: ${item.data.id}`);

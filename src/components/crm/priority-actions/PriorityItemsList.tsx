@@ -34,6 +34,8 @@ export const PriorityItemsList = ({
   const { handleCompletedChange, handleDelete, handleUrgentChange } = useItemStatusChange();
   
   const [completionConfirmItem, setCompletionConfirmItem] = useState<PriorityItem | null>(null);
+  // Track deleted item IDs to prevent them from reappearing
+  const [deletedItemIds, setDeletedItemIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     if (!items) return;
@@ -41,12 +43,23 @@ export const PriorityItemsList = ({
     console.log('PriorityItemsList received items:', items.length, items);
     console.log('PriorityItemsList rendering localItems:', localItems.length);
     console.log('showCompleted flag:', showCompleted);
+    console.log('Deleted items count:', deletedItemIds.size);
 
     if (items.length !== localItems.length || JSON.stringify(items) !== JSON.stringify(localItems)) {
       console.log('PriorityItemsList updating local items:', items.length);
       
-      const validItems = items.filter(item => item && item.data && item.data.id);
-      console.log('PriorityItemsList filtered items:', validItems.length, 'removed:', items.length - validItems.length);
+      // Filter out deleted items and invalid items
+      const validItems = items.filter(item => 
+        item && 
+        item.data && 
+        item.data.id && 
+        // Exclude any items that are in our deletedItemIds set
+        !deletedItemIds.has(item.data.id)
+      );
+      
+      console.log('PriorityItemsList filtered items:', validItems.length, 
+        'removed:', items.length - validItems.length,
+        'deleted items filtered:', items.length - validItems.length - (items.length - items.filter(item => item && item.data && item.data.id).length));
 
       let filteredItems;
       
@@ -68,7 +81,7 @@ export const PriorityItemsList = ({
       
       setLocalItems(filteredItems);
     }
-  }, [items, showCompleted]);
+  }, [items, showCompleted, deletedItemIds]);
 
   const confirmDelete = (item: PriorityItem) => {
     if (!item || !item.data || !item.data.id) {
@@ -88,9 +101,18 @@ export const PriorityItemsList = ({
     try {
       setIsProcessingDelete(true);
       const itemId = item.data.id;
+
+      // First, add to deleted items set to prevent it from reappearing in the UI
+      setDeletedItemIds(prev => {
+        const newSet = new Set(prev);
+        newSet.add(itemId);
+        return newSet;
+      });
       
+      // Remove from local state immediately for responsive UI
       setLocalItems(prevItems => prevItems.filter(i => i.data.id !== itemId));
       
+      // Then proceed with the actual deletion in the database
       const success = await handleDelete(item);
       
       if (success) {
@@ -105,15 +127,34 @@ export const PriorityItemsList = ({
         }
       } else {
         console.error(`Failed to delete ${item.type}:`, itemId);
+        // If deletion failed, remove from deletedItems set and add back to localItems
+        setDeletedItemIds(prev => {
+          const newSet = new Set(prev);
+          newSet.delete(itemId);
+          return newSet;
+        });
+        
+        // Only add the item back if it's not already there
         setLocalItems(prevItems => {
           if (prevItems.some(i => i.data.id === itemId)) {
             return prevItems; // Item already exists
           }
           return [...prevItems, item]; // Add the item back
         });
+        
+        toast({
+          title: "Error",
+          description: `Failed to delete ${item.type === 'task' ? 'task' : 'next step'}. Please try again.`,
+          variant: "destructive",
+        });
       }
     } catch (error) {
       console.error('Error in deletion process:', error);
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred",
+        variant: "destructive",
+      });
     } finally {
       setIsProcessingDelete(false);
       closeDialog();
@@ -336,6 +377,11 @@ export const PriorityItemsList = ({
     <div className="space-y-2">
       {localItems.map((item) => {
         const itemId = item.data.id;
+        
+        // Skip rendering deleted items
+        if (deletedItemIds.has(itemId)) {
+          return null;
+        }
         
         return (
           <div 

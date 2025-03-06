@@ -53,11 +53,22 @@ export const PriorityActions = ({
       await refetch();
       // After refetch, increment refresh key to trigger fresh data loading
       setRefreshKey(prev => prev + 1);
+      console.log('Refresh completed, new refresh key:', refreshKey + 1);
     } catch (error) {
       console.error('Error refreshing priority items:', error);
     } finally {
       setIsRefreshing(false);
     }
+  };
+
+  const handleItemRemoved = async () => {
+    console.log('Item was removed, refreshing data...');
+    // Wait a moment to ensure database operations complete
+    setTimeout(() => {
+      // Force a thorough refresh by increasing the key by a larger amount
+      setRefreshKey(prev => prev + 10);
+      refetch();
+    }, 700);
   };
 
   const handleCategoryChange = (newCategory: string | undefined) => {
@@ -151,7 +162,7 @@ export const PriorityActions = ({
         <TabsContent value="active">
           <PriorityItemsList 
             items={allItems || []} 
-            onItemRemoved={handleRefresh}
+            onItemRemoved={handleItemRemoved}
             onItemUpdated={handleRefresh}
             onItemSelected={handleItemSelected}
             category={category}
@@ -162,7 +173,7 @@ export const PriorityActions = ({
         <TabsContent value="completed">
           <PriorityItemsList 
             items={allItems || []} 
-            onItemRemoved={handleRefresh}
+            onItemRemoved={handleItemRemoved}
             onItemUpdated={handleRefresh}
             onItemSelected={handleItemSelected}
             category={category}
