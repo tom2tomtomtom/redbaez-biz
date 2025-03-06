@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { PriorityActionItem } from './PriorityActionItem';
 import { PriorityItem } from './hooks/usePriorityData';
@@ -15,6 +14,7 @@ interface PriorityItemsListProps {
   onItemUpdated?: () => void;
   onItemSelected?: (item: PriorityItem) => void;
   category?: string;
+  showCompleted?: boolean;
 }
 
 export const PriorityItemsList = ({ 
@@ -22,8 +22,9 @@ export const PriorityItemsList = ({
   onItemRemoved, 
   onItemUpdated,
   onItemSelected,
-  category 
-}: PriorityItemsListProps) => {
+  category,
+  showCompleted = false
+}: PriorityItemsListProps & { showCompleted?: boolean }) => {
   const [localItems, setLocalItems] = useState<PriorityItem[]>([]);
   const [openAlertDialogId, setOpenAlertDialogId] = useState<string | null>(null);
   const [isProcessingDelete, setIsProcessingDelete] = useState(false);
@@ -31,23 +32,28 @@ export const PriorityItemsList = ({
   const { handleCompletedChange, handleDelete, handleUrgentChange } = useItemStatusChange();
 
   useEffect(() => {
-    // Ensure we're only dealing with valid items
     if (!items) return;
     
     console.log('PriorityItemsList received items:', items.length, items);
     console.log('PriorityItemsList rendering localItems:', localItems.length);
 
-    // Only update if received items are different
     if (items.length !== localItems.length || JSON.stringify(items) !== JSON.stringify(localItems)) {
       console.log('PriorityItemsList updating local items:', items.length);
       
-      // Filter out any items that might not have valid ids
       const validItems = items.filter(item => item && item.data && item.data.id);
       console.log('PriorityItemsList filtered items:', validItems.length, 'removed:', items.length - validItems.length);
+
+      const filteredItems = showCompleted 
+        ? validItems.filter(item => 
+            (item.type === 'task' && item.data.status === 'completed') || 
+            (item.type === 'next_step' && item.data.completed_at !== null))
+        : validItems.filter(item => 
+            (item.type === 'task' && item.data.status !== 'completed') || 
+            (item.type === 'next_step' && item.data.completed_at === null));
       
-      setLocalItems(validItems);
+      setLocalItems(filteredItems);
     }
-  }, [items]);
+  }, [items, showCompleted]);
 
   const confirmDelete = (item: PriorityItem) => {
     if (!item || !item.data || !item.data.id) {
@@ -68,10 +74,8 @@ export const PriorityItemsList = ({
       setIsProcessingDelete(true);
       const itemId = item.data.id;
       
-      // Immediately update local state for responsive UI
       setLocalItems(prevItems => prevItems.filter(i => i.data.id !== itemId));
       
-      // Remove from database
       const success = await handleDelete(item);
       
       if (success) {
@@ -86,7 +90,6 @@ export const PriorityItemsList = ({
         }
       } else {
         console.error(`Failed to delete ${item.type}:`, itemId);
-        // If deletion failed, put the item back in the list
         setLocalItems(prevItems => {
           if (prevItems.some(i => i.data.id === itemId)) {
             return prevItems; // Item already exists
@@ -108,7 +111,6 @@ export const PriorityItemsList = ({
     try {
       setIsProcessingUpdate(true);
       
-      // Update UI immediately for better responsiveness
       if (item.type === 'task') {
         setLocalItems(prevItems => 
           prevItems.map(i => {
@@ -141,8 +143,13 @@ export const PriorityItemsList = ({
         );
       }
       
-      // Update database
       const success = await handleCompletedChange(item, checked);
+      
+      if (success && checked && !showCompleted) {
+        setLocalItems(prevItems => prevItems.filter(i => 
+          !(i.data.id === item.data.id && i.type === item.type)
+        ));
+      }
       
       if (success) {
         console.log('Task updated, refreshing data...');
@@ -151,7 +158,6 @@ export const PriorityItemsList = ({
         }
       } else {
         console.error('Failed to update task completion status');
-        // Revert local state if update failed
         if (item.type === 'task') {
           setLocalItems(prevItems => 
             prevItems.map(i => {
@@ -160,7 +166,7 @@ export const PriorityItemsList = ({
                   ...i,
                   data: {
                     ...i.data,
-                    status: checked ? 'incomplete' : 'completed' // Revert back
+                    status: checked ? 'incomplete' : 'completed'
                   }
                 } as PriorityItem;
               }
@@ -175,7 +181,7 @@ export const PriorityItemsList = ({
                   ...i,
                   data: {
                     ...i.data,
-                    completed_at: checked ? null : new Date().toISOString() // Revert back
+                    completed_at: checked ? null : new Date().toISOString()
                   }
                 } as PriorityItem;
               }
@@ -197,8 +203,6 @@ export const PriorityItemsList = ({
     try {
       setIsProcessingUpdate(true);
       
-      // Update UI immediately for better responsiveness
-      // We need to handle both task and next_step types properly
       if (item.type === 'task') {
         setLocalItems(prevItems => 
           prevItems.map(i => {
@@ -231,7 +235,6 @@ export const PriorityItemsList = ({
         );
       }
       
-      // Update database
       const success = await handleUrgentChange(item, checked);
       
       if (success) {
@@ -241,7 +244,6 @@ export const PriorityItemsList = ({
         }
       } else {
         console.error('Failed to update urgent status');
-        // Revert local state if update failed
         if (item.type === 'task') {
           setLocalItems(prevItems => 
             prevItems.map(i => {
@@ -250,7 +252,7 @@ export const PriorityItemsList = ({
                   ...i,
                   data: {
                     ...i.data,
-                    urgent: !checked // Revert back
+                    urgent: !checked
                   }
                 } as PriorityItem;
               }
@@ -265,7 +267,7 @@ export const PriorityItemsList = ({
                   ...i,
                   data: {
                     ...i.data,
-                    urgent: !checked // Revert back
+                    urgent: !checked
                   }
                 } as PriorityItem;
               }
@@ -290,7 +292,7 @@ export const PriorityItemsList = ({
   if (!localItems.length) {
     return (
       <div className="p-4 text-center text-gray-500">
-        No priority items found{category ? ` for category: ${category}` : ''}.
+        No {showCompleted ? "completed" : "priority"} items found{category ? ` for category: ${category}` : ''}.
       </div>
     );
   }

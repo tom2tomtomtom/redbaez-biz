@@ -8,6 +8,7 @@ import { usePriorityData } from './hooks/usePriorityData';
 import { PriorityActionsSkeleton } from './PriorityActionsSkeleton';
 import { Tables } from '@/integrations/supabase/types';
 import { GeneralTaskRow } from '@/integrations/supabase/types/general-tasks.types';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 interface PriorityActionsProps {
   hideAddButton?: boolean;
@@ -24,6 +25,7 @@ export const PriorityActions = ({
   const [refreshKey, setRefreshKey] = useState(0);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [lastRefreshTime, setLastRefreshTime] = useState(0);
+  const [activeTab, setActiveTab] = useState('active');
   
   console.log('PriorityActions rendering with category:', category);
   
@@ -75,30 +77,35 @@ export const PriorityActions = ({
           <Category 
             active={!category} 
             onClick={() => handleCategoryChange(undefined)}
+            category="All"
           >
             All
           </Category>
           <Category 
             active={category === 'Business Admin'} 
             onClick={() => handleCategoryChange('Business Admin')}
+            category="Business Admin"
           >
             Business Admin
           </Category>
           <Category 
             active={category === 'Marketing'} 
             onClick={() => handleCategoryChange('Marketing')}
+            category="Marketing"
           >
             Marketing
           </Category>
           <Category 
             active={category === 'Product Development'} 
             onClick={() => handleCategoryChange('Product Development')}
+            category="Product Development"
           >
             Product Development
           </Category>
           <Category 
             active={category === 'Partnerships'} 
             onClick={() => handleCategoryChange('Partnerships')}
+            category="Partnerships"
           >
             Partnerships
           </Category>
@@ -122,13 +129,34 @@ export const PriorityActions = ({
         </div>
       </div>
       
-      <PriorityItemsList 
-        items={allItems || []} 
-        onItemRemoved={handleRefresh}
-        onItemUpdated={handleRefresh}
-        onItemSelected={handleItemSelected}
-        category={category}
-      />
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <TabsList className="mb-4">
+          <TabsTrigger value="active">Active</TabsTrigger>
+          <TabsTrigger value="completed">Completed</TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="active">
+          <PriorityItemsList 
+            items={allItems || []} 
+            onItemRemoved={handleRefresh}
+            onItemUpdated={handleRefresh}
+            onItemSelected={handleItemSelected}
+            category={category}
+            showCompleted={false}
+          />
+        </TabsContent>
+        
+        <TabsContent value="completed">
+          <PriorityItemsList 
+            items={allItems || []} 
+            onItemRemoved={handleRefresh}
+            onItemUpdated={handleRefresh}
+            onItemSelected={handleItemSelected}
+            category={category}
+            showCompleted={true}
+          />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };
