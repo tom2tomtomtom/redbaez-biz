@@ -74,17 +74,21 @@ export const usePriorityData = (category?: string, refreshKey?: number) => {
     refetchOnMount: true
   });
 
+  // Ensure we only get incomplete items
+  const tasks = tasksQuery.data?.filter(task => task.status !== 'completed') || [];
+  const nextSteps = (!category ? (nextStepsQuery.data?.filter(step => !step.completed_at) || []) : []);
+
   const allItems: PriorityItem[] = [
-    ...(tasksQuery.data?.map(task => ({
+    ...tasks.map(task => ({
       type: 'task' as const,
       date: task.next_due_date,
       data: task
-    })) || []),
-    ...(!category ? (nextStepsQuery.data?.map(step => ({
+    })),
+    ...nextSteps.map(step => ({
       type: 'next_step' as const,
       date: step.due_date,
       data: step
-    })) || []) : [])
+    }))
   ].sort((a, b) => {
     const aUrgent = 'urgent' in a.data ? a.data.urgent : false;
     const bUrgent = 'urgent' in b.data ? b.data.urgent : false;
@@ -101,6 +105,8 @@ export const usePriorityData = (category?: string, refreshKey?: number) => {
     return new Date(aDate).getTime() - new Date(bDate).getTime();
   });
 
+  console.log('Priority Actions - all items:', allItems.length);
+  
   return {
     allItems,
     isLoading: tasksQuery.isLoading || (!category && nextStepsQuery.isLoading),

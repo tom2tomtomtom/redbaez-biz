@@ -13,6 +13,7 @@ export const useGeneralTasks = (category: string, refreshTrigger: number) => {
         .from('general_tasks')
         .select('*, clients(name)')
         .ilike('category', category)
+        .eq('status', 'incomplete') // Only get incomplete tasks
         .order('next_due_date', { ascending: true });
 
       if (tasksError) {
@@ -25,6 +26,7 @@ export const useGeneralTasks = (category: string, refreshTrigger: number) => {
         .from('client_next_steps')
         .select('*, clients(name)')
         .ilike('category', category)
+        .is('completed_at', null) // Only get incomplete next steps
         .order('due_date', { ascending: true });
 
       if (nextStepsError) {
@@ -38,7 +40,7 @@ export const useGeneralTasks = (category: string, refreshTrigger: number) => {
         title: `Next Step for ${step.clients?.name || 'Unknown Client'}`,
         description: step.notes,
         category: category.toLowerCase(),
-        status: step.completed_at ? 'completed' : 'incomplete',
+        status: 'incomplete', // Always set as incomplete since we filtered completed ones
         next_due_date: step.due_date,
         created_at: step.created_at,
         updated_at: step.updated_at,
@@ -48,11 +50,11 @@ export const useGeneralTasks = (category: string, refreshTrigger: number) => {
         original_data: step
       })) || [];
 
-      // Combine all tasks and add type identifier
+      // Combine all tasks 
       const allTasks = [
-        ...(tasks?.map(task => ({ ...task, type: 'task' })) || []),
+        ...(tasks || []).map(task => ({ ...task, type: 'task' })),
         ...nextStepTasks
-      ].filter(task => task.status !== 'completed'); // Filter out completed tasks
+      ];
 
       console.log('Combined tasks:', allTasks.length); // Debug log
       return allTasks;

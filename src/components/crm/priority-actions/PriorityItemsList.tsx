@@ -25,18 +25,21 @@ export const PriorityItemsList = ({
   // Update localItems when items prop changes
   useEffect(() => {
     console.log('PriorityItemsList received new items:', items.length);
-    setLocalItems(items);
+    
+    // Filter out completed items before setting to local state
+    const filteredItems = items.filter(item => {
+      if (item.type === 'task') {
+        return item.data.status !== 'completed';
+      }
+      if (item.type === 'next_step') {
+        return !item.data.completed_at;
+      }
+      return true;
+    });
+    
+    console.log('After filtering, active items:', filteredItems.length);
+    setLocalItems(filteredItems);
   }, [items]);
-
-  const activeItems = localItems.filter(item => {
-    if (item.type === 'task') {
-      return item.data.status !== 'completed';
-    }
-    if (item.type === 'next_step') {
-      return !item.data.completed_at;
-    }
-    return true;
-  });
 
   const handleItemDelete = async (item: PriorityItem) => {
     const success = await handleDelete(item);
@@ -93,9 +96,9 @@ export const PriorityItemsList = ({
     }
   };
 
-  console.log('PriorityItemsList rendering activeItems:', activeItems.length);
+  console.log('PriorityItemsList rendering activeItems:', localItems.length);
 
-  if (activeItems.length === 0) {
+  if (localItems.length === 0) {
     return (
       <div className="p-4 bg-gray-50 rounded-lg border border-gray-100">
         <p className="text-gray-600 text-center">No priority actions found</p>
@@ -112,7 +115,7 @@ export const PriorityItemsList = ({
       />
 
       <div className="space-y-6">
-        {activeItems.map((item, index) => (
+        {localItems.map((item, index) => (
           <PriorityListItem
             key={`${item.type}-${item.data.id}-${index}`}
             item={item}

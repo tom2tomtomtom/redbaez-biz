@@ -2,7 +2,7 @@
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Tables } from '@/integrations/supabase/types';
 import { useQueryClient } from '@tanstack/react-query';
 import { PriorityActionsSkeleton } from './PriorityActionsSkeleton';
@@ -30,45 +30,57 @@ export const PriorityActions = ({
 
   console.log('Priority Actions - all items:', allItems.length); // Debug log
 
-  // Force refresh when component mounts
+  // Force refresh when component mounts and every 30 seconds
   useEffect(() => {
-    queryClient.invalidateQueries({ queryKey: ['generalTasks'] });
-    queryClient.invalidateQueries({ queryKey: ['clientNextSteps'] });
-  }, [queryClient]);
+    // Initial refresh
+    const refreshData = () => {
+      queryClient.invalidateQueries({ queryKey: ['generalTasks'] });
+      queryClient.invalidateQueries({ queryKey: ['clientNextSteps'] });
+      setRefreshKey(prev => prev + 1);
+      refetch();
+    };
+    
+    refreshData();
+    
+    // Set up interval for periodic refreshes
+    const intervalId = setInterval(refreshData, 30000);
+    
+    // Clean up interval on unmount
+    return () => clearInterval(intervalId);
+  }, [queryClient, refetch]);
 
-  const handleTaskSaved = () => {
+  const handleTaskSaved = useCallback(() => {
     toast({
       title: "Success",
       description: "Task updated successfully",
     });
+    
+    // Force refresh after task is saved
     queryClient.invalidateQueries({ queryKey: ['generalTasks'] });
     queryClient.invalidateQueries({ queryKey: ['clientNextSteps'] });
     setIsDialogOpen(false);
     setEditingTask(null);
-    // Force refresh
     setRefreshKey(prev => prev + 1);
-    // Also directly refetch
     refetch();
-  };
+  }, [queryClient, refetch]);
 
-  const handleTaskClick = (task: Tables<'general_tasks'>) => {
+  const handleTaskClick = useCallback((task: Tables<'general_tasks'>) => {
     if (onTaskClick) {
       onTaskClick(task);
     } else {
       setEditingTask(task);
       setIsDialogOpen(true);
     }
-  };
+  }, [onTaskClick]);
   
-  const handleTaskUpdated = () => {
+  const handleTaskUpdated = useCallback(() => {
     // Force refresh after task update or delete
     console.log('Task updated, refreshing data...');
     queryClient.invalidateQueries({ queryKey: ['generalTasks'] });
     queryClient.invalidateQueries({ queryKey: ['clientNextSteps'] });
     setRefreshKey(prev => prev + 1);
-    // Also directly refetch
     refetch();
-  };
+  }, [queryClient, refetch]);
 
   if (isLoading) {
     return <PriorityActionsSkeleton />;

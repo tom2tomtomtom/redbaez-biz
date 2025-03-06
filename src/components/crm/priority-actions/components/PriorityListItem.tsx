@@ -25,7 +25,16 @@ export const PriorityListItem = ({
   onDelete
 }: PriorityListItemProps) => {
   const navigate = useNavigate();
-  const [isVisible, setIsVisible] = useState(true);
+  const [isVisible, setIsVisible] = useState(false);
+
+  // When the component mounts, add a tiny delay before showing it (for the fade-in effect)
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsVisible(true);
+    }, 50 + index * 20);
+    
+    return () => clearTimeout(timer);
+  }, [index]);
 
   const handleClick = () => {
     if (item.type === 'task') {
@@ -55,9 +64,13 @@ export const PriorityListItem = ({
 
   return (
     <div 
-      className={`relative transition-all duration-500 transform animate-fade-in ${isVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-95 h-0 mb-0 mt-0 overflow-hidden'}`}
+      className={`relative transition-all duration-500 transform ${
+        isVisible 
+          ? 'opacity-100 scale-100 max-h-96' 
+          : 'opacity-0 scale-95 max-h-0 overflow-hidden margin-0 padding-0'
+      }`}
       style={{
-        transitionDelay: `${index * 50}ms`,
+        transitionDelay: isVisible ? `${index * 50}ms` : '0ms',
       }}
     >
       <ItemControls
