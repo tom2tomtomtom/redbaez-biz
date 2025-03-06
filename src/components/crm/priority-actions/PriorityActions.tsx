@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { RefreshCcw, Plus } from 'lucide-react';
 import { Category } from './Category';
@@ -30,6 +30,14 @@ export const PriorityActions = ({
   console.log('PriorityActions rendering with category:', category);
   
   const { allItems, isLoading, refetch } = usePriorityData(category, refreshKey);
+  
+  // Add debug logging to see what items we have
+  useEffect(() => {
+    if (allItems) {
+      console.log('PriorityActions - all items:', allItems.length, allItems);
+      console.log('PriorityActions - active tab:', activeTab);
+    }
+  }, [allItems, activeTab]);
 
   const handleRefresh = async () => {
     const now = Date.now();
@@ -65,6 +73,11 @@ export const PriorityActions = ({
   };
 
   console.log('PriorityActions - rendered with items:', allItems?.length, allItems);
+
+  // Force an initial refresh when the component mounts
+  useEffect(() => {
+    handleRefresh();
+  }, []);
 
   if (isLoading && !allItems?.length) {
     return <PriorityActionsSkeleton />;

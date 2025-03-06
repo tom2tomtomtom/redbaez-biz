@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { PriorityActionItem } from './PriorityActionItem';
 import { PriorityItem } from './hooks/usePriorityData';
@@ -39,6 +40,7 @@ export const PriorityItemsList = ({
     
     console.log('PriorityItemsList received items:', items.length, items);
     console.log('PriorityItemsList rendering localItems:', localItems.length);
+    console.log('showCompleted flag:', showCompleted);
 
     if (items.length !== localItems.length || JSON.stringify(items) !== JSON.stringify(localItems)) {
       console.log('PriorityItemsList updating local items:', items.length);
@@ -46,13 +48,23 @@ export const PriorityItemsList = ({
       const validItems = items.filter(item => item && item.data && item.data.id);
       console.log('PriorityItemsList filtered items:', validItems.length, 'removed:', items.length - validItems.length);
 
-      const filteredItems = showCompleted 
-        ? validItems.filter(item => 
-            (item.type === 'task' && item.data.status === 'completed') || 
-            (item.type === 'next_step' && item.data.completed_at !== null))
-        : validItems.filter(item => 
-            (item.type === 'task' && item.data.status !== 'completed') || 
-            (item.type === 'next_step' && item.data.completed_at === null));
+      let filteredItems;
+      
+      if (showCompleted) {
+        // Filter for completed items
+        filteredItems = validItems.filter(item => 
+          (item.type === 'task' && item.data.status === 'completed') || 
+          (item.type === 'next_step' && item.data.completed_at !== null)
+        );
+        console.log('Filtered for completed items:', filteredItems.length);
+      } else {
+        // Filter for incomplete items
+        filteredItems = validItems.filter(item => 
+          (item.type === 'task' && item.data.status !== 'completed') || 
+          (item.type === 'next_step' && item.data.completed_at === null)
+        );
+        console.log('Filtered for active items:', filteredItems.length);
+      }
       
       setLocalItems(filteredItems);
     }
@@ -159,6 +171,7 @@ export const PriorityItemsList = ({
       const success = await handleCompletedChange(item, checked);
       
       if (success && checked && !showCompleted) {
+        // If the item was completed and we're viewing active items, remove it from the list
         setLocalItems(prevItems => prevItems.filter(i => 
           !(i.data.id === item.data.id && i.type === item.type)
         ));
@@ -310,6 +323,11 @@ export const PriorityItemsList = ({
     return (
       <div className="p-4 text-center text-gray-500">
         No {showCompleted ? "completed" : "priority"} items found{category ? ` for category: ${category}` : ''}.
+        {!showCompleted && (
+          <div className="mt-2">
+            <p>Try switching to the "Completed" tab to see completed items.</p>
+          </div>
+        )}
       </div>
     );
   }
