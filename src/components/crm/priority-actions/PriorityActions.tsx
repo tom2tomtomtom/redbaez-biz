@@ -10,6 +10,7 @@ import { TaskDialog } from './TaskDialog';
 import { PriorityItemsList } from './PriorityItemsList';
 import { usePriorityData } from './hooks/usePriorityData';
 import { toast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 interface PriorityActionsProps {
   hideAddButton?: boolean;
@@ -26,12 +27,36 @@ export const PriorityActions = ({
   const [editingTask, setEditingTask] = useState<Tables<'general_tasks'> | null>(null);
   const [refreshKey, setRefreshKey] = useState(0); // Add refresh key to force re-render
   const queryClient = useQueryClient();
+  
+  // Check if category is defined and log it
+  console.log('PriorityActions rendering with category:', category, typeof category);
+  
   const { allItems, isLoading, error, refetch } = usePriorityData(category, refreshKey);
 
-  console.log('Priority Actions - rendered with items:', allItems?.length); // Debug log
+  console.log('PriorityActions - rendered with items:', allItems?.length, allItems); // Detailed debug log
 
   // Force refresh when component mounts and every 30 seconds
   useEffect(() => {
+    // Debug check for tasks to confirm if there's data in the DB
+    const checkForTasks = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('general_tasks')
+          .select('*')
+          .limit(5);
+        
+        if (error) {
+          console.error('Error checking tasks:', error);
+        } else {
+          console.log('Direct DB check - tasks available:', data?.length, data);
+        }
+      } catch (err) {
+        console.error('Exception checking tasks:', err);
+      }
+    };
+    
+    checkForTasks();
+    
     // Initial refresh
     const refreshData = () => {
       console.log('Refreshing priority actions data...');

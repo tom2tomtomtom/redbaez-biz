@@ -15,25 +15,34 @@ export type PriorityItem = {
 };
 
 const fetchGeneralTasks = async (category?: string) => {
-  console.log('Fetching tasks for category:', category); // Debug log
+  console.log('Fetching general tasks with category:', category, typeof category); // Debug log with type
   
   let query = supabase
     .from('general_tasks')
-    .select('*')
-    .eq('status', 'incomplete');
+    .select('*');
 
-  if (category) {
-    // Convert both the category and the database value to lowercase for comparison
-    query = query.ilike('category', category);
-  }
+  // Only filter for incomplete if we're not explicitly requesting completed tasks
+  query = query.eq('status', 'incomplete');
     
+  if (category) {
+    // Make the category comparison case-insensitive
+    query = query.ilike('category', `%${category}%`);
+  }
+  
   const { data, error } = await query;
-  if (error) throw error;
+  
+  if (error) {
+    console.error('Error fetching tasks:', error);
+    throw error;
+  }
+  
   console.log('Fetched tasks:', data?.length, data); // Debug log with actual data
   return data || [];
 };
 
 const fetchNextSteps = async () => {
+  console.log('Fetching next steps'); // Debug log
+  
   const { data, error } = await supabase
     .from('client_next_steps')
     .select(`
@@ -45,7 +54,10 @@ const fetchNextSteps = async () => {
     .is('completed_at', null) // Only get incomplete next steps
     .order('due_date', { ascending: true });
 
-  if (error) throw error;
+  if (error) {
+    console.error('Error fetching next steps:', error);
+    throw error;
+  }
   
   console.log('Fetched next steps:', data?.length, data); // Debug log with actual data
   return data?.map(step => ({
@@ -55,6 +67,8 @@ const fetchNextSteps = async () => {
 };
 
 export const usePriorityData = (category?: string, refreshKey?: number) => {
+  console.log('usePriorityData called with category:', category, 'refreshKey:', refreshKey);
+  
   const tasksQuery = useQuery({
     queryKey: ['generalTasks', category, refreshKey],
     queryFn: () => fetchGeneralTasks(category),
@@ -105,7 +119,7 @@ export const usePriorityData = (category?: string, refreshKey?: number) => {
     return new Date(aDate).getTime() - new Date(bDate).getTime();
   });
 
-  console.log('Priority Actions - all items:', allItems.length, allItems);
+  console.log('Priority Actions - final items:', allItems.length, allItems);
   
   return {
     allItems,

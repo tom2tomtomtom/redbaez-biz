@@ -12,7 +12,7 @@ export const useGeneralTasks = (category: string, refreshTrigger: number) => {
       const { data: tasks, error: tasksError } = await supabase
         .from('general_tasks')
         .select('*, clients(name)')
-        .ilike('category', category)
+        .ilike('category', `%${category}%`)
         .eq('status', 'incomplete') // Only get incomplete tasks
         .order('next_due_date', { ascending: true });
 
@@ -21,11 +21,13 @@ export const useGeneralTasks = (category: string, refreshTrigger: number) => {
         throw tasksError;
       }
 
+      console.log('Strategy - fetched tasks:', tasks?.length, tasks);
+
       // Fetch client next steps that are related to this category
       const { data: nextSteps, error: nextStepsError } = await supabase
         .from('client_next_steps')
         .select('*, clients(name)')
-        .ilike('category', category)
+        .ilike('category', `%${category}%`)
         .is('completed_at', null) // Only get incomplete next steps
         .order('due_date', { ascending: true });
 
@@ -33,6 +35,8 @@ export const useGeneralTasks = (category: string, refreshTrigger: number) => {
         console.error('Error fetching next steps:', nextStepsError);
         throw nextStepsError;
       }
+
+      console.log('Strategy - fetched next steps:', nextSteps?.length, nextSteps);
 
       // Convert next steps to general task format
       const nextStepTasks = nextSteps?.map(step => ({
@@ -56,7 +60,7 @@ export const useGeneralTasks = (category: string, refreshTrigger: number) => {
         ...nextStepTasks
       ];
 
-      console.log('Combined tasks:', allTasks.length); // Debug log
+      console.log('Strategy - combined tasks:', allTasks.length, allTasks); // Debug log
       return allTasks;
     },
     // Force refetch on every category or refreshTrigger change to ensure latest data

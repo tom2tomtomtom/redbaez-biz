@@ -22,9 +22,12 @@ export const PriorityItemsList = ({
   const [localItems, setLocalItems] = useState<PriorityItem[]>([]);
   const { handleCompletedChange, handleUrgentChange, handleDelete } = useItemStatusChange();
 
+  // Log items received
+  console.log('PriorityItemsList received items:', items?.length, items);
+
   // Update localItems when items prop changes
   useEffect(() => {
-    console.log('PriorityItemsList received new items:', items.length);
+    console.log('PriorityItemsList updating local items:', items.length);
     setLocalItems(items);
   }, [items]);
 
@@ -83,7 +86,7 @@ export const PriorityItemsList = ({
     }
   };
 
-  console.log('PriorityItemsList rendering activeItems:', localItems.length);
+  console.log('PriorityItemsList rendering localItems:', localItems.length);
 
   if (localItems.length === 0) {
     return (
