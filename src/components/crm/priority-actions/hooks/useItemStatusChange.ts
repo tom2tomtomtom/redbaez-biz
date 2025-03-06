@@ -11,15 +11,9 @@ export const useItemStatusChange = () => {
     console.log('Invalidating queries after task update/delete');
     
     try {
-      // First invalidate to mark queries as stale
+      // Mark queries as stale first
       await queryClient.invalidateQueries({ queryKey: ['generalTasks'] });
       await queryClient.invalidateQueries({ queryKey: ['clientNextSteps'] });
-      
-      // Force immediate refetch
-      await Promise.all([
-        queryClient.refetchQueries({ queryKey: ['generalTasks'] }),
-        queryClient.refetchQueries({ queryKey: ['clientNextSteps'] })
-      ]);
       
       // If there's a client ID, invalidate client-specific queries
       if (clientId) {
@@ -49,8 +43,35 @@ export const useItemStatusChange = () => {
         if (error) throw error;
       }
 
-      // Immediately invalidate and refetch queries
-      await invalidateQueries(item.data.client_id);
+      // Update cache immediately for better user experience
+      if (item.type === 'task') {
+        queryClient.setQueryData(['generalTasks'], (oldData: any) => {
+          if (!oldData) return oldData;
+          return Array.isArray(oldData) 
+            ? oldData.map(task => 
+                task.id === item.data.id 
+                  ? {...task, status: completed ? 'completed' : 'incomplete'} 
+                  : task
+              )
+            : oldData;
+        });
+      } else {
+        queryClient.setQueryData(['clientNextSteps'], (oldData: any) => {
+          if (!oldData) return oldData;
+          return Array.isArray(oldData) 
+            ? oldData.map(step => 
+                step.id === item.data.id 
+                  ? {...step, completed_at: completed ? new Date().toISOString() : null} 
+                  : step
+              )
+            : oldData;
+        });
+      }
+
+      // Invalidate queries after a small delay to allow UI to update
+      setTimeout(() => {
+        invalidateQueries(item.data.client_id);
+      }, 300);
 
       return true;
     } catch (error) {
@@ -75,38 +96,15 @@ export const useItemStatusChange = () => {
           .delete()
           .eq('id', item.data.id);
         error = result.error;
-        
-        // Verify deletion
-        if (!error) {
-          const { data: checkData } = await supabase
-            .from('general_tasks')
-            .select('id')
-            .eq('id', item.data.id)
-            .maybeSingle();
-          
-          if (checkData) {
-            console.error('Task still exists after deletion attempt');
-            throw new Error('Failed to delete task');
-          } else {
-            console.log('Task deletion verified successfully');
-          }
-        }
       } else if (item.type === 'next_step') {
         console.log('Deleting next step with ID:', item.data.id);
-        
-        // FIXED: Directly proceed with deletion without delays or verifications
-        // that cause race conditions and errors
         const result = await supabase
           .from('client_next_steps')
           .delete()
           .eq('id', item.data.id);
-        
         error = result.error;
         
-        if (error) {
-          console.error('Database error during next step deletion:', error);
-          throw error;
-        } else {
+        if (!error) {
           console.log('Next step deletion completed successfully');
         }
       }
@@ -116,26 +114,27 @@ export const useItemStatusChange = () => {
         throw error;
       }
 
-      // Ensure cache is updated immediately
-      queryClient.setQueryData(['generalTasks'], (oldData: any) => {
-        if (!oldData) return oldData;
-        return Array.isArray(oldData) 
-          ? oldData.filter(task => task.id !== item.data.id) 
-          : oldData;
-      });
-      
-      queryClient.setQueryData(['clientNextSteps'], (oldData: any) => {
-        if (!oldData) return oldData;
-        return Array.isArray(oldData) 
-          ? oldData.filter(step => step.id !== item.data.id) 
-          : oldData;
-      });
+      // Update cache immediately to remove the item
+      if (item.type === 'task') {
+        queryClient.setQueryData(['generalTasks'], (oldData: any) => {
+          if (!oldData) return oldData;
+          return Array.isArray(oldData) 
+            ? oldData.filter(task => task.id !== item.data.id) 
+            : oldData;
+        });
+      } else {
+        queryClient.setQueryData(['clientNextSteps'], (oldData: any) => {
+          if (!oldData) return oldData;
+          return Array.isArray(oldData) 
+            ? oldData.filter(step => step.id !== item.data.id) 
+            : oldData;
+        });
+      }
 
-      // Immediately invalidate and refetch queries after a short delay
-      // This ensures the UI has time to remove the item before we refetch
+      // Invalidate the queries after a delay to allow UI to update
       setTimeout(() => {
         invalidateQueries(item.data.client_id);
-      }, 1000);
+      }, 300);
 
       return true;
     } catch (error) {
@@ -169,8 +168,35 @@ export const useItemStatusChange = () => {
 
       if (error) throw error;
 
-      // Immediately invalidate and refetch queries
-      await invalidateQueries(item.data.client_id);
+      // Update cache immediately
+      if (item.type === 'task') {
+        queryClient.setQueryData(['generalTasks'], (oldData: any) => {
+          if (!oldData) return oldData;
+          return Array.isArray(oldData) 
+            ? oldData.map(task => 
+                task.id === item.data.id 
+                  ? {...task, urgent: checked} 
+                  : task
+              )
+            : oldData;
+        });
+      } else {
+        queryClient.setQueryData(['clientNextSteps'], (oldData: any) => {
+          if (!oldData) return oldData;
+          return Array.isArray(oldData) 
+            ? oldData.map(step => 
+                step.id === item.data.id 
+                  ? {...step, urgent: checked} 
+                  : step
+              )
+            : oldData;
+        });
+      }
+
+      // Invalidate after a delay
+      setTimeout(() => {
+        invalidateQueries(item.data.client_id);
+      }, 300);
 
       return true;
     } catch (error) {
