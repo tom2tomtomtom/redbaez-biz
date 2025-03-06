@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Trash2 } from 'lucide-react';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { toast } from '@/hooks/use-toast';
+import { CompletionConfirmDialog } from './components/CompletionConfirmDialog';
 
 interface PriorityItemsListProps {
   items: PriorityItem[];
@@ -30,6 +31,8 @@ export const PriorityItemsList = ({
   const [isProcessingDelete, setIsProcessingDelete] = useState(false);
   const [isProcessingUpdate, setIsProcessingUpdate] = useState(false);
   const { handleCompletedChange, handleDelete, handleUrgentChange } = useItemStatusChange();
+  
+  const [completionConfirmItem, setCompletionConfirmItem] = useState<PriorityItem | null>(null);
 
   useEffect(() => {
     if (!items) return;
@@ -108,6 +111,16 @@ export const PriorityItemsList = ({
   const handleCompletionStatusChange = async (item: PriorityItem, checked: boolean) => {
     if (isProcessingUpdate) return;
     
+    if (checked) {
+      setCompletionConfirmItem(item);
+    } else {
+      processCompletionChange(item, checked);
+    }
+  };
+
+  const processCompletionChange = async (item: PriorityItem, checked: boolean) => {
+    if (isProcessingUpdate) return;
+    
     try {
       setIsProcessingUpdate(true);
       
@@ -153,6 +166,10 @@ export const PriorityItemsList = ({
       
       if (success) {
         console.log('Task updated, refreshing data...');
+        toast({
+          title: "Success",
+          description: `${item.type === 'task' ? 'Task' : 'Next step'} marked as ${checked ? 'completed' : 'active'}`,
+        });
         if (onItemUpdated) {
           onItemUpdated();
         }
@@ -361,6 +378,21 @@ export const PriorityItemsList = ({
           </div>
         );
       })}
+
+      {completionConfirmItem && (
+        <CompletionConfirmDialog
+          open={!!completionConfirmItem}
+          onOpenChange={(open) => {
+            if (!open) setCompletionConfirmItem(null);
+          }}
+          onConfirm={() => {
+            const item = completionConfirmItem;
+            setCompletionConfirmItem(null);
+            processCompletionChange(item, true);
+          }}
+          itemType={completionConfirmItem.type}
+        />
+      )}
     </div>
   );
 };
