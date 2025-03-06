@@ -140,17 +140,28 @@ export const PriorityItemsList = ({
         description: checked ? "Item marked as urgent" : "Item urgency removed",
       });
       
-      // Update local state to reflect the change
+      // Update local state to reflect the change - fixed type safety issue here
       setLocalItems(prevItems => 
         prevItems.map(i => {
           if (i.type === item.type && i.data.id === item.data.id) {
-            return {
-              ...i,
-              data: {
-                ...i.data,
-                urgent: checked
-              }
-            };
+            // Create a new item with the same structure but updated urgent flag
+            if (i.type === 'task') {
+              return {
+                ...i,
+                data: {
+                  ...i.data,
+                  urgent: checked
+                }
+              } as PriorityItem;
+            } else {
+              return {
+                ...i,
+                data: {
+                  ...i.data,
+                  urgent: checked
+                }
+              } as PriorityItem;
+            }
           }
           return i;
         })
