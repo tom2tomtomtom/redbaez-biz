@@ -111,7 +111,7 @@ export const useItemStatusChange = () => {
 
       if (error) {
         console.error('Database error during deletion:', error);
-        throw error;
+        throw new Error('Failed to delete ' + item.type);
       }
 
       // Update cache immediately to remove the item

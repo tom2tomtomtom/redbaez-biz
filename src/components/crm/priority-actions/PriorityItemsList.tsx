@@ -251,14 +251,25 @@ export const PriorityItemsList = ({
       setLocalItems(prevItems => {
         return prevItems.map(i => {
           if (i.type === item.type && i.data.id === item.data.id) {
-            // Create a new item with updated urgent flag
-            return {
-              ...i,
-              data: {
-                ...i.data,
-                urgent: checked
-              }
-            };
+            // Create a new item with updated urgent flag based on item type
+            if (i.type === 'task') {
+              return {
+                ...i,
+                data: {
+                  ...i.data,
+                  urgent: checked
+                }
+              };
+            } else {
+              // For next_step items
+              return {
+                ...i,
+                data: {
+                  ...i.data,
+                  urgent: checked
+                }
+              };
+            }
           }
           return i;
         });
@@ -280,13 +291,25 @@ export const PriorityItemsList = ({
         setLocalItems(prevItems => {
           return prevItems.map(i => {
             if (i.type === item.type && i.data.id === item.data.id) {
-              return {
-                ...i,
-                data: {
-                  ...i.data,
-                  urgent: !checked // Revert to previous state
-                }
-              };
+              // Revert based on item type
+              if (i.type === 'task') {
+                return {
+                  ...i,
+                  data: {
+                    ...i.data,
+                    urgent: !checked // Revert to previous state
+                  }
+                };
+              } else {
+                // For next_step items
+                return {
+                  ...i,
+                  data: {
+                    ...i.data,
+                    urgent: !checked // Revert to previous state
+                  }
+                };
+              }
             }
             return i;
           });
