@@ -4,6 +4,7 @@ import { Calendar, AlertCircle } from 'lucide-react';
 import { PriorityItem } from './hooks/usePriorityData';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { cn } from '@/lib/utils';
 
 interface PriorityActionItemProps {
   item: PriorityItem;
@@ -32,8 +33,41 @@ export const PriorityActionItem = ({ item, onUrgentChange }: PriorityActionItemP
     await onUrgentChange(!urgent);
   };
 
+  // Determine background color based on type or category
+  const getBackgroundColorClass = () => {
+    if (isNextStep || (isTask && item.data.client_id)) {
+      return 'bg-[#FEC6A1]/30 hover:bg-[#FEC6A1]/50';
+    }
+    
+    if (isTask && item.data.category) {
+      const category = item.data.category.toLowerCase();
+      
+      if (category === 'business admin') {
+        return 'bg-gray-100 hover:bg-gray-200';
+      }
+      
+      if (category === 'marketing') {
+        return 'bg-[#F0D4FA]/30 hover:bg-[#F0D4FA]/50';
+      }
+      
+      if (category === 'product development') {
+        return 'bg-blue-100/50 hover:bg-blue-100';
+      }
+      
+      if (category === 'partnerships') {
+        return 'bg-green-100/50 hover:bg-green-100';
+      }
+    }
+    
+    return 'bg-gray-50 hover:bg-gray-100';
+  };
+
   return (
-    <div className="flex flex-col space-y-1">
+    <div className={cn(
+      "flex flex-col space-y-1 p-4 rounded-lg transition-colors", 
+      getBackgroundColorClass(),
+      urgent && "ring-2 ring-red-400"
+    )}>
       <div className="font-medium flex items-center gap-2">
         {title}
         {urgent && (
