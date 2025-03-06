@@ -15,16 +15,19 @@ export type PriorityItem = {
 };
 
 const fetchGeneralTasks = async (category?: string) => {
-  console.log('Fetching general tasks with category:', category, typeof category); // Debug log with type
+  // Properly convert undefined to a more explicit value for logging
+  const categoryToUse = category && typeof category === 'string' ? category : 'all';
+  console.log('Fetching general tasks with category:', categoryToUse); 
   
   let query = supabase
     .from('general_tasks')
     .select('*');
 
-  // Only filter for incomplete if we're not explicitly requesting completed tasks
+  // Only filter for incomplete tasks
   query = query.eq('status', 'incomplete');
     
-  if (category && category.trim() !== '') {
+  // Only apply category filter if a valid category is provided
+  if (category && typeof category === 'string' && category.trim() !== '') {
     // Make the category comparison case-insensitive
     query = query.ilike('category', `%${category}%`);
   }
@@ -67,13 +70,16 @@ const fetchNextSteps = async () => {
 };
 
 export const usePriorityData = (category?: string, refreshKey?: number) => {
-  console.log('usePriorityData called with category:', category, 'refreshKey:', refreshKey);
+  // Sanitize the category input to prevent confusion
+  const sanitizedCategory = typeof category === 'string' ? category : undefined;
+  
+  console.log('usePriorityData called with category:', sanitizedCategory, 'refreshKey:', refreshKey);
   
   const tasksQuery = useQuery({
-    queryKey: ['generalTasks', category, refreshKey],
-    queryFn: () => fetchGeneralTasks(category),
-    staleTime: 0,
-    gcTime: 0,
+    queryKey: ['generalTasks', sanitizedCategory, refreshKey],
+    queryFn: () => fetchGeneralTasks(sanitizedCategory),
+    staleTime: 5000, // Add a small stale time to prevent constant refetching
+    gcTime: 30000,
     refetchOnWindowFocus: true,
     refetchOnMount: true,
   });
@@ -81,9 +87,8 @@ export const usePriorityData = (category?: string, refreshKey?: number) => {
   const nextStepsQuery = useQuery({
     queryKey: ['clientNextSteps', refreshKey],
     queryFn: fetchNextSteps,
-    // Always fetch next steps regardless of category filter
-    staleTime: 0,
-    gcTime: 0,
+    staleTime: 5000, // Add a small stale time to prevent constant refetching
+    gcTime: 30000,
     refetchOnWindowFocus: true,
     refetchOnMount: true,
   });

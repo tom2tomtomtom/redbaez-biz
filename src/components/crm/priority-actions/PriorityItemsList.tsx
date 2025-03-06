@@ -23,12 +23,17 @@ export const PriorityItemsList = ({
   const { handleCompletedChange, handleUrgentChange, handleDelete } = useItemStatusChange();
 
   // Log items received
-  console.log('PriorityItemsList received items:', items?.length, items);
+  console.log('PriorityItemsList received items:', Array.isArray(items) ? items.length : 'not an array', items);
 
   // Update localItems when items prop changes
   useEffect(() => {
-    console.log('PriorityItemsList updating local items:', items?.length || 0);
-    setLocalItems(items || []);
+    if (Array.isArray(items)) {
+      console.log('PriorityItemsList updating local items:', items.length);
+      setLocalItems([...items]); // Create a new array reference to ensure state updates
+    } else {
+      console.log('PriorityItemsList received non-array items, setting empty array');
+      setLocalItems([]);
+    }
   }, [items]);
 
   const handleItemDelete = async (item: PriorityItem) => {
@@ -86,7 +91,7 @@ export const PriorityItemsList = ({
     }
   };
 
-  console.log('PriorityItemsList rendering localItems:', localItems?.length || 0);
+  console.log('PriorityItemsList rendering localItems:', localItems.length);
 
   // Check if items array is valid
   if (!Array.isArray(localItems) || localItems.length === 0) {

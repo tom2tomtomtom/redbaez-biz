@@ -2,7 +2,7 @@
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { Tables } from '@/integrations/supabase/types';
 import { useQueryClient } from '@tanstack/react-query';
 import { PriorityActionsSkeleton } from './PriorityActionsSkeleton';
@@ -25,17 +25,21 @@ export const PriorityActions = ({
 }: PriorityActionsProps) => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Tables<'general_tasks'> | null>(null);
-  const [refreshKey, setRefreshKey] = useState(0); // Add refresh key to force re-render
+  const [refreshKey, setRefreshKey] = useState(0);
   const queryClient = useQueryClient();
+  const refreshTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const refreshCountRef = useRef(0);
   
-  // Check if category is defined and log it
-  console.log('PriorityActions rendering with category:', category, typeof category);
+  // Ensure category is a proper string or undefined
+  const sanitizedCategory = category === undefined || category === null ? undefined : String(category);
   
-  const { allItems, isLoading, error, refetch } = usePriorityData(category, refreshKey);
+  console.log('PriorityActions rendering with category:', sanitizedCategory); 
+  
+  const { allItems, isLoading, error, refetch } = usePriorityData(sanitizedCategory, refreshKey);
 
-  console.log('PriorityActions - rendered with items:', allItems?.length, allItems); // Detailed debug log
+  console.log('PriorityActions - rendered with items:', allItems?.length, allItems);
 
-  // Force refresh when component mounts and every 15 seconds (reduced from 30)
+  // Force refresh less frequently to avoid excessive API calls
   useEffect(() => {
     // Debug check for tasks to confirm if there's data in the DB
     const checkForTasks = async () => {
@@ -57,23 +61,40 @@ export const PriorityActions = ({
     
     checkForTasks();
     
-    // Initial refresh
+    // Limit how often we refresh to prevent infinite loops
     const refreshData = () => {
+      if (refreshCountRef.current > 20) {
+        console.log('Limiting refreshes to prevent excessive API calls');
+        return;
+      }
+      
       console.log('Refreshing priority actions data...');
+      refreshCountRef.current += 1;
+      
       queryClient.invalidateQueries({ queryKey: ['generalTasks'] });
       queryClient.invalidateQueries({ queryKey: ['clientNextSteps'] });
       setRefreshKey(prev => prev + 1);
       refetch();
     };
     
+    // Initial refresh
     refreshData();
     
-    // Set up interval for periodic refreshes (reduced from 30s to 15s)
-    const intervalId = setInterval(refreshData, 15000);
+    // Set up interval for periodic refreshes (30 seconds)
+    if (refreshTimerRef.current) {
+      clearInterval(refreshTimerRef.current);
+    }
+    
+    refreshTimerRef.current = setInterval(refreshData, 30000);
     
     // Clean up interval on unmount
-    return () => clearInterval(intervalId);
-  }, [queryClient, refetch]);
+    return () => {
+      if (refreshTimerRef.current) {
+        clearInterval(refreshTimerRef.current);
+        refreshTimerRef.current = null;
+      }
+    };
+  }, [queryClient, refetch, sanitizedCategory]);
 
   const handleTaskSaved = useCallback(() => {
     toast({
@@ -113,7 +134,7 @@ export const PriorityActions = ({
   }
 
   if (error) {
-    console.error('Priority Actions error:', error); // Debug log
+    console.error('Priority Actions error:', error);
     return (
       <Card>
         <CardHeader>
@@ -121,7 +142,7 @@ export const PriorityActions = ({
         </CardHeader>
         <CardContent>
           <div className="p-3 bg-red-50 rounded-lg">
-            Error loading priority actions
+            Error loading priority actions: {error.message || 'Unknown error'}
           </div>
         </CardContent>
       </Card>
@@ -132,8 +153,8 @@ export const PriorityActions = ({
     <Card className="transition-all duration-300 hover:shadow-lg">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
         <CardTitle>
-          {category 
-            ? `${category} Tasks` 
+          {sanitizedCategory 
+            ? `${sanitizedCategory} Tasks` 
             : `Priority Actions for ${new Date().toLocaleString('default', { month: 'long' })}`
           }
         </CardTitle>
@@ -154,7 +175,7 @@ export const PriorityActions = ({
           </div>
         ) : (
           <PriorityItemsList 
-            key={refreshKey} // Force re-render on refreshKey change
+            key={`items-list-${refreshKey}`}
             items={allItems}
             onTaskClick={handleTaskClick}
             onTaskUpdated={handleTaskUpdated}
@@ -163,12 +184,12 @@ export const PriorityActions = ({
       </CardContent>
 
       <TaskDialog
-        key={`dialog-${refreshKey}`} // Force re-render dialog too
+        key={`dialog-${refreshKey}`}
         isOpen={isDialogOpen}
         onOpenChange={setIsDialogOpen}
         task={editingTask}
         onSaved={handleTaskSaved}
-        defaultCategory={category}
+        defaultCategory={sanitizedCategory}
       />
     </Card>
   );

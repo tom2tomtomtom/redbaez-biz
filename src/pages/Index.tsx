@@ -30,6 +30,25 @@ const Index = () => {
     },
   });
 
+  // Test direct database access
+  const testDatabaseAccess = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('general_tasks')
+        .select('*')
+        .limit(5);
+      
+      console.log('Test DB access - general_tasks:', data, error);
+    } catch (e) {
+      console.error('Error testing DB access:', e);
+    }
+  };
+
+  // Call the test function once on component mount
+  useState(() => {
+    testDatabaseAccess();
+  });
+
   return (
     <div className="min-h-screen bg-background">
       <MainNav />
