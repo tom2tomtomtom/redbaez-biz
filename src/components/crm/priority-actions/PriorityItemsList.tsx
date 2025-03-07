@@ -54,7 +54,7 @@ export const PriorityItemsList = ({
         item.data && 
         item.data.id && 
         // Exclude any items that are in our deletedItemIds set
-        !deletedItemIds.has(item.data.id)
+        !deletedItemIds.has(`${item.type}-${item.data.id}`)
       );
       
       console.log('PriorityItemsList filtered items:', validItems.length, 
@@ -101,16 +101,24 @@ export const PriorityItemsList = ({
     try {
       setIsProcessingDelete(true);
       const itemId = item.data.id;
+      const uniqueItemId = `${item.type}-${itemId}`;
+      
+      console.log(`Deleting item ${uniqueItemId}`);
 
       // First, add to deleted items set to prevent it from reappearing in the UI
       setDeletedItemIds(prev => {
         const newSet = new Set(prev);
-        newSet.add(itemId);
+        newSet.add(uniqueItemId);
+        console.log(`Added ${uniqueItemId} to deletedItemIds set`, newSet);
         return newSet;
       });
       
       // Remove from local state immediately for responsive UI
-      setLocalItems(prevItems => prevItems.filter(i => i.data.id !== itemId));
+      setLocalItems(prevItems => {
+        const filtered = prevItems.filter(i => !(i.type === item.type && i.data.id === itemId));
+        console.log(`Removed item from localItems, before: ${prevItems.length}, after: ${filtered.length}`);
+        return filtered;
+      });
       
       // Then proceed with the actual deletion in the database
       const success = await handleDelete(item);
@@ -123,6 +131,7 @@ export const PriorityItemsList = ({
         });
         
         if (onItemRemoved) {
+          console.log('Calling onItemRemoved callback');
           onItemRemoved();
         }
       } else {
@@ -130,13 +139,13 @@ export const PriorityItemsList = ({
         // If deletion failed, remove from deletedItems set and add back to localItems
         setDeletedItemIds(prev => {
           const newSet = new Set(prev);
-          newSet.delete(itemId);
+          newSet.delete(uniqueItemId);
           return newSet;
         });
         
         // Only add the item back if it's not already there
         setLocalItems(prevItems => {
-          if (prevItems.some(i => i.data.id === itemId)) {
+          if (prevItems.some(i => i.type === item.type && i.data.id === itemId)) {
             return prevItems; // Item already exists
           }
           return [...prevItems, item]; // Add the item back
@@ -377,15 +386,17 @@ export const PriorityItemsList = ({
     <div className="space-y-2">
       {localItems.map((item) => {
         const itemId = item.data.id;
+        const uniqueItemId = `${item.type}-${itemId}`;
         
         // Skip rendering deleted items
-        if (deletedItemIds.has(itemId)) {
+        if (deletedItemIds.has(uniqueItemId)) {
+          console.log(`Skipping deleted item ${uniqueItemId}`);
           return null;
         }
         
         return (
           <div 
-            key={`${item.type}-${itemId}`} 
+            key={uniqueItemId} 
             className="flex items-start gap-2 p-2 border rounded-lg hover:bg-gray-50 cursor-pointer"
             onClick={() => handleItemClick(item)}
           >

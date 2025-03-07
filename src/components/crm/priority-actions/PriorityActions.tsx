@@ -67,8 +67,9 @@ export const PriorityActions = ({
     setTimeout(() => {
       // Force a thorough refresh by increasing the key by a larger amount
       setRefreshKey(prev => prev + 10);
-      refetch();
-    }, 700);
+      // Force refetch from the server
+      refetch({ throwOnError: true, cancelRefetch: false });
+    }, 1000); // Longer delay to ensure DB operations complete
   };
 
   const handleCategoryChange = (newCategory: string | undefined) => {

@@ -25,6 +25,12 @@ export const useItemStatusChange = () => {
         refetchType: 'all'
       });
       
+      // Also invalidate priority data queries
+      await queryClient.invalidateQueries({
+        queryKey: ['priorityData'],
+        refetchType: 'all'
+      });
+      
       // If there's a client ID, invalidate client-specific queries
       if (clientId) {
         await queryClient.invalidateQueries({ 
@@ -49,21 +55,7 @@ export const useItemStatusChange = () => {
       console.log(`Updating item (${item.type}:${item.data.id}) completed status to: ${completed}`);
       
       if (item.type === 'task') {
-        const { error } = await supabase
-          .from('general_tasks')
-          .update({ status: completed ? 'completed' : 'incomplete' })
-          .eq('id', item.data.id);
-        if (error) throw error;
-      } else if (item.type === 'next_step') {
-        const { error } = await supabase
-          .from('client_next_steps')
-          .update({ completed_at: completed ? new Date().toISOString() : null })
-          .eq('id', item.data.id);
-        if (error) throw error;
-      }
-
-      // Update cache immediately for better user experience
-      if (item.type === 'task') {
+        // Update cache immediately for better user experience
         queryClient.setQueryData(['generalTasks'], (oldData: any) => {
           if (!oldData) return oldData;
           return Array.isArray(oldData) 
@@ -74,7 +66,15 @@ export const useItemStatusChange = () => {
               )
             : oldData;
         });
-      } else {
+        
+        // Then update database
+        const { error } = await supabase
+          .from('general_tasks')
+          .update({ status: completed ? 'completed' : 'incomplete' })
+          .eq('id', item.data.id);
+        if (error) throw error;
+      } else if (item.type === 'next_step') {
+        // Update cache immediately for better user experience
         queryClient.setQueryData(['clientNextSteps'], (oldData: any) => {
           if (!oldData) return oldData;
           return Array.isArray(oldData) 
@@ -85,10 +85,17 @@ export const useItemStatusChange = () => {
               )
             : oldData;
         });
+        
+        // Then update database
+        const { error } = await supabase
+          .from('client_next_steps')
+          .update({ completed_at: completed ? new Date().toISOString() : null })
+          .eq('id', item.data.id);
+        if (error) throw error;
       }
 
       // Invalidate queries after a delay to allow UI to update first
-      await delay(500);
+      await delay(300);
       await invalidateQueries(item.data.client_id);
 
       return true;
@@ -108,9 +115,9 @@ export const useItemStatusChange = () => {
       let error;
       console.log(`Attempting to delete ${item.type} with ID: ${item.data.id}`);
 
-      // First, immediately remove from all caches to prevent UI from showing deleted items
+      // Immediate optimistic update of the cache to reflect deletion
       if (item.type === 'task') {
-        // Immediately remove from cache
+        // Immediately remove from all caches
         queryClient.setQueryData(['generalTasks'], (oldData: any) => {
           if (!oldData) return [];
           console.log('Removing task from cache, before:', oldData?.length);
@@ -119,6 +126,14 @@ export const useItemStatusChange = () => {
             : oldData;
           console.log('After filter:', filtered?.length);
           return filtered;
+        });
+        
+        // Also remove from priorityData cache if it exists
+        queryClient.setQueryData(['priorityData'], (oldData: any) => {
+          if (!oldData) return oldData;
+          return Array.isArray(oldData) 
+            ? oldData.filter(i => !(i.type === 'task' && i.data.id === item.data.id)) 
+            : oldData;
         });
 
         // Delete from database
@@ -130,7 +145,7 @@ export const useItemStatusChange = () => {
         
         console.log('Task deletion result:', result);
       } else if (item.type === 'next_step') {
-        // Immediately remove from cache
+        // Immediately remove from all caches
         queryClient.setQueryData(['clientNextSteps'], (oldData: any) => {
           if (!oldData) return [];
           console.log('Removing next step from cache, before:', oldData?.length);
@@ -139,6 +154,14 @@ export const useItemStatusChange = () => {
             : oldData;
           console.log('After filter:', filtered?.length);
           return filtered;
+        });
+        
+        // Also remove from priorityData cache if it exists
+        queryClient.setQueryData(['priorityData'], (oldData: any) => {
+          if (!oldData) return oldData;
+          return Array.isArray(oldData) 
+            ? oldData.filter(i => !(i.type === 'next_step' && i.data.id === item.data.id)) 
+            : oldData;
         });
         
         // Delete from database
@@ -159,11 +182,12 @@ export const useItemStatusChange = () => {
       }
 
       // Allow short delay before invalidating queries to prevent race conditions
-      await delay(500);
+      await delay(300);
       
       // Force a complete cache reset for these queries to ensure deleted items don't reappear
       await queryClient.resetQueries({ queryKey: ['generalTasks'] });
       await queryClient.resetQueries({ queryKey: ['clientNextSteps'] });
+      await queryClient.resetQueries({ queryKey: ['priorityData'] });
       
       // Then properly invalidate all related queries
       await invalidateQueries(item.data.client_id);
@@ -198,6 +222,25 @@ export const useItemStatusChange = () => {
             : oldData;
         });
         
+        // Also update in priorityData cache if it exists
+        queryClient.setQueryData(['priorityData'], (oldData: any) => {
+          if (!oldData) return oldData;
+          return Array.isArray(oldData) 
+            ? oldData.map(i => {
+                if (i.type === 'task' && i.data.id === item.data.id) {
+                  return {
+                    ...i,
+                    data: {
+                      ...i.data,
+                      urgent: checked
+                    }
+                  };
+                }
+                return i;
+              })
+            : oldData;
+        });
+        
         // Then update database
         const { error: updateError } = await supabase
           .from('general_tasks')
@@ -217,6 +260,25 @@ export const useItemStatusChange = () => {
             : oldData;
         });
         
+        // Also update in priorityData cache if it exists
+        queryClient.setQueryData(['priorityData'], (oldData: any) => {
+          if (!oldData) return oldData;
+          return Array.isArray(oldData) 
+            ? oldData.map(i => {
+                if (i.type === 'next_step' && i.data.id === item.data.id) {
+                  return {
+                    ...i,
+                    data: {
+                      ...i.data,
+                      urgent: checked
+                    }
+                  };
+                }
+                return i;
+              })
+            : oldData;
+        });
+        
         // Then update database
         const { error: updateError } = await supabase
           .from('client_next_steps')
@@ -228,7 +290,7 @@ export const useItemStatusChange = () => {
       if (error) throw error;
 
       // Invalidate after a delay
-      await delay(500);
+      await delay(300);
       await invalidateQueries(item.data.client_id);
 
       return true;
