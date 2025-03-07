@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { RefreshCcw, Plus } from 'lucide-react';
@@ -68,7 +67,7 @@ export const PriorityActions = ({
       // Force a thorough refresh by increasing the key by a larger amount
       setRefreshKey(prev => prev + 10);
       // Force refetch from the server
-      refetch({ throwOnError: true, cancelRefetch: false });
+      refetch();
     }, 1000); // Longer delay to ensure DB operations complete
   };
 
