@@ -50,7 +50,8 @@ export const getFreshSupabaseClient = () => {
       global: {
         headers: {
           ...getCacheHeaders(),
-          'X-Fresh-Client': 'true'
+          'X-Fresh-Client': 'true',
+          'X-Fresh-Request': `true-${Date.now()}`
         }
       }
     }

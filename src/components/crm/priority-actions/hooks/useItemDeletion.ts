@@ -8,7 +8,10 @@ import { useTaskDeletion } from '@/hooks/useTaskDeletion';
 export const useItemDeletion = () => {
   const { invalidateQueries } = useQueryCacheManager();
   const [isDeleting, setIsDeleting] = useState(false);
-  const { deleteTask } = useTaskDeletion();
+  const { deleteTask } = useTaskDeletion(async () => {
+    // Additional invalidation to ensure UI updates across all components
+    await invalidateQueries();
+  });
 
   const handleDelete = async (item: PriorityItem) => {
     if (isDeleting) {

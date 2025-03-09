@@ -1,7 +1,7 @@
 
 import { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/lib/supabase';
+import { supabase, getFreshSupabaseClient } from '@/lib/supabase';
 import { Task } from './taskTypes';
 import { toast } from '@/hooks/use-toast';
 import { useTaskDeletion } from '@/hooks/useTaskDeletion';
@@ -9,44 +9,19 @@ import { useTaskDeletion } from '@/hooks/useTaskDeletion';
 export const useTaskMutations = () => {
   const queryClient = useQueryClient();
   const [isProcessing, setIsProcessing] = useState(false);
-  const { deleteTask: deleteTaskHook } = useTaskDeletion();
+  const { deleteTask: deleteTaskHook, invalidateTaskQueries } = useTaskDeletion();
   
-  const invalidateTaskQueries = async () => {
-    console.log(`TASKS: Invalidating all task queries at ${new Date().toISOString()}`);
-    
-    // Invalidate all task-related queries to ensure UI refresh
-    const queryKeys = [
-      ['unified-tasks'],
-      ['priority-data'],
-      ['tasks'],
-      ['generalTasks'],
-      ['clientNextSteps']
-    ];
-    
-    // First invalidate all relevant queries
-    for (const key of queryKeys) {
-      console.log(`TASKS: Invalidating query ${key.join('/')}`);
-      await queryClient.invalidateQueries({ queryKey: key });
-    }
-    
-    // Then force immediate refetches of critical queries
-    await Promise.all([
-      queryClient.refetchQueries({ queryKey: ['unified-tasks'] }),
-      queryClient.refetchQueries({ queryKey: ['generalTasks'] }),
-      queryClient.refetchQueries({ queryKey: ['clientNextSteps'] }),
-    ]);
-    
-    console.log(`TASKS: Invalidation complete at ${new Date().toISOString()}`);
-  };
-
   // Update task completion status
   const updateTaskCompletion = useMutation({
     mutationFn: async ({ task, completed }: { task: Task, completed: boolean }) => {
       setIsProcessing(true);
       console.log(`TASKS: Updating task ${task.id} completion to ${completed}`);
+      
+      // Get a fresh client to avoid caching issues
+      const freshClient = getFreshSupabaseClient();
 
       if (task.source_table === 'general_tasks') {
-        const { error } = await supabase
+        const { error } = await freshClient
           .from('general_tasks')
           .update({
             status: completed ? 'completed' : 'incomplete',
@@ -56,7 +31,7 @@ export const useTaskMutations = () => {
 
         if (error) throw error;
       } else {
-        const { error } = await supabase
+        const { error } = await freshClient
           .from('client_next_steps')
           .update({
             completed_at: completed ? new Date().toISOString() : null,
@@ -94,9 +69,12 @@ export const useTaskMutations = () => {
     mutationFn: async ({ task, urgent }: { task: Task, urgent: boolean }) => {
       setIsProcessing(true);
       console.log(`Updating task ${task.id} urgency to ${urgent}`);
+      
+      // Get a fresh client to avoid caching issues
+      const freshClient = getFreshSupabaseClient();
 
       if (task.source_table === 'general_tasks') {
-        const { error } = await supabase
+        const { error } = await freshClient
           .from('general_tasks')
           .update({
             urgent: urgent,
@@ -106,7 +84,7 @@ export const useTaskMutations = () => {
 
         if (error) throw error;
       } else {
-        const { error } = await supabase
+        const { error } = await freshClient
           .from('client_next_steps')
           .update({
             urgent: urgent,

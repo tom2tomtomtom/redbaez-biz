@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import { supabase } from '@/lib/supabase';
+import { getFreshSupabaseClient } from '@/lib/supabase';
 import { toast } from '@/hooks/use-toast';
 import { useQueryClient } from '@tanstack/react-query';
 
@@ -10,7 +10,7 @@ type TaskType = {
   type?: string;
 };
 
-export const useTaskDeletion = () => {
+export const useTaskDeletion = (onTaskDeleted?: () => void) => {
   const [isDeleting, setIsDeleting] = useState(false);
   const queryClient = useQueryClient();
 
@@ -76,16 +76,11 @@ export const useTaskDeletion = () => {
       
       console.log(`DELETION: Deleting from ${tableName} with ID: ${taskId} at ${timestamp}`);
       
-      // Add custom headers to prevent caching issues
-      const customHeaders = {
-        'Cache-Control': 'no-cache',
-        'Pragma': 'no-cache',
-        'Expires': '0',
-        'X-Custom-Timestamp': timestamp
-      };
+      // Use a fresh client with cache-busting headers
+      const freshClient = getFreshSupabaseClient();
       
-      // Perform the deletion
-      const { error, data } = await supabase
+      // Perform the deletion with explicit cache control
+      const { error, data } = await freshClient
         .from(tableName)
         .delete()
         .eq('id', taskId)
@@ -111,6 +106,12 @@ export const useTaskDeletion = () => {
       setTimeout(async () => {
         console.log(`DELETION: Running second invalidation for ${taskId}`);
         await invalidateTaskQueries();
+        
+        // Call the callback if provided
+        if (onTaskDeleted) {
+          console.log('DELETION: Executing onTaskDeleted callback');
+          onTaskDeleted();
+        }
       }, 500);
       
       toast({
@@ -132,5 +133,5 @@ export const useTaskDeletion = () => {
     }
   };
 
-  return { deleteTask, isDeleting };
+  return { deleteTask, isDeleting, invalidateTaskQueries };
 };

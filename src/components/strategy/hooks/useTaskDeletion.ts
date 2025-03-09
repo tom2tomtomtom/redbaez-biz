@@ -7,7 +7,7 @@ import { useTaskDeletion as useGlobalTaskDeletion } from "@/hooks/useTaskDeletio
 export const useTaskDeletion = (onTaskDeleted: () => void) => {
   const [isDeleting, setIsDeleting] = useState(false);
   const queryClient = useQueryClient();
-  const { deleteTask: globalDeleteTask } = useGlobalTaskDeletion();
+  const { deleteTask: globalDeleteTask } = useGlobalTaskDeletion(onTaskDeleted);
 
   const deleteTask = async (task: any) => {
     if (!task) {
@@ -30,13 +30,6 @@ export const useTaskDeletion = (onTaskDeleted: () => void) => {
       if (!success) {
         throw new Error("Failed to delete task");
       }
-      
-      // Ensure the callback is triggered after everything is done
-      setTimeout(() => {
-        if (onTaskDeleted) {
-          onTaskDeleted();
-        }
-      }, 300);
       
       return true;
     } catch (error) {
