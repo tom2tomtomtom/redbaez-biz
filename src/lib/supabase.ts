@@ -38,30 +38,3 @@ export const supabase = createClient(
 export const logQuery = (table: string, action: string) => {
   console.log(`Supabase ${action} from ${table} at ${new Date().toISOString()}`);
 };
-
-// Helper function to get a new supabase client with fresh cache-busting headers
-// Useful for operations where cache prevention is critical
-export const getFreshSupabaseClient = () => {
-  return createClient(
-    supabaseUrl,
-    supabaseAnonKey,
-    {
-      auth: {
-        persistSession: true,
-        autoRefreshToken: true,
-        storage: localStorage
-      },
-      global: {
-        headers: {
-          ...getCacheHeaders(),
-          'X-Fresh-Client': 'true',
-          'X-Fresh-Request': `true-${Date.now()}`,
-          'X-Client-ID': `client_${Math.random().toString(36).substring(2, 15)}`
-        }
-      },
-      db: {
-        schema: 'public'
-      }
-    }
-  );
-};

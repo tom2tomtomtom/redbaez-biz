@@ -41,11 +41,15 @@ export const useItemDeletion = () => {
       
       console.log(`ITEM_DELETION: Deleting item ${item.type}:${itemId} at ${timestamp}`);
       
+      // Format the task with the proper structure for the core deletion function
+      const taskToDelete = {
+        id: String(itemId),
+        type: item.type,
+        source_table: item.type === 'next_step' ? 'client_next_steps' : 'general_tasks'
+      };
+      
       // Use the unified task deletion hook
-      const success = await deleteTask({
-        id: itemId,
-        type: item.type
-      });
+      const success = await deleteTask(taskToDelete);
       
       if (!success) {
         throw new Error(`Failed to delete ${item.type}.`);

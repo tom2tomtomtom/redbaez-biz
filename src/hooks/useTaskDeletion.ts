@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import { getFreshSupabaseClient } from '@/lib/supabase';
+import { getFreshSupabaseClient, supabase } from '@/lib/supabase';
 import { toast } from '@/hooks/use-toast';
 import { useQueryClient } from '@tanstack/react-query';
 
@@ -81,10 +81,12 @@ export const useTaskDeletion = (onTaskDeleted?: () => void) => {
       let tableName = 'general_tasks';
       let taskId = task.id;
       
+      // Check if this is a next step task
       if (task.source_table === 'client_next_steps' || 
           task.type === 'next_step' || 
           task.type === 'next-step') {
         tableName = 'client_next_steps';
+        
         // Extract the actual ID by removing the prefix if it exists
         if (typeof taskId === 'string' && taskId.startsWith('next-step-')) {
           taskId = taskId.replace('next-step-', '');
@@ -93,11 +95,8 @@ export const useTaskDeletion = (onTaskDeleted?: () => void) => {
       
       console.log(`DELETION: Deleting from ${tableName} with ID: ${taskId} at ${timestamp}`);
       
-      // Use a fresh client with cache-busting headers
-      const freshClient = getFreshSupabaseClient();
-      
-      // Perform the deletion with explicit cache control
-      const { error, data, count } = await freshClient
+      // Use singleton Supabase client instead of creating a new one each time
+      const { error, data, count } = await supabase
         .from(tableName)
         .delete()
         .eq('id', taskId)

@@ -36,8 +36,18 @@ export const useTaskDeletion = (onTaskDeleted: () => void) => {
     console.log("STRATEGY: Attempting to delete task:", task);
     
     try {
+      // Ensure we pass the task with properly formatted ID and source_table/type
+      const taskToDelete = {
+        ...task,
+        // Make sure we preserve task ID information
+        id: task.id,
+        // Ensure we have source_table or type information for the core deletion function
+        source_table: task.source_table || (task.type === 'next_step' ? 'client_next_steps' : 'general_tasks'),
+        type: task.type || (task.source_table === 'client_next_steps' ? 'next_step' : 'task')
+      };
+      
       // Use the unified task deletion hook
-      const success = await globalDeleteTask(task);
+      const success = await globalDeleteTask(taskToDelete);
       
       if (!success) {
         throw new Error("Failed to delete task");
