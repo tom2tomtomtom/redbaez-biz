@@ -8,7 +8,7 @@ import { cn } from '@/lib/utils';
 
 interface PriorityActionItemProps {
   item: PriorityItem;
-  onUrgentChange: (checked: boolean) => Promise<void>;
+  onUrgentChange: (checked: boolean) => void; // Changed from Promise<void> to void
 }
 
 export const PriorityActionItem = ({ item, onUrgentChange }: PriorityActionItemProps) => {

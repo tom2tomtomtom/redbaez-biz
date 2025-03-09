@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from 'react';
 import { PriorityActionItem } from './PriorityActionItem';
 import { PriorityItem } from './hooks/usePriorityData';
@@ -34,7 +33,6 @@ export const PriorityItemsList = ({
   const { handleCompletedChange, handleDelete, handleUrgentChange } = useItemStatusChange();
   
   const [completionConfirmItem, setCompletionConfirmItem] = useState<PriorityItem | null>(null);
-  // Track deleted item IDs to prevent them from reappearing
   const deletedItemIds = useRef<Set<string>>(new Set());
 
   useEffect(() => {
@@ -44,17 +42,14 @@ export const PriorityItemsList = ({
     console.log('showCompleted flag:', showCompleted);
     console.log('Deleted items count:', deletedItemIds.current.size);
     
-    // Log any deleted items for debugging
     if (deletedItemIds.current.size > 0) {
       console.log('Currently deleted items:', [...deletedItemIds.current]);
     }
 
-    // Filter out deleted items and invalid items
     const validItems = items.filter(item => 
       item && 
       item.data && 
       item.data.id && 
-      // Exclude any items that are in our deletedItemIds set
       !deletedItemIds.current.has(`${item.type}-${item.data.id}`)
     );
     
@@ -63,7 +58,6 @@ export const PriorityItemsList = ({
     let filteredItems;
     
     if (showCompleted) {
-      // Filter for completed items
       filteredItems = validItems.filter(item => {
         const isCompleted = (item.type === 'task' && item.data.status === 'completed') || 
           (item.type === 'next_step' && item.data.completed_at !== null);
@@ -71,7 +65,6 @@ export const PriorityItemsList = ({
       });
       console.log('Filtered for completed items:', filteredItems.length);
     } else {
-      // Filter for incomplete items
       filteredItems = validItems.filter(item => {
         const isIncomplete = (item.type === 'task' && item.data.status !== 'completed') || 
           (item.type === 'next_step' && item.data.completed_at === null);
@@ -105,18 +98,15 @@ export const PriorityItemsList = ({
       
       console.log(`Deleting item ${uniqueItemId}`);
 
-      // First, add to deleted items set to prevent it from reappearing in the UI
       deletedItemIds.current.add(uniqueItemId);
       console.log(`Added ${uniqueItemId} to deletedItemIds set`, [...deletedItemIds.current]);
       
-      // Remove from local state immediately for responsive UI
       setLocalItems(prevItems => {
         const filtered = prevItems.filter(i => !(i.type === item.type && i.data.id === itemId));
         console.log(`Removed item from localItems, before: ${prevItems.length}, after: ${filtered.length}`);
         return filtered;
       });
       
-      // Then proceed with the actual deletion in the database
       const success = await handleDelete(item);
       
       if (success) {
@@ -129,16 +119,13 @@ export const PriorityItemsList = ({
       } else {
         console.error(`Failed to delete ${item.type}:`, itemId);
         
-        // If deletion failed, remove from deletedItems set
         deletedItemIds.current.delete(uniqueItemId);
         console.log(`Removed ${uniqueItemId} from deletedItemIds set after failed deletion`);
         
-        // Only add the item back if it exists and its not in the deleted set
         setLocalItems(prevItems => {
           if (prevItems.some(i => i.type === item.type && i.data.id === itemId)) {
-            return prevItems; // Item already exists
+            return prevItems;
           }
-          // Check if the item is in the original items array
           const originalItem = items.find(i => i.type === item.type && i.data.id === itemId);
           return originalItem ? [...prevItems, originalItem] : prevItems;
         });
@@ -213,7 +200,6 @@ export const PriorityItemsList = ({
       const success = await handleCompletedChange(item, checked);
       
       if (success && checked && !showCompleted) {
-        // If the item was completed and we're viewing active items, remove it from the list
         setLocalItems(prevItems => prevItems.filter(i => 
           !(i.data.id === item.data.id && i.type === item.type)
         ));
@@ -380,7 +366,6 @@ export const PriorityItemsList = ({
         const itemId = item.data.id;
         const uniqueItemId = `${item.type}-${itemId}`;
         
-        // Skip rendering deleted items - additional safeguard
         if (deletedItemIds.current.has(uniqueItemId)) {
           console.log(`Skipping deleted item ${uniqueItemId}`);
           return null;
