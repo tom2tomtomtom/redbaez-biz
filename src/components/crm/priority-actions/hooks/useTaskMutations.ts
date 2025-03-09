@@ -4,10 +4,12 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { Task } from './taskTypes';
 import { toast } from '@/hooks/use-toast';
+import { useTaskDeletion } from '@/hooks/useTaskDeletion';
 
 export const useTaskMutations = () => {
   const queryClient = useQueryClient();
   const [isProcessing, setIsProcessing] = useState(false);
+  const { deleteTask: deleteTaskHook } = useTaskDeletion();
   
   const invalidateTaskQueries = async () => {
     console.log(`TASKS: Invalidating all task queries at ${new Date().toISOString()}`);
@@ -137,64 +139,11 @@ export const useTaskMutations = () => {
     }
   });
 
-  // Delete task
-  const deleteTask = useMutation({
-    mutationFn: async (task: Task) => {
-      setIsProcessing(true);
-      console.log(`TASKS: Deleting task ${task.id} from ${task.source_table} at ${new Date().toISOString()}`);
-
-      // Add timestamp to prevent caching issues
-      const timestamp = new Date().toISOString();
-      
-      if (task.source_table === 'general_tasks') {
-        const { error, data } = await supabase
-          .from('general_tasks')
-          .delete()
-          .eq('id', task.id)
-          .select();
-
-        if (error) throw error;
-        console.log(`TASKS: Deletion response for general_tasks:`, data);
-      } else {
-        const { error, data } = await supabase
-          .from('client_next_steps')
-          .delete()
-          .eq('id', task.id)
-          .select();
-
-        if (error) throw error;
-        console.log(`TASKS: Deletion response for client_next_steps:`, data);
-      }
-
-      console.log(`TASKS: Deletion completed for ${task.id} at ${timestamp}`);
-      return task.id;
-    },
-    onSuccess: (taskId) => {
-      console.log(`TASKS: Delete mutation succeeded for task ${taskId}, refreshing cache`);
-      invalidateTaskQueries();
-      toast({
-        title: 'Task deleted',
-        description: 'Task has been removed',
-      });
-    },
-    onError: (error) => {
-      console.error('Error deleting task:', error);
-      toast({
-        title: 'Delete failed',
-        description: error.message,
-        variant: 'destructive',
-      });
-    },
-    onSettled: () => {
-      setIsProcessing(false);
-    }
-  });
-
   return {
     isProcessing,
     updateCompletion: (task: Task, completed: boolean) => updateTaskCompletion.mutate({ task, completed }),
     updateUrgency: (task: Task, urgent: boolean) => updateTaskUrgency.mutate({ task, urgent }),
-    deleteTask: (task: Task) => deleteTask.mutate(task),
+    deleteTask: (task: Task) => deleteTaskHook(task),
     invalidateTaskQueries
   };
 };
