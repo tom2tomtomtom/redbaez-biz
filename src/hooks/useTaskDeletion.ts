@@ -15,10 +15,11 @@ export const useTaskDeletion = (onTaskDeleted?: () => void) => {
   const [isDeleting, setIsDeleting] = useState(false);
   const queryClient = useQueryClient();
 
+  // Improved invalidation with safety checks
   const invalidateTaskQueries = async () => {
     console.log(`Invalidating task queries at ${new Date().toISOString()}`);
     
-    // Create a list of query keys to invalidate (without priority-data that's causing errors)
+    // List of known query keys
     const queryKeys = [
       ['tasks'],
       ['generalTasks'],
@@ -27,30 +28,56 @@ export const useTaskDeletion = (onTaskDeleted?: () => void) => {
       ['client-items']
     ];
     
-    // Invalidate all queries
+    // First invalidate all queries without forcing refetch
     for (const key of queryKeys) {
       console.log(`Invalidating query ${key.join('/')}`);
       await queryClient.invalidateQueries({ queryKey: key });
     }
     
-    // Force immediate refetches ONLY of queries that exist
+    // Then refetch only active queries that we know exist
     try {
-      await Promise.all([
-        queryClient.fetchQuery({ 
-          queryKey: ['generalTasks'],
-          staleTime: 0 
-        }),
-        queryClient.fetchQuery({ 
-          queryKey: ['clientNextSteps'],
-          staleTime: 0
-        }),
-        queryClient.fetchQuery({ 
-          queryKey: ['unified-tasks'],
-          staleTime: 0
-        })
-      ]);
+      // Get list of active query keys to avoid trying to fetch non-existent ones
+      const activeQueries = queryClient.getQueryCache().getAll()
+        .map(query => JSON.stringify(query.queryKey));
+      
+      console.log("Active queries:", activeQueries);
+      
+      // Only refetch queries that actually exist
+      const promises = [];
+      
+      // Check and refetch unified-tasks if it exists
+      if (activeQueries.includes(JSON.stringify(['unified-tasks'])) || 
+          activeQueries.some(key => key.includes('unified-tasks'))) {
+        console.log("Refetching unified-tasks");
+        promises.push(queryClient.refetchQueries({ queryKey: ['unified-tasks'] }));
+      }
+      
+      // Check and refetch generalTasks if it exists
+      if (activeQueries.includes(JSON.stringify(['generalTasks'])) || 
+          activeQueries.some(key => key.includes('generalTasks'))) {
+        console.log("Refetching generalTasks");
+        promises.push(queryClient.refetchQueries({ queryKey: ['generalTasks'] }));
+      }
+      
+      // Check and refetch clientNextSteps if it exists
+      if (activeQueries.includes(JSON.stringify(['clientNextSteps'])) || 
+          activeQueries.some(key => key.includes('clientNextSteps'))) {
+        console.log("Refetching clientNextSteps");
+        promises.push(queryClient.refetchQueries({ queryKey: ['clientNextSteps'] }));
+      }
+      
+      // Check and refetch client-items if it exists
+      if (activeQueries.includes(JSON.stringify(['client-items'])) || 
+          activeQueries.some(key => key.includes('client-items'))) {
+        console.log("Refetching client-items");
+        promises.push(queryClient.refetchQueries({ queryKey: ['client-items'] }));
+      }
+      
+      if (promises.length > 0) {
+        await Promise.all(promises);
+      }
     } catch (error) {
-      console.log('Error during forced refetch:', error);
+      console.log('Error during refetch:', error);
     }
     
     console.log(`Invalidation complete at ${new Date().toISOString()}`);
@@ -127,7 +154,12 @@ export const useTaskDeletion = (onTaskDeleted?: () => void) => {
       }
       
       // Find which table contains the task
-      const tableName = await findTaskLocation(taskId);
+      let tableName = task.source_table;
+      
+      // If source_table is not provided, find it
+      if (!tableName) {
+        tableName = await findTaskLocation(taskId);
+      }
       
       if (!tableName) {
         console.error(`Task with ID ${taskId} not found in any table`);

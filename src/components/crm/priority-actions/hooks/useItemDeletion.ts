@@ -15,11 +15,20 @@ export const useItemDeletion = () => {
   const { deleteTask } = useTaskDeletion(async () => {
     console.log("ITEM_DELETION: Deletion callback executed");
     
-    // Force an immediate refetch of task-related queries that exist
-    await Promise.all([
-      queryClient.refetchQueries({ queryKey: ['client-items'] }),
-      queryClient.refetchQueries({ queryKey: ['unified-tasks'] }),
-    ]);
+    // Get list of active queries to avoid errors
+    const activeQueries = queryClient.getQueryCache().getAll()
+      .map(query => JSON.stringify(query.queryKey));
+      
+    console.log("ITEM_DELETION: Active queries:", activeQueries);
+    
+    // Only refetch queries that actually exist
+    if (activeQueries.some(key => key.includes('client-items'))) {
+      queryClient.refetchQueries({ queryKey: ['client-items'] });
+    }
+    
+    if (activeQueries.some(key => key.includes('unified-tasks'))) {
+      queryClient.refetchQueries({ queryKey: ['unified-tasks'] });
+    }
     
     // Additional invalidation to ensure UI updates across all components
     await invalidateQueries();
@@ -59,8 +68,17 @@ export const useItemDeletion = () => {
       if (clientId) {
         console.log(`ITEM_DELETION: Invalidating client data for client ${clientId}`);
         await invalidateQueries(clientId);
-        queryClient.refetchQueries({ queryKey: ['client', String(clientId)] });
-        queryClient.refetchQueries({ queryKey: ['client-items', String(clientId)] });
+        
+        const activeQueries = queryClient.getQueryCache().getAll()
+          .map(query => JSON.stringify(query.queryKey));
+        
+        if (activeQueries.some(key => key.includes(`client,${clientId}`))) {
+          queryClient.refetchQueries({ queryKey: ['client', String(clientId)] });
+        }
+        
+        if (activeQueries.some(key => key.includes(`client-items,${clientId}`))) {
+          queryClient.refetchQueries({ queryKey: ['client-items', String(clientId)] });
+        }
       }
       
       console.log(`ITEM_DELETION: Deletion complete for ${itemId}`);

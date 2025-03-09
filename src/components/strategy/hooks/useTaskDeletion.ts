@@ -11,9 +11,20 @@ export const useTaskDeletion = (onTaskDeleted: () => void) => {
     // Function that runs after deletion is complete
     console.log("STRATEGY: Deletion callback executed");
     
-    // Force refetch only existing queries
-    queryClient.refetchQueries({ queryKey: ['generalTasks'] });
-    queryClient.refetchQueries({ queryKey: ['unified-tasks'] });
+    // Get list of active query keys to avoid trying to fetch non-existent ones
+    const activeQueries = queryClient.getQueryCache().getAll()
+      .map(query => JSON.stringify(query.queryKey));
+      
+    console.log("STRATEGY: Active queries:", activeQueries);
+    
+    // Only refetch queries that actually exist
+    if (activeQueries.some(key => key.includes('generalTasks'))) {
+      queryClient.refetchQueries({ queryKey: ['generalTasks'] });
+    }
+    
+    if (activeQueries.some(key => key.includes('unified-tasks'))) {
+      queryClient.refetchQueries({ queryKey: ['unified-tasks'] });
+    }
     
     // Call the passed callback after a slight delay to ensure UI update
     setTimeout(() => {

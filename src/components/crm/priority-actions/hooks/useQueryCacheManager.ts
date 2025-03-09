@@ -33,27 +33,67 @@ export const useQueryCacheManager = () => {
       queryKeys.push(['client-items', String(clientId)]);
     }
     
-    // Invalidate and immediately refetch all relevant queries
+    // First invalidate all queries
     try {
-      // First invalidate all queries
-      await Promise.all(
-        queryKeys.map(key => {
-          console.log(`CACHE: Invalidating key ${key.join('/')}`);
-          return queryClient.invalidateQueries({ 
-            queryKey: key,
-            refetchType: 'all'
-          });
-        })
-      );
+      for (const key of queryKeys) {
+        console.log(`CACHE: Invalidating key ${key.join('/')}`);
+        await queryClient.invalidateQueries({ 
+          queryKey: key,
+          refetchType: 'none' // Don't force refetch immediately
+        });
+      }
+      
+      // Get list of active queries to avoid errors
+      const activeQueries = queryClient.getQueryCache().getAll()
+        .map(query => JSON.stringify(query.queryKey));
+      
+      console.log("CACHE: Active queries:", activeQueries);
       
       // Force immediate refetches of only the queries we know exist
-      await Promise.all([
-        queryClient.refetchQueries({ queryKey: ['unified-tasks'] }),
-        queryClient.refetchQueries({ queryKey: ['tasks'] }),
-        queryClient.refetchQueries({ queryKey: ['generalTasks'] }),
-        queryClient.refetchQueries({ queryKey: ['clientNextSteps'] }),
-        queryClient.refetchQueries({ queryKey: ['client-items'] }),
-      ]);
+      const refetchPromises = [];
+      
+      // Check each query type and only refetch if it exists
+      if (activeQueries.some(key => key.includes('unified-tasks'))) {
+        console.log("CACHE: Refetching unified-tasks");
+        refetchPromises.push(queryClient.refetchQueries({ queryKey: ['unified-tasks'] }));
+      }
+      
+      if (activeQueries.some(key => key.includes('tasks'))) {
+        console.log("CACHE: Refetching tasks");
+        refetchPromises.push(queryClient.refetchQueries({ queryKey: ['tasks'] }));
+      }
+      
+      if (activeQueries.some(key => key.includes('generalTasks'))) {
+        console.log("CACHE: Refetching generalTasks");
+        refetchPromises.push(queryClient.refetchQueries({ queryKey: ['generalTasks'] }));
+      }
+      
+      if (activeQueries.some(key => key.includes('clientNextSteps'))) {
+        console.log("CACHE: Refetching clientNextSteps");
+        refetchPromises.push(queryClient.refetchQueries({ queryKey: ['clientNextSteps'] }));
+      }
+      
+      if (activeQueries.some(key => key.includes('client-items'))) {
+        console.log("CACHE: Refetching client-items");
+        refetchPromises.push(queryClient.refetchQueries({ queryKey: ['client-items'] }));
+      }
+      
+      // If client ID is provided, check and refetch client-specific queries
+      if (clientId) {
+        if (activeQueries.some(key => key.includes(`client,${clientId}`))) {
+          console.log(`CACHE: Refetching client ${clientId}`);
+          refetchPromises.push(queryClient.refetchQueries({ queryKey: ['client', String(clientId)] }));
+        }
+        
+        if (activeQueries.some(key => key.includes(`client-items,${clientId}`))) {
+          console.log(`CACHE: Refetching client-items for ${clientId}`);
+          refetchPromises.push(queryClient.refetchQueries({ queryKey: ['client-items', String(clientId)] }));
+        }
+      }
+      
+      if (refetchPromises.length > 0) {
+        await Promise.all(refetchPromises);
+      }
       
       console.log(`CACHE: Query invalidation complete at: ${new Date().toISOString()}`);
       return true;
