@@ -48,6 +48,10 @@ export const PriorityActions = ({
       // Force re-render by updating the refresh trigger
       setRefreshTrigger(Date.now());
       
+      toast({
+        title: "Refresh complete",
+        description: "The latest tasks have been loaded"
+      });
     } catch (error) {
       console.error('Error refreshing tasks:', error);
       
@@ -62,6 +66,7 @@ export const PriorityActions = ({
   };
 
   const handleCategoryChange = (newCategory: string | undefined) => {
+    console.log("Changing category to:", newCategory);
     setCategory(newCategory);
     // Reset refresh trigger to force data reload
     setRefreshTrigger(Date.now());

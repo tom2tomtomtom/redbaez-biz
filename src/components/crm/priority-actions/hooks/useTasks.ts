@@ -23,6 +23,9 @@ export const useTasks = (category?: string, showCompleted = false) => {
   const queryClient = useQueryClient();
   const currentTimestamp = Date.now();
 
+  // Log at the start of hook execution to verify it's being called
+  console.log(`useTasks hook called with: category=${category}, showCompleted=${showCompleted}, timestamp=${currentTimestamp}`);
+
   const { data: tasks = [], isLoading, error, refetch } = useQuery({
     queryKey: ['tasks', category, showCompleted, currentTimestamp],
     queryFn: async () => {
@@ -57,18 +60,23 @@ export const useTasks = (category?: string, showCompleted = false) => {
         
         const { data: taskData, error: taskError } = await tasksQuery;
         
-        if (taskError) throw taskError;
+        if (taskError) {
+          console.error('Error fetching general tasks:', taskError);
+          throw taskError;
+        }
+        
+        console.log('Raw general tasks data:', taskData);
         
         // Transform general tasks into our Task type
         const transformedTasks = (taskData || []).map(task => ({
           id: task.id,
-          title: task.title,
+          title: task.title || 'Untitled Task',
           description: task.description,
           category: task.category,
           status: task.status as 'incomplete' | 'completed',
           due_date: task.next_due_date,
           client_id: task.client_id,
-          urgent: task.urgent,
+          urgent: task.urgent || false,
           created_at: task.created_at,
           updated_at: task.updated_at,
           source: 'task' as const
@@ -102,7 +110,12 @@ export const useTasks = (category?: string, showCompleted = false) => {
         
         const { data: nextStepsData, error: nextStepsError } = await nextStepsQuery;
         
-        if (nextStepsError) throw nextStepsError;
+        if (nextStepsError) {
+          console.error('Error fetching client next steps:', nextStepsError);
+          throw nextStepsError;
+        }
+        
+        console.log('Raw next steps data:', nextStepsData);
         
         // Transform next steps into our Task type
         const transformedNextSteps = (nextStepsData || []).map(step => {
@@ -112,12 +125,12 @@ export const useTasks = (category?: string, showCompleted = false) => {
             id: `next-step-${step.id}`,
             title: `Next Step: ${clientName}`,
             description: step.notes,
-            category: step.category,
+            category: step.category || 'Uncategorized',
             status: step.completed_at ? 'completed' as const : 'incomplete' as const,
             due_date: step.due_date,
             client_id: step.client_id,
             client_name: clientName,
-            urgent: step.urgent,
+            urgent: step.urgent || false,
             created_at: step.created_at,
             updated_at: step.updated_at,
             original_data: step,
@@ -137,6 +150,7 @@ export const useTasks = (category?: string, showCompleted = false) => {
         });
         
         console.log(`Fetched ${allTasks.length} tasks: ${transformedTasks.length} general tasks and ${transformedNextSteps.length} next steps`);
+        console.log('Processed tasks data:', allTasks);
         return allTasks;
       } catch (error) {
         console.error('Error fetching tasks:', error);
@@ -146,7 +160,8 @@ export const useTasks = (category?: string, showCompleted = false) => {
     staleTime: 0, // Always fetch fresh data
     gcTime: 0, // Don't cache results
     refetchOnWindowFocus: true, // Refresh when window regains focus
-    refetchOnMount: true // Refresh when component mounts
+    refetchOnMount: true, // Refresh when component mounts
+    retry: 2
   });
 
   // Update task completion status mutation

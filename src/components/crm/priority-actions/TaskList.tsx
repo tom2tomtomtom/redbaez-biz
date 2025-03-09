@@ -1,8 +1,8 @@
 
+import { useEffect, useState } from 'react';
 import { TaskItem } from './TaskItem';
 import { useTasks, Task } from './hooks/useTasks';
 import { PriorityActionsSkeleton } from './PriorityActionsSkeleton';
-import { useState, useEffect } from 'react';
 import { CompletionConfirmDialog } from './components/CompletionConfirmDialog';
 
 interface TaskListProps {
@@ -72,7 +72,7 @@ export const TaskList = ({
       {tasks.map((task) => (
         <TaskItem
           key={task.id}
-          task={task as Task}
+          task={task}
           onUpdateCompletion={(completed) => handleCompletionChange(task.id, completed)}
           onUpdateUrgency={(urgent) => updateUrgency(task.id, urgent)}
           onDelete={() => deleteTask(task.id)}

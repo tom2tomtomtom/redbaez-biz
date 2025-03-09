@@ -11,6 +11,7 @@ import { SearchSection } from "@/components/crm/dashboard/SearchSection";
 import { ClientListSection } from "@/components/crm/dashboard/ClientListSection";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { useNavigate } from "react-router-dom";
+import { toast } from "@/hooks/use-toast";
 
 const Index = () => {
   const [searchInput, setSearchInput] = useState('');
@@ -20,22 +21,34 @@ const Index = () => {
   const navigate = useNavigate();
 
   const { data: clients, isLoading } = useQuery({
-    queryKey: ['clients', Date.now()], // Add timestamp to prevent caching
+    queryKey: ['clients', refreshTrigger], // Use refreshTrigger to ensure fresh data
     queryFn: async () => {
+      console.log("Fetching clients...");
       const { data, error } = await supabase
         .from('clients')
         .select('*')
         .order('name');
-      if (error) throw error;
+      if (error) {
+        console.error("Error fetching clients:", error);
+        throw error;
+      }
+      console.log("Fetched clients:", data?.length);
       return data;
     },
     staleTime: 0, // Don't cache
     gcTime: 0
   });
 
-  // Force refresh on mount
+  // Force refresh when page loads
   useEffect(() => {
     console.log("Index page mounted - setting refresh trigger");
+    // Show a toast to indicate the data is being loaded
+    toast({
+      title: "Loading dashboard",
+      description: "Refreshing your dashboard data..."
+    });
+    
+    // Refresh data
     setRefreshTrigger(Date.now());
   }, []);
 
