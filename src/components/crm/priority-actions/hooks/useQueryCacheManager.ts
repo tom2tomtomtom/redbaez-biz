@@ -15,7 +15,7 @@ export const useQueryCacheManager = () => {
     }
     
     setLastInvalidation(now);
-    console.log('Invalidating queries for client:', clientId);
+    console.log(`CACHE: Invalidating queries at ${new Date().toISOString()} for client:`, clientId);
     
     // Create a list of all task-related query keys to invalidate
     const queryKeys = [
@@ -23,7 +23,7 @@ export const useQueryCacheManager = () => {
       ['generalTasks'],
       ['clientNextSteps'],
       ['priority-data'],
-      ['unified-tasks'] // Add this key explicitly
+      ['unified-tasks']
     ];
     
     // If a client ID is provided, add client-specific query keys
@@ -32,27 +32,33 @@ export const useQueryCacheManager = () => {
       queryKeys.push(['client-items', String(clientId)]);
     }
     
-    // Invalidate all relevant queries at once
-    await Promise.all(
-      queryKeys.map(key => 
-        queryClient.invalidateQueries({ 
-          queryKey: key, 
-          refetchType: 'all',
-          exact: false // Allow invalidating parent and child queries
+    // Invalidate and immediately refetch all relevant queries
+    try {
+      await Promise.all(
+        queryKeys.map(key => {
+          console.log(`CACHE: Invalidating key ${key.join('/')}`);
+          return queryClient.invalidateQueries({ 
+            queryKey: key,
+            refetchType: 'all'
+          });
         })
-      )
-    );
-    
-    // Force a refetch of specific queries that must be updated immediately
-    await Promise.all([
-      queryClient.refetchQueries({ queryKey: ['unified-tasks'] }),
-      queryClient.refetchQueries({ queryKey: ['tasks'] }),
-      queryClient.refetchQueries({ queryKey: ['generalTasks'] }),
-      queryClient.refetchQueries({ queryKey: ['clientNextSteps'] }),
-    ]);
-    
-    console.log('Query invalidation complete at:', new Date().toISOString());
-    return true;
+      );
+      
+      // Force immediate refetches of the most critical queries
+      await Promise.all([
+        queryClient.refetchQueries({ queryKey: ['unified-tasks'] }),
+        queryClient.refetchQueries({ queryKey: ['tasks'] }),
+        queryClient.refetchQueries({ queryKey: ['generalTasks'] }),
+        queryClient.refetchQueries({ queryKey: ['clientNextSteps'] }),
+        queryClient.refetchQueries({ queryKey: ['priority-data'] })
+      ]);
+      
+      console.log(`CACHE: Query invalidation complete at: ${new Date().toISOString()}`);
+      return true;
+    } catch (error) {
+      console.error('Error during cache invalidation:', error);
+      return false;
+    }
   };
 
   return { invalidateQueries };

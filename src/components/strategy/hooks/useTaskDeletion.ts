@@ -14,8 +14,13 @@ export const useTaskDeletion = (onTaskDeleted: () => void) => {
       return false;
     }
     
+    if (isDeleting) {
+      console.log("Already processing a deletion, skipping");
+      return false;
+    }
+    
     setIsDeleting(true);
-    console.log("Attempting to delete task:", task);
+    console.log("STRATEGY: Attempting to delete task:", task);
     
     try {
       // Determine which table to use and the correct ID format
@@ -31,23 +36,17 @@ export const useTaskDeletion = (onTaskDeleted: () => void) => {
         }
       }
       
-      console.log(`Deleting from ${tableName} with ID: ${taskId}`);
+      console.log(`STRATEGY: Deleting from ${tableName} with ID: ${taskId} at ${new Date().toISOString()}`);
       
-      // Add timestamp and anti-cache headers
-      const timestamp = new Date().toISOString();
-      const customHeaders = {
-        'Cache-Control': 'no-cache',
-        'X-Custom-Timestamp': timestamp
-      };
-      
-      // Perform the deletion
+      // Perform the deletion with timestamp for debugging
       const { error, data } = await supabase
         .from(tableName)
         .delete()
-        .eq('id', taskId);
+        .eq('id', taskId)
+        .select();
         
       if (error) {
-        console.error('Error deleting task:', error);
+        console.error('STRATEGY: Error deleting task:', error);
         toast({
           title: "Error",
           description: `Failed to delete task: ${error.message}`,
@@ -57,33 +56,25 @@ export const useTaskDeletion = (onTaskDeleted: () => void) => {
       }
 
       // Success
-      console.log("Task deleted successfully:", data);
+      console.log("STRATEGY: Task deleted successfully. Response:", data);
       
-      // Invalidate all relevant queries to ensure UI updates
-      // First invalidate queryKeys without refetching
+      // Aggressively invalidate and refetch all relevant query caches
+      console.log("STRATEGY: Invalidating query cache after deletion");
+      
+      // First invalidate all related query keys
       await Promise.all([
-        queryClient.invalidateQueries({ 
-          queryKey: ['unified-tasks'],
-        }),
-        
-        queryClient.invalidateQueries({ 
-          queryKey: ['generalTasks'],
-        }),
-        
-        queryClient.invalidateQueries({ 
-          queryKey: ['clientNextSteps'],
-        }),
+        queryClient.invalidateQueries({ queryKey: ['unified-tasks'] }),
+        queryClient.invalidateQueries({ queryKey: ['generalTasks'] }),
+        queryClient.invalidateQueries({ queryKey: ['clientNextSteps'] }),
+        queryClient.invalidateQueries({ queryKey: ['priority-data'] }),
+        queryClient.invalidateQueries({ queryKey: ['tasks'] }),
       ]);
       
-      // Then force immediate refetches of the important queries
+      // Then force immediate refetches
       await Promise.all([
-        queryClient.refetchQueries({ 
-          queryKey: ['unified-tasks'],
-        }),
-        
-        queryClient.refetchQueries({ 
-          queryKey: ['generalTasks'],
-        }),
+        queryClient.refetchQueries({ queryKey: ['unified-tasks'] }),
+        queryClient.refetchQueries({ queryKey: ['generalTasks'] }),
+        queryClient.refetchQueries({ queryKey: ['clientNextSteps'] }),
       ]);
       
       toast({
@@ -91,14 +82,14 @@ export const useTaskDeletion = (onTaskDeleted: () => void) => {
         description: "The task has been deleted successfully.",
       });
       
-      // Add a small delay to ensure state updates have time to process
+      // Ensure the callback is triggered after everything is done
       setTimeout(() => {
         onTaskDeleted();
       }, 300);
       
       return true;
     } catch (error) {
-      console.error('Unexpected error in deletion process:', error);
+      console.error('STRATEGY: Unexpected error in deletion process:', error);
       toast({
         title: "Error",
         description: "An unexpected error occurred. Please try again.",

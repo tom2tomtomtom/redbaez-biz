@@ -81,6 +81,12 @@ export const TaskItem = ({
 
   const isCompleted = task.status === 'completed' || task.completed_at !== null;
 
+  const handleDelete = () => {
+    console.log(`TaskItem: Delete initiated for task ${task.id}`);
+    onDelete();
+    setShowDeleteConfirm(false);
+  };
+
   return (
     <div className="flex items-start gap-2 p-2 border rounded-lg hover:bg-gray-50 cursor-pointer">
       <div className="pt-1" onClick={(e) => e.stopPropagation()}>
@@ -143,6 +149,7 @@ export const TaskItem = ({
         size="sm" 
         onClick={(e) => {
           e.stopPropagation();
+          console.log('TaskItem: Opening delete confirmation dialog');
           setShowDeleteConfirm(true);
         }}
         disabled={isDeleting}
@@ -161,11 +168,9 @@ export const TaskItem = ({
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction 
-              onClick={() => {
-                onDelete();
-                setShowDeleteConfirm(false);
-              }}
+              onClick={handleDelete}
               disabled={isDeleting}
+              className="bg-red-500 hover:bg-red-600"
             >
               {isDeleting ? 'Deleting...' : 'Delete'}
             </AlertDialogAction>

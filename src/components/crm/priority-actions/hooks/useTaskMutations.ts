@@ -10,28 +10,38 @@ export const useTaskMutations = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   
   const invalidateTaskQueries = async () => {
-    await queryClient.invalidateQueries({ 
-      queryKey: ['unified-tasks']
-    });
-    await queryClient.invalidateQueries({ 
-      queryKey: ['priority-data']
-    });
-    await queryClient.invalidateQueries({ 
-      queryKey: ['tasks']
-    });
-    await queryClient.invalidateQueries({ 
-      queryKey: ['generalTasks']
-    });
-    await queryClient.invalidateQueries({ 
-      queryKey: ['clientNextSteps']
-    });
+    console.log(`TASKS: Invalidating all task queries at ${new Date().toISOString()}`);
+    
+    // Invalidate all task-related queries to ensure UI refresh
+    const queryKeys = [
+      ['unified-tasks'],
+      ['priority-data'],
+      ['tasks'],
+      ['generalTasks'],
+      ['clientNextSteps']
+    ];
+    
+    // First invalidate all relevant queries
+    for (const key of queryKeys) {
+      console.log(`TASKS: Invalidating query ${key.join('/')}`);
+      await queryClient.invalidateQueries({ queryKey: key });
+    }
+    
+    // Then force immediate refetches of critical queries
+    await Promise.all([
+      queryClient.refetchQueries({ queryKey: ['unified-tasks'] }),
+      queryClient.refetchQueries({ queryKey: ['generalTasks'] }),
+      queryClient.refetchQueries({ queryKey: ['clientNextSteps'] }),
+    ]);
+    
+    console.log(`TASKS: Invalidation complete at ${new Date().toISOString()}`);
   };
 
   // Update task completion status
   const updateTaskCompletion = useMutation({
     mutationFn: async ({ task, completed }: { task: Task, completed: boolean }) => {
       setIsProcessing(true);
-      console.log(`Updating task ${task.id} completion to ${completed}`);
+      console.log(`TASKS: Updating task ${task.id} completion to ${completed}`);
 
       if (task.source_table === 'general_tasks') {
         const { error } = await supabase
@@ -131,27 +141,36 @@ export const useTaskMutations = () => {
   const deleteTask = useMutation({
     mutationFn: async (task: Task) => {
       setIsProcessing(true);
-      console.log(`Deleting task ${task.id} from ${task.source_table}`);
+      console.log(`TASKS: Deleting task ${task.id} from ${task.source_table} at ${new Date().toISOString()}`);
 
+      // Add timestamp to prevent caching issues
+      const timestamp = new Date().toISOString();
+      
       if (task.source_table === 'general_tasks') {
-        const { error } = await supabase
+        const { error, data } = await supabase
           .from('general_tasks')
           .delete()
-          .eq('id', task.id);
+          .eq('id', task.id)
+          .select();
 
         if (error) throw error;
+        console.log(`TASKS: Deletion response for general_tasks:`, data);
       } else {
-        const { error } = await supabase
+        const { error, data } = await supabase
           .from('client_next_steps')
           .delete()
-          .eq('id', task.id);
+          .eq('id', task.id)
+          .select();
 
         if (error) throw error;
+        console.log(`TASKS: Deletion response for client_next_steps:`, data);
       }
 
+      console.log(`TASKS: Deletion completed for ${task.id} at ${timestamp}`);
       return task.id;
     },
-    onSuccess: () => {
+    onSuccess: (taskId) => {
+      console.log(`TASKS: Delete mutation succeeded for task ${taskId}, refreshing cache`);
       invalidateTaskQueries();
       toast({
         title: 'Task deleted',
