@@ -37,7 +37,7 @@ export const useTaskDeletion = (onTaskDeleted: () => void) => {
     
     try {
       // Pass the full task object to the global delete function
-      // It will handle all the ID transformation logic internally
+      // It will handle finding the right table and deleting from it
       const success = await globalDeleteTask(task);
       
       if (!success) {

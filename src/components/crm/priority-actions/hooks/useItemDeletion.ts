@@ -17,7 +17,6 @@ export const useItemDeletion = () => {
     
     // Force an immediate refetch of all task-related queries
     await Promise.all([
-      queryClient.fetchQuery({ queryKey: ['unified-tasks'], staleTime: 0 }),
       queryClient.fetchQuery({ queryKey: ['priority-data'], staleTime: 0 }),
       queryClient.fetchQuery({ queryKey: ['client-items'], staleTime: 0 }),
     ]);

@@ -38,7 +38,7 @@ export const useTaskDeletion = (onTaskDeleted?: () => void) => {
     try {
       await Promise.all([
         queryClient.fetchQuery({ 
-          queryKey: ['unified-tasks'],
+          queryKey: ['priority-data'],
           staleTime: 0
         }),
         queryClient.fetchQuery({ 
@@ -49,16 +49,52 @@ export const useTaskDeletion = (onTaskDeleted?: () => void) => {
           queryKey: ['clientNextSteps'],
           staleTime: 0
         }),
-        queryClient.fetchQuery({ 
-          queryKey: ['client-items'],
-          staleTime: 0
-        }),
       ]);
     } catch (error) {
       console.log('Error during forced refetch:', error);
     }
     
     console.log(`Invalidation complete at ${new Date().toISOString()}`);
+  };
+
+  // Find which table the task exists in
+  const findTaskLocation = async (taskId: string) => {
+    console.log(`Searching for task with ID: ${taskId}`);
+    
+    // Check general_tasks table
+    const { data: generalTask, error: generalError } = await supabase
+      .from('general_tasks')
+      .select('id')
+      .eq('id', taskId)
+      .maybeSingle();
+      
+    if (generalError) {
+      console.error('Error checking general_tasks:', generalError);
+    }
+    
+    if (generalTask) {
+      console.log(`Found task in general_tasks table`);
+      return 'general_tasks';
+    }
+    
+    // Check client_next_steps table
+    const { data: nextStep, error: nextStepError } = await supabase
+      .from('client_next_steps')
+      .select('id')
+      .eq('id', taskId)
+      .maybeSingle();
+      
+    if (nextStepError) {
+      console.error('Error checking client_next_steps:', nextStepError);
+    }
+    
+    if (nextStep) {
+      console.log(`Found task in client_next_steps table`);
+      return 'client_next_steps';
+    }
+    
+    console.log(`Task not found in any table`);
+    return null;
   };
 
   const deleteTask = async (task: TaskType) => {
@@ -78,7 +114,6 @@ export const useTaskDeletion = (onTaskDeleted?: () => void) => {
     try {
       // Extract the pure ID without any prefix
       let taskId = task.id;
-      let tableName = 'general_tasks';
       
       // If we have original_data with an ID, use that instead (it's the source of truth)
       if (task.original_data && task.original_data.id) {
@@ -86,17 +121,23 @@ export const useTaskDeletion = (onTaskDeleted?: () => void) => {
         console.log(`Using original_data ID: ${taskId}`);
       }
       
-      // Remove prefix if it exists (handle both raw string and object formats)
+      // Remove prefix if it exists
       if (typeof taskId === 'string' && taskId.startsWith('next-step-')) {
         taskId = taskId.replace('next-step-', '');
         console.log(`Removed prefix, using ID: ${taskId}`);
       }
       
-      // Determine which table to use
-      if (task.source_table) {
-        tableName = task.source_table;
-      } else if (task.type === 'next_step' || task.type === 'next-step') {
-        tableName = 'client_next_steps';
+      // Find which table contains the task
+      const tableName = await findTaskLocation(taskId);
+      
+      if (!tableName) {
+        console.error(`Task with ID ${taskId} not found in any table`);
+        toast({
+          title: "Error",
+          description: "Task not found. It may have been already deleted.",
+          variant: "destructive",
+        });
+        return false;
       }
       
       console.log(`Deleting from ${tableName} with ID: ${taskId}`);
@@ -118,29 +159,6 @@ export const useTaskDeletion = (onTaskDeleted?: () => void) => {
           variant: "destructive",
         });
         return false;
-      }
-
-      // Verify deletion
-      if ((!data || !data.length) && !error) {
-        // Try the other table as a fallback
-        const otherTable = tableName === 'general_tasks' ? 'client_next_steps' : 'general_tasks';
-        console.log(`Attempting deletion from alternate table ${otherTable}`);
-        
-        const { error: fallbackError } = await supabase
-          .from(otherTable)
-          .delete()
-          .eq('id', taskId)
-          .select();
-          
-        if (fallbackError) {
-          console.error('Fallback deletion also failed:', fallbackError);
-          toast({
-            title: "Warning",
-            description: "Task may not have been deleted. Please refresh and try again.",
-            variant: "destructive",
-          });
-          return false;
-        }
       }
 
       // Success - invalidate queries to refresh UI
