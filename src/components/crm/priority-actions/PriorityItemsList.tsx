@@ -36,6 +36,11 @@ export const PriorityItemsList = ({
   const deletedItemIds = useRef<Set<string>>(new Set());
 
   useEffect(() => {
+    deletedItemIds.current = new Set<string>();
+    console.log('Deleted items set reset on component mount');
+  }, []);
+
+  useEffect(() => {
     if (!items) return;
     
     console.log('PriorityItemsList received items:', items.length, items);
@@ -46,12 +51,21 @@ export const PriorityItemsList = ({
       console.log('Currently deleted items:', [...deletedItemIds.current]);
     }
 
-    const validItems = items.filter(item => 
-      item && 
-      item.data && 
-      item.data.id && 
-      !deletedItemIds.current.has(`${item.type}-${item.data.id}`)
-    );
+    const validItems = items.filter(item => {
+      if (!item || !item.data || !item.data.id) {
+        console.log('Filtering out invalid item:', item);
+        return false;
+      }
+      
+      const uniqueId = `${item.type}-${item.data.id}`;
+      const isDeleted = deletedItemIds.current.has(uniqueId);
+      
+      if (isDeleted) {
+        console.log(`Filtering out deleted item: ${uniqueId}`);
+      }
+      
+      return !isDeleted;
+    });
     
     console.log('PriorityItemsList filtered valid items:', validItems.length);
 
@@ -112,6 +126,11 @@ export const PriorityItemsList = ({
       if (success) {
         console.log(`${item.type} deleted successfully:`, itemId);
         
+        toast({
+          title: "Success",
+          description: `${item.type === 'task' ? 'Task' : 'Next step'} deleted successfully`,
+        });
+        
         if (onItemRemoved) {
           console.log('Calling onItemRemoved callback');
           onItemRemoved();
@@ -119,20 +138,9 @@ export const PriorityItemsList = ({
       } else {
         console.error(`Failed to delete ${item.type}:`, itemId);
         
-        deletedItemIds.current.delete(uniqueItemId);
-        console.log(`Removed ${uniqueItemId} from deletedItemIds set after failed deletion`);
-        
-        setLocalItems(prevItems => {
-          if (prevItems.some(i => i.type === item.type && i.data.id === itemId)) {
-            return prevItems;
-          }
-          const originalItem = items.find(i => i.type === item.type && i.data.id === itemId);
-          return originalItem ? [...prevItems, originalItem] : prevItems;
-        });
-        
         toast({
           title: "Error",
-          description: `Failed to delete ${item.type === 'task' ? 'task' : 'next step'}. Please try again.`,
+          description: `Failed to delete ${item.type === 'task' ? 'task' : 'next step'}. Please try again later.`,
           variant: "destructive",
         });
       }
@@ -397,9 +405,7 @@ export const PriorityItemsList = ({
               <PriorityActionItem 
                 item={item} 
                 onUrgentChange={(checked) => {
-                  if (handleUrgentStatusChange) {
-                    handleUrgentStatusChange(item, checked);
-                  }
+                  handleUrgentStatusChange(item, checked);
                 }}
               />
             </div>

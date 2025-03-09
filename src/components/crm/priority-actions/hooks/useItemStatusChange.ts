@@ -1,4 +1,3 @@
-
 import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
@@ -14,18 +13,24 @@ export const useItemStatusChange = () => {
     console.log('Invalidating queries after task update/delete');
     
     try {
-      // Force a HARD RESET instead of just invalidating for these key queries
+      // Force a HARD RESET of all priority-related queries
       await queryClient.resetQueries({ 
         queryKey: ['generalTasks'],
+        exact: false
       });
       
       await queryClient.resetQueries({ 
         queryKey: ['clientNextSteps'],
+        exact: false
       });
       
       await queryClient.resetQueries({
         queryKey: ['priorityData'],
+        exact: false
       });
+      
+      // Wait for reset to complete
+      await delay(100);
       
       // Only after reset, properly invalidate to trigger refetches
       await queryClient.invalidateQueries({ 
@@ -47,11 +52,15 @@ export const useItemStatusChange = () => {
       if (clientId) {
         await queryClient.resetQueries({ 
           queryKey: ['client', clientId],
+          exact: false
         });
         
         await queryClient.resetQueries({ 
           queryKey: ['client-items', clientId],
+          exact: false
         });
+        
+        await delay(100);
         
         await queryClient.invalidateQueries({ 
           queryKey: ['client', clientId],
@@ -141,75 +150,62 @@ export const useItemStatusChange = () => {
 
   const handleDelete = async (item: PriorityItem) => {
     try {
+      console.log(`Attempting to delete ${item.type} with ID: ${item.data.id}`);
+      
       let deleteError = null;
       const itemId = item.data.id;
       const clientId = item.data.client_id;
+      const itemType = item.type;
       
-      console.log(`Attempting to delete ${item.type} with ID: ${itemId}`);
+      // Determine the table name based on item type
+      const tableName = itemType === 'task' ? 'general_tasks' : 'client_next_steps';
+      
+      console.log(`Deleting from table ${tableName} with ID: ${itemId}`);
 
-      // Perform the database deletion FIRST, before touching the cache
-      if (item.type === 'task') {
-        const { error } = await supabase
-          .from('general_tasks')
-          .delete()
-          .eq('id', itemId);
-        deleteError = error;
-        console.log('Task deletion database result:', error ? 'Error: ' + error.message : 'Success');
-      } else if (item.type === 'next_step') {
-        const { error } = await supabase
-          .from('client_next_steps')
-          .delete()
-          .eq('id', itemId);
-        deleteError = error;
-        console.log('Next step deletion database result:', error ? 'Error: ' + error.message : 'Success');
-      }
+      // Perform direct database deletion FIRST
+      const { error } = await supabase
+        .from(tableName)
+        .delete()
+        .eq('id', itemId);
+        
+      deleteError = error;
+      
+      console.log(`${itemType} deletion database result:`, error ? `Error: ${error.message}` : 'Success');
 
       if (deleteError) {
         console.error('Database error during deletion:', deleteError);
-        throw new Error(`Failed to delete ${item.type}. Database error: ${deleteError.message}`);
+        throw new Error(`Failed to delete ${itemType}. Database error: ${deleteError.message}`);
       }
 
-      // After successful database deletion, THEN update the cache
-      if (item.type === 'task') {
-        // Remove from generalTasks cache
+      // After successful database deletion, update the cache
+      // Remove from specific query cache
+      if (itemType === 'task') {
         queryClient.setQueryData(['generalTasks'], (oldData: any) => {
           if (!oldData || !Array.isArray(oldData)) return [];
           return oldData.filter(task => task.id !== itemId);
         });
-      } else if (item.type === 'next_step') {
-        // Remove from clientNextSteps cache
+      } else {
         queryClient.setQueryData(['clientNextSteps'], (oldData: any) => {
           if (!oldData || !Array.isArray(oldData)) return [];
           return oldData.filter(step => step.id !== itemId);
         });
       }
       
-      // Also remove from priorityData cache
+      // Also remove from priorityData cache if it exists
       queryClient.setQueryData(['priorityData'], (oldData: any) => {
         if (!oldData || !Array.isArray(oldData)) return [];
-        return oldData.filter(i => !(i.type === item.type && i.data.id === itemId));
+        return oldData.filter(i => !(i.type === itemType && i.data.id === itemId));
       });
 
       // Force a complete cache reset and invalidation
-      await delay(100); // Brief delay
-      await queryClient.resetQueries();
-      await delay(100); // Brief delay
+      await delay(100);
       await invalidateQueries(clientId);
 
-      console.log(`Successfully deleted ${item.type} with ID: ${itemId}`);
-      toast({
-        title: "Success",
-        description: `${item.type === 'task' ? 'Task' : 'Next step'} deleted successfully`,
-      });
+      console.log(`Successfully deleted ${itemType} with ID: ${itemId}`);
       
       return true;
     } catch (error) {
       console.error('Error deleting item:', error);
-      toast({
-        title: "Error",
-        description: "Failed to delete the item",
-        variant: "destructive",
-      });
       return false;
     }
   };

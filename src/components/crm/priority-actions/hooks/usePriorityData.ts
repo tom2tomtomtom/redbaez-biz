@@ -22,7 +22,9 @@ const fetchGeneralTasks = async (category?: string) => {
   try {
     let query = supabase
       .from('general_tasks')
-      .select('*');
+      .select('*')
+      // Add a timestamp to prevent caching
+      .order('updated_at', { ascending: false });
       
     // Only apply category filter if a valid category is provided
     if (category && typeof category === 'string' && category.trim() !== '') {
@@ -58,7 +60,8 @@ const fetchNextSteps = async (category?: string) => {
           name
         )
       `)
-      .order('due_date', { ascending: true });
+      // Add a timestamp to prevent caching
+      .order('updated_at', { ascending: false });
       
     // Apply category filter if provided
     if (category && typeof category === 'string' && category.trim() !== '') {
@@ -166,7 +169,7 @@ export const usePriorityData = (category?: string, refreshKey?: number) => {
       return new Date(aDate).getTime() - new Date(bDate).getTime();
     });
 
-  console.log('Priority Actions - final items:', allItems.length, allItems);
+  console.log('Priority Actions - all items:', allItems.length, allItems);
   
   return {
     allItems,

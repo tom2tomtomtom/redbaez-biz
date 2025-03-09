@@ -29,8 +29,8 @@ export const PriorityActionItem = ({ item, onUrgentChange }: PriorityActionItemP
   
   const urgent = (isTask || isNextStep) && 'urgent' in item.data ? item.data.urgent : false;
   
-  const toggleUrgent = async () => {
-    await onUrgentChange(!urgent);
+  const toggleUrgent = () => {
+    onUrgentChange(!urgent);
   };
 
   // Determine background color based on type or category
