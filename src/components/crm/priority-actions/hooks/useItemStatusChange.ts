@@ -1,6 +1,6 @@
 
 import { useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/lib/supabase';
 import { toast } from '@/hooks/use-toast';
 import { PriorityItem } from './usePriorityData';
 
@@ -14,7 +14,7 @@ export const useItemStatusChange = () => {
     console.log('Invalidating queries after task update/delete');
     
     try {
-      // FIRST, remove all data from cache before invalidating
+      // FIRST, completely remove all data from cache before invalidating
       queryClient.removeQueries({ 
         queryKey: ['generalTasks'],
         exact: false
@@ -125,9 +125,6 @@ export const useItemStatusChange = () => {
 
   const handleDelete = async (item: PriorityItem) => {
     try {
-      console.log(`Attempting to delete ${item.type} with ID: ${item.data.id}`);
-      
-      let deleteError = null;
       const itemId = item.data.id;
       const clientId = item.data.client_id;
       const itemType = item.type;
@@ -135,30 +132,42 @@ export const useItemStatusChange = () => {
       // Determine the table name based on item type
       const tableName = itemType === 'task' ? 'general_tasks' : 'client_next_steps';
       
-      console.log(`Deleting from table ${tableName} with ID: ${itemId}`);
+      console.log(`DELETING: Attempting to delete item ${itemType}:${itemId} from table ${tableName}`);
 
-      // CRITICAL FIX: Verify we're using the correct ID before deleting
-      // Perform direct database deletion FIRST
-      const { error, count } = await supabase
+      // Check if the item exists first before trying to delete
+      const { data: checkData, error: checkError } = await supabase
+        .from(tableName)
+        .select('id')
+        .eq('id', itemId)
+        .single();
+      
+      if (checkError) {
+        console.error(`Item ${itemId} in table ${tableName} not found:`, checkError);
+        return false;
+      }
+      
+      console.log(`Item ${itemId} exists in ${tableName}, proceeding with deletion`);
+
+      // Now perform the actual deletion
+      const { error: deleteError } = await supabase
         .from(tableName)
         .delete()
-        .eq('id', itemId)
-        .select('count');
+        .eq('id', itemId);
         
-      deleteError = error;
-      
-      console.log(`${itemType} deletion database result:`, 
-        error ? `Error: ${error.message}` : `Success, deleted ${count || 'unknown'} records`);
-
       if (deleteError) {
-        console.error('Database error during deletion:', deleteError);
+        console.error(`Error during deletion of ${itemId} from ${tableName}:`, deleteError);
         throw new Error(`Failed to delete ${itemType}. Database error: ${deleteError.message}`);
       }
 
+      console.log(`Successfully deleted item ${itemId} from ${tableName}`);
+      
+      // Add a delay before invalidating the cache to ensure the deletion has propagated
+      await delay(300);
+      
       // IMMEDIATELY clear cache to force a refresh with data that doesn't include the deleted item
       await invalidateQueries(clientId);
 
-      console.log(`Successfully deleted ${itemType} with ID: ${itemId}`);
+      console.log(`Cache invalidated after deleting ${itemType} with ID: ${itemId}`);
       
       return true;
     } catch (error) {

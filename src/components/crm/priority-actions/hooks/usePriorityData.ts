@@ -1,6 +1,6 @@
 
 import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/lib/supabase';
 import { Tables } from '@/integrations/supabase/types';
 import { GeneralTaskRow } from '@/integrations/supabase/types/general-tasks.types';
 
@@ -106,22 +106,22 @@ export const usePriorityData = (category?: string, refreshKey?: number) => {
   console.log('usePriorityData called with category:', sanitizedCategory, 'refreshKey:', refreshKey);
   
   const tasksQuery = useQuery({
-    queryKey: ['generalTasks', sanitizedCategory, refreshKey],
+    queryKey: ['generalTasks', sanitizedCategory, refreshKey, Date.now()], // Add timestamp to queryKey to prevent caching
     queryFn: () => fetchGeneralTasks(sanitizedCategory),
     staleTime: 0, // Set to 0 to always fetch fresh data
     gcTime: 0, // Set to 0 to never garbage collect
     refetchOnWindowFocus: true,
-    refetchOnMount: true,
+    refetchOnMount: 'always',
     retry: 3,
   });
 
   const nextStepsQuery = useQuery({
-    queryKey: ['clientNextSteps', sanitizedCategory, refreshKey],
+    queryKey: ['clientNextSteps', sanitizedCategory, refreshKey, Date.now()], // Add timestamp to queryKey
     queryFn: () => fetchNextSteps(sanitizedCategory),
     staleTime: 0, // Set to 0 to always fetch fresh data
     gcTime: 0, // Set to 0 to never garbage collect
     refetchOnWindowFocus: true,
-    refetchOnMount: true,
+    refetchOnMount: 'always',
     retry: 3,
   });
 
