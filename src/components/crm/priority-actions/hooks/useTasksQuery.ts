@@ -24,7 +24,7 @@ export const useTasksQuery = (category?: string, showCompleted = false) => {
 
       // Apply category filter if provided
       if (category && category !== 'All') {
-        query = query.eq('category', category);
+        query = query.ilike('category', `%${category}%`);
       }
 
       // Execute query with order
@@ -61,6 +61,8 @@ export const useTasksQuery = (category?: string, showCompleted = false) => {
     queryKey: ['tasks', category, showCompleted],
     queryFn: fetchTasks,
     refetchOnWindowFocus: true,
-    refetchOnMount: true
+    refetchOnMount: true,
+    staleTime: 0,
+    gcTime: 0
   });
 };

@@ -14,7 +14,8 @@ export const useQueryCacheManager = () => {
     const queryKeys = [
       ['tasks'],
       ['generalTasks'],
-      ['clientNextSteps']
+      ['clientNextSteps'],
+      ['priority-data'] // Add this key for priority data
     ];
     
     // If a client ID is provided, add client-specific query keys
@@ -32,6 +33,12 @@ export const useQueryCacheManager = () => {
         })
       )
     );
+    
+    // Force a complete cache reset for more stubborn cached data
+    await queryClient.resetQueries({
+      queryKey: ['tasks'],
+      exact: false
+    });
     
     console.log('Query invalidation complete at:', new Date().toISOString());
     return true;

@@ -20,8 +20,8 @@ export const supabase = createClient(
         'Cache-Control': 'no-cache, no-store, must-revalidate',
         'Pragma': 'no-cache',
         'Expires': '0',
-        // Fix: Convert the function to a string directly to satisfy TypeScript
-        'X-Custom-Timestamp': Date.now().toString()
+        // Add a timestamp to every request to ensure nothing gets cached
+        'X-Supabase-Timestamp': () => Date.now().toString()
       }
     },
     realtime: {

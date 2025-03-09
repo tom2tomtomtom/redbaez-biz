@@ -22,13 +22,19 @@ export const useCompletionStatus = () => {
       if (isTask) {
         const { error: updateError } = await supabase
           .from('general_tasks')
-          .update({ status: completed ? 'completed' : 'incomplete' })
+          .update({ 
+            status: completed ? 'completed' : 'incomplete',
+            updated_at: new Date().toISOString() // Force update timestamp
+          })
           .eq('id', itemId);
         error = updateError;
       } else {
         const { error: updateError } = await supabase
           .from('client_next_steps')
-          .update({ completed_at: completed ? new Date().toISOString() : null })
+          .update({ 
+            completed_at: completed ? new Date().toISOString() : null,
+            updated_at: new Date().toISOString() // Force update timestamp
+          })
           .eq('id', itemId);
         error = updateError;
       }
@@ -37,6 +43,12 @@ export const useCompletionStatus = () => {
       
       // IMMEDIATELY after DB update, invalidate queries to force a fresh fetch
       await invalidateQueries(clientId);
+
+      // Force extra refresh by waiting and invalidating again for certainty
+      setTimeout(async () => {
+        await invalidateQueries(clientId);
+        console.log('Secondary cache invalidation completed for completion status change');
+      }, 500);
 
       return true;
     } catch (error) {

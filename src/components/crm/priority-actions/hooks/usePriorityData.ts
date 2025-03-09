@@ -20,9 +20,6 @@ const fetchGeneralTasks = async (category?: string) => {
   console.log('Fetching general tasks with category:', categoryToUse);
   
   try {
-    // Add a timestamp parameter to prevent caching
-    const timestamp = new Date().getTime();
-    
     let query = supabase
       .from('general_tasks')
       .select('*')
@@ -56,9 +53,6 @@ const fetchNextSteps = async (category?: string) => {
   console.log('Fetching next steps');
   
   try {
-    // Add a timestamp parameter to prevent caching
-    const timestamp = new Date().getTime();
-    
     let query = supabase
       .from('client_next_steps')
       .select(`
@@ -106,23 +100,21 @@ export const usePriorityData = (category?: string, refreshKey?: number) => {
   console.log('usePriorityData called with category:', sanitizedCategory, 'refreshKey:', refreshKey);
   
   const tasksQuery = useQuery({
-    queryKey: ['generalTasks', sanitizedCategory, refreshKey, Date.now()], // Add timestamp to queryKey to prevent caching
+    queryKey: ['generalTasks', sanitizedCategory, refreshKey], 
     queryFn: () => fetchGeneralTasks(sanitizedCategory),
     staleTime: 0, // Set to 0 to always fetch fresh data
     gcTime: 0, // Set to 0 to never garbage collect
     refetchOnWindowFocus: true,
-    refetchOnMount: 'always',
-    retry: 3,
+    refetchOnMount: true,
   });
 
   const nextStepsQuery = useQuery({
-    queryKey: ['clientNextSteps', sanitizedCategory, refreshKey, Date.now()], // Add timestamp to queryKey
+    queryKey: ['clientNextSteps', sanitizedCategory, refreshKey], 
     queryFn: () => fetchNextSteps(sanitizedCategory),
     staleTime: 0, // Set to 0 to always fetch fresh data
     gcTime: 0, // Set to 0 to never garbage collect
     refetchOnWindowFocus: true,
-    refetchOnMount: 'always',
-    retry: 3,
+    refetchOnMount: true,
   });
 
   // Make sure we have arrays even if the query returns null/undefined

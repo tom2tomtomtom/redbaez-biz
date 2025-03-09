@@ -1,5 +1,5 @@
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { TaskItem } from './TaskItem';
 import { useTasks } from './hooks/useTasks';
 import { PriorityActionsSkeleton } from './PriorityActionsSkeleton';
@@ -7,6 +7,7 @@ import { CompletionConfirmDialog } from './components/CompletionConfirmDialog';
 import { toast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { RefreshCcw } from 'lucide-react';
+import { useQueryCacheManager } from './hooks/useQueryCacheManager';
 
 interface TaskListProps {
   category?: string;
@@ -21,6 +22,7 @@ export const TaskList = ({
 }: TaskListProps) => {
   const [completionConfirmTaskId, setCompletionConfirmTaskId] = useState<string | null>(null);
   const [lastRefreshTime, setLastRefreshTime] = useState<number>(Date.now());
+  const { invalidateQueries } = useQueryCacheManager();
   
   const {
     tasks,
@@ -34,6 +36,22 @@ export const TaskList = ({
     error
   } = useTasks(category, showCompleted);
 
+  // Create a memoized refresh function to prevent unnecessary re-renders
+  const refreshData = useCallback(async () => {
+    console.log("Forcing complete data refresh");
+    
+    // First invalidate all cache
+    await invalidateQueries();
+    
+    // Then force a refetch
+    await refetch();
+    
+    // Update the refresh timestamp
+    setLastRefreshTime(Date.now());
+    
+    console.log("Data refresh completed");
+  }, [invalidateQueries, refetch]);
+
   // Force an initial data fetch when component mounts and refresh periodically
   useEffect(() => {
     console.log("TaskList mounted - forcing data refresh");
@@ -45,9 +63,8 @@ export const TaskList = ({
     });
     
     // Initial refetch
-    refetch().then(() => {
+    refreshData().then(() => {
       console.log("Initial task data fetched successfully");
-      setLastRefreshTime(Date.now());
     }).catch(err => {
       console.error("Error fetching task data:", err);
       toast({
@@ -60,15 +77,13 @@ export const TaskList = ({
     // Set up periodic refresh
     const intervalId = setInterval(() => {
       console.log("Periodic task refresh");
-      refetch().then(() => {
-        setLastRefreshTime(Date.now());
-      });
+      refreshData();
     }, 60000); // Refresh every minute
     
     return () => {
       clearInterval(intervalId);
     };
-  }, [category, showCompleted, refetch]);
+  }, [category, showCompleted, refreshData]);
 
   // Add a debug log to see what tasks we're getting
   useEffect(() => {
@@ -81,8 +96,7 @@ export const TaskList = ({
       description: "Fetching latest task data..."
     });
     
-    refetch().then(() => {
-      setLastRefreshTime(Date.now());
+    refreshData().then(() => {
       toast({
         title: "Tasks refreshed",
         description: "Latest task data loaded."
@@ -131,13 +145,19 @@ export const TaskList = ({
     if (completed) {
       setCompletionConfirmTaskId(taskId);
     } else {
-      updateCompletion(taskId, false);
+      updateCompletion(taskId, false).then(() => {
+        // Force a refresh after completion to ensure UI is up to date
+        setTimeout(refreshData, 300);
+      });
     }
   };
 
   const confirmTaskCompletion = () => {
     if (completionConfirmTaskId) {
-      updateCompletion(completionConfirmTaskId, true);
+      updateCompletion(completionConfirmTaskId, true).then(() => {
+        // Force a refresh after completion to ensure UI is up to date
+        setTimeout(refreshData, 300);
+      });
       setCompletionConfirmTaskId(null);
     }
   };
@@ -156,8 +176,18 @@ export const TaskList = ({
           key={task.id}
           task={task}
           onUpdateCompletion={(completed) => handleCompletionChange(task.id, completed)}
-          onUpdateUrgency={(urgent) => updateUrgency(task.id, urgent)}
-          onDelete={() => deleteTask(task.id)}
+          onUpdateUrgency={(urgent) => {
+            updateUrgency(task.id, urgent).then(() => {
+              // Force a refresh after urgency change to ensure UI is up to date
+              setTimeout(refreshData, 300);
+            });
+          }}
+          onDelete={() => {
+            deleteTask(task.id).then(() => {
+              // Force a refresh after deletion to ensure UI is up to date
+              setTimeout(refreshData, 300);
+            });
+          }}
           isUpdating={isUpdating}
           isDeleting={isDeleting}
           onSelect={() => onItemSelected?.(task.id)}

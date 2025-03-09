@@ -31,10 +31,16 @@ export const useItemDeletion = () => {
 
       console.log(`Successfully deleted item ${itemId} from ${tableName}`);
       
-      // Immediately invalidate queries to force a refresh
+      // Immediately invalidate queries to force a refresh - this is CRITICAL
       await invalidateQueries(clientId);
 
       console.log(`Cache invalidated after deleting ${itemType} with ID: ${itemId}`);
+      
+      // Force extra refresh by waiting and invalidating again for certainty
+      setTimeout(async () => {
+        await invalidateQueries(clientId);
+        console.log('Secondary cache invalidation completed');
+      }, 500);
       
       return true;
     } catch (error) {
