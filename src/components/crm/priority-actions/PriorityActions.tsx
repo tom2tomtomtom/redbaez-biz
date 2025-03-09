@@ -23,6 +23,8 @@ export const PriorityActions = ({
   const [activeTab, setActiveTab] = useState('active');
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [lastRefreshTime, setLastRefreshTime] = useState(0);
+  const [refreshTrigger, setRefreshTrigger] = useState(Date.now());
+  
   const { refetch } = useTasks(category, activeTab === 'completed');
 
   const handleRefresh = async () => {
@@ -42,6 +44,10 @@ export const PriorityActions = ({
       });
       
       await refetch();
+      
+      // Force re-render by updating the refresh trigger
+      setRefreshTrigger(Date.now());
+      
     } catch (error) {
       console.error('Error refreshing tasks:', error);
       
@@ -57,10 +63,13 @@ export const PriorityActions = ({
 
   const handleCategoryChange = (newCategory: string | undefined) => {
     setCategory(newCategory);
+    // Reset refresh trigger to force data reload
+    setRefreshTrigger(Date.now());
   };
 
   // Force an initial refresh when the component mounts
   useEffect(() => {
+    console.log("PriorityActions mounted - triggering initial refresh");
     handleRefresh();
   }, []);
 
@@ -131,6 +140,7 @@ export const PriorityActions = ({
         
         <TabsContent value="active">
           <TaskList 
+            key={`active-${refreshTrigger}-${category}`}
             category={category} 
             showCompleted={false}
             onItemSelected={onTaskClick}
@@ -139,6 +149,7 @@ export const PriorityActions = ({
         
         <TabsContent value="completed">
           <TaskList 
+            key={`completed-${refreshTrigger}-${category}`}
             category={category} 
             showCompleted={true}
             onItemSelected={onTaskClick}

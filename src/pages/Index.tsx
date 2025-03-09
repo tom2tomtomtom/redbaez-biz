@@ -1,5 +1,5 @@
 
-import { Suspense, useState } from "react";
+import { Suspense, useState, useEffect } from "react";
 import { MainNav } from "@/components/ui/main-nav";
 import { PriorityActions } from "@/components/crm/priority-actions/PriorityActions";
 import { RevenueSummary } from "@/components/crm/revenue-summary/RevenueSummary";
@@ -16,6 +16,7 @@ const Index = () => {
   const [searchInput, setSearchInput] = useState('');
   const [showClientList, setShowClientList] = useState(false);
   const [isNewTaskOpen, setIsNewTaskOpen] = useState(false);
+  const [refreshTrigger, setRefreshTrigger] = useState(Date.now());
   const navigate = useNavigate();
 
   const { data: clients, isLoading } = useQuery({
@@ -31,6 +32,12 @@ const Index = () => {
     staleTime: 0, // Don't cache
     gcTime: 0
   });
+
+  // Force refresh on mount
+  useEffect(() => {
+    console.log("Index page mounted - setting refresh trigger");
+    setRefreshTrigger(Date.now());
+  }, []);
 
   return (
     <div className="min-h-screen bg-background">
@@ -51,7 +58,10 @@ const Index = () => {
           <div className="rounded-lg bg-card p-8 shadow-sm">
             <h2 className="text-2xl font-semibold mb-6 text-left">Priority Actions</h2>
             <div>
-              <PriorityActions hideAddButton />
+              <PriorityActions 
+                key={`priority-actions-${refreshTrigger}`}
+                hideAddButton 
+              />
             </div>
           </div>
 
@@ -73,6 +83,8 @@ const Index = () => {
         task={null}
         onSaved={() => {
           setIsNewTaskOpen(false);
+          // Refresh the priority actions when a new task is saved
+          setRefreshTrigger(Date.now());
         }}
       />
     </div>

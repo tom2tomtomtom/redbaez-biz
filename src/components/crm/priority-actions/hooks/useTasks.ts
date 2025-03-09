@@ -1,3 +1,4 @@
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { toast } from '@/hooks/use-toast';
@@ -28,6 +29,7 @@ export const useTasks = (category?: string, showCompleted = false) => {
       console.log(`Fetching tasks: category=${category}, showCompleted=${showCompleted}`);
       
       try {
+        // Fetch general tasks
         let tasksQuery = supabase
           .from('general_tasks')
           .select(`
@@ -57,6 +59,7 @@ export const useTasks = (category?: string, showCompleted = false) => {
         
         if (taskError) throw taskError;
         
+        // Transform general tasks into our Task type
         const transformedTasks = (taskData || []).map(task => ({
           id: task.id,
           title: task.title,
@@ -71,6 +74,7 @@ export const useTasks = (category?: string, showCompleted = false) => {
           source: 'task' as const
         }));
         
+        // Fetch client next steps
         let nextStepsQuery = supabase
           .from('client_next_steps')
           .select(`
@@ -100,6 +104,7 @@ export const useTasks = (category?: string, showCompleted = false) => {
         
         if (nextStepsError) throw nextStepsError;
         
+        // Transform next steps into our Task type
         const transformedNextSteps = (nextStepsData || []).map(step => {
           const clientName = step.clients ? (step.clients as any).name : 'Unknown Client';
           
@@ -120,6 +125,7 @@ export const useTasks = (category?: string, showCompleted = false) => {
           } as Task;
         });
         
+        // Combine and sort tasks
         const allTasks = [...transformedTasks, ...transformedNextSteps].sort((a, b) => {
           if (a.urgent && !b.urgent) return -1;
           if (!a.urgent && b.urgent) return 1;
@@ -137,10 +143,13 @@ export const useTasks = (category?: string, showCompleted = false) => {
         return [];
       }
     },
-    staleTime: 0,
-    gcTime: 0
+    staleTime: 0, // Always fetch fresh data
+    gcTime: 0, // Don't cache results
+    refetchOnWindowFocus: true, // Refresh when window regains focus
+    refetchOnMount: true // Refresh when component mounts
   });
 
+  // Update task completion status mutation
   const updateTaskMutation = useMutation({
     mutationFn: async ({ taskId, completed }: { taskId: string; completed: boolean }) => {
       if (taskId.startsWith('next-step-')) {
@@ -177,6 +186,7 @@ export const useTasks = (category?: string, showCompleted = false) => {
     }
   });
 
+  // Update task urgency mutation
   const updateUrgencyMutation = useMutation({
     mutationFn: async ({ taskId, urgent }: { taskId: string; urgent: boolean }) => {
       if (taskId.startsWith('next-step-')) {
@@ -213,6 +223,7 @@ export const useTasks = (category?: string, showCompleted = false) => {
     }
   });
 
+  // Delete task mutation
   const deleteTaskMutation = useMutation({
     mutationFn: async (taskId: string) => {
       if (taskId.startsWith('next-step-')) {

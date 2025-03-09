@@ -2,7 +2,7 @@
 import { TaskItem } from './TaskItem';
 import { useTasks, Task } from './hooks/useTasks';
 import { PriorityActionsSkeleton } from './PriorityActionsSkeleton';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { CompletionConfirmDialog } from './components/CompletionConfirmDialog';
 
 interface TaskListProps {
@@ -25,8 +25,20 @@ export const TaskList = ({
     updateUrgency,
     deleteTask,
     isUpdating,
-    isDeleting
+    isDeleting,
+    refetch
   } = useTasks(category, showCompleted);
+
+  // Force an initial data fetch when component mounts
+  useEffect(() => {
+    console.log("TaskList mounted - forcing data refresh");
+    refetch();
+  }, []);
+
+  // Add a debug log to see what tasks we're getting
+  useEffect(() => {
+    console.log("Current tasks in TaskList:", tasks);
+  }, [tasks]);
 
   if (isLoading && !tasks.length) {
     return <PriorityActionsSkeleton />;
