@@ -57,10 +57,10 @@ export const TaskList = ({
 
   return (
     <div className="space-y-2">
-      {tasks.map((task: Task) => (
+      {tasks.map((task) => (
         <TaskItem
           key={task.id}
-          task={task}
+          task={task as Task}
           onUpdateCompletion={(completed) => handleCompletionChange(task.id, completed)}
           onUpdateUrgency={(urgent) => updateUrgency(task.id, urgent)}
           onDelete={() => deleteTask(task.id)}

@@ -1,3 +1,4 @@
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { toast } from '@/hooks/use-toast';
@@ -99,6 +100,7 @@ export const useTasks = (category?: string, showCompleted = false) => {
         if (nextStepsError) throw nextStepsError;
         
         const transformedNextSteps = (nextStepsData || []).map(step => {
+          // Fix the property access issue - extract the name safely
           const clientName = step.clients ? (step.clients as any).name : 'Unknown Client';
           
           return {
@@ -114,7 +116,7 @@ export const useTasks = (category?: string, showCompleted = false) => {
             created_at: step.created_at,
             updated_at: step.updated_at,
             original_data: step
-          };
+          } as Task; // Explicitly cast to Task type
         });
         
         const allTasks = [...transformedTasks, ...transformedNextSteps].sort((a, b) => {
