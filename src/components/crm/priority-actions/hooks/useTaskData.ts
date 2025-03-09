@@ -15,7 +15,7 @@ export const useTaskData = (category?: string, showCompleted = false) => {
       const { data: generalTasks, error: generalTasksError } = await supabase
         .from('general_tasks')
         .select('*, clients(name)')
-        .eq(showCompleted ? 'status' : '', showCompleted ? 'completed' : 'incomplete')
+        .eq('status', showCompleted ? 'completed' : 'incomplete')
         .ilike(category && category !== 'All' ? 'category' : '', category ? `%${category}%` : '')
         .order('urgent', { ascending: false })
         .order('next_due_date', { ascending: true });
@@ -29,7 +29,7 @@ export const useTaskData = (category?: string, showCompleted = false) => {
       const { data: nextSteps, error: nextStepsError } = await supabase
         .from('client_next_steps')
         .select('*, clients(name)')
-        .is(showCompleted ? 'completed_at' : '', showCompleted ? 'not.null' : 'null')
+        .is('completed_at', showCompleted ? 'not.null' : 'null')
         .ilike(category && category !== 'All' ? 'category' : '', category ? `%${category}%` : '')
         .order('urgent', { ascending: false })
         .order('due_date', { ascending: true });

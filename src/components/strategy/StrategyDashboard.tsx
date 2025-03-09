@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { IdeaGenerator } from "./IdeaGenerator";
@@ -18,28 +19,20 @@ export const StrategyDashboard = ({ category }: StrategyDashboardProps) => {
   
   const { data: allTasks, isLoading } = useGeneralTasks(category, refreshTrigger);
   
-  console.log('All tasks before filtering:', allTasks); // Debug log
+  // Only show tasks with due_date in active tasks and incomplete status
+  const activeTasks = allTasks?.filter(task => 
+    task.status !== 'completed' && task.next_due_date !== null
+  ) || [];
   
-  // Separate tasks into distinct groups - tasks with due dates are active, without are ideas
-  const activeTasks = allTasks?.filter(task => {
-    const isActive = task.status !== 'completed' && task.next_due_date !== null;
-    console.log('Task:', task.id, 'isActive:', isActive, 'status:', task.status, 'next_due_date:', task.next_due_date);
-    return isActive;
-  }) || [];
-  
+  // Only show completed tasks
   const completedTasks = allTasks?.filter(task => 
     task.status === 'completed'
   ) || [];
   
+  // Show tasks without due_date and not completed as ideas
   const generatedIdeas = allTasks?.filter(task => 
     task.status !== 'completed' && task.next_due_date === null
   ) || [];
-
-  console.log('Filtered tasks:', {
-    active: activeTasks,
-    completed: completedTasks,
-    ideas: generatedIdeas
-  }); // Debug log
 
   const handleIdeaGenerated = () => {
     setRefreshTrigger(prev => prev + 1);
