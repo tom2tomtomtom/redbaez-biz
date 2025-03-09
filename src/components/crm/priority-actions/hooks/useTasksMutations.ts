@@ -1,7 +1,9 @@
+
+import { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Task, tasksTable } from './taskTypes';
-import { supabase } from '@/integrations/supabase/client';
-import { toast } from '@/components/ui/use-toast';
+import { supabase, logQuery } from '@/lib/supabase';
+import { toast } from '@/hooks/use-toast';
 
 export const useTasksMutations = () => {
   const queryClient = useQueryClient();
@@ -12,13 +14,21 @@ export const useTasksMutations = () => {
   const updateCompletionMutation = useMutation({
     mutationFn: async (args: { taskId: string; completed: boolean }) => {
       setIsUpdating(true);
-      supabase.logQuery('tasks', 'updating completion');
+      logQuery('tasks', 'updating completion');
       
-      const { data, error } = await tasksTable()
+      let table;
+      // Determine which table to update based on the task ID format
+      if (args.taskId.startsWith('next-step-')) {
+        table = tasksTable.nextSteps();
+      } else {
+        table = tasksTable.general();
+      }
+      
+      const { data, error } = await table
         .update({
           status: args.completed ? 'completed' : 'incomplete'
         })
-        .eq('id', args.taskId)
+        .eq('id', args.taskId.replace('next-step-', ''))
         .select();
 
       if (error) {
@@ -52,11 +62,19 @@ export const useTasksMutations = () => {
   const updateUrgencyMutation = useMutation({
     mutationFn: async (args: { taskId: string; urgent: boolean }) => {
       setIsUpdating(true);
-      supabase.logQuery('tasks', 'updating urgency');
+      logQuery('tasks', 'updating urgency');
       
-      const { data, error } = await tasksTable()
+      let table;
+      // Determine which table to update based on the task ID format
+      if (args.taskId.startsWith('next-step-')) {
+        table = tasksTable.nextSteps();
+      } else {
+        table = tasksTable.general();
+      }
+      
+      const { data, error } = await table
         .update({ urgent: args.urgent })
-        .eq('id', args.taskId)
+        .eq('id', args.taskId.replace('next-step-', ''))
         .select();
 
       if (error) {
@@ -87,11 +105,19 @@ export const useTasksMutations = () => {
   const deleteTaskMutation = useMutation({
     mutationFn: async (taskId: string) => {
       setIsDeleting(true);
-      supabase.logQuery('tasks', 'deleting');
+      logQuery('tasks', 'deleting');
       
-      const { error } = await tasksTable()
+      let table;
+      // Determine which table to delete from based on the task ID format
+      if (taskId.startsWith('next-step-')) {
+        table = tasksTable.nextSteps();
+      } else {
+        table = tasksTable.general();
+      }
+      
+      const { error } = await table
         .delete()
-        .eq('id', taskId);
+        .eq('id', taskId.replace('next-step-', ''));
 
       if (error) {
         console.error('Error deleting task:', error);

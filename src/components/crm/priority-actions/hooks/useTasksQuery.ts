@@ -1,16 +1,18 @@
+
 import { useQuery } from '@tanstack/react-query';
 import { Task, tasksTable } from './taskTypes';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase, logQuery } from '@/lib/supabase';
+import { toast } from '@/hooks/use-toast';
 
 export const useTasksQuery = (category?: string, showCompleted = false) => {
   const fetchTasks = async (): Promise<Task[]> => {
     // Log query execution with timestamp for debugging
-    supabaseDiagnostics.logQuery('tasks', 'fetching');
+    logQuery('tasks', 'fetching');
     console.log(`Fetching tasks with category: ${category}, showCompleted: ${showCompleted}`);
 
     try {
       // Prepare query builder for general_tasks table
-      let query = tasksTable().select('*, clients(name)');
+      let query = tasksTable.general().select('*, clients(name)');
 
       // Apply completed filter
       if (showCompleted) {
@@ -44,7 +46,8 @@ export const useTasksQuery = (category?: string, showCompleted = false) => {
       // Map the returned data to our Task interface
       const tasks = (data || []).map(task => ({
         ...task,
-        source: 'general_tasks',
+        type: 'task' as const,
+        source_table: 'general_tasks' as const
       }));
       
       return tasks;
