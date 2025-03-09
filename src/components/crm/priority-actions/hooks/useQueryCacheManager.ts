@@ -22,7 +22,8 @@ export const useQueryCacheManager = () => {
       ['tasks'],
       ['generalTasks'],
       ['clientNextSteps'],
-      ['priority-data']
+      ['priority-data'],
+      ['unified-tasks'] // Add this key explicitly
     ];
     
     // If a client ID is provided, add client-specific query keys
@@ -36,10 +37,17 @@ export const useQueryCacheManager = () => {
       queryKeys.map(key => 
         queryClient.invalidateQueries({ 
           queryKey: key, 
-          refetchType: 'all' 
+          refetchType: 'all',
+          exact: false // Allow invalidating parent and child queries
         })
       )
     );
+    
+    // Force a refetch of specific queries
+    await Promise.all([
+      queryClient.refetchQueries({ queryKey: ['unified-tasks'] }),
+      queryClient.refetchQueries({ queryKey: ['tasks'] }),
+    ]);
     
     console.log('Query invalidation complete at:', new Date().toISOString());
     return true;

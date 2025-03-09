@@ -1,5 +1,4 @@
-
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { GeneralTaskItem } from "../crm/priority-actions/GeneralTaskItem";
 import { NextStepItem } from "../crm/priority-actions/NextStepItem";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -8,8 +7,9 @@ import { Input } from "@/components/ui/input";
 import { supabase } from "@/lib/supabase";
 import { toast } from "@/hooks/use-toast";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { Trash2 } from "lucide-react";
+import { Trash2, RefreshCw } from "lucide-react";
 import { useTaskDeletion } from "./hooks/useTaskDeletion";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface TaskListProps {
   tasks: any[];
@@ -22,14 +22,29 @@ export const TaskList = ({ tasks, isLoading, onTasksUpdated, isHistory = false }
   const [dateInputs, setDateInputs] = useState<Record<string, string>>({});
   const [taskToDelete, setTaskToDelete] = useState<any | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const initialRenderDone = useRef(false);
+  const queryClient = useQueryClient();
   
   // Use our direct task deletion hook with a simple callback to avoid re-render loops
   const { deleteTask, isDeleting } = useTaskDeletion(() => {
+    console.log("Deletion callback executed");
+    // Force refetch
+    queryClient.invalidateQueries({ queryKey: ['generalTasks'] });
+    queryClient.invalidateQueries({ queryKey: ['clientNextSteps'] });
+    
     // Using setTimeout to break potential render cycles
     setTimeout(() => {
       onTasksUpdated();
-    }, 0);
+    }, 300);
   });
+
+  // Run only once after initial render
+  useEffect(() => {
+    if (!initialRenderDone.current) {
+      initialRenderDone.current = true;
+      console.log("Strategy TaskList initial render completed");
+    }
+  }, []);
 
   const handleDateChange = async (taskId: string, date: string) => {
     try {
@@ -57,7 +72,7 @@ export const TaskList = ({ tasks, isLoading, onTasksUpdated, isHistory = false }
       // Use setTimeout to break potential render cycles
       setTimeout(() => {
         onTasksUpdated();
-      }, 0);
+      }, 300);
     } catch (error) {
       console.error('Error updating task date:', error);
       toast({
@@ -86,6 +101,13 @@ export const TaskList = ({ tasks, isLoading, onTasksUpdated, isHistory = false }
   const cancelDelete = () => {
     setIsDialogOpen(false);
     setTaskToDelete(null);
+  };
+
+  const handleManualRefresh = () => {
+    console.log("Manual refresh requested");
+    queryClient.invalidateQueries({ queryKey: ['generalTasks'] });
+    queryClient.invalidateQueries({ queryKey: ['clientNextSteps'] });
+    onTasksUpdated();
   };
 
   // Filter tasks based on whether they're completed and have due dates
@@ -122,16 +144,29 @@ export const TaskList = ({ tasks, isLoading, onTasksUpdated, isHistory = false }
   if (!sortedTasks.length) {
     return (
       <div className="text-center text-gray-500 py-8">
-        {isHistory 
-          ? "No completed tasks yet"
-          : "No tasks found"
-        }
+        <p className="mb-4">
+          {isHistory 
+            ? "No completed tasks yet"
+            : "No tasks found"
+          }
+        </p>
+        <Button onClick={handleManualRefresh} variant="outline" size="sm">
+          <RefreshCw className="mr-2 h-4 w-4" />
+          Refresh Tasks
+        </Button>
       </div>
     );
   }
 
   return (
     <div className="space-y-4">
+      <div className="flex justify-end mb-4">
+        <Button onClick={handleManualRefresh} variant="outline" size="sm">
+          <RefreshCw className="mr-2 h-4 w-4" />
+          Refresh Tasks
+        </Button>
+      </div>
+      
       {sortedTasks.map((task) => (
         <div key={task.id} className="relative space-y-2 border p-4 rounded-md shadow-sm hover:shadow-md transition-shadow">
           <div className="flex">

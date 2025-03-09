@@ -2,9 +2,11 @@
 import { useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "@/hooks/use-toast";
+import { useQueryClient } from "@tanstack/react-query";
 
 export const useTaskDeletion = (onTaskDeleted: () => void) => {
   const [isDeleting, setIsDeleting] = useState(false);
+  const queryClient = useQueryClient();
 
   const deleteTask = async (task: any) => {
     if (!task) {
@@ -31,7 +33,11 @@ export const useTaskDeletion = (onTaskDeleted: () => void) => {
       
       console.log(`Deleting from ${tableName} with ID: ${taskId}`);
       
-      // Perform the deletion
+      // Perform the deletion with a timestamp header
+      const headers = {
+        'X-Custom-Timestamp': new Date().toISOString()
+      };
+      
       const { error } = await supabase
         .from(tableName)
         .delete()
@@ -49,13 +55,39 @@ export const useTaskDeletion = (onTaskDeleted: () => void) => {
 
       // Success
       console.log("Task deleted successfully");
+      
+      // Invalidate all relevant queries to ensure UI updates
+      await queryClient.invalidateQueries({ 
+        queryKey: ['unified-tasks'],
+        exact: false 
+      });
+      
+      await queryClient.invalidateQueries({ 
+        queryKey: ['generalTasks'],
+        exact: false
+      });
+      
+      await queryClient.invalidateQueries({ 
+        queryKey: ['clientNextSteps'],
+        exact: false
+      });
+      
+      // Force an immediate refetch of the task lists
+      await queryClient.refetchQueries({ 
+        queryKey: ['unified-tasks'],
+        exact: false
+      });
+      
       toast({
         title: "Task deleted",
         description: "The task has been deleted successfully.",
       });
       
       // Call the callback to refresh the task list
-      onTaskDeleted();
+      setTimeout(() => {
+        onTaskDeleted();
+      }, 100);
+      
       return true;
     } catch (error) {
       console.error('Unexpected error in deletion process:', error);
