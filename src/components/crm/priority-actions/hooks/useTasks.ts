@@ -38,7 +38,7 @@ export const useTasks = (category?: string, showCompleted = false) => {
             description,
             category,
             status,
-            next_due_date as due_date,
+            next_due_date,
             client_id,
             urgent,
             created_at,
@@ -60,6 +60,20 @@ export const useTasks = (category?: string, showCompleted = false) => {
         const { data: taskData, error: taskError } = await tasksQuery;
         
         if (taskError) throw taskError;
+        
+        // Transform general tasks to match our Task interface
+        const transformedTasks = (taskData || []).map(task => ({
+          id: task.id,
+          title: task.title,
+          description: task.description,
+          category: task.category,
+          status: task.status as 'incomplete' | 'completed',
+          due_date: task.next_due_date,
+          client_id: task.client_id,
+          urgent: task.urgent,
+          created_at: task.created_at,
+          updated_at: task.updated_at
+        }));
         
         // Next fetch client next steps and transform to match task format
         let nextStepsQuery = supabase
@@ -96,23 +110,28 @@ export const useTasks = (category?: string, showCompleted = false) => {
         if (nextStepsError) throw nextStepsError;
         
         // Transform next steps to match task format
-        const transformedNextSteps = (nextStepsData || []).map(step => ({
-          id: `next-step-${step.id}`,
-          title: `Next Step: ${step.clients?.name || 'Unknown Client'}`,
-          description: step.notes,
-          category: step.category,
-          status: step.completed_at ? 'completed' : 'incomplete',
-          due_date: step.due_date,
-          client_id: step.client_id,
-          client_name: step.clients?.name,
-          urgent: step.urgent,
-          created_at: step.created_at,
-          updated_at: step.updated_at,
-          original_data: step // Keep original data for updates
-        }));
+        const transformedNextSteps = (nextStepsData || []).map(step => {
+          // Extract client name safely
+          const clientName = step.clients ? step.clients.name : 'Unknown Client';
+          
+          return {
+            id: `next-step-${step.id}`,
+            title: `Next Step: ${clientName}`,
+            description: step.notes,
+            category: step.category,
+            status: step.completed_at ? 'completed' : 'incomplete',
+            due_date: step.due_date,
+            client_id: step.client_id,
+            client_name: clientName,
+            urgent: step.urgent,
+            created_at: step.created_at,
+            updated_at: step.updated_at,
+            original_data: step // Keep original data for updates
+          };
+        });
         
         // Combine both arrays and sort by urgency and due date
-        const allTasks = [...(taskData || []), ...transformedNextSteps].sort((a, b) => {
+        const allTasks = [...transformedTasks, ...transformedNextSteps].sort((a, b) => {
           // Sort by urgency first
           if (a.urgent && !b.urgent) return -1;
           if (!a.urgent && b.urgent) return 1;

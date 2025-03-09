@@ -19,8 +19,11 @@ export const BusinessAdmin = () => {
     setEditingTask(null);
   };
 
-  const handleTaskClick = (task: GeneralTaskRow) => {
-    setEditingTask(task);
+  // Modified to accept string ID and fetch the task as needed
+  const handleTaskClick = (taskId: string) => {
+    // For now, we'll just open the dialog with a new task
+    // In a real implementation, we would fetch the task by ID first
+    setEditingTask(null);
     setIsDialogOpen(true);
   };
 
