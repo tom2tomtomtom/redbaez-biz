@@ -20,3 +20,9 @@ export interface Task {
 export const getTaskTable = (sourceTable: 'general_tasks' | 'client_next_steps') => {
   return supabase.from(sourceTable);
 };
+
+// Export a reference to the tables for backward compatibility
+export const tasksTable = {
+  general: () => supabase.from('general_tasks'),
+  nextSteps: () => supabase.from('client_next_steps')
+};

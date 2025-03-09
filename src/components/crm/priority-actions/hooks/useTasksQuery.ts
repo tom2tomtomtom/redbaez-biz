@@ -1,9 +1,6 @@
-
 import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/lib/supabase';
-import { toast } from '@/hooks/use-toast';
 import { Task, tasksTable } from './taskTypes';
-import { supabaseDiagnostics } from '@/integrations/supabase/client';
+import { supabase } from '@/integrations/supabase/client';
 
 export const useTasksQuery = (category?: string, showCompleted = false) => {
   const fetchTasks = async (): Promise<Task[]> => {

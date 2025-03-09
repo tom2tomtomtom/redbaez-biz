@@ -1,9 +1,7 @@
-
-import { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { toast } from '@/hooks/use-toast';
-import { supabaseDiagnostics } from '@/integrations/supabase/client';
-import { tasksTable } from './taskTypes';
+import { Task, tasksTable } from './taskTypes';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from '@/components/ui/use-toast';
 
 export const useTasksMutations = () => {
   const queryClient = useQueryClient();
@@ -14,7 +12,7 @@ export const useTasksMutations = () => {
   const updateCompletionMutation = useMutation({
     mutationFn: async (args: { taskId: string; completed: boolean }) => {
       setIsUpdating(true);
-      supabaseDiagnostics.logQuery('tasks', 'updating completion');
+      supabase.logQuery('tasks', 'updating completion');
       
       const { data, error } = await tasksTable()
         .update({
@@ -54,7 +52,7 @@ export const useTasksMutations = () => {
   const updateUrgencyMutation = useMutation({
     mutationFn: async (args: { taskId: string; urgent: boolean }) => {
       setIsUpdating(true);
-      supabaseDiagnostics.logQuery('tasks', 'updating urgency');
+      supabase.logQuery('tasks', 'updating urgency');
       
       const { data, error } = await tasksTable()
         .update({ urgent: args.urgent })
@@ -89,7 +87,7 @@ export const useTasksMutations = () => {
   const deleteTaskMutation = useMutation({
     mutationFn: async (taskId: string) => {
       setIsDeleting(true);
-      supabaseDiagnostics.logQuery('tasks', 'deleting');
+      supabase.logQuery('tasks', 'deleting');
       
       const { error } = await tasksTable()
         .delete()
