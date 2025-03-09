@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { RefreshCcw, Plus } from 'lucide-react';
@@ -8,6 +9,7 @@ import { PriorityActionsSkeleton } from './PriorityActionsSkeleton';
 import { Tables } from '@/integrations/supabase/types';
 import { GeneralTaskRow } from '@/integrations/supabase/types/general-tasks.types';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { toast } from '@/components/ui/use-toast';
 
 interface PriorityActionsProps {
   hideAddButton?: boolean;
@@ -49,12 +51,21 @@ export const PriorityActions = ({
     try {
       setIsRefreshing(true);
       setLastRefreshTime(now);
+      toast({
+        title: "Refreshing data",
+        description: "Getting the latest tasks and next steps..."
+      });
       await refetch();
       // After refetch, increment refresh key to trigger fresh data loading
       setRefreshKey(prev => prev + 1);
       console.log('Refresh completed, new refresh key:', refreshKey + 1);
     } catch (error) {
       console.error('Error refreshing priority items:', error);
+      toast({
+        title: "Error refreshing data",
+        description: "There was a problem getting the latest data",
+        variant: "destructive"
+      });
     } finally {
       setIsRefreshing(false);
     }
@@ -87,6 +98,7 @@ export const PriorityActions = ({
 
   // Force an initial refresh when the component mounts
   useEffect(() => {
+    console.log("Component mounted, triggering initial data load");
     handleRefresh();
   }, []);
 

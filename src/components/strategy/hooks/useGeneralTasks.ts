@@ -12,9 +12,7 @@ export const useGeneralTasks = (category: string, refreshTrigger: number) => {
       const { data: tasks, error: tasksError } = await supabase
         .from('general_tasks')
         .select('*, clients(name)')
-        .ilike('category', `%${category}%`)
-        .eq('status', 'incomplete') // Only get incomplete tasks
-        .order('next_due_date', { ascending: true });
+        .ilike('category', `%${category}%`);
 
       if (tasksError) {
         console.error('Error fetching tasks:', tasksError);
@@ -27,9 +25,7 @@ export const useGeneralTasks = (category: string, refreshTrigger: number) => {
       const { data: nextSteps, error: nextStepsError } = await supabase
         .from('client_next_steps')
         .select('*, clients(name)')
-        .ilike('category', `%${category}%`)
-        .is('completed_at', null) // Only get incomplete next steps
-        .order('due_date', { ascending: true });
+        .ilike('category', `%${category}%`);
 
       if (nextStepsError) {
         console.error('Error fetching next steps:', nextStepsError);
@@ -44,7 +40,7 @@ export const useGeneralTasks = (category: string, refreshTrigger: number) => {
         title: `Next Step for ${step.clients?.name || 'Unknown Client'}`,
         description: step.notes,
         category: category.toLowerCase(),
-        status: 'incomplete', // Always set as incomplete since we filtered completed ones
+        status: step.completed_at ? 'completed' : 'incomplete',
         next_due_date: step.due_date,
         created_at: step.created_at,
         updated_at: step.updated_at,
@@ -63,8 +59,8 @@ export const useGeneralTasks = (category: string, refreshTrigger: number) => {
       console.log('Strategy - combined tasks:', allTasks.length, allTasks); // Debug log
       return allTasks;
     },
-    // Force refetch on every category or refreshTrigger change to ensure latest data
+    // Lower cache times to ensure fresher data
     staleTime: 0, 
-    gcTime: 0  // Replaced cacheTime with gcTime which is the equivalent in React Query v5
+    gcTime: 0
   });
 };

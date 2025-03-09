@@ -23,9 +23,6 @@ const fetchGeneralTasks = async (category?: string) => {
     let query = supabase
       .from('general_tasks')
       .select('*');
-
-    // Only filter for incomplete tasks
-    query = query.eq('status', 'incomplete');
       
     // Only apply category filter if a valid category is provided
     if (category && typeof category === 'string' && category.trim() !== '') {
@@ -61,7 +58,6 @@ const fetchNextSteps = async () => {
           name
         )
       `)
-      .is('completed_at', null) // Only get incomplete next steps
       .order('due_date', { ascending: true });
 
     if (error) {
@@ -93,8 +89,8 @@ export const usePriorityData = (category?: string, refreshKey?: number) => {
   const tasksQuery = useQuery({
     queryKey: ['generalTasks', sanitizedCategory, refreshKey],
     queryFn: () => fetchGeneralTasks(sanitizedCategory),
-    staleTime: 30000, // 30 seconds stale time
-    gcTime: 60000,    // 1 minute cache time
+    staleTime: 0, // Set to 0 to always fetch fresh data
+    gcTime: 1000, // Set to 1 second
     refetchOnWindowFocus: true,
     refetchOnMount: true,
     retry: 3,
@@ -103,8 +99,8 @@ export const usePriorityData = (category?: string, refreshKey?: number) => {
   const nextStepsQuery = useQuery({
     queryKey: ['clientNextSteps', refreshKey],
     queryFn: fetchNextSteps,
-    staleTime: 30000, // 30 seconds stale time
-    gcTime: 60000,    // 1 minute cache time
+    staleTime: 0, // Set to 0 to always fetch fresh data
+    gcTime: 1000, // Set to 1 second
     refetchOnWindowFocus: true,
     refetchOnMount: true,
     retry: 3,
