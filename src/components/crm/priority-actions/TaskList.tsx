@@ -4,6 +4,7 @@ import { TaskItem } from './TaskItem';
 import { useTasks, Task } from './hooks/useTasks';
 import { PriorityActionsSkeleton } from './PriorityActionsSkeleton';
 import { CompletionConfirmDialog } from './components/CompletionConfirmDialog';
+import { toast } from '@/hooks/use-toast';
 
 interface TaskListProps {
   category?: string;
@@ -17,6 +18,7 @@ export const TaskList = ({
   onItemSelected
 }: TaskListProps) => {
   const [completionConfirmTaskId, setCompletionConfirmTaskId] = useState<string | null>(null);
+  const [lastRefreshTime, setLastRefreshTime] = useState<number>(Date.now());
   
   const {
     tasks,
@@ -29,16 +31,41 @@ export const TaskList = ({
     refetch
   } = useTasks(category, showCompleted);
 
-  // Force an initial data fetch when component mounts
+  // Force an initial data fetch when component mounts and refresh periodically
   useEffect(() => {
     console.log("TaskList mounted - forcing data refresh");
-    refetch();
-  }, []);
+    
+    // Show toast notification
+    toast({
+      title: "Loading tasks",
+      description: "Fetching latest task data..."
+    });
+    
+    // Initial refetch
+    refetch().then(() => {
+      console.log("Initial task data fetched successfully");
+      setLastRefreshTime(Date.now());
+    }).catch(err => {
+      console.error("Error fetching task data:", err);
+    });
+    
+    // Set up periodic refresh
+    const intervalId = setInterval(() => {
+      console.log("Periodic task refresh");
+      refetch().then(() => {
+        setLastRefreshTime(Date.now());
+      });
+    }, 60000); // Refresh every minute
+    
+    return () => {
+      clearInterval(intervalId);
+    };
+  }, [category, showCompleted]);
 
   // Add a debug log to see what tasks we're getting
   useEffect(() => {
-    console.log("Current tasks in TaskList:", tasks);
-  }, [tasks]);
+    console.log(`Current tasks in TaskList (${lastRefreshTime}):`, tasks);
+  }, [tasks, lastRefreshTime]);
 
   if (isLoading && !tasks.length) {
     return <PriorityActionsSkeleton />;
