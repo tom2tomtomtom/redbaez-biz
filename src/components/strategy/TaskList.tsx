@@ -63,15 +63,18 @@ export const TaskList = ({ tasks, isLoading, onTasksUpdated, isHistory = false }
   const handleDeleteTask = (task: any) => {
     console.log("Delete button clicked for task:", task);
     
-    // Convert task to the format expected by useItemStatusChange
+    // Format the task correctly for the deletion system
     const formattedTask = {
       data: {
+        // For next steps, remove the prefix but for regular tasks, use the ID as is
         id: task.type === 'next_step' ? task.id.replace('next-step-', '') : task.id,
         client_id: task.client_id
       },
+      // Convert the task type string to match what the CRM system expects
       type: task.type === 'next_step' ? 'nextStep' : 'task'
     };
     
+    console.log("Formatted task for deletion:", formattedTask);
     setTaskToDelete(formattedTask);
   };
 
@@ -82,7 +85,7 @@ export const TaskList = ({ tasks, isLoading, onTasksUpdated, isHistory = false }
     try {
       console.log("Attempting to delete task using unified delete method:", taskToDelete);
       
-      // Use the CRM's existing task deletion functionality
+      // Directly call the deletion method and wait for its result
       const success = await deleteTaskItem(taskToDelete);
       
       if (success) {
@@ -91,6 +94,7 @@ export const TaskList = ({ tasks, isLoading, onTasksUpdated, isHistory = false }
           description: "The task has been deleted successfully.",
         });
         
+        // Refresh the task list after deletion
         onTasksUpdated();
       } else {
         throw new Error("Failed to delete task");
