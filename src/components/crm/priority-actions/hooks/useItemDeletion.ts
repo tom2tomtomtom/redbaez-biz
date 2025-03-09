@@ -7,9 +7,6 @@ import { useQueryCacheManager } from './useQueryCacheManager';
 export const useItemDeletion = () => {
   const { invalidateQueries } = useQueryCacheManager();
 
-  // Create a delay function to manage timing of cache updates
-  const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
-
   const handleDelete = async (item: PriorityItem) => {
     try {
       const itemId = item.data.id;
@@ -19,23 +16,9 @@ export const useItemDeletion = () => {
       // Determine the table name based on item type
       const tableName = itemType === 'task' ? 'general_tasks' : 'client_next_steps';
       
-      console.log(`DELETING: Attempting to delete item ${itemType}:${itemId} from table ${tableName}`);
+      console.log(`Deleting item ${itemType}:${itemId} from table ${tableName}`);
 
-      // Check if the item exists first before trying to delete
-      const { data: checkData, error: checkError } = await supabase
-        .from(tableName)
-        .select('id')
-        .eq('id', itemId)
-        .single();
-      
-      if (checkError) {
-        console.error(`Item ${itemId} in table ${tableName} not found:`, checkError);
-        return false;
-      }
-      
-      console.log(`Item ${itemId} exists in ${tableName}, proceeding with deletion`);
-
-      // Now perform the actual deletion
+      // Perform the deletion
       const { error: deleteError } = await supabase
         .from(tableName)
         .delete()
@@ -48,10 +31,7 @@ export const useItemDeletion = () => {
 
       console.log(`Successfully deleted item ${itemId} from ${tableName}`);
       
-      // Add a delay before invalidating the cache to ensure the deletion has propagated
-      await delay(300);
-      
-      // IMMEDIATELY clear cache to force a refresh with data that doesn't include the deleted item
+      // Immediately invalidate queries to force a refresh
       await invalidateQueries(clientId);
 
       console.log(`Cache invalidated after deleting ${itemType} with ID: ${itemId}`);

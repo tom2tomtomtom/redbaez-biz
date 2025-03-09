@@ -35,7 +35,7 @@ export const useCompletionStatus = () => {
       
       if (error) throw error;
       
-      // IMMEDIATELY after DB update, remove the queries to force a fresh fetch
+      // IMMEDIATELY after DB update, invalidate queries to force a fresh fetch
       await invalidateQueries(clientId);
 
       return true;

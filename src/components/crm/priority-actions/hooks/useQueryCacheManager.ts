@@ -7,38 +7,31 @@ export const useQueryCacheManager = () => {
   const invalidateQueries = async (clientId?: number | null) => {
     console.log('Invalidating queries for client:', clientId);
     
-    // Invalidate with timestamp to force fresh data
+    // Define a single timestamp for all invalidations
     const timestamp = Date.now();
     
-    // Always invalidate general task queries
-    await Promise.all([
-      queryClient.invalidateQueries({ 
-        queryKey: ['tasks'], 
-        refetchType: 'all' 
-      }),
-      queryClient.invalidateQueries({ 
-        queryKey: ['generalTasks'], 
-        refetchType: 'all' 
-      }),
-      queryClient.invalidateQueries({ 
-        queryKey: ['clientNextSteps'], 
-        refetchType: 'all' 
-      })
-    ]);
+    // Create a list of all task-related query keys to invalidate
+    const queryKeys = [
+      ['tasks'],
+      ['generalTasks'],
+      ['clientNextSteps']
+    ];
     
-    // If we have a client ID, also invalidate client-specific queries
+    // If a client ID is provided, add client-specific query keys
     if (clientId) {
-      await Promise.all([
-        queryClient.invalidateQueries({ 
-          queryKey: ['client', clientId], 
-          refetchType: 'all'
-        }),
-        queryClient.invalidateQueries({ 
-          queryKey: ['client-items', clientId], 
-          refetchType: 'all'
-        })
-      ]);
+      queryKeys.push(['client', clientId]);
+      queryKeys.push(['client-items', clientId]);
     }
+    
+    // Invalidate all relevant queries at once
+    await Promise.all(
+      queryKeys.map(key => 
+        queryClient.invalidateQueries({ 
+          queryKey: key, 
+          refetchType: 'all' 
+        })
+      )
+    );
     
     console.log('Query invalidation complete at:', new Date().toISOString());
     return true;

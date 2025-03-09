@@ -6,7 +6,7 @@ import { Category } from './Category';
 import { TaskList } from './TaskList';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from '@/hooks/use-toast';
-import { useTasks } from './hooks/useTasks';
+import { useQueryCacheManager } from './hooks/useQueryCacheManager';
 
 interface PriorityActionsProps {
   hideAddButton?: boolean;
@@ -25,7 +25,7 @@ export const PriorityActions = ({
   const [lastRefreshTime, setLastRefreshTime] = useState(0);
   const [refreshTrigger, setRefreshTrigger] = useState(Date.now());
   
-  const { refetch } = useTasks(category, activeTab === 'completed');
+  const { invalidateQueries } = useQueryCacheManager();
 
   const handleRefresh = async () => {
     const now = Date.now();
@@ -43,7 +43,8 @@ export const PriorityActions = ({
         description: "Getting the latest tasks..."
       });
       
-      await refetch();
+      // Use our centralized cache invalidation
+      await invalidateQueries();
       
       // Force re-render by updating the refresh trigger
       setRefreshTrigger(Date.now());

@@ -9,7 +9,7 @@ export const useTasksQuery = (category?: string, showCompleted = false) => {
   const fetchTasks = async (): Promise<Task[]> => {
     // Log query execution with timestamp for debugging
     supabaseDiagnostics.logQuery('tasks', 'fetching');
-    console.log(`[${new Date().toISOString()}] Fetching tasks with category: ${category}, showCompleted: ${showCompleted}`);
+    console.log(`Fetching tasks with category: ${category}, showCompleted: ${showCompleted}`);
 
     try {
       // Prepare query builder for general_tasks table
@@ -42,8 +42,7 @@ export const useTasksQuery = (category?: string, showCompleted = false) => {
         throw error;
       }
 
-      console.log(`[${new Date().toISOString()}] Fetched ${data?.length} tasks`);
-      console.log('Tasks data:', data);
+      console.log(`Fetched ${data?.length} tasks`);
       
       // Map the returned data to our Task interface
       const tasks = (data || []).map(task => ({
@@ -59,11 +58,9 @@ export const useTasksQuery = (category?: string, showCompleted = false) => {
   };
 
   return useQuery({
-    queryKey: ['tasks', category, showCompleted, Date.now()], // Add Date.now() to force refresh
+    queryKey: ['tasks', category, showCompleted],
     queryFn: fetchTasks,
-    staleTime: 0, // Always consider data stale to ensure fresh fetches
-    gcTime: 0, // No cache
-    refetchOnMount: true,
-    refetchOnWindowFocus: true
+    refetchOnWindowFocus: true,
+    refetchOnMount: true
   });
 };

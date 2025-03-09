@@ -12,6 +12,7 @@ import { ClientListSection } from "@/components/crm/dashboard/ClientListSection"
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { useNavigate } from "react-router-dom";
 import { toast } from "@/hooks/use-toast";
+import { useQueryCacheManager } from "@/components/crm/priority-actions/hooks/useQueryCacheManager";
 
 const Index = () => {
   const [searchInput, setSearchInput] = useState('');
@@ -19,9 +20,10 @@ const Index = () => {
   const [isNewTaskOpen, setIsNewTaskOpen] = useState(false);
   const [refreshTrigger, setRefreshTrigger] = useState(Date.now());
   const navigate = useNavigate();
+  const { invalidateQueries } = useQueryCacheManager();
 
   const { data: clients, isLoading } = useQuery({
-    queryKey: ['clients', refreshTrigger], // Use refreshTrigger to ensure fresh data
+    queryKey: ['clients', refreshTrigger],
     queryFn: async () => {
       console.log("Fetching clients...");
       const { data, error } = await supabase
@@ -34,23 +36,29 @@ const Index = () => {
       }
       console.log("Fetched clients:", data?.length);
       return data;
-    },
-    staleTime: 0, // Don't cache
-    gcTime: 0
+    }
   });
 
   // Force refresh when page loads
   useEffect(() => {
-    console.log("Index page mounted - setting refresh trigger");
-    // Show a toast to indicate the data is being loaded
-    toast({
-      title: "Loading dashboard",
-      description: "Refreshing your dashboard data..."
-    });
+    const loadDashboard = async () => {
+      console.log("Index page mounted - refreshing data");
+      
+      // Show a toast to indicate the data is being loaded
+      toast({
+        title: "Loading dashboard",
+        description: "Refreshing your dashboard data..."
+      });
+      
+      // Invalidate all query cache to ensure fresh data
+      await invalidateQueries();
+      
+      // Update refresh trigger to force component refreshes
+      setRefreshTrigger(Date.now());
+    };
     
-    // Refresh data
-    setRefreshTrigger(Date.now());
-  }, []);
+    loadDashboard();
+  }, [invalidateQueries]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -70,12 +78,10 @@ const Index = () => {
 
           <div className="rounded-lg bg-card p-8 shadow-sm">
             <h2 className="text-2xl font-semibold mb-6 text-left">Priority Actions</h2>
-            <div>
-              <PriorityActions 
-                key={`priority-actions-${refreshTrigger}`}
-                hideAddButton 
-              />
-            </div>
+            <PriorityActions 
+              key={`priority-actions-${refreshTrigger}`}
+              hideAddButton 
+            />
           </div>
 
           <div className="rounded-lg bg-card p-8 shadow-sm">
@@ -94,9 +100,10 @@ const Index = () => {
         isOpen={isNewTaskOpen}
         onOpenChange={setIsNewTaskOpen}
         task={null}
-        onSaved={() => {
+        onSaved={async () => {
           setIsNewTaskOpen(false);
-          // Refresh the priority actions when a new task is saved
+          // Refresh all data when a new task is saved
+          await invalidateQueries();
           setRefreshTrigger(Date.now());
         }}
       />

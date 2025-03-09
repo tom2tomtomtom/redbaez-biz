@@ -1,7 +1,7 @@
 
 import { useTasksQuery } from './useTasksQuery';
 import { useTasksMutations } from './useTasksMutations';
-import { useQueryClient } from '@tanstack/react-query';
+import { useQueryCacheManager } from './useQueryCacheManager';
 import { Task } from './taskTypes';
 
 export type { Task } from './taskTypes';
@@ -22,16 +22,14 @@ export const useTasks = (category?: string, showCompleted = false) => {
     deleteTask 
   } = useTasksMutations();
   
-  const queryClient = useQueryClient();
+  const { invalidateQueries } = useQueryCacheManager();
   
   // Helper function to force a global refresh
   const forceRefresh = async () => {
     console.log('Force refreshing all task data');
     
-    // Invalidate related queries first
-    await queryClient.invalidateQueries({ queryKey: ['tasks'] });
-    await queryClient.invalidateQueries({ queryKey: ['generalTasks'] });
-    await queryClient.invalidateQueries({ queryKey: ['clientNextSteps'] });
+    // Use our centralized cache manager
+    await invalidateQueries();
     
     // Then force a refetch
     return refetch();
