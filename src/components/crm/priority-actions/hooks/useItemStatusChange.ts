@@ -1,3 +1,4 @@
+
 import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
@@ -13,23 +14,23 @@ export const useItemStatusChange = () => {
     console.log('Invalidating queries after task update/delete');
     
     try {
-      // Force a HARD RESET of all priority-related queries
-      await queryClient.resetQueries({ 
+      // FIRST, remove all data from cache before invalidating
+      queryClient.removeQueries({ 
         queryKey: ['generalTasks'],
         exact: false
       });
       
-      await queryClient.resetQueries({ 
+      queryClient.removeQueries({ 
         queryKey: ['clientNextSteps'],
         exact: false
       });
       
-      await queryClient.resetQueries({
+      queryClient.removeQueries({
         queryKey: ['priorityData'],
         exact: false
       });
       
-      // Wait for reset to complete
+      // Wait for removal to complete
       await delay(100);
       
       // Only after reset, properly invalidate to trigger refetches
@@ -50,12 +51,12 @@ export const useItemStatusChange = () => {
       
       // If there's a client ID, invalidate client-specific queries
       if (clientId) {
-        await queryClient.resetQueries({ 
+        await queryClient.removeQueries({ 
           queryKey: ['client', clientId],
           exact: false
         });
         
-        await queryClient.resetQueries({ 
+        await queryClient.removeQueries({ 
           queryKey: ['client-items', clientId],
           exact: false
         });
@@ -107,33 +108,7 @@ export const useItemStatusChange = () => {
       
       if (error) throw error;
       
-      // Only after successful database update, update the cache
-      if (isTask) {
-        queryClient.setQueryData(['generalTasks'], (oldData: any) => {
-          if (!oldData) return oldData;
-          return Array.isArray(oldData) 
-            ? oldData.map(task => 
-                task.id === itemId
-                  ? {...task, status: completed ? 'completed' : 'incomplete'} 
-                  : task
-              )
-            : oldData;
-        });
-      } else {
-        queryClient.setQueryData(['clientNextSteps'], (oldData: any) => {
-          if (!oldData) return oldData;
-          return Array.isArray(oldData) 
-            ? oldData.map(step => 
-                step.id === itemId 
-                  ? {...step, completed_at: completed ? new Date().toISOString() : null} 
-                  : step
-              )
-            : oldData;
-        });
-      }
-
-      // Give time for the UI to update before invalidating queries
-      await delay(300);
+      // IMMEDIATELY after DB update, remove the queries to force a fresh fetch
       await invalidateQueries(clientId);
 
       return true;
@@ -162,43 +137,25 @@ export const useItemStatusChange = () => {
       
       console.log(`Deleting from table ${tableName} with ID: ${itemId}`);
 
+      // CRITICAL FIX: Verify we're using the correct ID before deleting
       // Perform direct database deletion FIRST
-      const { error } = await supabase
+      const { error, count } = await supabase
         .from(tableName)
         .delete()
-        .eq('id', itemId);
+        .eq('id', itemId)
+        .select('count');
         
       deleteError = error;
       
-      console.log(`${itemType} deletion database result:`, error ? `Error: ${error.message}` : 'Success');
+      console.log(`${itemType} deletion database result:`, 
+        error ? `Error: ${error.message}` : `Success, deleted ${count || 'unknown'} records`);
 
       if (deleteError) {
         console.error('Database error during deletion:', deleteError);
         throw new Error(`Failed to delete ${itemType}. Database error: ${deleteError.message}`);
       }
 
-      // After successful database deletion, update the cache
-      // Remove from specific query cache
-      if (itemType === 'task') {
-        queryClient.setQueryData(['generalTasks'], (oldData: any) => {
-          if (!oldData || !Array.isArray(oldData)) return [];
-          return oldData.filter(task => task.id !== itemId);
-        });
-      } else {
-        queryClient.setQueryData(['clientNextSteps'], (oldData: any) => {
-          if (!oldData || !Array.isArray(oldData)) return [];
-          return oldData.filter(step => step.id !== itemId);
-        });
-      }
-      
-      // Also remove from priorityData cache if it exists
-      queryClient.setQueryData(['priorityData'], (oldData: any) => {
-        if (!oldData || !Array.isArray(oldData)) return [];
-        return oldData.filter(i => !(i.type === itemType && i.data.id === itemId));
-      });
-
-      // Force a complete cache reset and invalidation
-      await delay(100);
+      // IMMEDIATELY clear cache to force a refresh with data that doesn't include the deleted item
       await invalidateQueries(clientId);
 
       console.log(`Successfully deleted ${itemType} with ID: ${itemId}`);
@@ -206,6 +163,11 @@ export const useItemStatusChange = () => {
       return true;
     } catch (error) {
       console.error('Error deleting item:', error);
+      toast({
+        title: "Error",
+        description: `Failed to delete item: ${error.message}`,
+        variant: "destructive",
+      });
       return false;
     }
   };
@@ -233,52 +195,7 @@ export const useItemStatusChange = () => {
 
       if (error) throw error;
 
-      // Then update cache
-      if (item.type === 'task') {
-        queryClient.setQueryData(['generalTasks'], (oldData: any) => {
-          if (!oldData) return oldData;
-          return Array.isArray(oldData) 
-            ? oldData.map(task => 
-                task.id === itemId 
-                  ? {...task, urgent: checked} 
-                  : task
-              )
-            : oldData;
-        });
-      } else if (item.type === 'next_step') {
-        queryClient.setQueryData(['clientNextSteps'], (oldData: any) => {
-          if (!oldData) return oldData;
-          return Array.isArray(oldData) 
-            ? oldData.map(step => 
-                step.id === itemId 
-                  ? {...step, urgent: checked} 
-                  : step
-              )
-            : oldData;
-        });
-      }
-      
-      // Also update in priorityData cache
-      queryClient.setQueryData(['priorityData'], (oldData: any) => {
-        if (!oldData) return oldData;
-        return Array.isArray(oldData) 
-          ? oldData.map(i => {
-              if (i.type === item.type && i.data.id === itemId) {
-                return {
-                  ...i,
-                  data: {
-                    ...i.data,
-                    urgent: checked
-                  }
-                };
-              }
-              return i;
-            })
-          : oldData;
-      });
-
-      // Invalidate after a delay
-      await delay(300);
+      // Immediately invalidate after database update
       await invalidateQueries(clientId);
 
       return true;

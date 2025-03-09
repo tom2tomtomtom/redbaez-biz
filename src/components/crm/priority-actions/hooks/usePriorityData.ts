@@ -17,13 +17,15 @@ export type PriorityItem = {
 const fetchGeneralTasks = async (category?: string) => {
   // Properly convert undefined to a more explicit value for logging
   const categoryToUse = category && typeof category === 'string' ? category : 'all';
-  console.log('Fetching general tasks with category:', categoryToUse); 
+  console.log('Fetching general tasks with category:', categoryToUse);
   
   try {
+    // Add a timestamp parameter to prevent caching
+    const timestamp = new Date().getTime();
+    
     let query = supabase
       .from('general_tasks')
       .select('*')
-      // Add a timestamp to prevent caching
       .order('updated_at', { ascending: false });
       
     // Only apply category filter if a valid category is provided
@@ -39,8 +41,10 @@ const fetchGeneralTasks = async (category?: string) => {
       throw error;
     }
     
-    console.log('Fetched tasks:', data?.length, data); // Debug log with actual data
-    return data || [];
+    // Filter out null/undefined items to ensure valid data
+    const validData = (data || []).filter(item => item && item.id);
+    console.log('Fetched tasks:', validData.length, validData);
+    return validData;
   } catch (error) {
     console.error('Exception in fetchGeneralTasks:', error);
     // Return empty array instead of throwing to prevent query from entering error state
@@ -49,9 +53,12 @@ const fetchGeneralTasks = async (category?: string) => {
 };
 
 const fetchNextSteps = async (category?: string) => {
-  console.log('Fetching next steps'); // Debug log
+  console.log('Fetching next steps');
   
   try {
+    // Add a timestamp parameter to prevent caching
+    const timestamp = new Date().getTime();
+    
     let query = supabase
       .from('client_next_steps')
       .select(`
@@ -60,7 +67,6 @@ const fetchNextSteps = async (category?: string) => {
           name
         )
       `)
-      // Add a timestamp to prevent caching
       .order('updated_at', { ascending: false });
       
     // Apply category filter if provided
@@ -75,11 +81,14 @@ const fetchNextSteps = async (category?: string) => {
       throw error;
     }
     
-    console.log('Fetched next steps:', data?.length, data); // Debug log with actual data
-    return data?.map(step => ({
+    // Filter out null/undefined items to ensure valid data
+    const validData = (data || []).filter(item => item && item.id);
+    
+    console.log('Fetched next steps:', validData.length, validData);
+    return validData.map(step => ({
       ...step,
       client_name: step.clients?.name
-    })) || [];
+    }));
   } catch (error) {
     console.error('Exception in fetchNextSteps:', error);
     // Return empty array instead of throwing to prevent query from entering error state
@@ -100,7 +109,7 @@ export const usePriorityData = (category?: string, refreshKey?: number) => {
     queryKey: ['generalTasks', sanitizedCategory, refreshKey],
     queryFn: () => fetchGeneralTasks(sanitizedCategory),
     staleTime: 0, // Set to 0 to always fetch fresh data
-    gcTime: 1000, // Set to 1 second
+    gcTime: 0, // Set to 0 to never garbage collect
     refetchOnWindowFocus: true,
     refetchOnMount: true,
     retry: 3,
@@ -110,7 +119,7 @@ export const usePriorityData = (category?: string, refreshKey?: number) => {
     queryKey: ['clientNextSteps', sanitizedCategory, refreshKey],
     queryFn: () => fetchNextSteps(sanitizedCategory),
     staleTime: 0, // Set to 0 to always fetch fresh data
-    gcTime: 1000, // Set to 1 second
+    gcTime: 0, // Set to 0 to never garbage collect
     refetchOnWindowFocus: true,
     refetchOnMount: true,
     retry: 3,
@@ -180,8 +189,8 @@ export const usePriorityData = (category?: string, refreshKey?: number) => {
       
       // Force a cache reset before refetching to ensure fresh data
       await Promise.all([
-        tasksQuery.refetch({ cancelRefetch: true }),
-        nextStepsQuery.refetch({ cancelRefetch: true })
+        tasksQuery.refetch({ cancelRefetch: false }),
+        nextStepsQuery.refetch({ cancelRefetch: false })
       ]);
     }
   };

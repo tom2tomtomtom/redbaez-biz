@@ -38,10 +38,19 @@ export const PriorityItemsList = ({
   useEffect(() => {
     deletedItemIds.current = new Set<string>();
     console.log('Deleted items set reset on component mount');
+    
+    return () => {
+      deletedItemIds.current.clear();
+      console.log('Deleted items set cleared on component unmount');
+    };
   }, []);
 
   useEffect(() => {
-    if (!items) return;
+    if (!items || !Array.isArray(items)) {
+      console.log('No items received or invalid items format');
+      setLocalItems([]);
+      return;
+    }
     
     console.log('PriorityItemsList received items:', items.length, items);
     console.log('showCompleted flag:', showCompleted);
@@ -61,10 +70,11 @@ export const PriorityItemsList = ({
       const isDeleted = deletedItemIds.current.has(uniqueId);
       
       if (isDeleted) {
-        console.log(`Filtering out deleted item: ${uniqueId}`);
+        console.log(`Filtering out locally deleted item: ${uniqueId}`);
+        return false;
       }
       
-      return !isDeleted;
+      return true;
     });
     
     console.log('PriorityItemsList filtered valid items:', validItems.length);
@@ -103,7 +113,10 @@ export const PriorityItemsList = ({
   };
 
   const proceedWithDelete = async (item: PriorityItem) => {
-    if (isProcessingDelete) return;
+    if (isProcessingDelete) {
+      console.log('Already processing a delete operation, ignoring');
+      return;
+    }
     
     try {
       setIsProcessingDelete(true);
@@ -111,7 +124,7 @@ export const PriorityItemsList = ({
       const uniqueItemId = `${item.type}-${itemId}`;
       
       console.log(`Deleting item ${uniqueItemId}`);
-
+      
       deletedItemIds.current.add(uniqueItemId);
       console.log(`Added ${uniqueItemId} to deletedItemIds set`, [...deletedItemIds.current]);
       
@@ -140,7 +153,7 @@ export const PriorityItemsList = ({
         
         toast({
           title: "Error",
-          description: `Failed to delete ${item.type === 'task' ? 'task' : 'next step'}. Please try again later.`,
+          description: `Failed to delete ${item.type === 'task' ? 'task' : 'next step'}. The item will remain hidden until page refresh.`,
           variant: "destructive",
         });
       }
@@ -263,7 +276,7 @@ export const PriorityItemsList = ({
     }
   };
 
-  const handleUrgentStatusChange = async (item: PriorityItem, checked: boolean) => {
+  const handleUrgentStatusChange = (item: PriorityItem, checked: boolean) => {
     if (isProcessingUpdate) return;
     
     try {
@@ -301,50 +314,55 @@ export const PriorityItemsList = ({
         );
       }
       
-      const success = await handleUrgentChange(item, checked);
-      
-      if (success) {
-        console.log('Urgent status updated successfully');
-        if (onItemUpdated) {
-          onItemUpdated();
-        }
-      } else {
-        console.error('Failed to update urgent status');
-        if (item.type === 'task') {
-          setLocalItems(prevItems => 
-            prevItems.map(i => {
-              if (i.type === 'task' && i.data.id === item.data.id) {
-                return {
-                  ...i,
-                  data: {
-                    ...i.data,
-                    urgent: !checked
+      handleUrgentChange(item, checked)
+        .then(success => {
+          if (success) {
+            console.log('Urgent status updated successfully');
+            if (onItemUpdated) {
+              onItemUpdated();
+            }
+          } else {
+            console.error('Failed to update urgent status');
+            if (item.type === 'task') {
+              setLocalItems(prevItems => 
+                prevItems.map(i => {
+                  if (i.type === 'task' && i.data.id === item.data.id) {
+                    return {
+                      ...i,
+                      data: {
+                        ...i.data,
+                        urgent: !checked
+                      }
+                    } as PriorityItem;
                   }
-                } as PriorityItem;
-              }
-              return i;
-            })
-          );
-        } else if (item.type === 'next_step') {
-          setLocalItems(prevItems => 
-            prevItems.map(i => {
-              if (i.type === 'next_step' && i.data.id === item.data.id) {
-                return {
-                  ...i,
-                  data: {
-                    ...i.data,
-                    urgent: !checked
+                  return i;
+                })
+              );
+            } else if (item.type === 'next_step') {
+              setLocalItems(prevItems => 
+                prevItems.map(i => {
+                  if (i.type === 'next_step' && i.data.id === item.data.id) {
+                    return {
+                      ...i,
+                      data: {
+                        ...i.data,
+                        urgent: !checked
+                      }
+                    } as PriorityItem;
                   }
-                } as PriorityItem;
-              }
-              return i;
-            })
-          );
-        }
-      }
+                  return i;
+                })
+              );
+            }
+          }
+          setIsProcessingUpdate(false);
+        })
+        .catch(error => {
+          console.error('Error in handleUrgentChange:', error);
+          setIsProcessingUpdate(false);
+        });
     } catch (error) {
-      console.error('Error handling urgent status change:', error);
-    } finally {
+      console.error('Error setting up urgent status change:', error);
       setIsProcessingUpdate(false);
     }
   };
@@ -375,7 +393,7 @@ export const PriorityItemsList = ({
         const uniqueItemId = `${item.type}-${itemId}`;
         
         if (deletedItemIds.current.has(uniqueItemId)) {
-          console.log(`Skipping deleted item ${uniqueItemId}`);
+          console.log(`Skipping rendering of deleted item ${uniqueItemId}`);
           return null;
         }
         
