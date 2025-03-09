@@ -42,9 +42,9 @@ export const useGeneralTasks = (category: string, refreshTrigger: number) => {
 
       // Convert next steps to general task format
       const nextStepTasks = nextSteps?.map(step => {
-        // Create a debug object for logging
+        // Create the next step task with consistent ID formatting
         const nextStepTask = {
-          id: step.id, // Use the ORIGINAL ID without any prefix
+          id: step.id, // Use the original ID without any prefix
           title: `Next Step for ${step.clients?.name || 'Unknown Client'}`,
           description: step.notes,
           category: category.toLowerCase(),
@@ -56,11 +56,8 @@ export const useGeneralTasks = (category: string, refreshTrigger: number) => {
           client_id: step.client_id,
           type: 'next_step',
           source_table: 'client_next_steps',
-          original_data: step
+          original_data: step // Store the full original object for reference
         };
-        
-        // Log the converted task for debugging
-        console.log(`DEBUG: Next step ${step.id} converted to:`, nextStepTask.id);
         
         return nextStepTask;
       }) || [];
@@ -69,7 +66,8 @@ export const useGeneralTasks = (category: string, refreshTrigger: number) => {
       const generalTasksFormatted = (tasks || []).map(task => ({
         ...task, 
         type: 'task',
-        source_table: 'general_tasks'
+        source_table: 'general_tasks',
+        original_data: task // Store the original task data
       }));
 
       // Combine all tasks 

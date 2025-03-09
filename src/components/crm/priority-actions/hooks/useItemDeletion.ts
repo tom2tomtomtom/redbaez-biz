@@ -11,7 +11,7 @@ export const useItemDeletion = () => {
   const [isDeleting, setIsDeleting] = useState(false);
   const queryClient = useQueryClient();
   
-  // Use the central task deletion hook with a more aggressive callback
+  // Use the central task deletion hook with a callback
   const { deleteTask } = useTaskDeletion(async () => {
     console.log("ITEM_DELETION: Deletion callback executed");
     
@@ -37,16 +37,17 @@ export const useItemDeletion = () => {
     try {
       const itemId = item.data.id;
       const clientId = item.data.client_id;
-      const timestamp = new Date().toISOString();
-      
-      console.log(`ITEM_DELETION: Deleting item ${item.type}:${itemId} at ${timestamp}`);
+      console.log(`ITEM_DELETION: Preparing to delete item ${item.type}:${itemId}`);
       
       // Format the task with the proper structure for the core deletion function
       const taskToDelete = {
         id: String(itemId),
         type: item.type,
-        source_table: item.type === 'next_step' ? 'client_next_steps' : 'general_tasks'
+        source_table: item.type === 'next_step' ? 'client_next_steps' : 'general_tasks',
+        original_data: item.data // Include the full original data
       };
+      
+      console.log('ITEM_DELETION: Sending to deleteTask:', taskToDelete);
       
       // Use the unified task deletion hook
       const success = await deleteTask(taskToDelete);
@@ -66,7 +67,7 @@ export const useItemDeletion = () => {
       // Always force a refresh of the priority data
       queryClient.fetchQuery({ queryKey: ['priority-data'], staleTime: 0 });
       
-      console.log(`ITEM_DELETION: Deletion complete for ${itemId} at ${new Date().toISOString()}`);
+      console.log(`ITEM_DELETION: Deletion complete for ${itemId}`);
       return true;
     } catch (error) {
       console.error('ITEM_DELETION: Error deleting item:', error);

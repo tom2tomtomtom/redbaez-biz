@@ -36,32 +36,9 @@ export const useTaskDeletion = (onTaskDeleted: () => void) => {
     console.log("STRATEGY: Attempting to delete task:", task);
     
     try {
-      // For next_step tasks, ensure we're using the raw ID without any prefix
-      let taskId = task.id;
-      if (task.type === 'next_step' && typeof taskId === 'string' && taskId.startsWith('next-step-')) {
-        // Extract the ID without the prefix
-        taskId = taskId.replace('next-step-', '');
-        console.log("STRATEGY: Extracted next step ID:", taskId);
-      }
-
-      // If it's a next step from original_data, use the original ID
-      if (task.original_data && task.original_data.id) {
-        taskId = task.original_data.id;
-        console.log("STRATEGY: Using original_data ID:", taskId);
-      }
-      
-      // Ensure we pass the task with properly formatted ID and source_table/type
-      const taskToDelete = {
-        ...task,
-        id: taskId,
-        source_table: task.source_table || (task.type === 'next_step' ? 'client_next_steps' : 'general_tasks'),
-        type: task.type || (task.source_table === 'client_next_steps' ? 'next_step' : 'task')
-      };
-      
-      console.log("STRATEGY: Formatted task for deletion:", taskToDelete);
-      
-      // Use the unified task deletion hook
-      const success = await globalDeleteTask(taskToDelete);
+      // Pass the full task object to the global delete function
+      // It will handle all the ID transformation logic internally
+      const success = await globalDeleteTask(task);
       
       if (!success) {
         throw new Error("Failed to delete task");

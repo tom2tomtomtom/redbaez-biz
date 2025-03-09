@@ -8,6 +8,7 @@ type TaskType = {
   id: string;
   source_table?: string;
   type?: string;
+  original_data?: any;
 };
 
 export const useTaskDeletion = (onTaskDeleted?: () => void) => {
@@ -15,8 +16,7 @@ export const useTaskDeletion = (onTaskDeleted?: () => void) => {
   const queryClient = useQueryClient();
 
   const invalidateTaskQueries = async () => {
-    const timestamp = new Date().toISOString();
-    console.log(`DELETION: Invalidating all task queries at ${timestamp}`);
+    console.log(`Invalidating task queries at ${new Date().toISOString()}`);
     
     // Create a list of query keys to invalidate
     const queryKeys = [
@@ -28,13 +28,13 @@ export const useTaskDeletion = (onTaskDeleted?: () => void) => {
       ['client-items']
     ];
     
-    // First invalidate all queries
+    // Invalidate all queries
     for (const key of queryKeys) {
-      console.log(`DELETION: Invalidating query ${key.join('/')}`);
+      console.log(`Invalidating query ${key.join('/')}`);
       await queryClient.invalidateQueries({ queryKey: key });
     }
     
-    // Force immediate refetches of critical queries with cache-busting
+    // Force immediate refetches of critical queries
     try {
       await Promise.all([
         queryClient.fetchQuery({ 
@@ -58,7 +58,7 @@ export const useTaskDeletion = (onTaskDeleted?: () => void) => {
       console.log('Error during forced refetch:', error);
     }
     
-    console.log(`DELETION: Invalidation complete at ${new Date().toISOString()}`);
+    console.log(`Invalidation complete at ${new Date().toISOString()}`);
   };
 
   const deleteTask = async (task: TaskType) => {
@@ -73,40 +73,45 @@ export const useTaskDeletion = (onTaskDeleted?: () => void) => {
     }
     
     setIsDeleting(true);
-    const timestamp = new Date().toISOString();
-    console.log(`DELETION: Starting deletion for task ${task.id} at ${timestamp}`);
+    console.log(`Starting deletion for task`, task);
     
     try {
-      // Determine which table to use based on task type or source_table
-      let tableName = 'general_tasks';
+      // Extract the pure ID without any prefix
       let taskId = task.id;
+      let tableName = 'general_tasks';
       
-      // Check if this is a next step task
-      if (task.source_table === 'client_next_steps' || 
-          task.type === 'next_step' || 
-          task.type === 'next-step') {
-        tableName = 'client_next_steps';
-        
-        // Extract the actual ID by removing the prefix if it exists
-        if (typeof taskId === 'string' && taskId.startsWith('next-step-')) {
-          taskId = taskId.replace('next-step-', '');
-        }
+      // If we have original_data with an ID, use that instead (it's the source of truth)
+      if (task.original_data && task.original_data.id) {
+        taskId = task.original_data.id;
+        console.log(`Using original_data ID: ${taskId}`);
       }
       
-      console.log(`DELETION: Deleting from ${tableName} with ID: ${taskId} at ${timestamp}`);
+      // Remove prefix if it exists (handle both raw string and object formats)
+      if (typeof taskId === 'string' && taskId.startsWith('next-step-')) {
+        taskId = taskId.replace('next-step-', '');
+        console.log(`Removed prefix, using ID: ${taskId}`);
+      }
       
-      // Use a database query with debug logging
-      console.log(`DELETION DEBUG: Sending delete request to table ${tableName} for ID ${taskId}`);
-      const { error, data, count } = await supabase
+      // Determine which table to use
+      if (task.source_table) {
+        tableName = task.source_table;
+      } else if (task.type === 'next_step' || task.type === 'next-step') {
+        tableName = 'client_next_steps';
+      }
+      
+      console.log(`Deleting from ${tableName} with ID: ${taskId}`);
+      
+      // Execute the deletion
+      const { error, data } = await supabase
         .from(tableName)
         .delete()
         .eq('id', taskId)
         .select();
         
-      console.log(`DELETION DEBUG: Response data:`, data, `Error:`, error, `Count:`, count);
+      console.log(`Deletion response:`, { data, error });
       
       if (error) {
-        console.error('DELETION: Error deleting task:', error);
+        console.error('Error deleting task:', error);
         toast({
           title: "Error",
           description: `Failed to delete task: ${error.message}`,
@@ -115,31 +120,39 @@ export const useTaskDeletion = (onTaskDeleted?: () => void) => {
         return false;
       }
 
-      // Verify deletion by checking the returned data or count
-      if (!data?.length && !count) {
-        console.error('DELETION: Task was not found or not deleted. Debug info:', { taskId, tableName });
-        toast({
-          title: "Error",
-          description: "Task could not be deleted or was not found.",
-          variant: "destructive",
-        });
-        return false;
+      // Verify deletion
+      if ((!data || !data.length) && !error) {
+        // Try the other table as a fallback
+        const otherTable = tableName === 'general_tasks' ? 'client_next_steps' : 'general_tasks';
+        console.log(`Attempting deletion from alternate table ${otherTable}`);
+        
+        const { error: fallbackError } = await supabase
+          .from(otherTable)
+          .delete()
+          .eq('id', taskId)
+          .select();
+          
+        if (fallbackError) {
+          console.error('Fallback deletion also failed:', fallbackError);
+          toast({
+            title: "Warning",
+            description: "Task may not have been deleted. Please refresh and try again.",
+            variant: "destructive",
+          });
+          return false;
+        }
       }
 
-      // Success
-      console.log(`DELETION: Task deleted successfully from ${tableName}. Response:`, data);
-      
-      // Immediately invalidate all related queries to ensure UI updates
+      // Success - invalidate queries to refresh UI
       await invalidateTaskQueries();
       
-      // Run a second invalidation after a short delay to ensure UI is updated
+      // Run a second invalidation after a short delay
       setTimeout(async () => {
-        console.log(`DELETION: Running second invalidation for ${taskId}`);
         await invalidateTaskQueries();
         
         // Call the callback if provided
         if (onTaskDeleted) {
-          console.log('DELETION: Executing onTaskDeleted callback');
+          console.log('Executing onTaskDeleted callback');
           onTaskDeleted();
         }
       }, 500);
@@ -151,7 +164,7 @@ export const useTaskDeletion = (onTaskDeleted?: () => void) => {
       
       return true;
     } catch (error) {
-      console.error('DELETION: Unexpected error in deletion process:', error);
+      console.error('Unexpected error in deletion process:', error);
       toast({
         title: "Error",
         description: "An unexpected error occurred. Please try again.",
