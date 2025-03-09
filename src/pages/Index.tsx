@@ -4,7 +4,7 @@ import { MainNav } from "@/components/ui/main-nav";
 import { PriorityActions } from "@/components/crm/priority-actions/PriorityActions";
 import { RevenueSummary } from "@/components/crm/revenue-summary/RevenueSummary";
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/lib/supabase";
 import { TaskDialog } from "@/components/crm/priority-actions/TaskDialog";
 import { DashboardHeader } from "@/components/crm/dashboard/DashboardHeader";
 import { SearchSection } from "@/components/crm/dashboard/SearchSection";
@@ -19,7 +19,7 @@ const Index = () => {
   const navigate = useNavigate();
 
   const { data: clients, isLoading } = useQuery({
-    queryKey: ['clients'],
+    queryKey: ['clients', Date.now()], // Add timestamp to prevent caching
     queryFn: async () => {
       const { data, error } = await supabase
         .from('clients')
@@ -28,25 +28,8 @@ const Index = () => {
       if (error) throw error;
       return data;
     },
-  });
-
-  // Test direct database access
-  const testDatabaseAccess = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('general_tasks')
-        .select('*')
-        .limit(5);
-      
-      console.log('Test DB access - general_tasks:', data, error);
-    } catch (e) {
-      console.error('Error testing DB access:', e);
-    }
-  };
-
-  // Call the test function once on component mount
-  useState(() => {
-    testDatabaseAccess();
+    staleTime: 0, // Don't cache
+    gcTime: 0
   });
 
   return (

@@ -3,18 +3,15 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { RefreshCcw, Plus } from 'lucide-react';
 import { Category } from './Category';
-import { PriorityItemsList } from './PriorityItemsList';
-import { usePriorityData } from './hooks/usePriorityData';
-import { PriorityActionsSkeleton } from './PriorityActionsSkeleton';
-import { Tables } from '@/integrations/supabase/types';
-import { GeneralTaskRow } from '@/integrations/supabase/types/general-tasks.types';
+import { TaskList } from './TaskList';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from '@/hooks/use-toast';
+import { useTasks } from './hooks/useTasks';
 
 interface PriorityActionsProps {
   hideAddButton?: boolean;
   initialCategory?: string;
-  onTaskClick?: (task: GeneralTaskRow) => void;
+  onTaskClick?: (taskId: string) => void;
 }
 
 export const PriorityActions = ({
@@ -23,44 +20,31 @@ export const PriorityActions = ({
   onTaskClick
 }: PriorityActionsProps) => {
   const [category, setCategory] = useState<string | undefined>(initialCategory);
-  const [refreshKey, setRefreshKey] = useState(0);
+  const [activeTab, setActiveTab] = useState('active');
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [lastRefreshTime, setLastRefreshTime] = useState(0);
-  const [activeTab, setActiveTab] = useState('active');
-  
-  console.log('PriorityActions rendering with category:', category);
-  
-  const { allItems, isLoading, refetch } = usePriorityData(category, refreshKey);
-  
-  // Add debug logging to see what items we have
-  useEffect(() => {
-    if (allItems) {
-      console.log('PriorityActions - all items:', allItems.length, allItems);
-      console.log('PriorityActions - active tab:', activeTab);
-    }
-  }, [allItems, activeTab]);
+  const { refetch } = useTasks(category, activeTab === 'completed');
 
   const handleRefresh = async () => {
     const now = Date.now();
     // Prevent refreshing more than once every 3 seconds
     if (now - lastRefreshTime < 3000) {
-      console.log('Skipping refresh, too soon since last refresh');
       return;
     }
 
     try {
       setIsRefreshing(true);
       setLastRefreshTime(now);
+      
       toast({
         title: "Refreshing data",
-        description: "Getting the latest tasks and next steps..."
+        description: "Getting the latest tasks..."
       });
+      
       await refetch();
-      // After refetch, increment refresh key to trigger fresh data loading
-      setRefreshKey(prev => prev + 1);
-      console.log('Refresh completed, new refresh key:', refreshKey + 1);
     } catch (error) {
-      console.error('Error refreshing priority items:', error);
+      console.error('Error refreshing tasks:', error);
+      
       toast({
         title: "Error refreshing data",
         description: "There was a problem getting the latest data",
@@ -71,48 +55,22 @@ export const PriorityActions = ({
     }
   };
 
-  const handleItemRemoved = async () => {
-    console.log('Item was removed, refreshing data...');
-    // Wait a moment to ensure database operations complete
-    setTimeout(() => {
-      // Force a thorough refresh by increasing the key by a larger amount
-      setRefreshKey(prev => prev + 10);
-      // Force refetch from the server
-      refetch();
-    }, 1000); // Longer delay to ensure DB operations complete
-  };
-
   const handleCategoryChange = (newCategory: string | undefined) => {
     setCategory(newCategory);
-    // Force data refresh when category changes
-    setRefreshKey(prev => prev + 1);
   };
-
-  const handleItemSelected = (item: any) => {
-    if (item.type === 'task' && onTaskClick) {
-      onTaskClick(item.data);
-    }
-  };
-
-  console.log('PriorityActions - rendered with items:', allItems?.length, allItems);
 
   // Force an initial refresh when the component mounts
   useEffect(() => {
-    console.log("Component mounted, triggering initial data load");
     handleRefresh();
   }, []);
-
-  if (isLoading && !allItems?.length) {
-    return <PriorityActionsSkeleton />;
-  }
 
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
         <div className="flex flex-wrap gap-2">
           <Category 
-            active={!category} 
-            onClick={() => handleCategoryChange(undefined)}
+            active={!category || category === 'All'} 
+            onClick={() => handleCategoryChange('All')}
             category="All"
           >
             All
@@ -172,24 +130,18 @@ export const PriorityActions = ({
         </TabsList>
         
         <TabsContent value="active">
-          <PriorityItemsList 
-            items={allItems || []} 
-            onItemRemoved={handleItemRemoved}
-            onItemUpdated={handleRefresh}
-            onItemSelected={handleItemSelected}
-            category={category}
+          <TaskList 
+            category={category} 
             showCompleted={false}
+            onItemSelected={onTaskClick}
           />
         </TabsContent>
         
         <TabsContent value="completed">
-          <PriorityItemsList 
-            items={allItems || []} 
-            onItemRemoved={handleItemRemoved}
-            onItemUpdated={handleRefresh}
-            onItemSelected={handleItemSelected}
-            category={category}
+          <TaskList 
+            category={category} 
             showCompleted={true}
+            onItemSelected={onTaskClick}
           />
         </TabsContent>
       </Tabs>
