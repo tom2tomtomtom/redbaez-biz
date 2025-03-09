@@ -5,6 +5,7 @@ import { useQueryCacheManager } from './useQueryCacheManager';
 import { useState } from 'react';
 import { useTaskDeletion } from '@/hooks/useTaskDeletion';
 import { useQueryClient } from '@tanstack/react-query';
+import { queryKeys } from '@/lib/queryKeys';
 
 export const useItemDeletion = () => {
   const { invalidateQueries } = useQueryCacheManager();
@@ -23,11 +24,11 @@ export const useItemDeletion = () => {
     
     // Only refetch queries that actually exist
     if (activeQueries.some(key => key.includes('client-items'))) {
-      queryClient.refetchQueries({ queryKey: ['client-items'] });
+      queryClient.refetchQueries({ queryKey: queryKeys.tasks.clientItems() });
     }
     
     if (activeQueries.some(key => key.includes('unified-tasks'))) {
-      queryClient.refetchQueries({ queryKey: ['unified-tasks'] });
+      queryClient.refetchQueries({ queryKey: queryKeys.tasks.unified() });
     }
     
     // Additional invalidation to ensure UI updates across all components
@@ -73,11 +74,11 @@ export const useItemDeletion = () => {
           .map(query => JSON.stringify(query.queryKey));
         
         if (activeQueries.some(key => key.includes(`client,${clientId}`))) {
-          queryClient.refetchQueries({ queryKey: ['client', String(clientId)] });
+          queryClient.refetchQueries({ queryKey: queryKeys.clients.detail(clientId) });
         }
         
         if (activeQueries.some(key => key.includes(`client-items,${clientId}`))) {
-          queryClient.refetchQueries({ queryKey: ['client-items', String(clientId)] });
+          queryClient.refetchQueries({ queryKey: queryKeys.tasks.clientItems(clientId) });
         }
       }
       

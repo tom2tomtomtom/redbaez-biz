@@ -3,6 +3,7 @@ import { useState } from "react";
 import { toast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
 import { useTaskDeletion as useGlobalTaskDeletion } from "@/hooks/useTaskDeletion";
+import { queryKeys } from "@/lib/queryKeys";
 
 export const useTaskDeletion = (onTaskDeleted: () => void) => {
   const [isDeleting, setIsDeleting] = useState(false);
@@ -19,17 +20,17 @@ export const useTaskDeletion = (onTaskDeleted: () => void) => {
     
     // Only refetch queries that actually exist
     if (activeQueries.some(key => key.includes('generalTasks'))) {
-      queryClient.refetchQueries({ queryKey: ['generalTasks'] });
+      queryClient.refetchQueries({ queryKey: queryKeys.tasks.general() });
     }
     
     if (activeQueries.some(key => key.includes('unified-tasks'))) {
-      queryClient.refetchQueries({ queryKey: ['unified-tasks'] });
+      queryClient.refetchQueries({ queryKey: queryKeys.tasks.unified() });
     }
     
     // Call the passed callback after a slight delay to ensure UI update
     setTimeout(() => {
       onTaskDeleted();
-    }, 300);
+    }, 100);
   });
 
   const deleteTask = async (task: any) => {

@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { toast } from '@/hooks/use-toast';
 import { useQueryClient } from '@tanstack/react-query';
+import { queryKeys } from '@/lib/queryKeys';
 
 type TaskType = {
   id: string;
@@ -15,69 +16,62 @@ export const useTaskDeletion = (onTaskDeleted?: () => void) => {
   const [isDeleting, setIsDeleting] = useState(false);
   const queryClient = useQueryClient();
 
+  // Get a list of active query keys from the cache
+  const getActiveQueries = () => {
+    return queryClient.getQueryCache().getAll()
+      .map(query => JSON.stringify(query.queryKey));
+  };
+
   // Improved invalidation with safety checks
   const invalidateTaskQueries = async () => {
     console.log(`Invalidating task queries at ${new Date().toISOString()}`);
     
-    // List of known query keys
-    const queryKeys = [
-      ['tasks'],
-      ['generalTasks'],
-      ['clientNextSteps'],
-      ['unified-tasks'],
-      ['client-items']
-    ];
+    // Get active queries before starting
+    const activeQueries = getActiveQueries();
+    console.log("Active queries:", activeQueries);
     
-    // First invalidate all queries without forcing refetch
-    for (const key of queryKeys) {
-      console.log(`Invalidating query ${key.join('/')}`);
-      await queryClient.invalidateQueries({ queryKey: key });
+    // Track which queries we've already invalidated to avoid duplicates
+    const invalidatedKeys = new Set();
+    
+    // Invalidate and refetch only queries that actually exist
+    const promises = [];
+    
+    // Check and invalidate unified-tasks if it exists
+    if (activeQueries.some(key => key.includes('unified-tasks'))) {
+      console.log("Invalidating and refetching unified-tasks");
+      invalidatedKeys.add('unified-tasks');
+      await queryClient.invalidateQueries({ queryKey: queryKeys.tasks.unified() });
+      promises.push(queryClient.refetchQueries({ queryKey: queryKeys.tasks.unified() }));
     }
     
-    // Then refetch only active queries that we know exist
-    try {
-      // Get list of active query keys to avoid trying to fetch non-existent ones
-      const activeQueries = queryClient.getQueryCache().getAll()
-        .map(query => JSON.stringify(query.queryKey));
-      
-      console.log("Active queries:", activeQueries);
-      
-      // Only refetch queries that actually exist
-      const promises = [];
-      
-      // Check and refetch unified-tasks if it exists
-      if (activeQueries.includes(JSON.stringify(['unified-tasks'])) || 
-          activeQueries.some(key => key.includes('unified-tasks'))) {
-        console.log("Refetching unified-tasks");
-        promises.push(queryClient.refetchQueries({ queryKey: ['unified-tasks'] }));
-      }
-      
-      // Check and refetch generalTasks if it exists
-      if (activeQueries.includes(JSON.stringify(['generalTasks'])) || 
-          activeQueries.some(key => key.includes('generalTasks'))) {
-        console.log("Refetching generalTasks");
-        promises.push(queryClient.refetchQueries({ queryKey: ['generalTasks'] }));
-      }
-      
-      // Check and refetch clientNextSteps if it exists
-      if (activeQueries.includes(JSON.stringify(['clientNextSteps'])) || 
-          activeQueries.some(key => key.includes('clientNextSteps'))) {
-        console.log("Refetching clientNextSteps");
-        promises.push(queryClient.refetchQueries({ queryKey: ['clientNextSteps'] }));
-      }
-      
-      // Check and refetch client-items if it exists
-      if (activeQueries.includes(JSON.stringify(['client-items'])) || 
-          activeQueries.some(key => key.includes('client-items'))) {
-        console.log("Refetching client-items");
-        promises.push(queryClient.refetchQueries({ queryKey: ['client-items'] }));
-      }
-      
-      if (promises.length > 0) {
+    // Check and invalidate generalTasks if it exists
+    if (activeQueries.some(key => key.includes('generalTasks'))) {
+      console.log("Invalidating generalTasks");
+      invalidatedKeys.add('generalTasks');
+      await queryClient.invalidateQueries({ queryKey: queryKeys.tasks.general() });
+    }
+    
+    // Check and invalidate clientNextSteps if it exists
+    if (activeQueries.some(key => key.includes('clientNextSteps'))) {
+      console.log("Invalidating clientNextSteps");
+      invalidatedKeys.add('clientNextSteps');
+      await queryClient.invalidateQueries({ queryKey: queryKeys.tasks.clientNextSteps() });
+    }
+    
+    // Check and invalidate client-items if it exists
+    if (activeQueries.some(key => key.includes('client-items'))) {
+      console.log("Invalidating client-items");
+      invalidatedKeys.add('client-items');
+      await queryClient.invalidateQueries({ queryKey: queryKeys.tasks.clientItems() });
+    }
+    
+    // Wait for all refetch promises to complete
+    if (promises.length > 0) {
+      try {
         await Promise.all(promises);
+      } catch (error) {
+        console.error('Error during refetch:', error);
       }
-    } catch (error) {
-      console.log('Error during refetch:', error);
     }
     
     console.log(`Invalidation complete at ${new Date().toISOString()}`);
@@ -195,21 +189,18 @@ export const useTaskDeletion = (onTaskDeleted?: () => void) => {
       // Success - invalidate queries to refresh UI
       await invalidateTaskQueries();
       
-      // Run a second invalidation after a short delay
-      setTimeout(async () => {
-        await invalidateTaskQueries();
-        
-        // Call the callback if provided
-        if (onTaskDeleted) {
-          console.log('Executing onTaskDeleted callback');
-          onTaskDeleted();
-        }
-      }, 500);
-      
       toast({
         title: "Task deleted",
         description: "The task has been deleted successfully.",
       });
+      
+      // Call the callback if provided - after a delay to allow React to update
+      if (onTaskDeleted) {
+        setTimeout(() => {
+          console.log('Executing onTaskDeleted callback');
+          onTaskDeleted();
+        }, 100);
+      }
       
       return true;
     } catch (error) {
