@@ -23,10 +23,12 @@ export const TaskList = ({ tasks, isLoading, onTasksUpdated, isHistory = false }
   const [taskToDelete, setTaskToDelete] = useState<any | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   
-  // Use our direct task deletion hook
+  // Use our direct task deletion hook with a simple callback to avoid re-render loops
   const { deleteTask, isDeleting } = useTaskDeletion(() => {
-    console.log("Task deleted callback triggered");
-    onTasksUpdated();
+    // Using setTimeout to break potential render cycles
+    setTimeout(() => {
+      onTasksUpdated();
+    }, 0);
   });
 
   const handleDateChange = async (taskId: string, date: string) => {
@@ -52,7 +54,10 @@ export const TaskList = ({ tasks, isLoading, onTasksUpdated, isHistory = false }
         description: date ? "Task has been moved to active tasks." : "Date removed from task.",
       });
 
-      onTasksUpdated();
+      // Use setTimeout to break potential render cycles
+      setTimeout(() => {
+        onTasksUpdated();
+      }, 0);
     } catch (error) {
       console.error('Error updating task date:', error);
       toast({

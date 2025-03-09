@@ -1,5 +1,5 @@
 
-import { Suspense, useState, useEffect } from "react";
+import { Suspense, useState, useEffect, useRef } from "react";
 import { MainNav } from "@/components/ui/main-nav";
 import { PriorityActions } from "@/components/crm/priority-actions/PriorityActions";
 import { RevenueSummary } from "@/components/crm/revenue-summary/RevenueSummary";
@@ -21,6 +21,7 @@ const Index = () => {
   const [refreshTrigger, setRefreshTrigger] = useState(Date.now());
   const navigate = useNavigate();
   const { invalidateQueries } = useQueryCacheManager();
+  const initialLoadDone = useRef(false);
 
   const { data: clients, isLoading } = useQuery({
     queryKey: ['clients', refreshTrigger],
@@ -36,28 +37,33 @@ const Index = () => {
       }
       console.log("Fetched clients:", data?.length);
       return data;
-    }
+    },
+    staleTime: 30000, // 30 seconds
+    refetchOnWindowFocus: false
   });
 
-  // Force refresh when page loads
+  // Force refresh only once when page first loads
   useEffect(() => {
-    const loadDashboard = async () => {
-      console.log("Index page mounted - refreshing data");
+    if (!initialLoadDone.current) {
+      const loadDashboard = async () => {
+        console.log("Index page mounted - refreshing data");
+        
+        // Show a toast to indicate the data is being loaded
+        toast({
+          title: "Loading dashboard",
+          description: "Refreshing your dashboard data..."
+        });
+        
+        // Invalidate all query cache to ensure fresh data
+        await invalidateQueries();
+        
+        // Update refresh trigger to force component refreshes
+        setRefreshTrigger(Date.now());
+        initialLoadDone.current = true;
+      };
       
-      // Show a toast to indicate the data is being loaded
-      toast({
-        title: "Loading dashboard",
-        description: "Refreshing your dashboard data..."
-      });
-      
-      // Invalidate all query cache to ensure fresh data
-      await invalidateQueries();
-      
-      // Update refresh trigger to force component refreshes
-      setRefreshTrigger(Date.now());
-    };
-    
-    loadDashboard();
+      loadDashboard();
+    }
   }, [invalidateQueries]);
 
   return (

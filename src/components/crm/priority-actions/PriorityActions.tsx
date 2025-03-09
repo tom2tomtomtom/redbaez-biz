@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { RefreshCcw, Plus } from 'lucide-react';
 import { Category } from './Category';
@@ -24,6 +24,7 @@ export const PriorityActions = ({
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [lastRefreshTime, setLastRefreshTime] = useState(0);
   const [refreshTrigger, setRefreshTrigger] = useState(Date.now());
+  const initialLoadDone = useRef(false);
   
   const { invalidateQueries } = useQueryCacheManager();
 
@@ -73,10 +74,13 @@ export const PriorityActions = ({
     setRefreshTrigger(Date.now());
   };
 
-  // Force an initial refresh when the component mounts
+  // Force an initial refresh only once when the component first mounts
   useEffect(() => {
-    console.log("PriorityActions mounted - triggering initial refresh");
-    handleRefresh();
+    if (!initialLoadDone.current) {
+      console.log("PriorityActions mounted - triggering initial refresh");
+      handleRefresh();
+      initialLoadDone.current = true;
+    }
   }, []);
 
   return (

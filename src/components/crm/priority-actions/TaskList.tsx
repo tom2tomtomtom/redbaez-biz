@@ -1,5 +1,5 @@
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { TaskItem } from './TaskItem';
 import { useTaskData } from './hooks/useTaskData';
 import { useTaskMutations } from './hooks/useTaskMutations';
@@ -21,6 +21,7 @@ export const TaskList = ({
   onItemSelected
 }: TaskListProps) => {
   const [completionConfirmTask, setCompletionConfirmTask] = useState<any | null>(null);
+  const initialLoadDone = useRef(false);
   
   // Use our unified task data hook
   const { data: tasks = [], isLoading, error, refetch } = useTaskData(category, showCompleted);
@@ -34,20 +35,23 @@ export const TaskList = ({
     invalidateTaskQueries
   } = useTaskMutations();
 
-  // Refresh data when component mounts
+  // Refresh data only once when component mounts
   useEffect(() => {
-    console.log("TaskList mounted - refreshing data");
-    refetch();
-    
-    // Set up periodic refresh every minute
-    const intervalId = setInterval(() => {
-      console.log("Periodic task refresh");
+    if (!initialLoadDone.current) {
+      console.log("TaskList mounted - refreshing data");
       refetch();
-    }, 60000);
-    
-    return () => {
-      clearInterval(intervalId);
-    };
+      initialLoadDone.current = true;
+      
+      // Set up periodic refresh every 2 minutes instead of every minute
+      const intervalId = setInterval(() => {
+        console.log("Periodic task refresh");
+        refetch();
+      }, 120000); // 2 minutes
+      
+      return () => {
+        clearInterval(intervalId);
+      };
+    }
   }, [category, showCompleted, refetch]);
 
   const handleRefresh = async () => {

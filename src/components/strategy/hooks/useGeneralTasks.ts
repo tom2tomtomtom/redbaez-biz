@@ -19,7 +19,7 @@ export const useGeneralTasks = (category: string, refreshTrigger: number) => {
         throw tasksError;
       }
 
-      console.log('Strategy - fetched tasks:', tasks?.length, tasks);
+      console.log('Strategy - fetched tasks:', tasks?.length);
 
       // Then fetch client next steps
       const { data: nextSteps, error: nextStepsError } = await supabase
@@ -32,7 +32,7 @@ export const useGeneralTasks = (category: string, refreshTrigger: number) => {
         throw nextStepsError;
       }
 
-      console.log('Strategy - fetched next steps:', nextSteps?.length, nextSteps);
+      console.log('Strategy - fetched next steps:', nextSteps?.length);
 
       // Convert next steps to general task format
       const nextStepTasks = nextSteps?.map(step => ({
@@ -61,10 +61,12 @@ export const useGeneralTasks = (category: string, refreshTrigger: number) => {
       // Combine all tasks 
       const allTasks = [...generalTasksFormatted, ...nextStepTasks];
 
-      console.log('Strategy - combined tasks:', allTasks.length, allTasks);
+      console.log('Strategy - combined tasks count:', allTasks.length);
       return allTasks;
     },
-    staleTime: 0, 
-    gcTime: 0
+    staleTime: 3000, // Add 3 seconds stale time to prevent immediate refetches 
+    gcTime: 60000,   // Keep unused data for 1 minute
+    refetchOnMount: false, // Don't refetch when component mounts
+    refetchOnWindowFocus: false // Don't refetch when window gets focus
   });
 };

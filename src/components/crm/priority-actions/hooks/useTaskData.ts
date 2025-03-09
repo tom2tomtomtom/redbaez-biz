@@ -88,8 +88,9 @@ export const useTaskData = (category?: string, showCompleted = false) => {
       console.log(`Fetched ${allTasks.length} unified tasks`);
       return allTasks;
     },
-    staleTime: 0, // Always fetch fresh data
-    gcTime: 0,    // Clean up unused data immediately
-    refetchOnWindowFocus: true
+    staleTime: 5000, // 5 seconds before refetching
+    gcTime: 60000,   // Keep data for 1 minute after component unmounts
+    refetchOnWindowFocus: false, // Don't automatically refetch on window focus
+    refetchOnMount: false, // Don't automatically refetch on mount
   });
 };
