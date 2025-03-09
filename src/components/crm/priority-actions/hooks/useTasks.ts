@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { toast } from '@/hooks/use-toast';
@@ -16,6 +15,7 @@ export type Task = {
   created_at?: string;
   updated_at?: string;
   original_data?: any;
+  source?: 'task' | 'next_step';
 };
 
 export const useTasks = (category?: string, showCompleted = false) => {
@@ -67,7 +67,8 @@ export const useTasks = (category?: string, showCompleted = false) => {
           client_id: task.client_id,
           urgent: task.urgent,
           created_at: task.created_at,
-          updated_at: task.updated_at
+          updated_at: task.updated_at,
+          source: 'task' as const
         }));
         
         let nextStepsQuery = supabase
@@ -100,7 +101,6 @@ export const useTasks = (category?: string, showCompleted = false) => {
         if (nextStepsError) throw nextStepsError;
         
         const transformedNextSteps = (nextStepsData || []).map(step => {
-          // Fix the property access issue - extract the name safely
           const clientName = step.clients ? (step.clients as any).name : 'Unknown Client';
           
           return {
@@ -115,8 +115,9 @@ export const useTasks = (category?: string, showCompleted = false) => {
             urgent: step.urgent,
             created_at: step.created_at,
             updated_at: step.updated_at,
-            original_data: step
-          } as Task; // Explicitly cast to Task type
+            original_data: step,
+            source: 'next_step' as const
+          } as Task;
         });
         
         const allTasks = [...transformedTasks, ...transformedNextSteps].sort((a, b) => {
@@ -129,7 +130,7 @@ export const useTasks = (category?: string, showCompleted = false) => {
           return new Date(a.due_date).getTime() - new Date(b.due_date).getTime();
         });
         
-        console.log(`Fetched ${allTasks.length} tasks`);
+        console.log(`Fetched ${allTasks.length} tasks: ${transformedTasks.length} general tasks and ${transformedNextSteps.length} next steps`);
         return allTasks;
       } catch (error) {
         console.error('Error fetching tasks:', error);
