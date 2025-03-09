@@ -7,7 +7,19 @@ import { useTaskDeletion as useGlobalTaskDeletion } from "@/hooks/useTaskDeletio
 export const useTaskDeletion = (onTaskDeleted: () => void) => {
   const [isDeleting, setIsDeleting] = useState(false);
   const queryClient = useQueryClient();
-  const { deleteTask: globalDeleteTask } = useGlobalTaskDeletion(onTaskDeleted);
+  const { deleteTask: globalDeleteTask } = useGlobalTaskDeletion(() => {
+    // Function that runs after deletion is complete
+    console.log("STRATEGY: Deletion callback executed");
+    
+    // Force refetch all relevant queries
+    queryClient.fetchQuery({ queryKey: ['generalTasks'], staleTime: 0 });
+    queryClient.fetchQuery({ queryKey: ['unified-tasks'], staleTime: 0 });
+    
+    // Call the passed callback after a slight delay to ensure UI update
+    setTimeout(() => {
+      onTaskDeleted();
+    }, 300);
+  });
 
   const deleteTask = async (task: any) => {
     if (!task) {

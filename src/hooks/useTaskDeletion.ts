@@ -15,7 +15,8 @@ export const useTaskDeletion = (onTaskDeleted?: () => void) => {
   const queryClient = useQueryClient();
 
   const invalidateTaskQueries = async () => {
-    console.log(`DELETION: Invalidating all task queries at ${new Date().toISOString()}`);
+    const timestamp = new Date().toISOString();
+    console.log(`DELETION: Invalidating all task queries at ${timestamp}`);
     
     // Create a list of query keys to invalidate
     const queryKeys = [
@@ -33,13 +34,29 @@ export const useTaskDeletion = (onTaskDeleted?: () => void) => {
       await queryClient.invalidateQueries({ queryKey: key });
     }
     
-    // Then force immediate refetches of critical queries
-    await Promise.all([
-      queryClient.refetchQueries({ queryKey: ['unified-tasks'] }),
-      queryClient.refetchQueries({ queryKey: ['generalTasks'] }),
-      queryClient.refetchQueries({ queryKey: ['clientNextSteps'] }),
-      queryClient.refetchQueries({ queryKey: ['client-items'] }),
-    ]);
+    // Force immediate refetches of critical queries with cache-busting
+    try {
+      await Promise.all([
+        queryClient.fetchQuery({ 
+          queryKey: ['unified-tasks'],
+          staleTime: 0
+        }),
+        queryClient.fetchQuery({ 
+          queryKey: ['generalTasks'],
+          staleTime: 0 
+        }),
+        queryClient.fetchQuery({ 
+          queryKey: ['clientNextSteps'],
+          staleTime: 0
+        }),
+        queryClient.fetchQuery({ 
+          queryKey: ['client-items'],
+          staleTime: 0
+        }),
+      ]);
+    } catch (error) {
+      console.log('Error during forced refetch:', error);
+    }
     
     console.log(`DELETION: Invalidation complete at ${new Date().toISOString()}`);
   };
@@ -80,7 +97,7 @@ export const useTaskDeletion = (onTaskDeleted?: () => void) => {
       const freshClient = getFreshSupabaseClient();
       
       // Perform the deletion with explicit cache control
-      const { error, data } = await freshClient
+      const { error, data, count } = await freshClient
         .from(tableName)
         .delete()
         .eq('id', taskId)
@@ -96,10 +113,21 @@ export const useTaskDeletion = (onTaskDeleted?: () => void) => {
         return false;
       }
 
+      // Verify deletion by checking the returned data or count
+      if (!data?.length && !count) {
+        console.error('DELETION: Task was not found or not deleted');
+        toast({
+          title: "Error",
+          description: "Task could not be deleted or was not found.",
+          variant: "destructive",
+        });
+        return false;
+      }
+
       // Success
       console.log(`DELETION: Task deleted successfully from ${tableName}. Response:`, data);
       
-      // Invalidate all related queries to ensure UI updates
+      // Immediately invalidate all related queries to ensure UI updates
       await invalidateTaskQueries();
       
       // Run a second invalidation after a short delay to ensure UI is updated
