@@ -1,8 +1,9 @@
 
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase, supabaseDiagnostics } from '@/lib/supabase';
+import { supabase } from '@/lib/supabase';
 import { toast } from '@/hooks/use-toast';
+import { supabaseDiagnostics } from '@/integrations/supabase/client';
 
 export interface Task {
   id: string;
@@ -11,10 +12,12 @@ export interface Task {
   client_id?: number | null;
   client?: { name: string } | null;
   next_due_date?: string | null;
+  due_date?: string | null; // Added for compatibility
   urgent: boolean;
   status?: string;
   completed_at?: string | null;
   category?: string | null;
+  source?: string; // Added missing property
 }
 
 export const useTasks = (category?: string, showCompleted = false) => {
