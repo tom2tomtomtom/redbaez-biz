@@ -1,6 +1,6 @@
 
 import { TaskItem } from './TaskItem';
-import { useTasks } from './hooks/useTasks';
+import { useTasks, Task } from './hooks/useTasks';
 import { PriorityActionsSkeleton } from './PriorityActionsSkeleton';
 import { useState } from 'react';
 import { CompletionConfirmDialog } from './components/CompletionConfirmDialog';
@@ -57,7 +57,7 @@ export const TaskList = ({
 
   return (
     <div className="space-y-2">
-      {tasks.map((task) => (
+      {tasks.map((task: Task) => (
         <TaskItem
           key={task.id}
           task={task}

@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { toast } from '@/hooks/use-toast';
@@ -15,21 +14,19 @@ export type Task = {
   urgent?: boolean;
   created_at?: string;
   updated_at?: string;
+  original_data?: any;
 };
 
-// Unified hook for all task operations
 export const useTasks = (category?: string, showCompleted = false) => {
   const queryClient = useQueryClient();
-  const currentTimestamp = Date.now(); // Use timestamp to prevent caching
+  const currentTimestamp = Date.now();
 
-  // Fetch all tasks
   const { data: tasks = [], isLoading, error, refetch } = useQuery({
     queryKey: ['tasks', category, showCompleted, currentTimestamp],
     queryFn: async () => {
       console.log(`Fetching tasks: category=${category}, showCompleted=${showCompleted}`);
       
       try {
-        // First fetch general tasks
         let tasksQuery = supabase
           .from('general_tasks')
           .select(`
@@ -45,12 +42,10 @@ export const useTasks = (category?: string, showCompleted = false) => {
             updated_at
           `);
         
-        // Apply category filter if provided
         if (category && category !== 'All') {
           tasksQuery = tasksQuery.ilike('category', `%${category}%`);
         }
         
-        // Filter by completion status
         if (showCompleted) {
           tasksQuery = tasksQuery.eq('status', 'completed');
         } else {
@@ -61,7 +56,6 @@ export const useTasks = (category?: string, showCompleted = false) => {
         
         if (taskError) throw taskError;
         
-        // Transform general tasks to match our Task interface
         const transformedTasks = (taskData || []).map(task => ({
           id: task.id,
           title: task.title,
@@ -75,7 +69,6 @@ export const useTasks = (category?: string, showCompleted = false) => {
           updated_at: task.updated_at
         }));
         
-        // Next fetch client next steps and transform to match task format
         let nextStepsQuery = supabase
           .from('client_next_steps')
           .select(`
@@ -86,19 +79,15 @@ export const useTasks = (category?: string, showCompleted = false) => {
             completed_at,
             urgent,
             client_id,
-            clients (
-              name
-            ),
+            clients(name),
             created_at,
             updated_at
           `);
         
-        // Apply category filter if provided
         if (category && category !== 'All') {
           nextStepsQuery = nextStepsQuery.ilike('category', `%${category}%`);
         }
         
-        // Filter by completion status
         if (showCompleted) {
           nextStepsQuery = nextStepsQuery.not('completed_at', 'is', null);
         } else {
@@ -109,34 +98,29 @@ export const useTasks = (category?: string, showCompleted = false) => {
         
         if (nextStepsError) throw nextStepsError;
         
-        // Transform next steps to match task format
         const transformedNextSteps = (nextStepsData || []).map(step => {
-          // Extract client name safely
-          const clientName = step.clients ? step.clients.name : 'Unknown Client';
+          const clientName = step.clients ? (step.clients as any).name : 'Unknown Client';
           
           return {
             id: `next-step-${step.id}`,
             title: `Next Step: ${clientName}`,
             description: step.notes,
             category: step.category,
-            status: step.completed_at ? 'completed' : 'incomplete',
+            status: step.completed_at ? 'completed' as const : 'incomplete' as const,
             due_date: step.due_date,
             client_id: step.client_id,
             client_name: clientName,
             urgent: step.urgent,
             created_at: step.created_at,
             updated_at: step.updated_at,
-            original_data: step // Keep original data for updates
+            original_data: step
           };
         });
         
-        // Combine both arrays and sort by urgency and due date
         const allTasks = [...transformedTasks, ...transformedNextSteps].sort((a, b) => {
-          // Sort by urgency first
           if (a.urgent && !b.urgent) return -1;
           if (!a.urgent && b.urgent) return 1;
           
-          // Then sort by due date
           if (!a.due_date && !b.due_date) return 0;
           if (!a.due_date) return 1;
           if (!b.due_date) return -1;
@@ -150,15 +134,13 @@ export const useTasks = (category?: string, showCompleted = false) => {
         return [];
       }
     },
-    staleTime: 0, // Always fetch fresh data
-    gcTime: 0 // Don't cache
+    staleTime: 0,
+    gcTime: 0
   });
 
-  // Create mutation to update task completion status
   const updateTaskMutation = useMutation({
     mutationFn: async ({ taskId, completed }: { taskId: string; completed: boolean }) => {
       if (taskId.startsWith('next-step-')) {
-        // Update next step
         const id = taskId.replace('next-step-', '');
         const { error } = await supabase
           .from('client_next_steps')
@@ -167,7 +149,6 @@ export const useTasks = (category?: string, showCompleted = false) => {
         
         if (error) throw error;
       } else {
-        // Update general task
         const { error } = await supabase
           .from('general_tasks')
           .update({ status: completed ? 'completed' : 'incomplete' })
@@ -193,11 +174,9 @@ export const useTasks = (category?: string, showCompleted = false) => {
     }
   });
 
-  // Create mutation to update task urgency
   const updateUrgencyMutation = useMutation({
     mutationFn: async ({ taskId, urgent }: { taskId: string; urgent: boolean }) => {
       if (taskId.startsWith('next-step-')) {
-        // Update next step
         const id = taskId.replace('next-step-', '');
         const { error } = await supabase
           .from('client_next_steps')
@@ -206,7 +185,6 @@ export const useTasks = (category?: string, showCompleted = false) => {
         
         if (error) throw error;
       } else {
-        // Update general task
         const { error } = await supabase
           .from('general_tasks')
           .update({ urgent })
@@ -232,11 +210,9 @@ export const useTasks = (category?: string, showCompleted = false) => {
     }
   });
 
-  // Create mutation to delete task
   const deleteTaskMutation = useMutation({
     mutationFn: async (taskId: string) => {
       if (taskId.startsWith('next-step-')) {
-        // Delete next step
         const id = taskId.replace('next-step-', '');
         const { error } = await supabase
           .from('client_next_steps')
@@ -245,7 +221,6 @@ export const useTasks = (category?: string, showCompleted = false) => {
         
         if (error) throw error;
       } else {
-        // Delete general task
         const { error } = await supabase
           .from('general_tasks')
           .delete()
