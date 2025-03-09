@@ -60,7 +60,7 @@ export const TaskList = ({
     return () => {
       clearInterval(intervalId);
     };
-  }, [category, showCompleted]);
+  }, [category, showCompleted, refetch]);
 
   // Add a debug log to see what tasks we're getting
   useEffect(() => {

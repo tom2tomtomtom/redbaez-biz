@@ -12,12 +12,12 @@ export interface Task {
   client_id?: number | null;
   client?: { name: string } | null;
   next_due_date?: string | null;
-  due_date?: string | null; // Added for compatibility
+  due_date?: string | null; // For compatibility with different data sources
   urgent: boolean;
   status?: string;
   completed_at?: string | null;
   category?: string | null;
-  source?: string; // Added missing property
+  source?: string; // Indicates where the task came from (general_tasks, next_step, etc.)
 }
 
 export const useTasks = (category?: string, showCompleted = false) => {
@@ -30,14 +30,14 @@ export const useTasks = (category?: string, showCompleted = false) => {
     supabaseDiagnostics.logQuery('tasks', 'fetching');
     console.log(`[${new Date().toISOString()}] Fetching tasks with category: ${category}, showCompleted: ${showCompleted}`);
 
-    // Prepare query builder
-    let query = supabase.from('tasks').select('*, clients(name)');
+    // Prepare query builder for general_tasks table
+    let query = supabase.from('general_tasks').select('*, clients(name)');
 
     // Apply completed filter
     if (showCompleted) {
-      query = query.not('completed_at', 'is', null);
+      query = query.eq('status', 'completed');
     } else {
-      query = query.is('completed_at', null);
+      query = query.not('status', 'eq', 'completed');
     }
 
     // Apply category filter if provided
@@ -61,7 +61,13 @@ export const useTasks = (category?: string, showCompleted = false) => {
     console.log(`[${new Date().toISOString()}] Fetched ${data?.length} tasks`);
     console.log('Tasks data:', data);
     
-    return data || [];
+    // Map the returned data to our Task interface
+    const tasks = (data || []).map(task => ({
+      ...task,
+      source: 'general_tasks',
+    }));
+    
+    return tasks;
   };
 
   const { data: tasks = [], isLoading, refetch } = useQuery({
@@ -80,10 +86,9 @@ export const useTasks = (category?: string, showCompleted = false) => {
       supabaseDiagnostics.logQuery('tasks', 'updating completion');
       
       const { data, error } = await supabase
-        .from('tasks')
+        .from('general_tasks')
         .update({
-          completed_at: args.completed ? new Date().toISOString() : null,
-          status: args.completed ? 'completed' : 'in_progress'
+          status: args.completed ? 'completed' : 'incomplete'
         })
         .eq('id', args.taskId)
         .select();
@@ -122,7 +127,7 @@ export const useTasks = (category?: string, showCompleted = false) => {
       supabaseDiagnostics.logQuery('tasks', 'updating urgency');
       
       const { data, error } = await supabase
-        .from('tasks')
+        .from('general_tasks')
         .update({ urgent: args.urgent })
         .eq('id', args.taskId)
         .select();
@@ -158,7 +163,7 @@ export const useTasks = (category?: string, showCompleted = false) => {
       supabaseDiagnostics.logQuery('tasks', 'deleting');
       
       const { error } = await supabase
-        .from('tasks')
+        .from('general_tasks')
         .delete()
         .eq('id', taskId);
 

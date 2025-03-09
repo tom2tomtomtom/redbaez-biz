@@ -38,10 +38,10 @@ export const TaskItem = ({
 }: TaskItemProps) => {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   
-  // Determine background color based on source and category
+  // Determine background color based on client and category
   const getBackgroundColorClass = () => {
-    // If it's a client-related task (next step or client task)
-    if (task.client_id || (task.source && task.source === 'next_step')) {
+    // If it's a client-related task 
+    if (task.client_id) {
       return 'bg-[#FEC6A1]/30 hover:bg-[#FEC6A1]/50';
     }
     
@@ -66,15 +66,15 @@ export const TaskItem = ({
     return 'bg-gray-50 hover:bg-gray-100';
   };
 
-  // Add source indicator when it's a next step
-  const getSourceIndicator = () => {
-    if (task.source && task.source === 'next_step') {
-      return <Badge variant="outline" className="ml-2 text-xs">Client Task</Badge>;
+  // Add client indicator
+  const getClientIndicator = () => {
+    if (task.client_id && task.client?.name) {
+      return <Badge variant="outline" className="ml-2 text-xs">{task.client.name}</Badge>;
     }
     return null;
   };
 
-  // Get the appropriate due date from either next_due_date or due_date property
+  // Get the appropriate due date 
   const getDueDate = () => {
     const dueDate = task.next_due_date || task.due_date;
     return dueDate ? new Date(dueDate).toLocaleDateString() : 'No due date';
@@ -100,7 +100,7 @@ export const TaskItem = ({
       >
         <div className="font-medium flex items-center gap-2">
           {task.title}
-          {getSourceIndicator()}
+          {getClientIndicator()}
           {task.urgent && (
             <Badge variant="destructive" className="ml-2 text-xs">
               <AlertCircle className="h-3 w-3 mr-1" />
