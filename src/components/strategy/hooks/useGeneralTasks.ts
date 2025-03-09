@@ -33,23 +33,37 @@ export const useGeneralTasks = (category: string, refreshTrigger: number) => {
       }
 
       console.log('Strategy - fetched next steps:', nextSteps?.length);
+      
+      // Log the actual format of next steps for debugging
+      if (nextSteps && nextSteps.length > 0) {
+        console.log('DEBUG: First next step raw data:', nextSteps[0]);
+        console.log('DEBUG: First next step ID format:', nextSteps[0].id, 'Type:', typeof nextSteps[0].id);
+      }
 
       // Convert next steps to general task format
-      const nextStepTasks = nextSteps?.map(step => ({
-        id: `next-step-${step.id}`,
-        title: `Next Step for ${step.clients?.name || 'Unknown Client'}`,
-        description: step.notes,
-        category: category.toLowerCase(),
-        status: step.completed_at ? 'completed' : 'incomplete',
-        next_due_date: step.due_date,
-        created_at: step.created_at,
-        updated_at: step.updated_at,
-        urgent: step.urgent,
-        client_id: step.client_id,
-        type: 'next_step',
-        source_table: 'client_next_steps',
-        original_data: step
-      })) || [];
+      const nextStepTasks = nextSteps?.map(step => {
+        // Create a debug object for logging
+        const nextStepTask = {
+          id: step.id, // Use the ORIGINAL ID without any prefix
+          title: `Next Step for ${step.clients?.name || 'Unknown Client'}`,
+          description: step.notes,
+          category: category.toLowerCase(),
+          status: step.completed_at ? 'completed' : 'incomplete',
+          next_due_date: step.due_date,
+          created_at: step.created_at,
+          updated_at: step.updated_at,
+          urgent: step.urgent,
+          client_id: step.client_id,
+          type: 'next_step',
+          source_table: 'client_next_steps',
+          original_data: step
+        };
+        
+        // Log the converted task for debugging
+        console.log(`DEBUG: Next step ${step.id} converted to:`, nextStepTask.id);
+        
+        return nextStepTask;
+      }) || [];
 
       // Prepare general tasks with type and source table
       const generalTasksFormatted = (tasks || []).map(task => ({

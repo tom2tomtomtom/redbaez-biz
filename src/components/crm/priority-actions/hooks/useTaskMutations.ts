@@ -1,7 +1,6 @@
-
 import { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase, getFreshSupabaseClient } from '@/lib/supabase';
+import { supabase } from '@/lib/supabase';
 import { Task } from './taskTypes';
 import { toast } from '@/hooks/use-toast';
 import { useTaskDeletion } from '@/hooks/useTaskDeletion';
@@ -17,11 +16,8 @@ export const useTaskMutations = () => {
       setIsProcessing(true);
       console.log(`TASKS: Updating task ${task.id} completion to ${completed}`);
       
-      // Get a fresh client to avoid caching issues
-      const freshClient = getFreshSupabaseClient();
-
       if (task.source_table === 'general_tasks') {
-        const { error } = await freshClient
+        const { error } = await supabase
           .from('general_tasks')
           .update({
             status: completed ? 'completed' : 'incomplete',
@@ -31,7 +27,7 @@ export const useTaskMutations = () => {
 
         if (error) throw error;
       } else {
-        const { error } = await freshClient
+        const { error } = await supabase
           .from('client_next_steps')
           .update({
             completed_at: completed ? new Date().toISOString() : null,
@@ -70,11 +66,8 @@ export const useTaskMutations = () => {
       setIsProcessing(true);
       console.log(`Updating task ${task.id} urgency to ${urgent}`);
       
-      // Get a fresh client to avoid caching issues
-      const freshClient = getFreshSupabaseClient();
-
       if (task.source_table === 'general_tasks') {
-        const { error } = await freshClient
+        const { error } = await supabase
           .from('general_tasks')
           .update({
             urgent: urgent,
@@ -84,7 +77,7 @@ export const useTaskMutations = () => {
 
         if (error) throw error;
       } else {
-        const { error } = await freshClient
+        const { error } = await supabase
           .from('client_next_steps')
           .update({
             urgent: urgent,

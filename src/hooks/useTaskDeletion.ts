@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import { getFreshSupabaseClient, supabase } from '@/lib/supabase';
+import { supabase } from '@/lib/supabase';
 import { toast } from '@/hooks/use-toast';
 import { useQueryClient } from '@tanstack/react-query';
 
@@ -95,13 +95,16 @@ export const useTaskDeletion = (onTaskDeleted?: () => void) => {
       
       console.log(`DELETION: Deleting from ${tableName} with ID: ${taskId} at ${timestamp}`);
       
-      // Use singleton Supabase client instead of creating a new one each time
+      // Use a database query with debug logging
+      console.log(`DELETION DEBUG: Sending delete request to table ${tableName} for ID ${taskId}`);
       const { error, data, count } = await supabase
         .from(tableName)
         .delete()
         .eq('id', taskId)
         .select();
         
+      console.log(`DELETION DEBUG: Response data:`, data, `Error:`, error, `Count:`, count);
+      
       if (error) {
         console.error('DELETION: Error deleting task:', error);
         toast({
@@ -114,7 +117,7 @@ export const useTaskDeletion = (onTaskDeleted?: () => void) => {
 
       // Verify deletion by checking the returned data or count
       if (!data?.length && !count) {
-        console.error('DELETION: Task was not found or not deleted');
+        console.error('DELETION: Task was not found or not deleted. Debug info:', { taskId, tableName });
         toast({
           title: "Error",
           description: "Task could not be deleted or was not found.",
