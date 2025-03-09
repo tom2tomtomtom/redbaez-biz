@@ -11,44 +11,51 @@ export const useTasksQuery = (category?: string, showCompleted = false) => {
     supabaseDiagnostics.logQuery('tasks', 'fetching');
     console.log(`[${new Date().toISOString()}] Fetching tasks with category: ${category}, showCompleted: ${showCompleted}`);
 
-    // Prepare query builder for general_tasks table
-    let query = tasksTable().select('*, clients(name)');
+    try {
+      // Prepare query builder for general_tasks table
+      let query = tasksTable().select('*, clients(name)');
 
-    // Apply completed filter
-    if (showCompleted) {
-      query = query.eq('status', 'completed');
-    } else {
-      query = query.not('status', 'eq', 'completed');
+      // Apply completed filter
+      if (showCompleted) {
+        query = query.eq('status', 'completed');
+      } else {
+        query = query.not('status', 'eq', 'completed');
+      }
+
+      // Apply category filter if provided
+      if (category && category !== 'All') {
+        query = query.eq('category', category);
+      }
+
+      // Execute query with order
+      const { data, error } = await query
+        .order('urgent', { ascending: false })
+        .order('next_due_date', { ascending: true });
+
+      if (error) {
+        console.error('Error fetching tasks:', error);
+        toast({
+          title: 'Error fetching tasks',
+          description: error.message,
+          variant: 'destructive',
+        });
+        throw error;
+      }
+
+      console.log(`[${new Date().toISOString()}] Fetched ${data?.length} tasks`);
+      console.log('Tasks data:', data);
+      
+      // Map the returned data to our Task interface
+      const tasks = (data || []).map(task => ({
+        ...task,
+        source: 'general_tasks',
+      }));
+      
+      return tasks;
+    } catch (e) {
+      console.error('Exception in fetchTasks:', e);
+      return [];
     }
-
-    // Apply category filter if provided
-    if (category && category !== 'All') {
-      query = query.eq('category', category);
-    }
-
-    // Execute query with order
-    const { data, error } = await query.order('urgent', { ascending: false }).order('next_due_date', { ascending: true });
-
-    if (error) {
-      console.error('Error fetching tasks:', error);
-      toast({
-        title: 'Error fetching tasks',
-        description: error.message,
-        variant: 'destructive',
-      });
-      throw error;
-    }
-
-    console.log(`[${new Date().toISOString()}] Fetched ${data?.length} tasks`);
-    console.log('Tasks data:', data);
-    
-    // Map the returned data to our Task interface
-    const tasks = (data || []).map(task => ({
-      ...task,
-      source: 'general_tasks',
-    }));
-    
-    return tasks;
   };
 
   return useQuery({

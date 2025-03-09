@@ -5,6 +5,8 @@ import { useTasks } from './hooks/useTasks';
 import { PriorityActionsSkeleton } from './PriorityActionsSkeleton';
 import { CompletionConfirmDialog } from './components/CompletionConfirmDialog';
 import { toast } from '@/hooks/use-toast';
+import { Button } from '@/components/ui/button';
+import { RefreshCcw } from 'lucide-react';
 
 interface TaskListProps {
   category?: string;
@@ -28,7 +30,8 @@ export const TaskList = ({
     deleteTask,
     isUpdating,
     isDeleting,
-    refetch
+    refetch,
+    error
   } = useTasks(category, showCompleted);
 
   // Force an initial data fetch when component mounts and refresh periodically
@@ -47,6 +50,11 @@ export const TaskList = ({
       setLastRefreshTime(Date.now());
     }).catch(err => {
       console.error("Error fetching task data:", err);
+      toast({
+        title: "Error loading tasks",
+        description: "Please try refreshing.",
+        variant: "destructive"
+      });
     });
     
     // Set up periodic refresh
@@ -67,14 +75,54 @@ export const TaskList = ({
     console.log(`Current tasks in TaskList (${lastRefreshTime}):`, tasks);
   }, [tasks, lastRefreshTime]);
 
+  const handleManualRefresh = () => {
+    toast({
+      title: "Refreshing tasks",
+      description: "Fetching latest task data..."
+    });
+    
+    refetch().then(() => {
+      setLastRefreshTime(Date.now());
+      toast({
+        title: "Tasks refreshed",
+        description: "Latest task data loaded."
+      });
+    }).catch(err => {
+      console.error("Error refreshing tasks:", err);
+      toast({
+        title: "Error refreshing tasks",
+        description: "Please try again.",
+        variant: "destructive"
+      });
+    });
+  };
+
   if (isLoading && !tasks.length) {
     return <PriorityActionsSkeleton />;
+  }
+
+  if (error) {
+    return (
+      <div className="p-4 text-center">
+        <p className="text-red-500 mb-2">Error loading tasks: {error.message}</p>
+        <Button onClick={handleManualRefresh} variant="outline" size="sm">
+          <RefreshCcw className="mr-2 h-4 w-4" />
+          Try Again
+        </Button>
+      </div>
+    );
   }
 
   if (!tasks.length) {
     return (
       <div className="p-4 text-center text-gray-500">
-        No {showCompleted ? "completed" : "active"} tasks found{category && category !== 'All' ? ` for category: ${category}` : ''}.
+        <p className="mb-2">
+          No {showCompleted ? "completed" : "active"} tasks found{category && category !== 'All' ? ` for category: ${category}` : ''}.
+        </p>
+        <Button onClick={handleManualRefresh} variant="outline" size="sm">
+          <RefreshCcw className="mr-2 h-4 w-4" />
+          Refresh
+        </Button>
       </div>
     );
   }
@@ -96,6 +144,13 @@ export const TaskList = ({
 
   return (
     <div className="space-y-2">
+      <div className="mb-4 flex justify-end">
+        <Button onClick={handleManualRefresh} variant="outline" size="sm">
+          <RefreshCcw className="mr-2 h-4 w-4" />
+          Refresh Tasks
+        </Button>
+      </div>
+      
       {tasks.map((task) => (
         <TaskItem
           key={task.id}
