@@ -46,11 +46,11 @@ const fetchGeneralTasks = async (category?: string) => {
   }
 };
 
-const fetchNextSteps = async () => {
+const fetchNextSteps = async (category?: string) => {
   console.log('Fetching next steps'); // Debug log
   
   try {
-    const { data, error } = await supabase
+    let query = supabase
       .from('client_next_steps')
       .select(`
         *,
@@ -59,6 +59,13 @@ const fetchNextSteps = async () => {
         )
       `)
       .order('due_date', { ascending: true });
+      
+    // Apply category filter if provided
+    if (category && typeof category === 'string' && category.trim() !== '') {
+      query = query.ilike('category', `%${category}%`);
+    }
+
+    const { data, error } = await query;
 
     if (error) {
       console.error('Error fetching next steps:', error);
@@ -97,8 +104,8 @@ export const usePriorityData = (category?: string, refreshKey?: number) => {
   });
 
   const nextStepsQuery = useQuery({
-    queryKey: ['clientNextSteps', refreshKey],
-    queryFn: fetchNextSteps,
+    queryKey: ['clientNextSteps', sanitizedCategory, refreshKey],
+    queryFn: () => fetchNextSteps(sanitizedCategory),
     staleTime: 0, // Set to 0 to always fetch fresh data
     gcTime: 1000, // Set to 1 second
     refetchOnWindowFocus: true,
@@ -141,7 +148,7 @@ export const usePriorityData = (category?: string, refreshKey?: number) => {
   const allItems: PriorityItem[] = Array.from(deduplicationMap.values())
     .filter(item => {
       // Extra validation to filter out any potentially corrupted data
-      return item.data && item.data.id;
+      return item && item.data && item.data.id;
     })
     .sort((a, b) => {
       const aUrgent = 'urgent' in a.data ? a.data.urgent : false;
@@ -165,9 +172,14 @@ export const usePriorityData = (category?: string, refreshKey?: number) => {
     allItems,
     isLoading: tasksQuery.isLoading || nextStepsQuery.isLoading,
     error: tasksQuery.error || nextStepsQuery.error,
-    refetch: () => {
+    refetch: async () => {
       console.log('Manually refetching priority data');
-      return Promise.all([tasksQuery.refetch(), nextStepsQuery.refetch()]);
+      
+      // Force a cache reset before refetching to ensure fresh data
+      await Promise.all([
+        tasksQuery.refetch({ cancelRefetch: true }),
+        nextStepsQuery.refetch({ cancelRefetch: true })
+      ]);
     }
   };
 };

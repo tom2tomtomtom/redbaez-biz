@@ -1,3 +1,4 @@
+
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from './types';
 
@@ -13,6 +14,19 @@ export const supabase = createClient<Database>(
       persistSession: true,
       detectSessionInUrl: true,
       storage: localStorage // Explicitly set storage to localStorage
-    }
+    },
+    global: {
+      headers: {
+        'cache-control': 'no-cache', // Tell the Supabase Client not to cache responses
+      },
+    },
+    db: {
+      schema: 'public',
+    },
+    realtime: {
+      params: {
+        eventsPerSecond: 10,
+      },
+    },
   }
 );

@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+
+import { useState, useEffect, useRef } from 'react';
 import { PriorityActionItem } from './PriorityActionItem';
 import { PriorityItem } from './hooks/usePriorityData';
 import { useItemStatusChange } from './hooks/useItemStatusChange';
@@ -34,14 +35,19 @@ export const PriorityItemsList = ({
   
   const [completionConfirmItem, setCompletionConfirmItem] = useState<PriorityItem | null>(null);
   // Track deleted item IDs to prevent them from reappearing
-  const [deletedItemIds, setDeletedItemIds] = useState<Set<string>>(new Set());
+  const deletedItemIds = useRef<Set<string>>(new Set());
 
   useEffect(() => {
     if (!items) return;
     
     console.log('PriorityItemsList received items:', items.length, items);
     console.log('showCompleted flag:', showCompleted);
-    console.log('Deleted items count:', deletedItemIds.size);
+    console.log('Deleted items count:', deletedItemIds.current.size);
+    
+    // Log any deleted items for debugging
+    if (deletedItemIds.current.size > 0) {
+      console.log('Currently deleted items:', [...deletedItemIds.current]);
+    }
 
     // Filter out deleted items and invalid items
     const validItems = items.filter(item => 
@@ -49,7 +55,7 @@ export const PriorityItemsList = ({
       item.data && 
       item.data.id && 
       // Exclude any items that are in our deletedItemIds set
-      !deletedItemIds.has(`${item.type}-${item.data.id}`)
+      !deletedItemIds.current.has(`${item.type}-${item.data.id}`)
     );
     
     console.log('PriorityItemsList filtered valid items:', validItems.length);
@@ -75,7 +81,7 @@ export const PriorityItemsList = ({
     }
     
     setLocalItems(filteredItems);
-  }, [items, showCompleted, deletedItemIds]);
+  }, [items, showCompleted]);
 
   const confirmDelete = (item: PriorityItem) => {
     if (!item || !item.data || !item.data.id) {
@@ -100,12 +106,8 @@ export const PriorityItemsList = ({
       console.log(`Deleting item ${uniqueItemId}`);
 
       // First, add to deleted items set to prevent it from reappearing in the UI
-      setDeletedItemIds(prev => {
-        const newSet = new Set(prev);
-        newSet.add(uniqueItemId);
-        console.log(`Added ${uniqueItemId} to deletedItemIds set`, newSet);
-        return newSet;
-      });
+      deletedItemIds.current.add(uniqueItemId);
+      console.log(`Added ${uniqueItemId} to deletedItemIds set`, [...deletedItemIds.current]);
       
       // Remove from local state immediately for responsive UI
       setLocalItems(prevItems => {
@@ -119,10 +121,6 @@ export const PriorityItemsList = ({
       
       if (success) {
         console.log(`${item.type} deleted successfully:`, itemId);
-        toast({
-          title: "Success",
-          description: `${item.type === 'task' ? 'Task' : 'Next step'} deleted successfully`,
-        });
         
         if (onItemRemoved) {
           console.log('Calling onItemRemoved callback');
@@ -130,19 +128,19 @@ export const PriorityItemsList = ({
         }
       } else {
         console.error(`Failed to delete ${item.type}:`, itemId);
-        // If deletion failed, remove from deletedItems set and add back to localItems
-        setDeletedItemIds(prev => {
-          const newSet = new Set(prev);
-          newSet.delete(uniqueItemId);
-          return newSet;
-        });
         
-        // Only add the item back if it's not already there
+        // If deletion failed, remove from deletedItems set
+        deletedItemIds.current.delete(uniqueItemId);
+        console.log(`Removed ${uniqueItemId} from deletedItemIds set after failed deletion`);
+        
+        // Only add the item back if it exists and its not in the deleted set
         setLocalItems(prevItems => {
           if (prevItems.some(i => i.type === item.type && i.data.id === itemId)) {
             return prevItems; // Item already exists
           }
-          return [...prevItems, item]; // Add the item back
+          // Check if the item is in the original items array
+          const originalItem = items.find(i => i.type === item.type && i.data.id === itemId);
+          return originalItem ? [...prevItems, originalItem] : prevItems;
         });
         
         toast({
@@ -382,8 +380,8 @@ export const PriorityItemsList = ({
         const itemId = item.data.id;
         const uniqueItemId = `${item.type}-${itemId}`;
         
-        // Skip rendering deleted items
-        if (deletedItemIds.has(uniqueItemId)) {
+        // Skip rendering deleted items - additional safeguard
+        if (deletedItemIds.current.has(uniqueItemId)) {
           console.log(`Skipping deleted item ${uniqueItemId}`);
           return null;
         }
@@ -392,7 +390,7 @@ export const PriorityItemsList = ({
           <div 
             key={uniqueItemId} 
             className="flex items-start gap-2 p-2 border rounded-lg hover:bg-gray-50 cursor-pointer"
-            onClick={() => handleItemClick(item)}
+            onClick={() => onItemSelected && onItemSelected(item)}
           >
             <div className="pt-1" onClick={(e) => e.stopPropagation()}>
               <Checkbox 
@@ -401,7 +399,11 @@ export const PriorityItemsList = ({
                     ? item.data.status === 'completed' 
                     : item.data.completed_at !== null
                 } 
-                onCheckedChange={(checked) => handleCompletionStatusChange(item, checked as boolean)}
+                onCheckedChange={(checked) => {
+                  if (handleCompletionStatusChange) {
+                    handleCompletionStatusChange(item, checked as boolean);
+                  }
+                }}
                 disabled={isProcessingUpdate}
               />
             </div>
@@ -409,7 +411,11 @@ export const PriorityItemsList = ({
             <div className="flex-1" onClick={(e) => e.stopPropagation()}>
               <PriorityActionItem 
                 item={item} 
-                onUrgentChange={(checked) => handleUrgentStatusChange(item, checked)}
+                onUrgentChange={(checked) => {
+                  if (handleUrgentStatusChange) {
+                    handleUrgentStatusChange(item, checked);
+                  }
+                }}
               />
             </div>
             
@@ -457,7 +463,9 @@ export const PriorityItemsList = ({
           onConfirm={() => {
             const item = completionConfirmItem;
             setCompletionConfirmItem(null);
-            processCompletionChange(item, true);
+            if (processCompletionChange) {
+              processCompletionChange(item, true);
+            }
           }}
           itemType={completionConfirmItem.type}
         />
