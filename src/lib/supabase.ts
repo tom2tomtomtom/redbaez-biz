@@ -20,7 +20,8 @@ export const supabase = createClient(
         'Cache-Control': 'no-cache, no-store, must-revalidate',
         'Pragma': 'no-cache',
         'Expires': '0',
-        'X-Custom-Timestamp': () => Date.now().toString() // Dynamic header to bypass caching
+        // Fix: Convert the function to a string directly to satisfy TypeScript
+        'X-Custom-Timestamp': Date.now().toString()
       }
     },
     realtime: {
@@ -29,8 +30,8 @@ export const supabase = createClient(
   }
 );
 
-// Add a method to help with debugging queries
-supabase.diagnostics = {
+// Create a helper object for diagnostics instead of directly attaching to supabase client
+export const supabaseDiagnostics = {
   logQuery: (table: string, action: string) => {
     console.log(`Supabase ${action} from ${table} at ${new Date().toISOString()}`);
   }
