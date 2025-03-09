@@ -1,3 +1,4 @@
+
 import { useState, useRef, useEffect } from "react";
 import { GeneralTaskItem } from "../crm/priority-actions/GeneralTaskItem";
 import { NextStepItem } from "../crm/priority-actions/NextStepItem";
@@ -25,12 +26,13 @@ export const TaskList = ({ tasks, isLoading, onTasksUpdated, isHistory = false }
   const initialRenderDone = useRef(false);
   const queryClient = useQueryClient();
   
-  // Use our direct task deletion hook with a simple callback to avoid re-render loops
+  // Use our task deletion hook with a callback that will execute after deletion completes
   const { deleteTask, isDeleting } = useTaskDeletion(() => {
     console.log("Deletion callback executed");
-    // Force refetch
+    // Force refetch all relevant queries
     queryClient.invalidateQueries({ queryKey: ['generalTasks'] });
     queryClient.invalidateQueries({ queryKey: ['clientNextSteps'] });
+    queryClient.invalidateQueries({ queryKey: ['unified-tasks'] });
     
     // Using setTimeout to break potential render cycles
     setTimeout(() => {
@@ -92,7 +94,10 @@ export const TaskList = ({ tasks, isLoading, onTasksUpdated, isHistory = false }
   const confirmDeleteTask = async () => {
     console.log("Confirming deletion for task:", taskToDelete);
     if (taskToDelete) {
-      await deleteTask(taskToDelete);
+      const success = await deleteTask(taskToDelete);
+      if (success) {
+        console.log("Task deleted successfully from confirmation dialog");
+      }
     }
     setIsDialogOpen(false);
     setTaskToDelete(null);
@@ -107,6 +112,7 @@ export const TaskList = ({ tasks, isLoading, onTasksUpdated, isHistory = false }
     console.log("Manual refresh requested");
     queryClient.invalidateQueries({ queryKey: ['generalTasks'] });
     queryClient.invalidateQueries({ queryKey: ['clientNextSteps'] });
+    queryClient.invalidateQueries({ queryKey: ['unified-tasks'] });
     onTasksUpdated();
   };
 

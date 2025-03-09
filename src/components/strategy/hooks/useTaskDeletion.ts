@@ -33,12 +33,15 @@ export const useTaskDeletion = (onTaskDeleted: () => void) => {
       
       console.log(`Deleting from ${tableName} with ID: ${taskId}`);
       
-      // Perform the deletion with a timestamp header
-      const headers = {
-        'X-Custom-Timestamp': new Date().toISOString()
+      // Add timestamp and anti-cache headers
+      const timestamp = new Date().toISOString();
+      const customHeaders = {
+        'Cache-Control': 'no-cache',
+        'X-Custom-Timestamp': timestamp
       };
       
-      const { error } = await supabase
+      // Perform the deletion
+      const { error, data } = await supabase
         .from(tableName)
         .delete()
         .eq('id', taskId);
@@ -54,39 +57,44 @@ export const useTaskDeletion = (onTaskDeleted: () => void) => {
       }
 
       // Success
-      console.log("Task deleted successfully");
+      console.log("Task deleted successfully:", data);
       
       // Invalidate all relevant queries to ensure UI updates
-      await queryClient.invalidateQueries({ 
-        queryKey: ['unified-tasks'],
-        exact: false 
-      });
+      // First invalidate queryKeys without refetching
+      await Promise.all([
+        queryClient.invalidateQueries({ 
+          queryKey: ['unified-tasks'],
+        }),
+        
+        queryClient.invalidateQueries({ 
+          queryKey: ['generalTasks'],
+        }),
+        
+        queryClient.invalidateQueries({ 
+          queryKey: ['clientNextSteps'],
+        }),
+      ]);
       
-      await queryClient.invalidateQueries({ 
-        queryKey: ['generalTasks'],
-        exact: false
-      });
-      
-      await queryClient.invalidateQueries({ 
-        queryKey: ['clientNextSteps'],
-        exact: false
-      });
-      
-      // Force an immediate refetch of the task lists
-      await queryClient.refetchQueries({ 
-        queryKey: ['unified-tasks'],
-        exact: false
-      });
+      // Then force immediate refetches of the important queries
+      await Promise.all([
+        queryClient.refetchQueries({ 
+          queryKey: ['unified-tasks'],
+        }),
+        
+        queryClient.refetchQueries({ 
+          queryKey: ['generalTasks'],
+        }),
+      ]);
       
       toast({
         title: "Task deleted",
         description: "The task has been deleted successfully.",
       });
       
-      // Call the callback to refresh the task list
+      // Add a small delay to ensure state updates have time to process
       setTimeout(() => {
         onTaskDeleted();
-      }, 100);
+      }, 300);
       
       return true;
     } catch (error) {

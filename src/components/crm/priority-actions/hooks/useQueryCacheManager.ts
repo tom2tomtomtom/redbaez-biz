@@ -43,10 +43,12 @@ export const useQueryCacheManager = () => {
       )
     );
     
-    // Force a refetch of specific queries
+    // Force a refetch of specific queries that must be updated immediately
     await Promise.all([
       queryClient.refetchQueries({ queryKey: ['unified-tasks'] }),
       queryClient.refetchQueries({ queryKey: ['tasks'] }),
+      queryClient.refetchQueries({ queryKey: ['generalTasks'] }),
+      queryClient.refetchQueries({ queryKey: ['clientNextSteps'] }),
     ]);
     
     console.log('Query invalidation complete at:', new Date().toISOString());

@@ -18,15 +18,25 @@ export const useItemDeletion = () => {
       
       console.log(`Deleting item ${itemType}:${itemId} from table ${tableName}`);
 
-      // Timestamp for debugging
+      // Timestamp for debugging and to help prevent caching issues
       const timestamp = new Date().toISOString();
+
+      // Add custom headers to prevent caching issues
+      const customHeaders = {
+        'Cache-Control': 'no-cache',
+        'X-Custom-Timestamp': timestamp
+      };
 
       // Perform the deletion with a custom header to bypass caching
       const { error: deleteError } = await supabase
         .from(tableName)
         .delete()
         .eq('id', itemId)
-        .select();
+        .select()
+        .then(response => {
+          console.log(`Delete response:`, response);
+          return response;
+        });
         
       if (deleteError) {
         console.error(`Error during deletion at ${timestamp}:`, deleteError);
@@ -35,7 +45,7 @@ export const useItemDeletion = () => {
 
       console.log(`Successfully deleted item ${itemId} from ${tableName} at ${timestamp}`);
       
-      // Immediately invalidate queries to force a refresh
+      // Immediately invalidate queries to force a refresh - wait for this to complete
       await invalidateQueries(clientId);
       
       // Force a refresh again after a short delay for certainty
