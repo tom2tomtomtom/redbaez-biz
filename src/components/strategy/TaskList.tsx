@@ -8,6 +8,8 @@ import { Input } from "@/components/ui/input";
 import { supabase } from "@/lib/supabase";
 import { toast } from "@/hooks/use-toast";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { useItemStatusChange } from "../crm/priority-actions/hooks/useItemStatusChange";
+import { Trash2 } from "lucide-react";
 
 interface TaskListProps {
   tasks: any[];
@@ -20,6 +22,9 @@ export const TaskList = ({ tasks, isLoading, onTasksUpdated, isHistory = false }
   const [dateInputs, setDateInputs] = useState<Record<string, string>>({});
   const [taskToDelete, setTaskToDelete] = useState<any | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  
+  // Use the existing task status change hooks from the CRM system
+  const { handleDelete: deleteTaskItem } = useItemStatusChange();
 
   const handleDateChange = async (taskId: string, date: string) => {
     try {
@@ -57,7 +62,17 @@ export const TaskList = ({ tasks, isLoading, onTasksUpdated, isHistory = false }
 
   const handleDeleteTask = (task: any) => {
     console.log("Delete button clicked for task:", task);
-    setTaskToDelete(task);
+    
+    // Convert task to the format expected by useItemStatusChange
+    const formattedTask = {
+      data: {
+        id: task.type === 'next_step' ? task.id.replace('next-step-', '') : task.id,
+        client_id: task.client_id
+      },
+      type: task.type === 'next_step' ? 'nextStep' : 'task'
+    };
+    
+    setTaskToDelete(formattedTask);
   };
 
   const confirmDeleteTask = async () => {
@@ -65,37 +80,21 @@ export const TaskList = ({ tasks, isLoading, onTasksUpdated, isHistory = false }
     
     setIsDeleting(true);
     try {
-      console.log("Attempting to delete task:", taskToDelete);
-      let error;
+      console.log("Attempting to delete task using unified delete method:", taskToDelete);
       
-      if (taskToDelete.type === 'next_step') {
-        const realId = taskToDelete.id.replace('next-step-', '');
-        console.log("Deleting next step with ID:", realId);
-        const { error: deleteError } = await supabase
-          .from('client_next_steps')
-          .delete()
-          .eq('id', realId);
-        error = deleteError;
+      // Use the CRM's existing task deletion functionality
+      const success = await deleteTaskItem(taskToDelete);
+      
+      if (success) {
+        toast({
+          title: "Task deleted",
+          description: "The task has been deleted successfully.",
+        });
+        
+        onTasksUpdated();
       } else {
-        console.log("Deleting general task with ID:", taskToDelete.id);
-        const { error: deleteError } = await supabase
-          .from('general_tasks')
-          .delete()
-          .eq('id', taskToDelete.id);
-        error = deleteError;
+        throw new Error("Failed to delete task");
       }
-
-      if (error) {
-        console.error("Delete error:", error);
-        throw error;
-      }
-
-      toast({
-        title: "Task deleted",
-        description: "The task has been deleted successfully.",
-      });
-
-      onTasksUpdated();
     } catch (error) {
       console.error('Error deleting task:', error);
       toast({
@@ -154,7 +153,7 @@ export const TaskList = ({ tasks, isLoading, onTasksUpdated, isHistory = false }
   return (
     <div className="space-y-4">
       {sortedTasks.map((task) => (
-        <div key={task.id} className="relative space-y-2 border p-4 rounded-md shadow-sm">
+        <div key={task.id} className="relative space-y-2 border p-4 rounded-md shadow-sm hover:shadow-md transition-shadow">
           <div className="flex">
             <div className="flex-1">
               {task.type === 'next_step' ? (
@@ -168,12 +167,15 @@ export const TaskList = ({ tasks, isLoading, onTasksUpdated, isHistory = false }
             </div>
             {!isHistory && (
               <Button 
-                variant="destructive" 
+                variant="ghost" 
                 size="sm"
-                className="absolute top-2 right-2"
-                onClick={() => handleDeleteTask(task)}
+                className="absolute top-2 right-2 text-gray-500 hover:text-red-500"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleDeleteTask(task);
+                }}
               >
-                Delete
+                <Trash2 className="h-4 w-4" />
               </Button>
             )}
           </div>
@@ -211,7 +213,11 @@ export const TaskList = ({ tasks, isLoading, onTasksUpdated, isHistory = false }
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmDeleteTask} disabled={isDeleting}>
+            <AlertDialogAction 
+              onClick={confirmDeleteTask} 
+              disabled={isDeleting}
+              className="bg-red-500 hover:bg-red-600"
+            >
               {isDeleting ? "Deleting..." : "Delete"}
             </AlertDialogAction>
           </AlertDialogFooter>
