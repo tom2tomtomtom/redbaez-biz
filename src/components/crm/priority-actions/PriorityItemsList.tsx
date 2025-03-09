@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { PriorityActionItem } from './PriorityActionItem';
 import { PriorityItem } from './hooks/usePriorityData';
@@ -41,46 +40,41 @@ export const PriorityItemsList = ({
     if (!items) return;
     
     console.log('PriorityItemsList received items:', items.length, items);
-    console.log('PriorityItemsList rendering localItems:', localItems.length);
     console.log('showCompleted flag:', showCompleted);
     console.log('Deleted items count:', deletedItemIds.size);
 
-    if (items.length !== localItems.length || JSON.stringify(items) !== JSON.stringify(localItems)) {
-      console.log('PriorityItemsList updating local items:', items.length);
-      
-      // Filter out deleted items and invalid items
-      const validItems = items.filter(item => 
-        item && 
-        item.data && 
-        item.data.id && 
-        // Exclude any items that are in our deletedItemIds set
-        !deletedItemIds.has(`${item.type}-${item.data.id}`)
-      );
-      
-      console.log('PriorityItemsList filtered items:', validItems.length, 
-        'removed:', items.length - validItems.length,
-        'deleted items filtered:', items.length - validItems.length - (items.length - items.filter(item => item && item.data && item.data.id).length));
+    // Filter out deleted items and invalid items
+    const validItems = items.filter(item => 
+      item && 
+      item.data && 
+      item.data.id && 
+      // Exclude any items that are in our deletedItemIds set
+      !deletedItemIds.has(`${item.type}-${item.data.id}`)
+    );
+    
+    console.log('PriorityItemsList filtered valid items:', validItems.length);
 
-      let filteredItems;
-      
-      if (showCompleted) {
-        // Filter for completed items
-        filteredItems = validItems.filter(item => 
-          (item.type === 'task' && item.data.status === 'completed') || 
-          (item.type === 'next_step' && item.data.completed_at !== null)
-        );
-        console.log('Filtered for completed items:', filteredItems.length);
-      } else {
-        // Filter for incomplete items
-        filteredItems = validItems.filter(item => 
-          (item.type === 'task' && item.data.status !== 'completed') || 
-          (item.type === 'next_step' && item.data.completed_at === null)
-        );
-        console.log('Filtered for active items:', filteredItems.length);
-      }
-      
-      setLocalItems(filteredItems);
+    let filteredItems;
+    
+    if (showCompleted) {
+      // Filter for completed items
+      filteredItems = validItems.filter(item => {
+        const isCompleted = (item.type === 'task' && item.data.status === 'completed') || 
+          (item.type === 'next_step' && item.data.completed_at !== null);
+        return isCompleted;
+      });
+      console.log('Filtered for completed items:', filteredItems.length);
+    } else {
+      // Filter for incomplete items
+      filteredItems = validItems.filter(item => {
+        const isIncomplete = (item.type === 'task' && item.data.status !== 'completed') || 
+          (item.type === 'next_step' && item.data.completed_at === null);
+        return isIncomplete;
+      });
+      console.log('Filtered for active items:', filteredItems.length);
     }
+    
+    setLocalItems(filteredItems);
   }, [items, showCompleted, deletedItemIds]);
 
   const confirmDelete = (item: PriorityItem) => {

@@ -9,7 +9,7 @@ import { PriorityActionsSkeleton } from './PriorityActionsSkeleton';
 import { Tables } from '@/integrations/supabase/types';
 import { GeneralTaskRow } from '@/integrations/supabase/types/general-tasks.types';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { toast } from '@/components/ui/use-toast';
+import { toast } from '@/hooks/use-toast';
 
 interface PriorityActionsProps {
   hideAddButton?: boolean;
