@@ -19,8 +19,8 @@ export const useQueryCacheManager = () => {
     
     // If a client ID is provided, add client-specific query keys
     if (clientId) {
-      queryKeys.push(['client', clientId]);
-      queryKeys.push(['client-items', clientId]);
+      queryKeys.push(['client', clientId.toString()]); // Convert to string
+      queryKeys.push(['client-items', clientId.toString()]); // Convert to string
     }
     
     // Invalidate all relevant queries at once
