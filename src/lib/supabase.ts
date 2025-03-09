@@ -21,7 +21,7 @@ export const supabase = createClient(
         'Pragma': 'no-cache',
         'Expires': '0',
         // Add a timestamp to every request to ensure nothing gets cached
-        'X-Supabase-Timestamp': () => Date.now().toString()
+        'X-Supabase-Timestamp': String(Date.now())
       }
     },
     realtime: {

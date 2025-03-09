@@ -63,9 +63,7 @@ export const TaskList = ({
     });
     
     // Initial refetch
-    refreshData().then(() => {
-      console.log("Initial task data fetched successfully");
-    }).catch(err => {
+    refreshData().catch(err => {
       console.error("Error fetching task data:", err);
       toast({
         title: "Error loading tasks",
@@ -96,12 +94,7 @@ export const TaskList = ({
       description: "Fetching latest task data..."
     });
     
-    refreshData().then(() => {
-      toast({
-        title: "Tasks refreshed",
-        description: "Latest task data loaded."
-      });
-    }).catch(err => {
+    refreshData().catch(err => {
       console.error("Error refreshing tasks:", err);
       toast({
         title: "Error refreshing tasks",
@@ -145,21 +138,31 @@ export const TaskList = ({
     if (completed) {
       setCompletionConfirmTaskId(taskId);
     } else {
-      updateCompletion(taskId, false).then(() => {
-        // Force a refresh after completion to ensure UI is up to date
-        setTimeout(refreshData, 300);
-      });
+      updateCompletion(taskId, false);
+      // Force a refresh after completion
+      setTimeout(() => refreshData(), 300);
     }
   };
 
   const confirmTaskCompletion = () => {
     if (completionConfirmTaskId) {
-      updateCompletion(completionConfirmTaskId, true).then(() => {
-        // Force a refresh after completion to ensure UI is up to date
-        setTimeout(refreshData, 300);
-      });
+      updateCompletion(completionConfirmTaskId, true);
+      // Force a refresh after completion
+      setTimeout(() => refreshData(), 300);
       setCompletionConfirmTaskId(null);
     }
+  };
+
+  const handleUpdateUrgency = (taskId: string, urgent: boolean) => {
+    updateUrgency(taskId, urgent);
+    // Force a refresh after urgency change
+    setTimeout(() => refreshData(), 300);
+  };
+
+  const handleDeleteTask = (taskId: string) => {
+    deleteTask(taskId);
+    // Force a refresh after deletion
+    setTimeout(() => refreshData(), 300);
   };
 
   return (
@@ -176,18 +179,8 @@ export const TaskList = ({
           key={task.id}
           task={task}
           onUpdateCompletion={(completed) => handleCompletionChange(task.id, completed)}
-          onUpdateUrgency={(urgent) => {
-            updateUrgency(task.id, urgent).then(() => {
-              // Force a refresh after urgency change to ensure UI is up to date
-              setTimeout(refreshData, 300);
-            });
-          }}
-          onDelete={() => {
-            deleteTask(task.id).then(() => {
-              // Force a refresh after deletion to ensure UI is up to date
-              setTimeout(refreshData, 300);
-            });
-          }}
+          onUpdateUrgency={(urgent) => handleUpdateUrgency(task.id, urgent)}
+          onDelete={() => handleDeleteTask(task.id)}
           isUpdating={isUpdating}
           isDeleting={isDeleting}
           onSelect={() => onItemSelected?.(task.id)}

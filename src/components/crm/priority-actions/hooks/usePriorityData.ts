@@ -15,36 +15,33 @@ export type PriorityItem = {
 };
 
 const fetchGeneralTasks = async (category?: string) => {
-  // Properly convert undefined to a more explicit value for logging
-  const categoryToUse = category && typeof category === 'string' ? category : 'all';
-  console.log('Fetching general tasks with category:', categoryToUse);
+  console.log('Fetching general tasks');
   
   try {
+    // Create a timestamp for this request to prevent caching
+    const timestamp = new Date().toISOString();
+    
     let query = supabase
       .from('general_tasks')
       .select('*')
+      .order('urgent', { ascending: false })
       .order('updated_at', { ascending: false });
       
-    // Only apply category filter if a valid category is provided
-    if (category && typeof category === 'string' && category.trim() !== '') {
-      // Make the category comparison case-insensitive
+    if (category && category !== 'All') {
       query = query.ilike('category', `%${category}%`);
     }
     
     const { data, error } = await query;
     
     if (error) {
-      console.error('Error fetching tasks:', error);
+      console.error(`Error fetching tasks at ${timestamp}:`, error);
       throw error;
     }
     
-    // Filter out null/undefined items to ensure valid data
-    const validData = (data || []).filter(item => item && item.id);
-    console.log('Fetched tasks:', validData.length, validData);
-    return validData;
+    console.log(`Fetched ${data?.length} tasks at ${timestamp}`);
+    return data || [];
   } catch (error) {
-    console.error('Exception in fetchGeneralTasks:', error);
-    // Return empty array instead of throwing to prevent query from entering error state
+    console.error('Error in fetchGeneralTasks:', error);
     return [];
   }
 };
@@ -53,82 +50,75 @@ const fetchNextSteps = async (category?: string) => {
   console.log('Fetching next steps');
   
   try {
+    // Create a timestamp for this request to prevent caching
+    const timestamp = new Date().toISOString();
+    
     let query = supabase
       .from('client_next_steps')
       .select(`
         *,
-        clients (
-          name
-        )
+        clients (name)
       `)
+      .order('urgent', { ascending: false })
       .order('updated_at', { ascending: false });
       
-    // Apply category filter if provided
-    if (category && typeof category === 'string' && category.trim() !== '') {
+    if (category && category !== 'All') {
       query = query.ilike('category', `%${category}%`);
     }
 
     const { data, error } = await query;
 
     if (error) {
-      console.error('Error fetching next steps:', error);
+      console.error(`Error fetching next steps at ${timestamp}:`, error);
       throw error;
     }
     
-    // Filter out null/undefined items to ensure valid data
-    const validData = (data || []).filter(item => item && item.id);
+    console.log(`Fetched ${data?.length} next steps at ${timestamp}`);
     
-    console.log('Fetched next steps:', validData.length, validData);
-    return validData.map(step => ({
+    return (data || []).map(step => ({
       ...step,
       client_name: step.clients?.name
     }));
   } catch (error) {
-    console.error('Exception in fetchNextSteps:', error);
-    // Return empty array instead of throwing to prevent query from entering error state
+    console.error('Error in fetchNextSteps:', error);
     return [];
   }
 };
 
-// Create a unique ID for each item to assist with deduplication and tracking
-const createUniqueId = (type: string, id: string) => `${type}-${id}`;
+// Create a unique ID for each item to assist with tracking
+const createUniqueId = (type: string, id: string | number) => `${type}-${id}`;
 
-export const usePriorityData = (category?: string, refreshKey?: number) => {
-  // Sanitize the category input to prevent confusion
-  const sanitizedCategory = typeof category === 'string' ? category : undefined;
-  
-  console.log('usePriorityData called with category:', sanitizedCategory, 'refreshKey:', refreshKey);
-  
+export const usePriorityData = (category?: string) => {
   const tasksQuery = useQuery({
-    queryKey: ['generalTasks', sanitizedCategory, refreshKey], 
-    queryFn: () => fetchGeneralTasks(sanitizedCategory),
-    staleTime: 0, // Set to 0 to always fetch fresh data
-    gcTime: 0, // Set to 0 to never garbage collect
+    queryKey: ['generalTasks', category], 
+    queryFn: () => fetchGeneralTasks(category),
+    staleTime: 0,
+    gcTime: 0,
     refetchOnWindowFocus: true,
-    refetchOnMount: true,
+    refetchOnMount: true
   });
 
   const nextStepsQuery = useQuery({
-    queryKey: ['clientNextSteps', sanitizedCategory, refreshKey], 
-    queryFn: () => fetchNextSteps(sanitizedCategory),
-    staleTime: 0, // Set to 0 to always fetch fresh data
-    gcTime: 0, // Set to 0 to never garbage collect
+    queryKey: ['clientNextSteps', category], 
+    queryFn: () => fetchNextSteps(category),
+    staleTime: 0,
+    gcTime: 0,
     refetchOnWindowFocus: true,
-    refetchOnMount: true,
+    refetchOnMount: true
   });
 
-  // Make sure we have arrays even if the query returns null/undefined
+  // Ensure we have arrays even if queries return null/undefined
   const tasks = tasksQuery.data || [];
   const nextSteps = nextStepsQuery.data || [];
 
-  // Create a deduplication map to ensure we don't have duplicate items
-  const deduplicationMap = new Map<string, PriorityItem>();
+  // Create a map to ensure we don't have duplicates
+  const itemsMap = new Map<string, PriorityItem>();
   
-  // Add tasks to the map - only if they haven't been deleted (checking for undefined/null ids)
+  // Add tasks to the map
   tasks.forEach(task => {
     if (task && task.id) {
       const key = createUniqueId('task', task.id);
-      deduplicationMap.set(key, {
+      itemsMap.set(key, {
         type: 'task',
         date: task.next_due_date,
         data: task
@@ -136,11 +126,11 @@ export const usePriorityData = (category?: string, refreshKey?: number) => {
     }
   });
   
-  // Add next steps to the map - only if they haven't been deleted (checking for undefined/null ids)
+  // Add next steps to the map
   nextSteps.forEach(step => {
     if (step && step.id) {
       const key = createUniqueId('next_step', step.id);
-      deduplicationMap.set(key, {
+      itemsMap.set(key, {
         type: 'next_step',
         date: step.due_date,
         data: step
@@ -148,29 +138,28 @@ export const usePriorityData = (category?: string, refreshKey?: number) => {
     }
   });
   
-  // Convert the map values to an array
-  const allItems: PriorityItem[] = Array.from(deduplicationMap.values())
-    .filter(item => {
-      // Extra validation to filter out any potentially corrupted data
-      return item && item.data && item.data.id;
-    })
+  // Convert map to sorted array
+  const allItems = Array.from(itemsMap.values())
     .sort((a, b) => {
-      const aUrgent = 'urgent' in a.data ? a.data.urgent : false;
-      const bUrgent = 'urgent' in b.data ? b.data.urgent : false;
+      // First sort by urgency
+      const aUrgent = 'urgent' in a.data && a.data.urgent;
+      const bUrgent = 'urgent' in b.data && b.data.urgent;
 
       if (aUrgent && !bUrgent) return -1;
       if (!aUrgent && bUrgent) return 1;
 
+      // Then sort by date
       const aDate = a.date;
       const bDate = b.date;
 
       if (!aDate && !bDate) return 0;
       if (!aDate) return 1;
       if (!bDate) return -1;
+      
       return new Date(aDate).getTime() - new Date(bDate).getTime();
     });
 
-  console.log('Priority Actions - all items:', allItems.length, allItems);
+  console.log('Priority items count:', allItems.length);
   
   return {
     allItems,
@@ -178,11 +167,9 @@ export const usePriorityData = (category?: string, refreshKey?: number) => {
     error: tasksQuery.error || nextStepsQuery.error,
     refetch: async () => {
       console.log('Manually refetching priority data');
-      
-      // Force a cache reset before refetching to ensure fresh data
       await Promise.all([
-        tasksQuery.refetch({ cancelRefetch: false }),
-        nextStepsQuery.refetch({ cancelRefetch: false })
+        tasksQuery.refetch(),
+        nextStepsQuery.refetch()
       ]);
     }
   };

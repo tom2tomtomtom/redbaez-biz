@@ -11,20 +11,20 @@ export const useCompletionStatus = () => {
     try {
       console.log(`Updating item (${item.type}:${item.data.id}) completed status to: ${completed}`);
       
-      // Store a reference to what type of item we're dealing with
-      const isTask = item.type === 'task';
+      // Add timestamp for debugging
+      const timestamp = new Date().toISOString();
       const itemId = item.data.id;
       const clientId = item.data.client_id;
       
-      // Complete database update first before touching cache
+      // Update the database based on item type
       let error = null;
       
-      if (isTask) {
+      if (item.type === 'task') {
         const { error: updateError } = await supabase
           .from('general_tasks')
           .update({ 
             status: completed ? 'completed' : 'incomplete',
-            updated_at: new Date().toISOString() // Force update timestamp
+            updated_at: timestamp
           })
           .eq('id', itemId);
         error = updateError;
@@ -32,22 +32,26 @@ export const useCompletionStatus = () => {
         const { error: updateError } = await supabase
           .from('client_next_steps')
           .update({ 
-            completed_at: completed ? new Date().toISOString() : null,
-            updated_at: new Date().toISOString() // Force update timestamp
+            completed_at: completed ? timestamp : null,
+            updated_at: timestamp
           })
           .eq('id', itemId);
         error = updateError;
       }
       
-      if (error) throw error;
+      if (error) {
+        console.error(`Error updating completion status at ${timestamp}:`, error);
+        throw error;
+      }
       
-      // IMMEDIATELY after DB update, invalidate queries to force a fresh fetch
+      console.log(`Successfully updated completion status at ${timestamp}`);
+      
+      // Immediately invalidate queries
       await invalidateQueries(clientId);
-
-      // Force extra refresh by waiting and invalidating again for certainty
+      
+      // Secondary invalidation for certainty
       setTimeout(async () => {
         await invalidateQueries(clientId);
-        console.log('Secondary cache invalidation completed for completion status change');
       }, 500);
 
       return true;

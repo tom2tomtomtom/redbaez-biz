@@ -18,10 +18,10 @@ export const supabase = createClient<Database>(
     },
     global: {
       headers: {
-        'cache-control': 'no-cache', // Tell the Supabase Client not to cache responses
-        'pragma': 'no-cache',
-        'expires': '0',
-        'x-custom-timestamp': Date.now().toString()
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0',
+        'x-custom-timestamp': String(Date.now())
       },
     },
     db: {

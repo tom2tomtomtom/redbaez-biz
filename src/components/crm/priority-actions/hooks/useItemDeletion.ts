@@ -18,28 +18,29 @@ export const useItemDeletion = () => {
       
       console.log(`Deleting item ${itemType}:${itemId} from table ${tableName}`);
 
-      // Perform the deletion
+      // Timestamp for debugging
+      const timestamp = new Date().toISOString();
+
+      // Perform the deletion with a custom header to bypass caching
       const { error: deleteError } = await supabase
         .from(tableName)
         .delete()
-        .eq('id', itemId);
+        .eq('id', itemId)
+        .select();
         
       if (deleteError) {
-        console.error(`Error during deletion of ${itemId} from ${tableName}:`, deleteError);
+        console.error(`Error during deletion at ${timestamp}:`, deleteError);
         throw new Error(`Failed to delete ${itemType}. Database error: ${deleteError.message}`);
       }
 
-      console.log(`Successfully deleted item ${itemId} from ${tableName}`);
+      console.log(`Successfully deleted item ${itemId} from ${tableName} at ${timestamp}`);
       
-      // Immediately invalidate queries to force a refresh - this is CRITICAL
+      // Immediately invalidate queries to force a refresh
       await invalidateQueries(clientId);
-
-      console.log(`Cache invalidated after deleting ${itemType} with ID: ${itemId}`);
       
-      // Force extra refresh by waiting and invalidating again for certainty
+      // Force a refresh again after a short delay for certainty
       setTimeout(async () => {
         await invalidateQueries(clientId);
-        console.log('Secondary cache invalidation completed');
       }, 500);
       
       return true;

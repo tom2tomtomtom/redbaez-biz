@@ -9,29 +9,50 @@ export const useUrgencyStatus = () => {
 
   const handleUrgentChange = async (item: PriorityItem, checked: boolean) => {
     try {
-      let error = null;
+      // Add timestamp for debugging
+      const timestamp = new Date().toISOString();
       const itemId = item.data.id;
       const clientId = item.data.client_id;
       
-      // Update database first
+      console.log(`Updating urgency for ${item.type}:${itemId} to ${checked} at ${timestamp}`);
+      
+      // Update database
+      let error = null;
+      
       if (item.type === 'task') {
         const { error: updateError } = await supabase
           .from('general_tasks')
-          .update({ urgent: checked })
+          .update({ 
+            urgent: checked,
+            updated_at: timestamp 
+          })
           .eq('id', itemId);
         error = updateError;
-      } else if (item.type === 'next_step') {
+      } else {
         const { error: updateError } = await supabase
           .from('client_next_steps')
-          .update({ urgent: checked })
+          .update({ 
+            urgent: checked,
+            updated_at: timestamp 
+          })
           .eq('id', itemId);
         error = updateError;
       }
 
-      if (error) throw error;
+      if (error) {
+        console.error(`Error updating urgent status at ${timestamp}:`, error);
+        throw error;
+      }
 
+      console.log(`Successfully updated urgency at ${timestamp}`);
+      
       // Immediately invalidate after database update
       await invalidateQueries(clientId);
+      
+      // Secondary invalidation for certainty
+      setTimeout(async () => {
+        await invalidateQueries(clientId);
+      }, 500);
 
       return true;
     } catch (error) {
