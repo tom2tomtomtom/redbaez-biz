@@ -8,8 +8,8 @@ import { Input } from "@/components/ui/input";
 import { supabase } from "@/lib/supabase";
 import { toast } from "@/hooks/use-toast";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { useItemStatusChange } from "../crm/priority-actions/hooks/useItemStatusChange";
 import { Trash2 } from "lucide-react";
+import { useTaskDeletion } from "./hooks/useTaskDeletion";
 
 interface TaskListProps {
   tasks: any[];
@@ -21,10 +21,9 @@ interface TaskListProps {
 export const TaskList = ({ tasks, isLoading, onTasksUpdated, isHistory = false }: TaskListProps) => {
   const [dateInputs, setDateInputs] = useState<Record<string, string>>({});
   const [taskToDelete, setTaskToDelete] = useState<any | null>(null);
-  const [isDeleting, setIsDeleting] = useState(false);
   
-  // Use the existing task status change hooks from the CRM system
-  const { handleDelete: deleteTaskItem } = useItemStatusChange();
+  // Use our simplified task deletion hook
+  const { deleteTask, isDeleting } = useTaskDeletion(onTasksUpdated);
 
   const handleDateChange = async (taskId: string, date: string) => {
     try {
@@ -60,56 +59,14 @@ export const TaskList = ({ tasks, isLoading, onTasksUpdated, isHistory = false }
     }
   };
 
-  const handleDeleteTask = (task: any) => {
+  const handleDeleteClick = (task: any) => {
     console.log("Delete button clicked for task:", task);
-    
-    // Format the task correctly for the deletion system
-    const formattedTask = {
-      data: {
-        // For next steps, remove the prefix but for regular tasks, use the ID as is
-        id: task.type === 'next_step' ? task.id.replace('next-step-', '') : task.id,
-        client_id: task.client_id
-      },
-      // Convert the task type string to match what the CRM system expects
-      type: task.type === 'next_step' ? 'nextStep' : 'task'
-    };
-    
-    console.log("Formatted task for deletion:", formattedTask);
-    setTaskToDelete(formattedTask);
+    setTaskToDelete(task);
   };
 
   const confirmDeleteTask = async () => {
-    if (!taskToDelete) return;
-    
-    setIsDeleting(true);
-    try {
-      console.log("Attempting to delete task using unified delete method:", taskToDelete);
-      
-      // Directly call the deletion method and wait for its result
-      const success = await deleteTaskItem(taskToDelete);
-      
-      if (success) {
-        toast({
-          title: "Task deleted",
-          description: "The task has been deleted successfully.",
-        });
-        
-        // Refresh the task list after deletion
-        onTasksUpdated();
-      } else {
-        throw new Error("Failed to delete task");
-      }
-    } catch (error) {
-      console.error('Error deleting task:', error);
-      toast({
-        title: "Error",
-        description: "Failed to delete task. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsDeleting(false);
-      setTaskToDelete(null);
-    }
+    await deleteTask(taskToDelete);
+    setTaskToDelete(null);
   };
 
   // Filter tasks based on whether they're completed and have due dates
@@ -176,7 +133,7 @@ export const TaskList = ({ tasks, isLoading, onTasksUpdated, isHistory = false }
                 className="absolute top-2 right-2 text-gray-500 hover:text-red-500"
                 onClick={(e) => {
                   e.stopPropagation();
-                  handleDeleteTask(task);
+                  handleDeleteClick(task);
                 }}
               >
                 <Trash2 className="h-4 w-4" />
