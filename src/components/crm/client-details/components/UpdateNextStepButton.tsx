@@ -1,10 +1,11 @@
+
 import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Calendar } from 'lucide-react';
 import { Input } from "@/components/ui/input";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/lib/supabase";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "@/components/ui/use-toast";
 import { Switch } from "@/components/ui/switch";
@@ -87,8 +88,7 @@ export const UpdateNextStepButton = ({ clientId }: UpdateNextStepButtonProps) =>
       queryClient.invalidateQueries({ queryKey: ['client-items', clientId] });
       queryClient.invalidateQueries({ queryKey: ['next-steps-history'] });
       queryClient.invalidateQueries({ queryKey: ['client'] });
-      queryClient.invalidateQueries({ queryKey: ['priorityClients'] });
-      queryClient.invalidateQueries({ queryKey: ['clientNextSteps'] });
+      queryClient.invalidateQueries({ queryKey: ['unified-tasks'] });
       
       // Reset form and close dialog
       setNotes('');

@@ -7,14 +7,16 @@ export interface Task {
   description?: string | null;
   client_id?: number | null;
   client?: { name: string } | null;
-  next_due_date?: string | null;
-  due_date?: string | null; // For compatibility with different data sources
+  due_date?: string | null;
   urgent: boolean;
   status?: string;
   completed_at?: string | null;
   category?: string | null;
-  source?: string; // Indicates where the task came from
+  type: 'task' | 'next_step';
+  source_table: 'general_tasks' | 'client_next_steps';
 }
 
-// Helper for creating typed supabase queries
-export const tasksTable = () => supabase.from('general_tasks');
+// Helper for accessing the appropriate table based on task type
+export const getTaskTable = (sourceTable: 'general_tasks' | 'client_next_steps') => {
+  return supabase.from(sourceTable);
+};

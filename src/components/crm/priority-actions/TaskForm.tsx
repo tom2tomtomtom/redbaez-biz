@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -5,13 +6,12 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
-import { supabase } from '@/integrations/supabase/client';
-import { Tables } from '@/integrations/supabase/types';
+import { supabase } from '@/lib/supabase';
 import { useToast } from '@/components/ui/use-toast';
-import { useQueryClient } from '@tanstack/react-query';
+import { useTaskMutations } from './hooks/useTaskMutations';
 
 interface TaskFormProps {
-  task?: Tables<'general_tasks'> | null;
+  task?: any | null;
   onSaved: () => void;
   onCancel: () => void;
   defaultCategory?: string;
@@ -21,11 +21,11 @@ const CATEGORIES = ['Marketing', 'Product Development', 'Partnerships', 'Busines
 
 export const TaskForm = ({ task, onSaved, onCancel, defaultCategory }: TaskFormProps) => {
   const { toast } = useToast();
-  const queryClient = useQueryClient();
+  const { invalidateTaskQueries } = useTaskMutations();
   const [title, setTitle] = useState(task?.title || '');
   const [description, setDescription] = useState(task?.description || '');
   const [category, setCategory] = useState(task?.category || defaultCategory || CATEGORIES[0]);
-  const [dueDate, setDueDate] = useState(task?.next_due_date ? new Date(task.next_due_date).toISOString().split('T')[0] : '');
+  const [dueDate, setDueDate] = useState(task?.due_date ? new Date(task.due_date).toISOString().split('T')[0] : '');
   const [urgent, setUrgent] = useState(task?.urgent || false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -38,14 +38,20 @@ export const TaskForm = ({ task, onSaved, onCancel, defaultCategory }: TaskFormP
       const { data: { user } } = await supabase.auth.getUser();
 
       if (task?.id) {
+        // Update existing task
+        const isGeneralTask = task.source_table === 'general_tasks' || !task.source_table;
+        
         const { error } = await supabase
-          .from('general_tasks')
+          .from(isGeneralTask ? 'general_tasks' : 'client_next_steps')
           .update({
-            title,
-            description,
+            title: isGeneralTask ? title : undefined, // Only for general_tasks
+            description: isGeneralTask ? description : undefined, // Only for general_tasks
+            notes: !isGeneralTask ? description : undefined, // Only for client_next_steps
             category,
-            next_due_date: dueDate ? new Date(dueDate).toISOString() : null,
+            next_due_date: isGeneralTask ? (dueDate ? new Date(dueDate).toISOString() : null) : undefined,
+            due_date: !isGeneralTask ? (dueDate ? new Date(dueDate).toISOString() : null) : undefined,
             urgent,
+            updated_at: new Date().toISOString(),
             updated_by: user?.id
           })
           .eq('id', task.id);
@@ -56,6 +62,7 @@ export const TaskForm = ({ task, onSaved, onCancel, defaultCategory }: TaskFormP
           description: "The task has been successfully updated.",
         });
       } else {
+        // Create new general task
         const { error } = await supabase
           .from('general_tasks')
           .insert({
@@ -64,7 +71,8 @@ export const TaskForm = ({ task, onSaved, onCancel, defaultCategory }: TaskFormP
             category,
             next_due_date: dueDate ? new Date(dueDate).toISOString() : null,
             urgent,
-            created_by: user?.id
+            created_by: user?.id,
+            status: 'incomplete'
           });
 
         if (error) throw error;
@@ -74,11 +82,8 @@ export const TaskForm = ({ task, onSaved, onCancel, defaultCategory }: TaskFormP
         });
       }
 
-      // Invalidate relevant queries
-      queryClient.invalidateQueries({ queryKey: ['generalTasks'] });
-      queryClient.invalidateQueries({ queryKey: ['priorityClients'] });
-      queryClient.invalidateQueries({ queryKey: ['clientNextSteps'] });
-
+      // Invalidate all tasks queries
+      await invalidateTaskQueries();
       onSaved();
     } catch (error) {
       console.error('Error saving task:', error);

@@ -1,13 +1,13 @@
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState } from 'react';
 import { TaskItem } from './TaskItem';
-import { useTasks } from './hooks/useTasks';
+import { useTaskData } from './hooks/useTaskData';
+import { useTaskMutations } from './hooks/useTaskMutations';
 import { PriorityActionsSkeleton } from './PriorityActionsSkeleton';
 import { CompletionConfirmDialog } from './components/CompletionConfirmDialog';
 import { toast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { RefreshCcw } from 'lucide-react';
-import { useQueryCacheManager } from './hooks/useQueryCacheManager';
 
 interface TaskListProps {
   category?: string;
@@ -20,88 +20,53 @@ export const TaskList = ({
   showCompleted = false,
   onItemSelected
 }: TaskListProps) => {
-  const [completionConfirmTaskId, setCompletionConfirmTaskId] = useState<string | null>(null);
-  const [lastRefreshTime, setLastRefreshTime] = useState<number>(Date.now());
-  const { invalidateQueries } = useQueryCacheManager();
+  const [completionConfirmTask, setCompletionConfirmTask] = useState<any | null>(null);
   
-  const {
-    tasks,
-    isLoading,
-    updateCompletion,
-    updateUrgency,
+  // Use our unified task data hook
+  const { data: tasks = [], isLoading, error, refetch } = useTaskData(category, showCompleted);
+  
+  // Use our simplified task mutations
+  const { 
+    isProcessing, 
+    updateCompletion, 
+    updateUrgency, 
     deleteTask,
-    isUpdating,
-    isDeleting,
-    refetch,
-    error
-  } = useTasks(category, showCompleted);
+    invalidateTaskQueries
+  } = useTaskMutations();
 
-  // Create a memoized refresh function to prevent unnecessary re-renders
-  const refreshData = useCallback(async () => {
-    console.log("Forcing complete data refresh");
-    
-    // First invalidate all cache
-    await invalidateQueries();
-    
-    // Then force a refetch
-    await refetch();
-    
-    // Update the refresh timestamp
-    setLastRefreshTime(Date.now());
-    
-    console.log("Data refresh completed");
-  }, [invalidateQueries, refetch]);
-
-  // Force an initial data fetch when component mounts and refresh periodically
+  // Refresh data when component mounts
   useEffect(() => {
-    console.log("TaskList mounted - forcing data refresh");
+    console.log("TaskList mounted - refreshing data");
+    refetch();
     
-    // Show toast notification
-    toast({
-      title: "Loading tasks",
-      description: "Fetching latest task data..."
-    });
-    
-    // Initial refetch
-    refreshData().catch(err => {
-      console.error("Error fetching task data:", err);
-      toast({
-        title: "Error loading tasks",
-        description: "Please try refreshing.",
-        variant: "destructive"
-      });
-    });
-    
-    // Set up periodic refresh
+    // Set up periodic refresh every minute
     const intervalId = setInterval(() => {
       console.log("Periodic task refresh");
-      refreshData();
-    }, 60000); // Refresh every minute
+      refetch();
+    }, 60000);
     
     return () => {
       clearInterval(intervalId);
     };
-  }, [category, showCompleted, refreshData]);
+  }, [category, showCompleted, refetch]);
 
-  // Add a debug log to see what tasks we're getting
-  useEffect(() => {
-    console.log(`Current tasks in TaskList (${lastRefreshTime}):`, tasks);
-  }, [tasks, lastRefreshTime]);
-
-  const handleManualRefresh = () => {
+  const handleRefresh = async () => {
     toast({
       title: "Refreshing tasks",
       description: "Fetching latest task data..."
     });
     
-    refreshData().catch(err => {
+    try {
+      await invalidateTaskQueries();
+      await refetch();
+    } catch (err) {
       console.error("Error refreshing tasks:", err);
       toast({
         title: "Error refreshing tasks",
         description: "Please try again.",
         variant: "destructive"
       });
-    });
+    }
   };
 
   if (isLoading && !tasks.length) {
@@ -112,7 +77,7 @@ export const TaskList = ({
     return (
       <div className="p-4 text-center">
         <p className="text-red-500 mb-2">Error loading tasks: {error.message}</p>
-        <Button onClick={handleManualRefresh} variant="outline" size="sm">
+        <Button onClick={handleRefresh} variant="outline" size="sm">
           <RefreshCcw className="mr-2 h-4 w-4" />
           Try Again
         </Button>
@@ -126,7 +91,7 @@ export const TaskList = ({
         <p className="mb-2">
           No {showCompleted ? "completed" : "active"} tasks found{category && category !== 'All' ? ` for category: ${category}` : ''}.
         </p>
-        <Button onClick={handleManualRefresh} variant="outline" size="sm">
+        <Button onClick={handleRefresh} variant="outline" size="sm">
           <RefreshCcw className="mr-2 h-4 w-4" />
           Refresh
         </Button>
@@ -134,41 +99,25 @@ export const TaskList = ({
     );
   }
 
-  const handleCompletionChange = (taskId: string, completed: boolean) => {
+  const handleCompletionChange = (task: any, completed: boolean) => {
     if (completed) {
-      setCompletionConfirmTaskId(taskId);
+      setCompletionConfirmTask(task);
     } else {
-      updateCompletion(taskId, false);
-      // Force a refresh after completion
-      setTimeout(() => refreshData(), 300);
+      updateCompletion(task, false);
     }
   };
 
   const confirmTaskCompletion = () => {
-    if (completionConfirmTaskId) {
-      updateCompletion(completionConfirmTaskId, true);
-      // Force a refresh after completion
-      setTimeout(() => refreshData(), 300);
-      setCompletionConfirmTaskId(null);
+    if (completionConfirmTask) {
+      updateCompletion(completionConfirmTask, true);
+      setCompletionConfirmTask(null);
     }
-  };
-
-  const handleUpdateUrgency = (taskId: string, urgent: boolean) => {
-    updateUrgency(taskId, urgent);
-    // Force a refresh after urgency change
-    setTimeout(() => refreshData(), 300);
-  };
-
-  const handleDeleteTask = (taskId: string) => {
-    deleteTask(taskId);
-    // Force a refresh after deletion
-    setTimeout(() => refreshData(), 300);
   };
 
   return (
     <div className="space-y-2">
       <div className="mb-4 flex justify-end">
-        <Button onClick={handleManualRefresh} variant="outline" size="sm">
+        <Button onClick={handleRefresh} variant="outline" size="sm">
           <RefreshCcw className="mr-2 h-4 w-4" />
           Refresh Tasks
         </Button>
@@ -176,21 +125,21 @@ export const TaskList = ({
       
       {tasks.map((task) => (
         <TaskItem
-          key={task.id}
+          key={`${task.source_table}-${task.id}`}
           task={task}
-          onUpdateCompletion={(completed) => handleCompletionChange(task.id, completed)}
-          onUpdateUrgency={(urgent) => handleUpdateUrgency(task.id, urgent)}
-          onDelete={() => handleDeleteTask(task.id)}
-          isUpdating={isUpdating}
-          isDeleting={isDeleting}
+          onUpdateCompletion={(completed) => handleCompletionChange(task, completed)}
+          onUpdateUrgency={(urgent) => updateUrgency(task, urgent)}
+          onDelete={() => deleteTask(task)}
+          isUpdating={isProcessing}
+          isDeleting={isProcessing}
           onSelect={() => onItemSelected?.(task.id)}
         />
       ))}
 
       <CompletionConfirmDialog
-        open={!!completionConfirmTaskId}
+        open={!!completionConfirmTask}
         onOpenChange={(open) => {
-          if (!open) setCompletionConfirmTaskId(null);
+          if (!open) setCompletionConfirmTask(null);
         }}
         onConfirm={confirmTaskCompletion}
         itemType="task"

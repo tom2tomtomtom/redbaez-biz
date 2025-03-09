@@ -1,6 +1,7 @@
+
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/lib/supabase';
 import { useQueryClient } from '@tanstack/react-query';
 import { ClientFormData } from '../types';
 import { toast } from '@/components/ui/use-toast';
@@ -95,7 +96,7 @@ export const useClientMutation = (clientId?: number) => {
   const invalidateQueries = () => {
     queryClient.invalidateQueries({ queryKey: ['clients'] });
     queryClient.invalidateQueries({ queryKey: ['client'] });
-    queryClient.invalidateQueries({ queryKey: ['clientNextSteps'] });
+    queryClient.invalidateQueries({ queryKey: ['unified-tasks'] });
   };
 
   return {

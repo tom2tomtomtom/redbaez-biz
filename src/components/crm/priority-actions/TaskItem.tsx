@@ -3,8 +3,8 @@ import { Calendar, AlertCircle, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Task } from './hooks/useTasks';
 import { cn } from '@/lib/utils';
+import { Task } from './hooks/taskTypes';
 import { 
   AlertDialog, 
   AlertDialogAction, 
@@ -76,15 +76,16 @@ export const TaskItem = ({
 
   // Get the appropriate due date 
   const getDueDate = () => {
-    const dueDate = task.next_due_date || task.due_date;
-    return dueDate ? new Date(dueDate).toLocaleDateString() : 'No due date';
+    return task.due_date ? new Date(task.due_date).toLocaleDateString() : 'No due date';
   };
+
+  const isCompleted = task.status === 'completed' || task.completed_at !== null;
 
   return (
     <div className="flex items-start gap-2 p-2 border rounded-lg hover:bg-gray-50 cursor-pointer">
       <div className="pt-1" onClick={(e) => e.stopPropagation()}>
         <Checkbox 
-          checked={task.status === 'completed'} 
+          checked={isCompleted} 
           onCheckedChange={(checked) => onUpdateCompletion(checked as boolean)}
           disabled={isUpdating}
         />
@@ -107,6 +108,9 @@ export const TaskItem = ({
               Urgent
             </Badge>
           )}
+          <Badge variant="secondary" className="ml-2 text-xs">
+            {task.type === 'task' ? 'Task' : 'Next Step'}
+          </Badge>
         </div>
         
         {task.description && (
@@ -151,7 +155,7 @@ export const TaskItem = ({
           <AlertDialogHeader>
             <AlertDialogTitle>Are you sure?</AlertDialogTitle>
             <AlertDialogDescription>
-              This will permanently delete this task.
+              This will permanently delete this {task.type === 'task' ? 'task' : 'next step'}.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

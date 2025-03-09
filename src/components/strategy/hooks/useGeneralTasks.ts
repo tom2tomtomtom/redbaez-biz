@@ -1,14 +1,14 @@
 
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/lib/supabase";
 
 export const useGeneralTasks = (category: string, refreshTrigger: number) => {
   return useQuery({
     queryKey: ['generalTasks', category, refreshTrigger],
     queryFn: async () => {
-      console.log('Fetching tasks for category:', category); // Debug log
+      console.log('Fetching tasks for category:', category);
 
-      // Fetch general tasks with case-insensitive category matching
+      // First fetch general tasks
       const { data: tasks, error: tasksError } = await supabase
         .from('general_tasks')
         .select('*, clients(name)')
@@ -21,7 +21,7 @@ export const useGeneralTasks = (category: string, refreshTrigger: number) => {
 
       console.log('Strategy - fetched tasks:', tasks?.length, tasks);
 
-      // Fetch client next steps that are related to this category
+      // Then fetch client next steps
       const { data: nextSteps, error: nextStepsError } = await supabase
         .from('client_next_steps')
         .select('*, clients(name)')
@@ -47,19 +47,23 @@ export const useGeneralTasks = (category: string, refreshTrigger: number) => {
         urgent: step.urgent,
         client_id: step.client_id,
         type: 'next_step',
+        source_table: 'client_next_steps',
         original_data: step
       })) || [];
 
-      // Combine all tasks 
-      const allTasks = [
-        ...(tasks || []).map(task => ({ ...task, type: 'task' })),
-        ...nextStepTasks
-      ];
+      // Prepare general tasks with type and source table
+      const generalTasksFormatted = (tasks || []).map(task => ({
+        ...task, 
+        type: 'task',
+        source_table: 'general_tasks'
+      }));
 
-      console.log('Strategy - combined tasks:', allTasks.length, allTasks); // Debug log
+      // Combine all tasks 
+      const allTasks = [...generalTasksFormatted, ...nextStepTasks];
+
+      console.log('Strategy - combined tasks:', allTasks.length, allTasks);
       return allTasks;
     },
-    // Lower cache times to ensure fresher data
     staleTime: 0, 
     gcTime: 0
   });

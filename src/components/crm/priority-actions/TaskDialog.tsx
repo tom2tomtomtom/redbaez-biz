@@ -1,11 +1,11 @@
+
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { TaskForm } from './TaskForm';
-import { Tables } from '@/integrations/supabase/types';
 
 interface TaskDialogProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
-  task: Tables<'general_tasks'> | null;
+  task: any | null;
   onSaved: () => void;
   defaultCategory?: string;
 }
