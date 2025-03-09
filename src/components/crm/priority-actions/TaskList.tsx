@@ -1,7 +1,7 @@
 
 import { useEffect, useState } from 'react';
 import { TaskItem } from './TaskItem';
-import { useTasks, Task } from './hooks/useTasks';
+import { useTasks } from './hooks/useTasks';
 import { PriorityActionsSkeleton } from './PriorityActionsSkeleton';
 import { CompletionConfirmDialog } from './components/CompletionConfirmDialog';
 import { toast } from '@/hooks/use-toast';
