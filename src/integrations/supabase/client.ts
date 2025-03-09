@@ -34,3 +34,10 @@ export const supabase = createClient<Database>(
     },
   }
 );
+
+// Create a helper object for diagnostics
+export const supabaseDiagnostics = {
+  logQuery: (table: string, action: string) => {
+    console.log(`Supabase ${action} from ${table} at ${new Date().toISOString()}`);
+  }
+};
