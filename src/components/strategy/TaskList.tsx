@@ -21,9 +21,13 @@ interface TaskListProps {
 export const TaskList = ({ tasks, isLoading, onTasksUpdated, isHistory = false }: TaskListProps) => {
   const [dateInputs, setDateInputs] = useState<Record<string, string>>({});
   const [taskToDelete, setTaskToDelete] = useState<any | null>(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
   
-  // Use our simplified task deletion hook
-  const { deleteTask, isDeleting } = useTaskDeletion(onTasksUpdated);
+  // Use our direct task deletion hook
+  const { deleteTask, isDeleting } = useTaskDeletion(() => {
+    console.log("Task deleted callback triggered");
+    onTasksUpdated();
+  });
 
   const handleDateChange = async (taskId: string, date: string) => {
     try {
@@ -62,10 +66,20 @@ export const TaskList = ({ tasks, isLoading, onTasksUpdated, isHistory = false }
   const handleDeleteClick = (task: any) => {
     console.log("Delete button clicked for task:", task);
     setTaskToDelete(task);
+    setIsDialogOpen(true);
   };
 
   const confirmDeleteTask = async () => {
-    await deleteTask(taskToDelete);
+    console.log("Confirming deletion for task:", taskToDelete);
+    if (taskToDelete) {
+      await deleteTask(taskToDelete);
+    }
+    setIsDialogOpen(false);
+    setTaskToDelete(null);
+  };
+
+  const cancelDelete = () => {
+    setIsDialogOpen(false);
     setTaskToDelete(null);
   };
 
@@ -164,7 +178,7 @@ export const TaskList = ({ tasks, isLoading, onTasksUpdated, isHistory = false }
         </div>
       ))}
 
-      <AlertDialog open={!!taskToDelete} onOpenChange={(open) => !open && setTaskToDelete(null)}>
+      <AlertDialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Are you sure?</AlertDialogTitle>
@@ -173,7 +187,7 @@ export const TaskList = ({ tasks, isLoading, onTasksUpdated, isHistory = false }
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel onClick={cancelDelete}>Cancel</AlertDialogCancel>
             <AlertDialogAction 
               onClick={confirmDeleteTask} 
               disabled={isDeleting}
