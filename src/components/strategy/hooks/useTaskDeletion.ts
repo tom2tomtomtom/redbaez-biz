@@ -11,9 +11,9 @@ export const useTaskDeletion = (onTaskDeleted: () => void) => {
     // Function that runs after deletion is complete
     console.log("STRATEGY: Deletion callback executed");
     
-    // Force refetch all relevant queries
-    queryClient.fetchQuery({ queryKey: ['generalTasks'], staleTime: 0 });
-    queryClient.fetchQuery({ queryKey: ['unified-tasks'], staleTime: 0 });
+    // Force refetch only existing queries
+    queryClient.refetchQueries({ queryKey: ['generalTasks'] });
+    queryClient.refetchQueries({ queryKey: ['unified-tasks'] });
     
     // Call the passed callback after a slight delay to ensure UI update
     setTimeout(() => {

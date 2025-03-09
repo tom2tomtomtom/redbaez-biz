@@ -15,10 +15,10 @@ export const useItemDeletion = () => {
   const { deleteTask } = useTaskDeletion(async () => {
     console.log("ITEM_DELETION: Deletion callback executed");
     
-    // Force an immediate refetch of all task-related queries
+    // Force an immediate refetch of task-related queries that exist
     await Promise.all([
-      queryClient.fetchQuery({ queryKey: ['priority-data'], staleTime: 0 }),
-      queryClient.fetchQuery({ queryKey: ['client-items'], staleTime: 0 }),
+      queryClient.refetchQueries({ queryKey: ['client-items'] }),
+      queryClient.refetchQueries({ queryKey: ['unified-tasks'] }),
     ]);
     
     // Additional invalidation to ensure UI updates across all components
@@ -59,12 +59,9 @@ export const useItemDeletion = () => {
       if (clientId) {
         console.log(`ITEM_DELETION: Invalidating client data for client ${clientId}`);
         await invalidateQueries(clientId);
-        queryClient.fetchQuery({ queryKey: ['client', String(clientId)], staleTime: 0 });
-        queryClient.fetchQuery({ queryKey: ['client-items', String(clientId)], staleTime: 0 });
+        queryClient.refetchQueries({ queryKey: ['client', String(clientId)] });
+        queryClient.refetchQueries({ queryKey: ['client-items', String(clientId)] });
       }
-      
-      // Always force a refresh of the priority data
-      queryClient.fetchQuery({ queryKey: ['priority-data'], staleTime: 0 });
       
       console.log(`ITEM_DELETION: Deletion complete for ${itemId}`);
       return true;

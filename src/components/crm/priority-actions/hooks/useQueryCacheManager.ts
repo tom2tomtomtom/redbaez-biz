@@ -7,8 +7,7 @@ export const useQueryCacheManager = () => {
   const [lastInvalidation, setLastInvalidation] = useState(0);
 
   const invalidateQueries = async (clientId?: number | null) => {
-    // Prevent multiple invalidations within 500ms instead of 2 seconds
-    // to make UI updates more responsive
+    // Prevent multiple invalidations within 500ms
     const now = Date.now();
     if (now - lastInvalidation < 500) {
       console.log('Skipping invalidation - too soon after last one');
@@ -24,7 +23,6 @@ export const useQueryCacheManager = () => {
       ['tasks'],
       ['generalTasks'],
       ['clientNextSteps'],
-      ['priority-data'],
       ['unified-tasks'],
       ['client-items']
     ];
@@ -37,7 +35,7 @@ export const useQueryCacheManager = () => {
     
     // Invalidate and immediately refetch all relevant queries
     try {
-      // First invalidate all queries with refetchType: 'all'
+      // First invalidate all queries
       await Promise.all(
         queryKeys.map(key => {
           console.log(`CACHE: Invalidating key ${key.join('/')}`);
@@ -48,14 +46,13 @@ export const useQueryCacheManager = () => {
         })
       );
       
-      // Force immediate refetches of the most critical queries with zero stale time
+      // Force immediate refetches of only the queries we know exist
       await Promise.all([
-        queryClient.fetchQuery({ queryKey: ['unified-tasks'], staleTime: 0 }),
-        queryClient.fetchQuery({ queryKey: ['tasks'], staleTime: 0 }),
-        queryClient.fetchQuery({ queryKey: ['generalTasks'], staleTime: 0 }),
-        queryClient.fetchQuery({ queryKey: ['clientNextSteps'], staleTime: 0 }),
-        queryClient.fetchQuery({ queryKey: ['priority-data'], staleTime: 0 }),
-        queryClient.fetchQuery({ queryKey: ['client-items'], staleTime: 0 }),
+        queryClient.refetchQueries({ queryKey: ['unified-tasks'] }),
+        queryClient.refetchQueries({ queryKey: ['tasks'] }),
+        queryClient.refetchQueries({ queryKey: ['generalTasks'] }),
+        queryClient.refetchQueries({ queryKey: ['clientNextSteps'] }),
+        queryClient.refetchQueries({ queryKey: ['client-items'] }),
       ]);
       
       console.log(`CACHE: Query invalidation complete at: ${new Date().toISOString()}`);

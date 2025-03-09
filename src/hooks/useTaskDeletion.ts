@@ -18,12 +18,11 @@ export const useTaskDeletion = (onTaskDeleted?: () => void) => {
   const invalidateTaskQueries = async () => {
     console.log(`Invalidating task queries at ${new Date().toISOString()}`);
     
-    // Create a list of query keys to invalidate
+    // Create a list of query keys to invalidate (without priority-data that's causing errors)
     const queryKeys = [
       ['tasks'],
       ['generalTasks'],
       ['clientNextSteps'],
-      ['priority-data'],
       ['unified-tasks'],
       ['client-items']
     ];
@@ -34,13 +33,9 @@ export const useTaskDeletion = (onTaskDeleted?: () => void) => {
       await queryClient.invalidateQueries({ queryKey: key });
     }
     
-    // Force immediate refetches of critical queries
+    // Force immediate refetches ONLY of queries that exist
     try {
       await Promise.all([
-        queryClient.fetchQuery({ 
-          queryKey: ['priority-data'],
-          staleTime: 0
-        }),
         queryClient.fetchQuery({ 
           queryKey: ['generalTasks'],
           staleTime: 0 
@@ -49,6 +44,10 @@ export const useTaskDeletion = (onTaskDeleted?: () => void) => {
           queryKey: ['clientNextSteps'],
           staleTime: 0
         }),
+        queryClient.fetchQuery({ 
+          queryKey: ['unified-tasks'],
+          staleTime: 0
+        })
       ]);
     } catch (error) {
       console.log('Error during forced refetch:', error);
