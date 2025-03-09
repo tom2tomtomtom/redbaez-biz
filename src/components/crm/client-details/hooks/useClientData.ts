@@ -1,9 +1,11 @@
+
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { queryKeys } from '@/lib/queryKeys';
 
 export const useClientData = (clientId: number) => {
   return useQuery({
-    queryKey: ['client', clientId],
+    queryKey: queryKeys.clients.detail(clientId),
     queryFn: async () => {
       console.log('Fetching client data for ID:', clientId);
       const { data, error } = await supabase
