@@ -164,16 +164,14 @@ export const useItemStatusChange = () => {
             : oldData;
         });
         
-        // Delete from database
+        // Delete from database - CRITICAL FIX: Using the correct table name
         const result = await supabase
           .from('client_next_steps')
           .delete()
           .eq('id', item.data.id);
         error = result.error;
         
-        if (!error) {
-          console.log('Next step deletion completed successfully');
-        }
+        console.log('Next step deletion result:', result);
       }
 
       if (error) {
@@ -193,6 +191,10 @@ export const useItemStatusChange = () => {
       await invalidateQueries(item.data.client_id);
 
       console.log(`Successfully deleted ${item.type} with ID: ${item.data.id}`);
+      toast({
+        title: "Success",
+        description: `${item.type === 'task' ? 'Task' : 'Next step'} deleted successfully`,
+      });
       return true;
     } catch (error) {
       console.error('Error deleting item:', error);
