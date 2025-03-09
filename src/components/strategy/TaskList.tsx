@@ -55,7 +55,8 @@ export const TaskList = ({ tasks, isLoading, onTasksUpdated, isHistory = false }
     }
   };
 
-  const handleDeleteTask = async (task: any) => {
+  const handleDeleteTask = (task: any) => {
+    console.log("Delete button clicked for task:", task);
     setTaskToDelete(task);
   };
 
@@ -64,25 +65,30 @@ export const TaskList = ({ tasks, isLoading, onTasksUpdated, isHistory = false }
     
     setIsDeleting(true);
     try {
-      const task = taskToDelete;
+      console.log("Attempting to delete task:", taskToDelete);
       let error;
       
-      if (task.type === 'next_step') {
-        const realId = task.id.replace('next-step-', '');
+      if (taskToDelete.type === 'next_step') {
+        const realId = taskToDelete.id.replace('next-step-', '');
+        console.log("Deleting next step with ID:", realId);
         const { error: deleteError } = await supabase
           .from('client_next_steps')
           .delete()
           .eq('id', realId);
         error = deleteError;
       } else {
+        console.log("Deleting general task with ID:", taskToDelete.id);
         const { error: deleteError } = await supabase
           .from('general_tasks')
           .delete()
-          .eq('id', task.id);
+          .eq('id', taskToDelete.id);
         error = deleteError;
       }
 
-      if (error) throw error;
+      if (error) {
+        console.error("Delete error:", error);
+        throw error;
+      }
 
       toast({
         title: "Task deleted",
@@ -148,7 +154,7 @@ export const TaskList = ({ tasks, isLoading, onTasksUpdated, isHistory = false }
   return (
     <div className="space-y-4">
       {sortedTasks.map((task) => (
-        <div key={task.id} className="relative space-y-2">
+        <div key={task.id} className="relative space-y-2 border p-4 rounded-md shadow-sm">
           <div className="flex">
             <div className="flex-1">
               {task.type === 'next_step' ? (
