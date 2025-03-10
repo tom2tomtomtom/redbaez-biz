@@ -6,61 +6,44 @@ import { useTaskDeletion as useGlobalTaskDeletion } from "@/hooks/useTaskDeletio
 import { queryKeys } from "@/lib/queryKeys";
 
 /**
- * Strategy-specific hook for task deletion
- * Uses the global task deletion hook with strategy-specific callbacks
+ * Simplified strategy-specific hook for task deletion
  */
-export const useTaskDeletion = (onTaskDeleted: () => void) => {
+export const useTaskDeletion = (onTaskDeleted?: () => void) => {
   const [isDeleting, setIsDeleting] = useState(false);
   const queryClient = useQueryClient();
+  
+  // Use the core deletion hook with a simpler callback
   const { deleteTask: globalDeleteTask } = useGlobalTaskDeletion(() => {
-    console.log("STRATEGY: Deletion callback executed");
+    console.log("[STRATEGY] Deletion callback executed");
     
-    // Get list of active query keys for targeted refresh
-    const activeQueries = queryClient.getQueryCache().getAll()
-      .map(query => JSON.stringify(query.queryKey));
-      
-    console.log("STRATEGY: Active queries:", activeQueries);
+    // Specifically refetch the strategy-relevant queries
+    queryClient.refetchQueries({ queryKey: queryKeys.tasks.general() });
+    queryClient.refetchQueries({ queryKey: queryKeys.tasks.unified() });
     
-    // Only refetch queries that actually exist
-    if (activeQueries.some(key => key.includes('generalTasks'))) {
-      queryClient.refetchQueries({ queryKey: queryKeys.tasks.general() });
+    // Call the passed callback
+    if (onTaskDeleted) {
+      setTimeout(onTaskDeleted, 100);
     }
-    
-    if (activeQueries.some(key => key.includes('unified-tasks'))) {
-      queryClient.refetchQueries({ queryKey: queryKeys.tasks.unified() });
-    }
-    
-    // Call the passed callback after a slight delay to ensure UI update
-    setTimeout(() => {
-      onTaskDeleted();
-    }, 100);
   });
 
   const deleteTask = async (task: any) => {
     if (!task) {
-      console.error("No task provided for deletion");
+      console.error("[STRATEGY] No task provided for deletion");
       return false;
     }
     
     if (isDeleting) {
-      console.log("Already processing a deletion, skipping");
       return false;
     }
     
     setIsDeleting(true);
-    console.log("STRATEGY: Attempting to delete task:", task);
     
     try {
-      // Pass the full task object to the global delete function
+      // Simply pass the task to the global delete function
       const success = await globalDeleteTask(task);
-      
-      if (!success) {
-        throw new Error("Failed to delete task");
-      }
-      
-      return true;
+      return success;
     } catch (error) {
-      console.error('STRATEGY: Unexpected error in deletion process:', error);
+      console.error('[STRATEGY] Error in deletion process:', error);
       toast({
         title: "Error",
         description: "An unexpected error occurred. Please try again.",

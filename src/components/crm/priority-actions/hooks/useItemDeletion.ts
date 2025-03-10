@@ -1,46 +1,31 @@
 
 import { toast } from '@/hooks/use-toast';
 import { PriorityItem } from './usePriorityData';
-import { useQueryCacheManager } from './useQueryCacheManager';
 import { useState } from 'react';
 import { useTaskDeletion } from '@/hooks/useTaskDeletion';
 import { useQueryClient } from '@tanstack/react-query';
 import { queryKeys } from '@/lib/queryKeys';
 
 /**
- * Hook for deleting priority items with optimistic updates
+ * Simplified hook for deleting priority items
  */
 export const useItemDeletion = () => {
-  const { invalidateQueries } = useQueryCacheManager();
   const [isDeleting, setIsDeleting] = useState(false);
   const queryClient = useQueryClient();
   
-  // Use the central task deletion hook with a callback
+  // Use the central task deletion hook with a direct callback
   const { deleteTask } = useTaskDeletion(async () => {
-    console.log("ITEM_DELETION: Deletion callback executed");
+    console.log("[ITEM_DELETION] Task deleted successfully - refreshing data");
     
-    // Get list of active queries to avoid errors
-    const activeQueries = queryClient.getQueryCache().getAll()
-      .map(query => JSON.stringify(query.queryKey));
-      
-    console.log("ITEM_DELETION: Active queries:", activeQueries);
+    // Refresh client-specific items if any item is deleted
+    queryClient.refetchQueries({ queryKey: queryKeys.tasks.clientItems() });
     
-    // Only refetch queries that actually exist
-    if (activeQueries.some(key => key.includes('client-items'))) {
-      queryClient.refetchQueries({ queryKey: queryKeys.tasks.clientItems() });
-    }
-    
-    if (activeQueries.some(key => key.includes('unified-tasks'))) {
-      queryClient.refetchQueries({ queryKey: queryKeys.tasks.unified() });
-    }
-    
-    // Additional invalidation to ensure UI updates across all components
-    await invalidateQueries();
+    // Also refresh the unified view
+    queryClient.refetchQueries({ queryKey: queryKeys.tasks.unified() });
   });
 
   const handleDelete = async (item: PriorityItem) => {
     if (isDeleting) {
-      console.log('Already processing a deletion, skipping');
       return false;
     }
     
@@ -48,47 +33,36 @@ export const useItemDeletion = () => {
     
     try {
       const itemId = item.data.id;
-      const clientId = item.data.client_id;
-      console.log(`ITEM_DELETION: Preparing to delete item ${item.type}:${itemId}`);
+      console.log(`[ITEM_DELETION] Deleting item ${item.type}:${itemId}`);
       
-      // Format the task with the proper structure for the core deletion function
+      // Format task for deletion
       const taskToDelete = {
         id: String(itemId),
         type: item.type,
-        source_table: item.type === 'next_step' ? 'client_next_steps' : 'general_tasks',
-        original_data: item.data // Include the full original data
+        source_table: item.type === 'next_step' ? 'client_next_steps' : 'general_tasks'
       };
       
-      console.log('ITEM_DELETION: Sending to deleteTask:', taskToDelete);
-      
-      // Use the unified task deletion hook
+      // Use the simplified task deletion hook
       const success = await deleteTask(taskToDelete);
       
       if (!success) {
         throw new Error(`Failed to delete ${item.type}.`);
       }
       
-      // Force refresh client data if this was a client task
-      if (clientId) {
-        console.log(`ITEM_DELETION: Invalidating client data for client ${clientId}`);
-        await invalidateQueries(clientId);
+      // If this was a client task, refresh client data
+      if (item.data.client_id) {
+        queryClient.refetchQueries({ 
+          queryKey: queryKeys.clients.detail(item.data.client_id) 
+        });
         
-        const activeQueries = queryClient.getQueryCache().getAll()
-          .map(query => JSON.stringify(query.queryKey));
-        
-        if (activeQueries.some(key => key.includes(`client,${clientId}`))) {
-          queryClient.refetchQueries({ queryKey: queryKeys.clients.detail(clientId) });
-        }
-        
-        if (activeQueries.some(key => key.includes(`client-items,${clientId}`))) {
-          queryClient.refetchQueries({ queryKey: queryKeys.tasks.clientItems(clientId) });
-        }
+        queryClient.refetchQueries({ 
+          queryKey: queryKeys.tasks.clientItems(item.data.client_id) 
+        });
       }
       
-      console.log(`ITEM_DELETION: Deletion complete for ${itemId}`);
       return true;
     } catch (error) {
-      console.error('ITEM_DELETION: Error deleting item:', error);
+      console.error('[ITEM_DELETION] Error deleting item:', error);
       toast({
         title: "Error",
         description: `Failed to delete item: ${error.message}`,
