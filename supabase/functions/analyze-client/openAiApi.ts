@@ -1,4 +1,3 @@
-
 import { corsHeaders } from "../_shared/cors.ts";
 
 export async function generateRecommendations(prompt: string, apiKey: string) {
@@ -10,7 +9,6 @@ export async function generateRecommendations(prompt: string, apiKey: string) {
       headers: {
         'Authorization': `Bearer ${apiKey}`,
         'Content-Type': 'application/json',
-        ...corsHeaders
       },
       body: JSON.stringify({
         model: 'gpt-4o-mini',

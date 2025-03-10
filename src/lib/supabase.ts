@@ -6,6 +6,7 @@ const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://ryomveanixzshf
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ5b212ZWFuaXh6c2hmYXRhbGNkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzYxMjg0NDYsImV4cCI6MjA1MTcwNDQ0Nn0.WP3UUPsFzllI_gvkpYoj4Z8MLkGRt0bJgPAqK80S8JQ';
 
 // Enhanced caching prevention headers with timestamp to ensure uniqueness
+// Updated to use the same headers defined in corsHeaders
 const getCacheHeaders = () => ({
   'Cache-Control': 'no-cache, no-store, must-revalidate, max-age=0',
   'Pragma': 'no-cache',

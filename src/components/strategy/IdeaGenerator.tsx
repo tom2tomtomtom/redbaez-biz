@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { toast } from "@/components/ui/use-toast";
 import { supabase } from "@/lib/supabase";
@@ -104,7 +103,7 @@ export const IdeaGenerator = ({ category, onIdeaGenerated }: IdeaGeneratorProps)
           category: category,
           status: 'incomplete',
           due_date: null,
-          // Removed the type field as it doesn't exist in the table schema
+          type: 'task'
         });
       });
       
