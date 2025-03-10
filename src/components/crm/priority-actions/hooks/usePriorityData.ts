@@ -73,12 +73,18 @@ export const usePriorityData = (category?: string) => {
           description: task.description,
           client_id: task.client_id,
           client: task.clients,
+          client_name: task.clients?.name, // Add client_name for compatibility
           due_date: task.due_date,
+          next_due_date: task.due_date, // Map due_date to next_due_date for backward compatibility
+          notes: task.description, // Map description to notes for backward compatibility
           urgent: task.urgent || false,
           status: task.status as 'completed' | 'incomplete',
-          category: task.category,
+          category: task.category || 'general', // Provide default category
           created_at: task.created_at,
-          updated_at: task.updated_at
+          updated_at: task.updated_at,
+          created_by: task.created_by,
+          updated_by: task.updated_by,
+          completed_at: task.status === 'completed' ? task.updated_at : null // Map status to completed_at
         }
       });
     }

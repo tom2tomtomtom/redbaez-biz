@@ -1,6 +1,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
+import { Task } from "@/hooks/useTaskDeletion";
 
 export const useGeneralTasks = (category: string, refreshTrigger: number) => {
   return useQuery({
@@ -24,9 +25,11 @@ export const useGeneralTasks = (category: string, refreshTrigger: number) => {
       // Format tasks for display
       const formattedTasks = tasks?.map(task => ({
         ...task,
-        type: 'task',
+        type: 'task' as const,
         source_table: 'tasks',
         next_due_date: task.due_date, // Map due_date to next_due_date for backward compatibility
+        notes: task.description, // Map description to notes for backward compatibility
+        client_name: task.clients?.name, // Add client_name for compatibility 
         original_data: task // Store the full original object for reference
       })) || [];
 

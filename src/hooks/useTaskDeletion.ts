@@ -23,6 +23,7 @@ export type Task = {
   notes?: string | null;
   next_due_date?: string | null;
   completed_at?: string | null;
+  client_name?: string | null; // Add for backward compatibility
 };
 
 /**

@@ -10,7 +10,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { Task } from '@/hooks/useTaskDeletion';
 
 interface DueItem extends Task {
-  type: 'task' | 'next-step' | 'idea';
+  type: 'task';
   dueDate: string;
 }
 
@@ -33,10 +33,10 @@ export const DueItemsSection = ({ items, isLoading }: DueItemsSectionProps) => {
         data: {
           id: item.id,
           client_id: item.client_id || null,
-          title: item.title || item.notes || '',
+          title: item.title || '',
           description: item.description || '',
           category: item.category || 'general',
-          status: 'incomplete' as const,  // Type asserted to match expected literal type
+          status: 'incomplete' as const,
           due_date: item.dueDate,
           urgent: item.urgent || false,
           created_at: item.created_at,
@@ -74,10 +74,10 @@ export const DueItemsSection = ({ items, isLoading }: DueItemsSectionProps) => {
         data: {
           id: item.id,
           client_id: item.client_id || null,
-          title: item.title || item.notes || '',
+          title: item.title || '',
           description: item.description || '',
           category: item.category || 'general',
-          status: 'incomplete' as const,  // Type asserted to match expected literal type
+          status: 'incomplete' as const,
           due_date: item.dueDate,
           urgent: item.urgent || false,
           created_at: item.created_at,
@@ -115,18 +115,16 @@ export const DueItemsSection = ({ items, isLoading }: DueItemsSectionProps) => {
             <div className="space-y-1">
               <div className="flex items-center gap-2">
                 <Badge variant={item.urgent ? "destructive" : "secondary"}>
-                  {item.type === 'task' ? 'Task' : item.type === 'next-step' ? 'Next Step' : 'Strategic Idea'}
+                  Task
                 </Badge>
                 {item.urgent && (
                   <Badge variant="destructive">Urgent</Badge>
                 )}
               </div>
               <h4 className="font-medium">
-                {item.type === 'task' ? item.title : 
-                 item.type === 'next-step' ? item.notes :
-                 item.description}
+                {item.title}
               </h4>
-              {item.description && item.type === 'task' && (
+              {item.description && (
                 <p className="text-sm text-gray-500">{item.description}</p>
               )}
             </div>
@@ -136,26 +134,22 @@ export const DueItemsSection = ({ items, isLoading }: DueItemsSectionProps) => {
                 {new Date(item.dueDate).toLocaleDateString()}
               </div>
               <div className="flex items-center gap-2">
-                {(item.type === 'task' || item.type === 'next-step') && (
-                  <>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => onComplete(item)}
-                      className="h-8 w-8 text-green-600 hover:text-green-700 hover:bg-green-50"
-                    >
-                      <Check className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => onDelete(item)}
-                      className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </>
-                )}
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => onComplete(item)}
+                  className="h-8 w-8 text-green-600 hover:text-green-700 hover:bg-green-50"
+                >
+                  <Check className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => onDelete(item)}
+                  className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
               </div>
             </div>
           </div>

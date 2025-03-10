@@ -2,15 +2,14 @@
 import { useEffect, useState } from 'react';
 import { PriorityItem } from '../hooks/usePriorityData';
 import { GeneralTaskItem } from '../GeneralTaskItem';
-import { NextStepItem } from '../NextStepItem';
 import { ItemControls } from './ItemControls';
-import { GeneralTaskRow } from '@/integrations/supabase/types/general-tasks.types';
+import { taskToGeneralTaskRow } from '@/integrations/supabase/types/general-tasks.types';
 import { useNavigate } from 'react-router-dom';
 
 interface PriorityListItemProps {
   item: PriorityItem;
   index: number;
-  onTaskClick: (task: GeneralTaskRow) => void;
+  onTaskClick: (taskId: string) => void;
   onComplete: () => void;
   onUrgentChange: (checked: boolean) => void;
   onDelete: () => void;
@@ -37,14 +36,10 @@ export const PriorityListItem = ({
   }, [index]);
 
   const handleClick = () => {
-    if (item.type === 'task') {
-      if (item.data.client_id) {
-        navigate(`/client/${item.data.client_id}`);
-      } else {
-        onTaskClick(item.data);
-      }
-    } else if (item.data.client_id) {
+    if (item.data.client_id) {
       navigate(`/client/${item.data.client_id}`);
+    } else {
+      onTaskClick(item.data.id);
     }
   };
 
@@ -83,11 +78,10 @@ export const PriorityListItem = ({
         className="transition-all duration-300 transform hover:scale-[1.01] hover:shadow-md rounded-lg cursor-pointer"
         onClick={handleClick}
       >
-        {item.type === 'task' ? (
-          <GeneralTaskItem task={item.data} />
-        ) : (
-          <NextStepItem nextStep={item.data} />
-        )}
+        <GeneralTaskItem 
+          task={taskToGeneralTaskRow(item.data)} 
+          isClientTask={!!item.data.client_id}
+        />
       </div>
     </div>
   );

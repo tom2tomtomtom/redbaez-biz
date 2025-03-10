@@ -1,18 +1,8 @@
-import { Switch } from "@/components/ui/switch";
-import { CheckCircle, Trash2 } from "lucide-react";
-import { PriorityItem } from "../hooks/usePriorityData";
-import { cn } from "@/lib/utils";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
+
+import { CheckCircle2, AlertCircle, XCircle } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { PriorityItem } from '../hooks/usePriorityData';
+import { cn } from '@/lib/utils';
 
 interface ItemControlsProps {
   item: PriorityItem;
@@ -24,68 +14,74 @@ interface ItemControlsProps {
 export const ItemControls = ({ 
   item, 
   onComplete, 
-  onUrgentChange,
-  onDelete
+  onUrgentChange, 
+  onDelete 
 }: ItemControlsProps) => {
-  const isCompleted = item.type === 'next_step' 
-    ? item.data.completed_at !== null
-    : item.data.status === 'completed';
+  const taskIsCompleted = item.data.status === 'completed';
+  const urgent = item.data.urgent || false;
 
-  const handleUrgentChange = async (checked: boolean) => {
-    setTimeout(() => {
-      onUrgentChange(checked);
-    }, 300);
+  const handleUrgentToggle = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onUrgentChange(!urgent);
   };
 
-  return (
-    <div className="absolute right-3 top-3 z-10 flex items-center gap-2 bg-white/80 backdrop-blur-sm px-2 py-1 rounded-full">
-      <div className="flex items-center gap-2">
-        <button
-          onClick={onComplete}
-          className={cn(
-            "transition-all duration-300 transform hover:scale-110 active:scale-95",
-            isCompleted ? 'text-green-500' : 'text-gray-400 hover:text-gray-600'
-          )}
-        >
-          <CheckCircle className={cn(
-            "h-5 w-5 transition-all duration-300",
-            isCompleted ? 'animate-scale-in' : ''
-          )} />
-        </button>
-        
-        <AlertDialog>
-          <AlertDialogTrigger asChild>
-            <button
-              className="transition-all duration-300 transform hover:scale-110 active:scale-95 text-gray-400 hover:text-red-500"
-            >
-              <Trash2 className="h-5 w-5" />
-            </button>
-          </AlertDialogTrigger>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-              <AlertDialogDescription>
-                This action cannot be undone. This will permanently delete the {item.type === 'task' ? 'task' : 'next step'}.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction onClick={onDelete} className="bg-red-500 hover:bg-red-600">
-                Delete
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
+  const handleComplete = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onComplete();
+  };
 
-        <div className="transition-transform duration-300 hover:scale-105">
-          <Switch
-            id={`urgent-${item.data.id}`}
-            checked={'urgent' in item.data ? item.data.urgent : false}
-            onCheckedChange={handleUrgentChange}
-            className="transition-opacity duration-300"
-          />
-        </div>
-      </div>
+  const handleDelete = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onDelete();
+  };
+
+  // Don't show completion button for completed items
+  const showCompleteButton = !taskIsCompleted;
+
+  return (
+    <div 
+      className={cn(
+        "absolute right-2 top-2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-10",
+        "bg-white/80 backdrop-blur-sm rounded-full px-1 py-0.5 shadow-sm"
+      )}
+      onClick={(e) => e.stopPropagation()}
+    >
+      {showCompleteButton && (
+        <Button 
+          variant="ghost"
+          size="icon"
+          className="h-7 w-7 text-green-600 hover:text-green-700 hover:bg-green-100"
+          onClick={handleComplete}
+          title="Mark as completed"
+        >
+          <CheckCircle2 className="h-4 w-4" />
+        </Button>
+      )}
+      
+      <Button 
+        variant="ghost"
+        size="icon"
+        className={cn(
+          "h-7 w-7",
+          urgent 
+            ? "text-red-600 hover:text-red-700 hover:bg-red-100" 
+            : "text-gray-500 hover:text-red-600 hover:bg-red-100"
+        )}
+        onClick={handleUrgentToggle}
+        title={urgent ? "Remove urgent flag" : "Mark as urgent"}
+      >
+        <AlertCircle className="h-4 w-4" />
+      </Button>
+      
+      <Button 
+        variant="ghost"
+        size="icon"
+        className="h-7 w-7 text-gray-500 hover:text-red-600 hover:bg-red-100"
+        onClick={handleDelete}
+        title="Delete"
+      >
+        <XCircle className="h-4 w-4" />
+      </Button>
     </div>
   );
 };

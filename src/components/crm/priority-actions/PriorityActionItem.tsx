@@ -8,26 +8,24 @@ import { cn } from '@/lib/utils';
 
 interface PriorityActionItemProps {
   item: PriorityItem;
-  onUrgentChange: (checked: boolean) => void; // Changed from Promise<void> to void
+  onUrgentChange: (checked: boolean) => void;
 }
 
 export const PriorityActionItem = ({ item, onUrgentChange }: PriorityActionItemProps) => {
-  const isTask = item.type === 'task';
-  const isNextStep = item.type === 'next_step';
+  // Get title from task data
+  const title = item.data.title || (item.data.notes || 'No details');
   
-  const title = isTask ? item.data.title : 
-               isNextStep ? `Next Step: ${item.data.notes || 'No details'} - ${item.data.client_name || 'Unknown Client'}` : 
-               'Unknown Item';
+  // Get description from task data
+  const description = item.data.description || '';
   
-  const description = isTask ? item.data.description : 
-                      isNextStep ? `Client: ${item.data.client_name || 'Unknown'}` : 
-                      '';
+  // Get client name if available
+  const clientName = item.data.client?.name || item.data.client_name || null;
   
-  const dueDate = isTask ? item.data.next_due_date : 
-                  isNextStep ? item.data.due_date : 
-                  null;
+  // Get due date
+  const dueDate = item.data.due_date || item.data.next_due_date || null;
   
-  const urgent = (isTask || isNextStep) && 'urgent' in item.data ? item.data.urgent : false;
+  // Get urgent status
+  const urgent = item.data.urgent || false;
   
   const toggleUrgent = () => {
     onUrgentChange(!urgent);
@@ -35,11 +33,11 @@ export const PriorityActionItem = ({ item, onUrgentChange }: PriorityActionItemP
 
   // Determine background color based on type or category
   const getBackgroundColorClass = () => {
-    if (isNextStep || (isTask && item.data.client_id)) {
+    if (item.data.client_id) {
       return 'bg-[#FEC6A1]/30 hover:bg-[#FEC6A1]/50';
     }
     
-    if (isTask && item.data.category) {
+    if (item.data.category) {
       const category = item.data.category.toLowerCase();
       
       if (category === 'business admin') {
@@ -70,6 +68,7 @@ export const PriorityActionItem = ({ item, onUrgentChange }: PriorityActionItemP
     )}>
       <div className="font-medium flex items-center gap-2">
         {title}
+        {clientName && <span className="text-sm text-gray-600 ml-1">({clientName})</span>}
         {urgent && (
           <Badge variant="destructive" className="ml-2 text-xs">
             <AlertCircle className="h-3 w-3 mr-1" />
