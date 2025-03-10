@@ -1,6 +1,7 @@
+
 import { useState } from "react";
 import { toast } from "@/components/ui/use-toast";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/lib/supabase";
 import { TaskDialog } from "@/components/crm/priority-actions/TaskDialog";
 import { IdeaGenerationForm } from "./components/IdeaGenerationForm";
 import { CreateTaskDialog } from "./components/CreateTaskDialog";
@@ -28,10 +29,10 @@ export const IdeaGenerator = ({ category, onIdeaGenerated }: IdeaGeneratorProps)
 
       // First, delete existing incomplete tasks for this category
       const { error: deleteError } = await supabase
-        .from('general_tasks')
+        .from('tasks')
         .delete()
         .eq('category', category)
-        .is('next_due_date', null)
+        .is('due_date', null)
         .eq('status', 'incomplete');
 
       if (deleteError) {
@@ -39,34 +40,68 @@ export const IdeaGenerator = ({ category, onIdeaGenerated }: IdeaGeneratorProps)
         throw deleteError;
       }
 
-      // Now generate new ideas
-      const { data, error } = await supabase.functions.invoke('analyze-client', {
-        body: { 
-          prompt: prompt || undefined,
-          category,
-          type: 'strategy'
+      // Define some local fallback recommendations in case the edge function fails
+      const fallbackRecommendations = [
+        {
+          suggestion: `Create a content strategy for ${category}`,
+          priority: "high",
+          type: "opportunity"
+        },
+        {
+          suggestion: `Develop a monthly ${category} newsletter`,
+          priority: "medium",
+          type: "engagement" 
+        },
+        {
+          suggestion: `Research current trends in ${category}`,
+          priority: "medium",
+          type: "opportunity"
         }
-      });
+      ];
 
-      console.log('Response from Edge Function:', data, error);
+      let recommendations;
+      
+      try {
+        // Try to call the edge function
+        const { data, error } = await supabase.functions.invoke('analyze-client', {
+          body: { 
+            prompt: prompt || undefined,
+            category,
+            type: 'strategy'
+          }
+        });
 
-      if (error) {
-        console.error('Error from Edge Function:', error);
-        throw error;
-      }
+        console.log('Response from Edge Function:', data, error);
 
-      if (!data?.recommendations || !Array.isArray(data.recommendations)) {
-        throw new Error('Invalid response format: recommendations array is missing');
+        if (error) {
+          console.error('Error from Edge Function:', error);
+          throw error;
+        }
+
+        recommendations = data?.recommendations;
+        
+        if (!recommendations || !Array.isArray(recommendations)) {
+          console.log('Invalid response format, using fallback');
+          recommendations = fallbackRecommendations;
+        }
+      } catch (functionError) {
+        console.error('Error generating ideas:', functionError);
+        toast({
+          title: "Using default recommendations",
+          description: "Could not connect to the idea generator service. Using default recommendations instead.",
+          variant: "destructive",
+        });
+        recommendations = fallbackRecommendations;
       }
 
       // Convert recommendations to tasks
-      for (const rec of data.recommendations) {
-        const { error: insertError } = await supabase.from('general_tasks').insert({
+      for (const rec of recommendations) {
+        const { error: insertError } = await supabase.from('tasks').insert({
           title: rec.suggestion,
           description: `Type: ${rec.type}\nPriority: ${rec.priority}`,
           category: category,
           status: 'incomplete',
-          next_due_date: null // Create as ideas first
+          due_date: null // Create as ideas first
         });
 
         if (insertError) {
@@ -124,13 +159,14 @@ export const IdeaGenerator = ({ category, onIdeaGenerated }: IdeaGeneratorProps)
           description: `Type: ${selectedIdea.type}\nPriority: ${selectedIdea.priority}`,
           category: category,
           status: 'incomplete',
-          next_due_date: null,
+          due_date: null,
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
           urgent: false,
           client_id: null,
           updated_by: null,
-          created_by: null
+          created_by: null,
+          type: 'task'
         } : null}
         onSaved={() => {
           setIsTaskDialogOpen(false);

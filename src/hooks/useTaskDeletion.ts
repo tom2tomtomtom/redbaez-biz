@@ -24,6 +24,7 @@ export type Task = {
   next_due_date?: string | null;
   completed_at?: string | null;
   client_name?: string | null; // Add for backward compatibility
+  type?: 'task' | 'next_step'; // Add type property for compatibility
 };
 
 /**

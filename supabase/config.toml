@@ -1,4 +1,17 @@
+
 project_id = "ryomveanixzshfatalcd"
 
 [functions.fetch-ai-news]
+verify_jwt = false
+
+[functions.analyze-client]
+verify_jwt = false
+
+[functions.generate-linkedin-article]
+verify_jwt = false
+
+[functions.generate-newsletter]
+verify_jwt = false
+
+[functions.search-intel]
 verify_jwt = false

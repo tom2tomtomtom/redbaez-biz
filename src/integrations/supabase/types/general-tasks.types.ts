@@ -18,6 +18,7 @@ export type GeneralTaskRow = {
   completed_at: string | null;
   notes: string | null;
   client_name?: string | null;
+  type?: 'task' | 'next_step'; // Add type property for compatibility
 }
 
 export type GeneralTaskInsert = Omit<GeneralTaskRow, 'id' | 'created_at' | 'updated_at'> & {
@@ -46,6 +47,31 @@ export const taskToGeneralTaskRow = (task: Task): GeneralTaskRow => {
     created_by: task.created_by || null,
     completed_at: task.status === 'completed' ? task.updated_at : null,
     notes: task.description || null,
-    client_name: task.client?.name || null
+    client_name: task.client?.name || null,
+    type: task.type || 'task'
+  };
+};
+
+// Convert from GeneralTaskRow to Task for backward compatibility
+export const generalTaskRowToTask = (row: GeneralTaskRow): Task => {
+  return {
+    id: row.id,
+    title: row.title,
+    description: row.description,
+    category: row.category,
+    status: row.status,
+    due_date: row.due_date || row.next_due_date,
+    urgent: row.urgent,
+    client_id: row.client_id,
+    created_at: row.created_at,
+    updated_at: row.updated_at,
+    created_by: row.created_by,
+    updated_by: row.updated_by,
+    notes: row.notes || row.description,
+    next_due_date: row.next_due_date,
+    completed_at: row.completed_at,
+    client_name: row.client_name,
+    client: row.client_name ? { name: row.client_name } : null,
+    type: row.type || 'task'
   };
 };
