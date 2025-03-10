@@ -1,14 +1,23 @@
+
 import { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { Task } from './taskTypes';
 import { toast } from '@/hooks/use-toast';
 import { useTaskDeletion } from '@/hooks/useTaskDeletion';
+import { queryKeys } from '@/lib/queryKeys';
 
 export const useTaskMutations = () => {
   const queryClient = useQueryClient();
   const [isProcessing, setIsProcessing] = useState(false);
-  const { deleteTask: deleteTaskHook, invalidateTaskQueries } = useTaskDeletion();
+  const { deleteTask: deleteTaskHook } = useTaskDeletion(); // Remove invalidateTaskQueries
+  
+  // Helper function to invalidate task queries
+  const invalidateTaskQueries = async () => {
+    console.log('Invalidating and refetching unified-tasks');
+    await queryClient.invalidateQueries({ queryKey: queryKeys.tasks.all() });
+    queryClient.refetchQueries({ queryKey: queryKeys.tasks.unified() });
+  };
   
   // Update task completion status
   const updateTaskCompletion = useMutation({
