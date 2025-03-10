@@ -1,6 +1,9 @@
 
 import { supabase } from '@/lib/supabase';
 
+// Define the task type as a proper union type
+export type TaskType = 'task' | 'next_step';
+
 export interface Task {
   id: string;
   title: string;
@@ -12,7 +15,7 @@ export interface Task {
   status?: string;
   completed_at?: string | null;
   category?: string | null;
-  type: 'task' | 'next_step';
+  type: TaskType;
   source_table: 'general_tasks' | 'client_next_steps';
 }
 

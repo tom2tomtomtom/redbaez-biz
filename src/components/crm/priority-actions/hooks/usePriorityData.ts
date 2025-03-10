@@ -2,9 +2,10 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { Task } from '@/hooks/useTaskDeletion';
+import { TaskType } from './taskTypes';
 
 export type PriorityItem = {
-  type: 'task';
+  type: TaskType;
   date: string | null;
   data: Task;
 };
@@ -84,7 +85,8 @@ export const usePriorityData = (category?: string) => {
           updated_at: task.updated_at,
           created_by: task.created_by,
           updated_by: task.updated_by,
-          completed_at: task.status === 'completed' ? task.updated_at : null // Map status to completed_at
+          completed_at: task.status === 'completed' ? task.updated_at : null, // Map status to completed_at
+          type: 'task' as TaskType
         }
       });
     }

@@ -1,9 +1,9 @@
-
 import { useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { toast } from '@/hooks/use-toast';
 import { useQueryClient } from '@tanstack/react-query';
 import { queryKeys } from '@/lib/queryKeys';
+import { TaskType } from '@/components/crm/priority-actions/hooks/taskTypes';
 
 export type Task = {
   id: string;
@@ -24,7 +24,7 @@ export type Task = {
   next_due_date?: string | null;
   completed_at?: string | null;
   client_name?: string | null;
-  type?: 'task' | 'next_step'; // Define both types to allow comparisons
+  type?: TaskType; // Define using the union type
 };
 
 /**
