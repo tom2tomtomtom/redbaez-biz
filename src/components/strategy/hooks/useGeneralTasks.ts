@@ -26,6 +26,7 @@ export const useGeneralTasks = (category: string, refreshTrigger: number) => {
         ...task,
         type: 'task',
         source_table: 'tasks',
+        next_due_date: task.due_date, // Map due_date to next_due_date for backward compatibility
         original_data: task // Store the full original object for reference
       })) || [];
 

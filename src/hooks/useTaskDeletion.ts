@@ -15,8 +15,14 @@ export type Task = {
   due_date?: string | null;
   urgent: boolean;
   status: 'completed' | 'incomplete';
-  created_at?: string;
-  updated_at?: string;
+  created_at?: string | null;
+  updated_at?: string | null;
+  created_by?: string | null;
+  updated_by?: string | null;
+  // Add fields that might be needed for backward compatibility
+  notes?: string | null;
+  next_due_date?: string | null;
+  completed_at?: string | null;
 };
 
 /**

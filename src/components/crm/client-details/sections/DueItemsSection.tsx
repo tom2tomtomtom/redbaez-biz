@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -6,16 +7,11 @@ import { useItemStatusChange } from '../../priority-actions/hooks/useItemStatusC
 import { Button } from '@/components/ui/button';
 import { toast } from '@/hooks/use-toast';
 import { useQueryClient } from '@tanstack/react-query';
+import { Task } from '@/hooks/useTaskDeletion';
 
-interface DueItem {
-  id: string;
+interface DueItem extends Task {
   type: 'task' | 'next-step' | 'idea';
   dueDate: string;
-  title?: string;
-  notes?: string;
-  description?: string;
-  urgent?: boolean;
-  client_id?: number;
 }
 
 interface DueItemsSectionProps {
@@ -31,63 +27,35 @@ export const DueItemsSection = ({ items, isLoading }: DueItemsSectionProps) => {
 
   const onComplete = async (item: DueItem) => {
     try {
-      if (item.type === 'task') {
-        const taskItem = {
-          type: 'task' as const,
-          date: item.dueDate,
-          data: {
-            id: item.id,
-            client_id: item.client_id || null,
-            title: item.title || '',
-            description: item.description || '',
-            category: 'general',
-            status: 'incomplete',
-            next_due_date: item.dueDate,
-            urgent: item.urgent || false,
-            created_at: null,
-            updated_at: null,
-            created_by: null,
-            updated_by: null
-          }
-        };
-        await handleCompletedChange(taskItem, true);
-        
-        // Invalidate relevant queries to update UI
-        queryClient.invalidateQueries({ queryKey: ['client-items'] });
-        queryClient.invalidateQueries({ queryKey: ['generalTasks'] });
-        
-        toast({
-          title: "Task completed",
-          description: "The task has been marked as complete.",
-        });
-      } else if (item.type === 'next-step') {
-        const nextStepItem = {
-          type: 'next_step' as const,
-          date: item.dueDate,
-          data: {
-            id: item.id,
-            client_id: item.client_id || null,
-            notes: item.notes || '',
-            due_date: item.dueDate,
-            completed_at: null,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-            urgent: item.urgent || false,
-            created_by: '',
-            category: 'general'
-          }
-        };
-        await handleCompletedChange(nextStepItem, true);
-        
-        // Invalidate relevant queries to update UI
-        queryClient.invalidateQueries({ queryKey: ['client-items'] });
-        queryClient.invalidateQueries({ queryKey: ['clientNextSteps'] });
-        
-        toast({
-          title: "Next step completed",
-          description: "The next step has been marked as complete.",
-        });
-      }
+      const taskItem = {
+        type: 'task' as const,
+        date: item.dueDate,
+        data: {
+          id: item.id,
+          client_id: item.client_id || null,
+          title: item.title || item.notes || '',
+          description: item.description || '',
+          category: item.category || 'general',
+          status: 'incomplete' as const,  // Type asserted to match expected literal type
+          due_date: item.dueDate,
+          urgent: item.urgent || false,
+          created_at: item.created_at,
+          updated_at: item.updated_at,
+          created_by: item.created_by,
+          updated_by: item.updated_by
+        }
+      };
+      
+      await handleCompletedChange(taskItem, true);
+      
+      // Invalidate relevant queries to update UI
+      queryClient.invalidateQueries({ queryKey: ['client-items'] });
+      queryClient.invalidateQueries({ queryKey: ['generalTasks'] });
+      
+      toast({
+        title: "Task completed",
+        description: "The task has been marked as complete.",
+      });
     } catch (error) {
       console.error('Error completing item:', error);
       toast({
@@ -100,63 +68,35 @@ export const DueItemsSection = ({ items, isLoading }: DueItemsSectionProps) => {
 
   const onDelete = async (item: DueItem) => {
     try {
-      if (item.type === 'task') {
-        const taskItem = {
-          type: 'task' as const,
-          date: item.dueDate,
-          data: {
-            id: item.id,
-            client_id: item.client_id || null,
-            title: item.title || '',
-            description: item.description || '',
-            category: 'general',
-            status: 'incomplete',
-            next_due_date: item.dueDate,
-            urgent: item.urgent || false,
-            created_at: null,
-            updated_at: null,
-            created_by: null,
-            updated_by: null
-          }
-        };
-        await handleDelete(taskItem);
-        
-        // Invalidate relevant queries to update UI
-        queryClient.invalidateQueries({ queryKey: ['client-items'] });
-        queryClient.invalidateQueries({ queryKey: ['generalTasks'] });
-        
-        toast({
-          title: "Task deleted",
-          description: "The task has been deleted successfully.",
-        });
-      } else if (item.type === 'next-step') {
-        const nextStepItem = {
-          type: 'next_step' as const,
-          date: item.dueDate,
-          data: {
-            id: item.id,
-            client_id: item.client_id || null,
-            notes: item.notes || '',
-            due_date: item.dueDate,
-            completed_at: null,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-            urgent: item.urgent || false,
-            created_by: '',
-            category: 'general'
-          }
-        };
-        await handleDelete(nextStepItem);
-        
-        // Invalidate relevant queries to update UI
-        queryClient.invalidateQueries({ queryKey: ['client-items'] });
-        queryClient.invalidateQueries({ queryKey: ['clientNextSteps'] });
-        
-        toast({
-          title: "Next step deleted",
-          description: "The next step has been deleted successfully.",
-        });
-      }
+      const taskItem = {
+        type: 'task' as const,
+        date: item.dueDate,
+        data: {
+          id: item.id,
+          client_id: item.client_id || null,
+          title: item.title || item.notes || '',
+          description: item.description || '',
+          category: item.category || 'general',
+          status: 'incomplete' as const,  // Type asserted to match expected literal type
+          due_date: item.dueDate,
+          urgent: item.urgent || false,
+          created_at: item.created_at,
+          updated_at: item.updated_at,
+          created_by: item.created_by,
+          updated_by: item.updated_by
+        }
+      };
+      
+      await handleDelete(taskItem);
+      
+      // Invalidate relevant queries to update UI
+      queryClient.invalidateQueries({ queryKey: ['client-items'] });
+      queryClient.invalidateQueries({ queryKey: ['generalTasks'] });
+      
+      toast({
+        title: "Task deleted",
+        description: "The task has been deleted successfully.",
+      });
     } catch (error) {
       console.error('Error deleting item:', error);
       toast({

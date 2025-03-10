@@ -75,7 +75,7 @@ export const usePriorityData = (category?: string) => {
           client: task.clients,
           due_date: task.due_date,
           urgent: task.urgent || false,
-          status: task.status,
+          status: task.status as 'completed' | 'incomplete',
           category: task.category,
           created_at: task.created_at,
           updated_at: task.updated_at
