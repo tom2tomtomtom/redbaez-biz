@@ -37,9 +37,7 @@ export const useItemDeletion = () => {
       
       // Format task for deletion
       const taskToDelete = {
-        id: String(itemId),
-        type: item.type,
-        source_table: item.type === 'next_step' ? 'client_next_steps' : 'general_tasks'
+        id: String(itemId)
       };
       
       // Use the simplified task deletion hook

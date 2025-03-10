@@ -16,28 +16,14 @@ export const useCompletionStatus = () => {
       const itemId = item.data.id;
       const clientId = item.data.client_id;
       
-      // Update the database based on item type
-      let error = null;
-      
-      if (item.type === 'task') {
-        const { error: updateError } = await supabase
-          .from('general_tasks')
-          .update({ 
-            status: completed ? 'completed' : 'incomplete',
-            updated_at: timestamp
-          })
-          .eq('id', itemId);
-        error = updateError;
-      } else {
-        const { error: updateError } = await supabase
-          .from('client_next_steps')
-          .update({ 
-            completed_at: completed ? timestamp : null,
-            updated_at: timestamp
-          })
-          .eq('id', itemId);
-        error = updateError;
-      }
+      // Update the database with the new status
+      const { error } = await supabase
+        .from('tasks')
+        .update({ 
+          status: completed ? 'completed' : 'incomplete',
+          updated_at: timestamp
+        })
+        .eq('id', itemId);
       
       if (error) {
         console.error(`Error updating completion status at ${timestamp}:`, error);

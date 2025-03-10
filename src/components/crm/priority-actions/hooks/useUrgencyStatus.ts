@@ -17,27 +17,13 @@ export const useUrgencyStatus = () => {
       console.log(`Updating urgency for ${item.type}:${itemId} to ${checked} at ${timestamp}`);
       
       // Update database
-      let error = null;
-      
-      if (item.type === 'task') {
-        const { error: updateError } = await supabase
-          .from('general_tasks')
-          .update({ 
-            urgent: checked,
-            updated_at: timestamp 
-          })
-          .eq('id', itemId);
-        error = updateError;
-      } else {
-        const { error: updateError } = await supabase
-          .from('client_next_steps')
-          .update({ 
-            urgent: checked,
-            updated_at: timestamp 
-          })
-          .eq('id', itemId);
-        error = updateError;
-      }
+      const { error } = await supabase
+        .from('tasks')
+        .update({ 
+          urgent: checked,
+          updated_at: timestamp 
+        })
+        .eq('id', itemId);
 
       if (error) {
         console.error(`Error updating urgent status at ${timestamp}:`, error);

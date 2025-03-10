@@ -659,6 +659,59 @@ export type Database = {
           },
         ]
       }
+      tasks: {
+        Row: {
+          category: string | null
+          client_id: number | null
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          due_date: string | null
+          id: string
+          status: string
+          title: string
+          updated_at: string | null
+          updated_by: string | null
+          urgent: boolean | null
+        }
+        Insert: {
+          category?: string | null
+          client_id?: number | null
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          status?: string
+          title: string
+          updated_at?: string | null
+          updated_by?: string | null
+          urgent?: boolean | null
+        }
+        Update: {
+          category?: string | null
+          client_id?: number | null
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          status?: string
+          title?: string
+          updated_at?: string | null
+          updated_by?: string | null
+          urgent?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tasks_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       team_members: {
         Row: {
           avatar_url: string | null

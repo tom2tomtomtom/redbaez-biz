@@ -10,7 +10,12 @@ export const queryKeys = {
     list: (params?: { category?: string, showCompleted?: boolean }) => 
       ['tasks-list', params?.category, params?.showCompleted],
     client: (clientId?: string | number) => 
-      clientId ? ['client-tasks', String(clientId)] : ['client-tasks']
+      clientId ? ['client-tasks', String(clientId)] : ['client-tasks'],
+    // Adding missing query keys that were causing errors
+    unified: () => ['unified-tasks'],
+    general: () => ['general-tasks'],
+    clientItems: (clientId?: string | number) => 
+      clientId ? ['client-items', String(clientId)] : ['client-items']
   },
   clients: {
     all: (refreshTrigger?: number) => ['clients', refreshTrigger],

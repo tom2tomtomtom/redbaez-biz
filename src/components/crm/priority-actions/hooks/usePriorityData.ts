@@ -1,29 +1,24 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
-import { Tables } from '@/integrations/supabase/types';
-import { GeneralTaskRow } from '@/integrations/supabase/types/general-tasks.types';
+import { Task } from '@/hooks/useTaskDeletion';
 
 export type PriorityItem = {
   type: 'task';
   date: string | null;
-  data: GeneralTaskRow;
-} | {
-  type: 'next_step';
-  date: string | null;
-  data: Tables<'client_next_steps'> & { client_name?: string };
+  data: Task;
 };
 
-const fetchGeneralTasks = async (category?: string) => {
-  console.log('Fetching general tasks');
+const fetchTasks = async (category?: string) => {
+  console.log('Fetching tasks');
   
   try {
     // Create a timestamp for this request to prevent caching
     const timestamp = new Date().toISOString();
     
     let query = supabase
-      .from('general_tasks')
-      .select('*')
+      .from('tasks')
+      .select('*, clients(name)')
       .order('urgent', { ascending: false })
       .order('updated_at', { ascending: false });
       
@@ -41,46 +36,7 @@ const fetchGeneralTasks = async (category?: string) => {
     console.log(`Fetched ${data?.length} tasks at ${timestamp}`);
     return data || [];
   } catch (error) {
-    console.error('Error in fetchGeneralTasks:', error);
-    return [];
-  }
-};
-
-const fetchNextSteps = async (category?: string) => {
-  console.log('Fetching next steps');
-  
-  try {
-    // Create a timestamp for this request to prevent caching
-    const timestamp = new Date().toISOString();
-    
-    let query = supabase
-      .from('client_next_steps')
-      .select(`
-        *,
-        clients (name)
-      `)
-      .order('urgent', { ascending: false })
-      .order('updated_at', { ascending: false });
-      
-    if (category && category !== 'All') {
-      query = query.ilike('category', `%${category}%`);
-    }
-
-    const { data, error } = await query;
-
-    if (error) {
-      console.error(`Error fetching next steps at ${timestamp}:`, error);
-      throw error;
-    }
-    
-    console.log(`Fetched ${data?.length} next steps at ${timestamp}`);
-    
-    return (data || []).map(step => ({
-      ...step,
-      client_name: step.clients?.name
-    }));
-  } catch (error) {
-    console.error('Error in fetchNextSteps:', error);
+    console.error('Error in fetchTasks:', error);
     return [];
   }
 };
@@ -90,17 +46,8 @@ const createUniqueId = (type: string, id: string | number) => `${type}-${id}`;
 
 export const usePriorityData = (category?: string) => {
   const tasksQuery = useQuery({
-    queryKey: ['generalTasks', category], 
-    queryFn: () => fetchGeneralTasks(category),
-    staleTime: 0,
-    gcTime: 0,
-    refetchOnWindowFocus: true,
-    refetchOnMount: true
-  });
-
-  const nextStepsQuery = useQuery({
-    queryKey: ['clientNextSteps', category], 
-    queryFn: () => fetchNextSteps(category),
+    queryKey: ['tasks', category], 
+    queryFn: () => fetchTasks(category),
     staleTime: 0,
     gcTime: 0,
     refetchOnWindowFocus: true,
@@ -109,7 +56,6 @@ export const usePriorityData = (category?: string) => {
 
   // Ensure we have arrays even if queries return null/undefined
   const tasks = tasksQuery.data || [];
-  const nextSteps = nextStepsQuery.data || [];
 
   // Create a map to ensure we don't have duplicates
   const itemsMap = new Map<string, PriorityItem>();
@@ -120,20 +66,20 @@ export const usePriorityData = (category?: string) => {
       const key = createUniqueId('task', task.id);
       itemsMap.set(key, {
         type: 'task',
-        date: task.next_due_date,
-        data: task
-      });
-    }
-  });
-  
-  // Add next steps to the map
-  nextSteps.forEach(step => {
-    if (step && step.id) {
-      const key = createUniqueId('next_step', step.id);
-      itemsMap.set(key, {
-        type: 'next_step',
-        date: step.due_date,
-        data: step
+        date: task.due_date,
+        data: {
+          id: task.id,
+          title: task.title,
+          description: task.description,
+          client_id: task.client_id,
+          client: task.clients,
+          due_date: task.due_date,
+          urgent: task.urgent || false,
+          status: task.status,
+          category: task.category,
+          created_at: task.created_at,
+          updated_at: task.updated_at
+        }
       });
     }
   });
@@ -163,14 +109,11 @@ export const usePriorityData = (category?: string) => {
   
   return {
     allItems,
-    isLoading: tasksQuery.isLoading || nextStepsQuery.isLoading,
-    error: tasksQuery.error || nextStepsQuery.error,
+    isLoading: tasksQuery.isLoading,
+    error: tasksQuery.error,
     refetch: async () => {
       console.log('Manually refetching priority data');
-      await Promise.all([
-        tasksQuery.refetch(),
-        nextStepsQuery.refetch()
-      ]);
+      await tasksQuery.refetch();
     }
   };
 };
