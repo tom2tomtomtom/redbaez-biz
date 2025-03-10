@@ -1,8 +1,9 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
-import { corsHeaders, generateRecommendations } from "./openAiApi.ts";
+import { generateRecommendations } from "./openAiApi.ts";
 import { MARKETING_PROMPT, PARTNERSHIPS_PROMPT, PRODUCT_DEVELOPMENT_PROMPT } from "./prompts.ts";
+import { corsHeaders } from "../_shared/cors.ts";
 
 serve(async (req) => {
   // Handle CORS preflight requests
@@ -155,8 +156,7 @@ serve(async (req) => {
       }),
       { 
         status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      }
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
 });

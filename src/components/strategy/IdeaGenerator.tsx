@@ -59,9 +59,12 @@ export const IdeaGenerator = ({ category, onIdeaGenerated }: IdeaGeneratorProps)
         }
       ];
 
-      let recommendations;
+      let recommendations = fallbackRecommendations;
       
       try {
+        // Add small timeout to ensure the previous operation completed
+        await new Promise(resolve => setTimeout(resolve, 100));
+        
         // Try to call the edge function
         const { data, error } = await supabase.functions.invoke('analyze-client', {
           body: { 
@@ -78,11 +81,10 @@ export const IdeaGenerator = ({ category, onIdeaGenerated }: IdeaGeneratorProps)
           throw error;
         }
 
-        recommendations = data?.recommendations;
-        
-        if (!recommendations || !Array.isArray(recommendations)) {
-          console.log('Invalid response format, using fallback');
-          recommendations = fallbackRecommendations;
+        if (data?.recommendations && Array.isArray(data.recommendations)) {
+          recommendations = data.recommendations;
+        } else {
+          console.log('Invalid response format, using fallback recommendations');
         }
       } catch (functionError) {
         console.error('Error generating ideas:', functionError);
@@ -91,29 +93,36 @@ export const IdeaGenerator = ({ category, onIdeaGenerated }: IdeaGeneratorProps)
           description: "Could not connect to the idea generator service. Using default recommendations instead.",
           variant: "destructive",
         });
-        recommendations = fallbackRecommendations;
+        // Fallback is already set
       }
 
       // Convert recommendations to tasks
-      for (const rec of recommendations) {
-        const { error: insertError } = await supabase.from('tasks').insert({
+      const insertPromises = recommendations.map(rec => {
+        return supabase.from('tasks').insert({
           title: rec.suggestion,
           description: `Type: ${rec.type}\nPriority: ${rec.priority}`,
           category: category,
           status: 'incomplete',
-          due_date: null // Create as ideas first
+          due_date: null, // Create as ideas first
+          type: 'task' // Explicitly set type
         });
-
-        if (insertError) {
-          console.error('Error inserting task:', insertError);
-          throw insertError;
-        }
-      }
-
-      toast({
-        title: "Ideas Generated",
-        description: "Click on any idea to convert it into a task.",
       });
+      
+      try {
+        await Promise.all(insertPromises);
+        
+        toast({
+          title: "Ideas Generated",
+          description: "Click on any idea to convert it into a task.",
+        });
+      } catch (insertError) {
+        console.error('Error inserting tasks:', insertError);
+        toast({
+          title: "Error",
+          description: "Some ideas couldn't be saved. Please try again.",
+          variant: "destructive",
+        });
+      }
 
       // Only trigger refresh after all operations are complete
       onIdeaGenerated();

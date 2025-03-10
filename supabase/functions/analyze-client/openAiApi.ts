@@ -1,8 +1,5 @@
 
-export const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+import { corsHeaders } from "../_shared/cors.ts";
 
 export async function generateRecommendations(prompt: string, apiKey: string) {
   console.log('Generating recommendations with prompt:', prompt);

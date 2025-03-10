@@ -19,12 +19,12 @@ export type Task = {
   updated_at?: string | null;
   created_by?: string | null;
   updated_by?: string | null;
-  // Add fields that might be needed for backward compatibility
+  // Add fields for backward compatibility
   notes?: string | null;
   next_due_date?: string | null;
   completed_at?: string | null;
-  client_name?: string | null; // Add for backward compatibility
-  type?: 'task' | 'next_step'; // Add type property for compatibility
+  client_name?: string | null;
+  type?: 'task' | 'next_step'; // Define both types to allow comparisons
 };
 
 /**

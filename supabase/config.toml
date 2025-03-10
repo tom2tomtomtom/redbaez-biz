@@ -6,6 +6,7 @@ verify_jwt = false
 
 [functions.analyze-client]
 verify_jwt = false
+cors = ["*"]
 
 [functions.generate-linkedin-article]
 verify_jwt = false
