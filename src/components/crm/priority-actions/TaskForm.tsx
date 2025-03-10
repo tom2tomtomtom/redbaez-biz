@@ -9,9 +9,10 @@ import { Label } from '@/components/ui/label';
 import { supabase } from '@/lib/supabase';
 import { useToast } from '@/components/ui/use-toast';
 import { useTaskMutations } from './hooks/useTaskMutations';
+import { Task } from '@/hooks/useTaskDeletion';
 
 interface TaskFormProps {
-  task?: any | null;
+  task?: Task | null;
   onSaved: () => void;
   onCancel: () => void;
   defaultCategory?: string;
@@ -39,17 +40,13 @@ export const TaskForm = ({ task, onSaved, onCancel, defaultCategory }: TaskFormP
 
       if (task?.id) {
         // Update existing task
-        const isGeneralTask = task.source_table === 'general_tasks' || !task.source_table;
-        
         const { error } = await supabase
-          .from(isGeneralTask ? 'general_tasks' : 'client_next_steps')
+          .from('tasks')
           .update({
-            title: isGeneralTask ? title : undefined, // Only for general_tasks
-            description: isGeneralTask ? description : undefined, // Only for general_tasks
-            notes: !isGeneralTask ? description : undefined, // Only for client_next_steps
+            title,
+            description,
             category,
-            next_due_date: isGeneralTask ? (dueDate ? new Date(dueDate).toISOString() : null) : undefined,
-            due_date: !isGeneralTask ? (dueDate ? new Date(dueDate).toISOString() : null) : undefined,
+            due_date: dueDate ? new Date(dueDate).toISOString() : null,
             urgent,
             updated_at: new Date().toISOString(),
             updated_by: user?.id
@@ -62,14 +59,14 @@ export const TaskForm = ({ task, onSaved, onCancel, defaultCategory }: TaskFormP
           description: "The task has been successfully updated.",
         });
       } else {
-        // Create new general task
+        // Create new task
         const { error } = await supabase
-          .from('general_tasks')
+          .from('tasks')
           .insert({
             title,
             description,
             category,
-            next_due_date: dueDate ? new Date(dueDate).toISOString() : null,
+            due_date: dueDate ? new Date(dueDate).toISOString() : null,
             urgent,
             created_by: user?.id,
             status: 'incomplete'

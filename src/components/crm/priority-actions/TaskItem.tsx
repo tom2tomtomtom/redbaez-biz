@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { cn } from '@/lib/utils';
-import { Task } from './hooks/taskTypes';
+import { Task } from '@/hooks/useTaskDeletion';
 import { 
   AlertDialog, 
   AlertDialogAction, 
@@ -79,7 +79,7 @@ export const TaskItem = ({
     return task.due_date ? new Date(task.due_date).toLocaleDateString() : 'No due date';
   };
 
-  const isCompleted = task.status === 'completed' || task.completed_at !== null;
+  const isCompleted = task.status === 'completed';
 
   const handleDelete = () => {
     console.log(`TaskItem: Delete initiated for task ${task.id}`);
@@ -114,9 +114,6 @@ export const TaskItem = ({
               Urgent
             </Badge>
           )}
-          <Badge variant="secondary" className="ml-2 text-xs">
-            {task.type === 'task' ? 'Task' : 'Next Step'}
-          </Badge>
         </div>
         
         {task.description && (
@@ -162,7 +159,7 @@ export const TaskItem = ({
           <AlertDialogHeader>
             <AlertDialogTitle>Are you sure?</AlertDialogTitle>
             <AlertDialogDescription>
-              This will permanently delete this {task.type === 'task' ? 'task' : 'next step'}.
+              This will permanently delete this task.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

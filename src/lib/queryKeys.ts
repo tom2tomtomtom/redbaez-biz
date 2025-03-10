@@ -7,13 +7,10 @@
 export const queryKeys = {
   tasks: {
     all: () => ['tasks'],
-    unified: (params?: { category?: string, showCompleted?: boolean }) => 
-      ['unified-tasks', params?.category, params?.showCompleted],
-    general: (category?: string) => 
-      ['generalTasks', category],
-    clientNextSteps: () => ['clientNextSteps'],
-    clientItems: (clientId?: string | number) => 
-      clientId ? ['client-items', String(clientId)] : ['client-items']
+    list: (params?: { category?: string, showCompleted?: boolean }) => 
+      ['tasks-list', params?.category, params?.showCompleted],
+    client: (clientId?: string | number) => 
+      clientId ? ['client-tasks', String(clientId)] : ['client-tasks']
   },
   clients: {
     all: (refreshTrigger?: number) => ['clients', refreshTrigger],

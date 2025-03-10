@@ -2,9 +2,8 @@
 import { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
-import { Task } from './taskTypes';
+import { Task, useTaskDeletion } from '@/hooks/useTaskDeletion';
 import { toast } from '@/hooks/use-toast';
-import { useTaskDeletion } from '@/hooks/useTaskDeletion';
 import { queryKeys } from '@/lib/queryKeys';
 
 export const useTaskMutations = () => {
@@ -19,20 +18,19 @@ export const useTaskMutations = () => {
   
   // Helper function to invalidate task queries
   const invalidateTaskQueries = async () => {
-    console.log('Invalidating and refetching unified-tasks');
+    console.log('Invalidating and refetching task queries');
     
     // First invalidate all task-related queries
     await Promise.all([
       queryClient.invalidateQueries({ queryKey: queryKeys.tasks.all() }),
-      queryClient.invalidateQueries({ queryKey: queryKeys.tasks.unified() }),
-      queryClient.invalidateQueries({ queryKey: queryKeys.tasks.general() }),
-      queryClient.invalidateQueries({ queryKey: queryKeys.tasks.clientItems() })
+      queryClient.invalidateQueries({ queryKey: queryKeys.tasks.list() }),
+      queryClient.invalidateQueries({ queryKey: queryKeys.tasks.client() })
     ]);
     
     // Then force refetch of key queries
     await Promise.all([
-      queryClient.refetchQueries({ queryKey: queryKeys.tasks.unified() }),
-      queryClient.refetchQueries({ queryKey: queryKeys.tasks.general() })
+      queryClient.refetchQueries({ queryKey: queryKeys.tasks.list() }),
+      queryClient.refetchQueries({ queryKey: queryKeys.tasks.client() })
     ]);
   };
   
@@ -42,27 +40,15 @@ export const useTaskMutations = () => {
       setIsProcessing(true);
       console.log(`TASKS: Updating task ${task.id} completion to ${completed}`);
       
-      if (task.source_table === 'general_tasks') {
-        const { error } = await supabase
-          .from('general_tasks')
-          .update({
-            status: completed ? 'completed' : 'incomplete',
-            updated_at: new Date().toISOString()
-          })
-          .eq('id', task.id);
+      const { error } = await supabase
+        .from('tasks')
+        .update({
+          status: completed ? 'completed' : 'incomplete',
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', task.id);
 
-        if (error) throw error;
-      } else {
-        const { error } = await supabase
-          .from('client_next_steps')
-          .update({
-            completed_at: completed ? new Date().toISOString() : null,
-            updated_at: new Date().toISOString()
-          })
-          .eq('id', task.id);
-
-        if (error) throw error;
-      }
+      if (error) throw error;
 
       return { taskId: task.id, completed };
     },
@@ -92,27 +78,15 @@ export const useTaskMutations = () => {
       setIsProcessing(true);
       console.log(`Updating task ${task.id} urgency to ${urgent}`);
       
-      if (task.source_table === 'general_tasks') {
-        const { error } = await supabase
-          .from('general_tasks')
-          .update({
-            urgent: urgent,
-            updated_at: new Date().toISOString()
-          })
-          .eq('id', task.id);
+      const { error } = await supabase
+        .from('tasks')
+        .update({
+          urgent: urgent,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', task.id);
 
-        if (error) throw error;
-      } else {
-        const { error } = await supabase
-          .from('client_next_steps')
-          .update({
-            urgent: urgent,
-            updated_at: new Date().toISOString()
-          })
-          .eq('id', task.id);
-
-        if (error) throw error;
-      }
+      if (error) throw error;
 
       return { taskId: task.id, urgent };
     },

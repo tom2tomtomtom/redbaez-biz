@@ -5,11 +5,18 @@ import { toast } from '@/hooks/use-toast';
 import { useQueryClient } from '@tanstack/react-query';
 import { queryKeys } from '@/lib/queryKeys';
 
-// Simplified task type with only essential properties
-type TaskType = {
+export type Task = {
   id: string;
-  source_table?: string;
-  type?: string;
+  title: string;
+  description?: string | null;
+  category?: string | null;
+  client_id?: number | null;
+  client?: { name: string } | null;
+  due_date?: string | null;
+  urgent: boolean;
+  status: 'completed' | 'incomplete';
+  created_at?: string;
+  updated_at?: string;
 };
 
 /**
@@ -19,7 +26,7 @@ export const useTaskDeletion = (onSuccess?: () => void) => {
   const [isDeleting, setIsDeleting] = useState(false);
   const queryClient = useQueryClient();
 
-  const deleteTask = async (task: TaskType) => {
+  const deleteTask = async (task: Pick<Task, 'id'>) => {
     if (!task?.id) {
       console.error("No valid task ID provided for deletion");
       return false;
@@ -34,15 +41,9 @@ export const useTaskDeletion = (onSuccess?: () => void) => {
     console.log(`[DELETE] Starting deletion for task ID: ${task.id}`);
     
     try {
-      // Determine which table to delete from
-      const tableName = task.source_table || 
-                        (task.type === 'next_step' ? 'client_next_steps' : 'general_tasks');
-      
-      console.log(`[DELETE] Deleting from ${tableName}`);
-      
-      // Execute the actual deletion
+      // Execute the actual deletion from the unified tasks table
       const { error } = await supabase
-        .from(tableName)
+        .from('tasks')
         .delete()
         .eq('id', task.id);
       
@@ -50,21 +51,19 @@ export const useTaskDeletion = (onSuccess?: () => void) => {
         throw error;
       }
       
-      console.log(`[DELETE] Successfully deleted task from ${tableName}`);
+      console.log(`[DELETE] Successfully deleted task`);
       
       // Force immediate invalidation of ALL task-related queries
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: queryKeys.tasks.all() }),
-        queryClient.invalidateQueries({ queryKey: queryKeys.tasks.unified() }),
-        queryClient.invalidateQueries({ queryKey: queryKeys.tasks.general() }),
-        queryClient.invalidateQueries({ queryKey: queryKeys.tasks.clientItems() })
+        queryClient.invalidateQueries({ queryKey: queryKeys.tasks.list() }),
+        queryClient.invalidateQueries({ queryKey: queryKeys.tasks.client() })
       ]);
       
       // Force immediate refetch of key views
       await Promise.all([
-        queryClient.refetchQueries({ queryKey: queryKeys.tasks.unified() }),
-        queryClient.refetchQueries({ queryKey: queryKeys.tasks.general() }),
-        queryClient.refetchQueries({ queryKey: queryKeys.tasks.clientItems() })
+        queryClient.refetchQueries({ queryKey: queryKeys.tasks.list() }),
+        queryClient.refetchQueries({ queryKey: queryKeys.tasks.client() })
       ]);
       
       toast({

@@ -24,7 +24,7 @@ export const TaskList = ({
   const initialLoadDone = useRef(false);
   const [refreshKey, setRefreshKey] = useState(0);
   
-  // Use our unified task data hook with refresh key for forced updates
+  // Use our task data hook with refresh key for forced updates
   const { data: tasks = [], isLoading, error, refetch } = useTaskData(category, showCompleted);
   
   // Use our simplified task mutations
@@ -146,7 +146,7 @@ export const TaskList = ({
       
       {tasks.map((task) => (
         <TaskItem
-          key={`${task.source_table}-${task.id}-${refreshKey}`}
+          key={`${task.id}-${refreshKey}`}
           task={task}
           onUpdateCompletion={(completed) => handleCompletionChange(task, completed)}
           onUpdateUrgency={(urgent) => updateUrgency(task, urgent)}
