@@ -11,9 +11,9 @@ const getCacheHeaders = () => ({
   'Cache-Control': 'no-cache, no-store, must-revalidate, max-age=0',
   'Pragma': 'no-cache',
   'Expires': '0',
-  'X-Request-Time': String(Date.now()),
   'X-Request-ID': `req_${Math.random().toString(36).substring(2, 15)}`,
   'X-Custom-Timestamp': new Date().toISOString()
+  // Removed X-Request-Time header to avoid CORS issues
 });
 
 // Create Supabase client with aggressive anti-caching configuration

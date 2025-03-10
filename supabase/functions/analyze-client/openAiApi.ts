@@ -1,3 +1,4 @@
+
 import { corsHeaders } from "../_shared/cors.ts";
 
 export async function generateRecommendations(prompt: string, apiKey: string) {

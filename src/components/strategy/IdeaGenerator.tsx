@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { toast } from "@/components/ui/use-toast";
 import { supabase } from "@/lib/supabase";
@@ -96,24 +97,40 @@ export const IdeaGenerator = ({ category, onIdeaGenerated }: IdeaGeneratorProps)
       }
 
       // Convert recommendations to tasks
-      const insertPromises = recommendations.map(rec => {
+      const taskPromises = recommendations.map(rec => {
         return supabase.from('tasks').insert({
           title: rec.suggestion,
           description: `Type: ${rec.type}\nPriority: ${rec.priority}`,
           category: category,
           status: 'incomplete',
-          due_date: null,
-          type: 'task'
+          due_date: null
+          // Do NOT include type field as it may not exist in the schema
         });
       });
       
       try {
-        await Promise.all(insertPromises);
+        const results = await Promise.allSettled(taskPromises);
         
-        toast({
-          title: "Ideas Generated",
-          description: "Click on any idea to convert it into a task.",
+        // Check for rejected promises and log them
+        results.forEach((result, index) => {
+          if (result.status === 'rejected') {
+            console.error(`Error inserting task ${index}:`, result.reason);
+          }
         });
+        
+        // If at least one insert succeeded, show success toast
+        if (results.some(result => result.status === 'fulfilled')) {
+          toast({
+            title: "Ideas Generated",
+            description: "Click on any idea to convert it into a task.",
+          });
+        } else {
+          toast({
+            title: "Error",
+            description: "Ideas couldn't be saved. Please try again.",
+            variant: "destructive",
+          });
+        }
       } catch (insertError) {
         console.error('Error inserting tasks:', insertError);
         toast({
