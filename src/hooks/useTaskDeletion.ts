@@ -52,11 +52,20 @@ export const useTaskDeletion = (onSuccess?: () => void) => {
       
       console.log(`[DELETE] Successfully deleted task from ${tableName}`);
       
-      // Invalidate all relevant queries
-      await queryClient.invalidateQueries({ queryKey: queryKeys.tasks.all() });
+      // Force immediate invalidation of ALL task-related queries
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: queryKeys.tasks.all() }),
+        queryClient.invalidateQueries({ queryKey: queryKeys.tasks.unified() }),
+        queryClient.invalidateQueries({ queryKey: queryKeys.tasks.general() }),
+        queryClient.invalidateQueries({ queryKey: queryKeys.tasks.clientItems() })
+      ]);
       
-      // Specifically refetch the unified view which is used most commonly
-      queryClient.refetchQueries({ queryKey: queryKeys.tasks.unified() });
+      // Force immediate refetch of key views
+      await Promise.all([
+        queryClient.refetchQueries({ queryKey: queryKeys.tasks.unified() }),
+        queryClient.refetchQueries({ queryKey: queryKeys.tasks.general() }),
+        queryClient.refetchQueries({ queryKey: queryKeys.tasks.clientItems() })
+      ]);
       
       toast({
         title: "Task deleted",

@@ -22,8 +22,9 @@ export const TaskList = ({
 }: TaskListProps) => {
   const [completionConfirmTask, setCompletionConfirmTask] = useState<any | null>(null);
   const initialLoadDone = useRef(false);
+  const [refreshKey, setRefreshKey] = useState(0);
   
-  // Use our unified task data hook
+  // Use our unified task data hook with refresh key for forced updates
   const { data: tasks = [], isLoading, error, refetch } = useTaskData(category, showCompleted);
   
   // Use our simplified task mutations
@@ -35,24 +36,29 @@ export const TaskList = ({
     invalidateTaskQueries
   } = useTaskMutations();
 
-  // Refresh data only once when component mounts
+  // Force refresh when component mounts and when refreshKey changes
   useEffect(() => {
+    console.log("TaskList refreshing data with key:", refreshKey);
+    refetch().catch(err => {
+      console.error("Error refreshing tasks:", err);
+    });
+    
     if (!initialLoadDone.current) {
-      console.log("TaskList mounted - refreshing data");
-      refetch();
       initialLoadDone.current = true;
       
-      // Set up periodic refresh every 2 minutes instead of every minute
+      // Set up periodic refresh every 2 minutes
       const intervalId = setInterval(() => {
         console.log("Periodic task refresh");
-        refetch();
+        refetch().catch(err => {
+          console.error("Error in periodic refresh:", err);
+        });
       }, 120000); // 2 minutes
       
       return () => {
         clearInterval(intervalId);
       };
     }
-  }, [category, showCompleted, refetch]);
+  }, [category, showCompleted, refetch, refreshKey]);
 
   const handleRefresh = async () => {
     toast({
@@ -63,6 +69,8 @@ export const TaskList = ({
     try {
       await invalidateTaskQueries();
       await refetch();
+      // Force component update by changing refresh key
+      setRefreshKey(prev => prev + 1);
     } catch (err) {
       console.error("Error refreshing tasks:", err);
       toast({
@@ -70,6 +78,15 @@ export const TaskList = ({
         description: "Please try again.",
         variant: "destructive"
       });
+    }
+  };
+
+  const handleTaskDelete = async (task: any) => {
+    const success = await deleteTask(task);
+    if (success) {
+      // Force immediate UI refresh
+      setRefreshKey(prev => prev + 1);
+      await refetch();
     }
   };
 
@@ -129,11 +146,11 @@ export const TaskList = ({
       
       {tasks.map((task) => (
         <TaskItem
-          key={`${task.source_table}-${task.id}`}
+          key={`${task.source_table}-${task.id}-${refreshKey}`}
           task={task}
           onUpdateCompletion={(completed) => handleCompletionChange(task, completed)}
           onUpdateUrgency={(urgent) => updateUrgency(task, urgent)}
-          onDelete={() => deleteTask(task)}
+          onDelete={() => handleTaskDelete(task)}
           isUpdating={isProcessing}
           isDeleting={isProcessing}
           onSelect={() => onItemSelected?.(task.id)}

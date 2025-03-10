@@ -10,13 +10,30 @@ import { queryKeys } from '@/lib/queryKeys';
 export const useTaskMutations = () => {
   const queryClient = useQueryClient();
   const [isProcessing, setIsProcessing] = useState(false);
-  const { deleteTask: deleteTaskHook } = useTaskDeletion();
+  
+  // Use the core task deletion hook with our own callback
+  const { deleteTask: deleteTaskHook } = useTaskDeletion(async () => {
+    console.log("Task deletion callback - refreshing queries");
+    await invalidateTaskQueries();
+  });
   
   // Helper function to invalidate task queries
   const invalidateTaskQueries = async () => {
     console.log('Invalidating and refetching unified-tasks');
-    await queryClient.invalidateQueries({ queryKey: queryKeys.tasks.all() });
-    queryClient.refetchQueries({ queryKey: queryKeys.tasks.unified() });
+    
+    // First invalidate all task-related queries
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: queryKeys.tasks.all() }),
+      queryClient.invalidateQueries({ queryKey: queryKeys.tasks.unified() }),
+      queryClient.invalidateQueries({ queryKey: queryKeys.tasks.general() }),
+      queryClient.invalidateQueries({ queryKey: queryKeys.tasks.clientItems() })
+    ]);
+    
+    // Then force refetch of key queries
+    await Promise.all([
+      queryClient.refetchQueries({ queryKey: queryKeys.tasks.unified() }),
+      queryClient.refetchQueries({ queryKey: queryKeys.tasks.general() })
+    ]);
   };
   
   // Update task completion status
