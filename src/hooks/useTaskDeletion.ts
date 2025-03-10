@@ -52,7 +52,7 @@ export const useTaskDeletion = (onSuccess?: () => void) => {
       
       console.log(`[DELETE] Successfully deleted task from ${tableName}`);
       
-      // Invalidate all relevant queries - guaranteed approach
+      // Invalidate all relevant queries
       await queryClient.invalidateQueries({ queryKey: queryKeys.tasks.all() });
       
       // Specifically refetch the unified view which is used most commonly

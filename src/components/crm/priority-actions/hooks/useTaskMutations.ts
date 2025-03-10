@@ -10,7 +10,7 @@ import { queryKeys } from '@/lib/queryKeys';
 export const useTaskMutations = () => {
   const queryClient = useQueryClient();
   const [isProcessing, setIsProcessing] = useState(false);
-  const { deleteTask: deleteTaskHook } = useTaskDeletion(); // Remove invalidateTaskQueries
+  const { deleteTask: deleteTaskHook } = useTaskDeletion();
   
   // Helper function to invalidate task queries
   const invalidateTaskQueries = async () => {
