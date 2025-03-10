@@ -15,4 +15,3 @@ verify_jwt = false
 
 [functions.search-intel]
 verify_jwt = false
-

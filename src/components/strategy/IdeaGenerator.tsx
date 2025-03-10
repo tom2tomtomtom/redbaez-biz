@@ -103,8 +103,8 @@ export const IdeaGenerator = ({ category, onIdeaGenerated }: IdeaGeneratorProps)
           description: `Type: ${rec.type}\nPriority: ${rec.priority}`,
           category: category,
           status: 'incomplete',
-          due_date: null, // Create as ideas first
-          type: 'task' // Explicitly set type
+          due_date: null,
+          // Removed the type field as it doesn't exist in the table schema
         });
       });
       
