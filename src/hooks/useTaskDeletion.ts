@@ -12,57 +12,78 @@ type TaskType = {
   original_data?: any;
 };
 
+/**
+ * Hook for handling task deletion with proper cache invalidation
+ */
 export const useTaskDeletion = (onTaskDeleted?: () => void) => {
   const [isDeleting, setIsDeleting] = useState(false);
   const queryClient = useQueryClient();
 
-  // Get a list of active query keys from the cache
+  /**
+   * Gets a list of active query keys from the cache
+   */
   const getActiveQueries = () => {
     return queryClient.getQueryCache().getAll()
       .map(query => JSON.stringify(query.queryKey));
   };
 
-  // Improved invalidation with safety checks
+  /**
+   * Invalidates task queries that exist in the cache
+   * Uses a targeted approach to only refresh what's needed
+   */
   const invalidateTaskQueries = async () => {
     console.log(`Invalidating task queries at ${new Date().toISOString()}`);
     
-    // Get active queries before starting
+    // Get active queries before starting to avoid refreshing non-existent ones
     const activeQueries = getActiveQueries();
     console.log("Active queries:", activeQueries);
     
     // Track which queries we've already invalidated to avoid duplicates
     const invalidatedKeys = new Set();
-    
-    // Invalidate and refetch only queries that actually exist
     const promises = [];
     
-    // Check and invalidate unified-tasks if it exists
-    if (activeQueries.some(key => key.includes('unified-tasks'))) {
-      console.log("Invalidating and refetching unified-tasks");
-      invalidatedKeys.add('unified-tasks');
-      await queryClient.invalidateQueries({ queryKey: queryKeys.tasks.unified() });
-      promises.push(queryClient.refetchQueries({ queryKey: queryKeys.tasks.unified() }));
-    }
+    // Map of query presence checks to invalidation actions
+    const invalidationMap = [
+      {
+        check: (queries: string[]) => queries.some(key => key.includes('unified-tasks')),
+        action: async () => {
+          console.log("Invalidating and refetching unified-tasks");
+          invalidatedKeys.add('unified-tasks');
+          await queryClient.invalidateQueries({ queryKey: queryKeys.tasks.unified() });
+          promises.push(queryClient.refetchQueries({ queryKey: queryKeys.tasks.unified() }));
+        }
+      },
+      {
+        check: (queries: string[]) => queries.some(key => key.includes('generalTasks')),
+        action: async () => {
+          console.log("Invalidating generalTasks");
+          invalidatedKeys.add('generalTasks');
+          await queryClient.invalidateQueries({ queryKey: queryKeys.tasks.general() });
+        }
+      },
+      {
+        check: (queries: string[]) => queries.some(key => key.includes('clientNextSteps')),
+        action: async () => {
+          console.log("Invalidating clientNextSteps");
+          invalidatedKeys.add('clientNextSteps');
+          await queryClient.invalidateQueries({ queryKey: queryKeys.tasks.clientNextSteps() });
+        }
+      },
+      {
+        check: (queries: string[]) => queries.some(key => key.includes('client-items')),
+        action: async () => {
+          console.log("Invalidating client-items");
+          invalidatedKeys.add('client-items');
+          await queryClient.invalidateQueries({ queryKey: queryKeys.tasks.clientItems() });
+        }
+      }
+    ];
     
-    // Check and invalidate generalTasks if it exists
-    if (activeQueries.some(key => key.includes('generalTasks'))) {
-      console.log("Invalidating generalTasks");
-      invalidatedKeys.add('generalTasks');
-      await queryClient.invalidateQueries({ queryKey: queryKeys.tasks.general() });
-    }
-    
-    // Check and invalidate clientNextSteps if it exists
-    if (activeQueries.some(key => key.includes('clientNextSteps'))) {
-      console.log("Invalidating clientNextSteps");
-      invalidatedKeys.add('clientNextSteps');
-      await queryClient.invalidateQueries({ queryKey: queryKeys.tasks.clientNextSteps() });
-    }
-    
-    // Check and invalidate client-items if it exists
-    if (activeQueries.some(key => key.includes('client-items'))) {
-      console.log("Invalidating client-items");
-      invalidatedKeys.add('client-items');
-      await queryClient.invalidateQueries({ queryKey: queryKeys.tasks.clientItems() });
+    // Run all applicable invalidations
+    for (const item of invalidationMap) {
+      if (item.check(activeQueries)) {
+        await item.action();
+      }
     }
     
     // Wait for all refetch promises to complete
@@ -77,7 +98,9 @@ export const useTaskDeletion = (onTaskDeleted?: () => void) => {
     console.log(`Invalidation complete at ${new Date().toISOString()}`);
   };
 
-  // Find which table the task exists in
+  /**
+   * Finds which table a task exists in
+   */
   const findTaskLocation = async (taskId: string) => {
     console.log(`Searching for task with ID: ${taskId}`);
     
@@ -117,6 +140,9 @@ export const useTaskDeletion = (onTaskDeleted?: () => void) => {
     return null;
   };
 
+  /**
+   * Deletes a task with optimistic UI updates
+   */
   const deleteTask = async (task: TaskType) => {
     if (!task || !task.id) {
       console.error("No valid task provided for deletion");
@@ -139,12 +165,6 @@ export const useTaskDeletion = (onTaskDeleted?: () => void) => {
       if (task.original_data && task.original_data.id) {
         taskId = task.original_data.id;
         console.log(`Using original_data ID: ${taskId}`);
-      }
-      
-      // Remove prefix if it exists
-      if (typeof taskId === 'string' && taskId.startsWith('next-step-')) {
-        taskId = taskId.replace('next-step-', '');
-        console.log(`Removed prefix, using ID: ${taskId}`);
       }
       
       // Find which table contains the task

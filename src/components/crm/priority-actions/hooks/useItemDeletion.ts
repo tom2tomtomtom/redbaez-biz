@@ -7,6 +7,9 @@ import { useTaskDeletion } from '@/hooks/useTaskDeletion';
 import { useQueryClient } from '@tanstack/react-query';
 import { queryKeys } from '@/lib/queryKeys';
 
+/**
+ * Hook for deleting priority items with optimistic updates
+ */
 export const useItemDeletion = () => {
   const { invalidateQueries } = useQueryCacheManager();
   const [isDeleting, setIsDeleting] = useState(false);

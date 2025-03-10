@@ -3,6 +3,11 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { queryKeys } from '@/lib/queryKeys';
 
+/**
+ * Hook for managing React Query cache invalidation
+ * Provides a centralized way to invalidate related queries
+ * with debouncing to prevent too many refreshes
+ */
 export const useQueryCacheManager = () => {
   const queryClient = useQueryClient();
   const [lastInvalidation, setLastInvalidation] = useState(0);
@@ -19,7 +24,7 @@ export const useQueryCacheManager = () => {
     const timestamp = new Date().toISOString();
     console.log(`CACHE: Invalidating queries at ${timestamp} for client:`, clientId);
     
-    // Get the active queries first
+    // Get the active queries first to avoid refreshing non-existent ones
     const activeQueries = queryClient.getQueryCache().getAll()
       .map(query => JSON.stringify(query.queryKey));
     
@@ -28,25 +33,20 @@ export const useQueryCacheManager = () => {
     // Prepare a list of query keys to invalidate based on what's actually in the cache
     const keysToInvalidate = [];
     
+    // Map that associates query string patterns with their query key functions
+    const queryKeyMap = [
+      { pattern: 'tasks', key: queryKeys.tasks.all() },
+      { pattern: 'generalTasks', key: queryKeys.tasks.general() },
+      { pattern: 'clientNextSteps', key: queryKeys.tasks.clientNextSteps() },
+      { pattern: 'unified-tasks', key: queryKeys.tasks.unified() },
+      { pattern: 'client-items', key: queryKeys.tasks.clientItems() },
+    ];
+    
     // Check each query type and only add if it exists in the cache
-    if (activeQueries.some(key => key.includes('tasks'))) {
-      keysToInvalidate.push(queryKeys.tasks.all());
-    }
-    
-    if (activeQueries.some(key => key.includes('generalTasks'))) {
-      keysToInvalidate.push(queryKeys.tasks.general());
-    }
-    
-    if (activeQueries.some(key => key.includes('clientNextSteps'))) {
-      keysToInvalidate.push(queryKeys.tasks.clientNextSteps());
-    }
-    
-    if (activeQueries.some(key => key.includes('unified-tasks'))) {
-      keysToInvalidate.push(queryKeys.tasks.unified());
-    }
-    
-    if (activeQueries.some(key => key.includes('client-items'))) {
-      keysToInvalidate.push(queryKeys.tasks.clientItems());
+    for (const mapping of queryKeyMap) {
+      if (activeQueries.some(key => key.includes(mapping.pattern))) {
+        keysToInvalidate.push(mapping.key);
+      }
     }
     
     // If a client ID is provided, add client-specific query keys

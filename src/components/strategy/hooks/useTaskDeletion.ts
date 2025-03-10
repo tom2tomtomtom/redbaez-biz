@@ -5,14 +5,17 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useTaskDeletion as useGlobalTaskDeletion } from "@/hooks/useTaskDeletion";
 import { queryKeys } from "@/lib/queryKeys";
 
+/**
+ * Strategy-specific hook for task deletion
+ * Uses the global task deletion hook with strategy-specific callbacks
+ */
 export const useTaskDeletion = (onTaskDeleted: () => void) => {
   const [isDeleting, setIsDeleting] = useState(false);
   const queryClient = useQueryClient();
   const { deleteTask: globalDeleteTask } = useGlobalTaskDeletion(() => {
-    // Function that runs after deletion is complete
     console.log("STRATEGY: Deletion callback executed");
     
-    // Get list of active query keys to avoid trying to fetch non-existent ones
+    // Get list of active query keys for targeted refresh
     const activeQueries = queryClient.getQueryCache().getAll()
       .map(query => JSON.stringify(query.queryKey));
       
@@ -49,7 +52,6 @@ export const useTaskDeletion = (onTaskDeleted: () => void) => {
     
     try {
       // Pass the full task object to the global delete function
-      // It will handle finding the right table and deleting from it
       const success = await globalDeleteTask(task);
       
       if (!success) {

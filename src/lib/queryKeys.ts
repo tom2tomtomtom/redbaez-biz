@@ -18,5 +18,11 @@ export const queryKeys = {
   clients: {
     all: (refreshTrigger?: number) => ['clients', refreshTrigger],
     detail: (id?: string | number) => id ? ['client', String(id)] : ['client']
+  },
+  revenue: {
+    monthly: () => ['monthly-revenue']
+  },
+  intel: {
+    search: (query?: string) => ['intel-search', query]
   }
 };
