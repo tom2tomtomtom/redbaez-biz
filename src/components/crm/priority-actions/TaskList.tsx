@@ -1,3 +1,4 @@
+
 import { useEffect, useState, useRef } from 'react';
 import { TaskItem } from './TaskItem';
 import { useTaskData } from './hooks/useTaskData';
@@ -23,6 +24,7 @@ export const TaskList = ({
   const initialLoadDone = useRef(false);
   const [refreshKey, setRefreshKey] = useState(0);
   const refreshIntervalRef = useRef<number | null>(null);
+  const completedTaskIds = useRef<Set<string>>(new Set());
   
   // Use our task data hook with refresh key for forced updates
   const { data: tasks = [], isLoading, error, refetch } = useTaskData(category, showCompleted);
@@ -61,6 +63,8 @@ export const TaskList = ({
         window.clearInterval(refreshIntervalRef.current);
         refreshIntervalRef.current = null;
       }
+      // Clear the completed tasks set when component unmounts
+      completedTaskIds.current.clear();
     };
   }, [category, showCompleted, refetch, refreshKey]);
 
@@ -75,6 +79,8 @@ export const TaskList = ({
       await refetch();
       // Force component update by changing refresh key
       setRefreshKey(prev => prev + 1);
+      // Clear the completed tasks set on manual refresh
+      completedTaskIds.current.clear();
     } catch (err) {
       console.error("Error refreshing tasks:", err);
       toast({
@@ -98,13 +104,37 @@ export const TaskList = ({
     if (completed) {
       setCompletionConfirmTask(task);
     } else {
-      updateCompletion(task, false);
+      processCompletionChange(task, false);
+    }
+  };
+
+  const processCompletionChange = async (task: any, completed: boolean) => {
+    if (completed && !showCompleted) {
+      // Add to completed tasks set
+      completedTaskIds.current.add(task.id);
+    } else {
+      // Remove from completed tasks set if marking as incomplete
+      completedTaskIds.current.delete(task.id);
+    }
+    
+    const success = await updateCompletion(task, completed);
+    
+    if (success) {
+      if (completed && !showCompleted) {
+        // Force immediate UI refresh to remove the completed task
+        setRefreshKey(prev => prev + 1);
+      }
+    } else {
+      // If the operation failed, remove from completed tasks set
+      if (completed) {
+        completedTaskIds.current.delete(task.id);
+      }
     }
   };
 
   const confirmTaskCompletion = () => {
     if (completionConfirmTask) {
-      updateCompletion(completionConfirmTask, true);
+      processCompletionChange(completionConfirmTask, true);
       setCompletionConfirmTask(null);
     }
   };
@@ -125,7 +155,15 @@ export const TaskList = ({
     );
   }
 
-  if (!tasks.length) {
+  // Filter out tasks that were just marked as completed if not showing completed
+  const filteredTasks = tasks.filter(task => {
+    if (!showCompleted && completedTaskIds.current.has(task.id)) {
+      return false;
+    }
+    return true;
+  });
+
+  if (!filteredTasks.length) {
     return (
       <div className="p-4 text-center text-gray-500">
         <p className="mb-2">
@@ -148,7 +186,7 @@ export const TaskList = ({
         </Button>
       </div>
       
-      {tasks.map((task) => (
+      {filteredTasks.map((task) => (
         <TaskItem
           key={`${task.id}-${refreshKey}`}
           task={task}

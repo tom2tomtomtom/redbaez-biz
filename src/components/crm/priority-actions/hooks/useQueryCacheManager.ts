@@ -13,7 +13,7 @@ export const useQueryCacheManager = () => {
   const invalidateQueries = async (clientId?: number | null) => {
     // Simple debounce to prevent rapid invalidations
     const now = Date.now();
-    if (now - lastInvalidation < 500) {
+    if (now - lastInvalidation < 250) { // Reduced from 500ms to 250ms for more responsive updates
       console.log('[CACHE] Skipping invalidation - too soon after last one');
       return false;
     }
@@ -21,8 +21,11 @@ export const useQueryCacheManager = () => {
     setLastInvalidation(now);
     console.log(`[CACHE] Invalidating queries at ${new Date().toISOString()}`);
     
-    // Invalidate the core tasks - simpler approach
+    // Invalidate the core tasks more aggressively
     await queryClient.invalidateQueries({ queryKey: queryKeys.tasks.all() });
+    await queryClient.invalidateQueries({ queryKey: ['generalTasks'] });
+    await queryClient.invalidateQueries({ queryKey: ['tasks'] });
+    await queryClient.invalidateQueries({ queryKey: ['unified-tasks'] });
     
     // Refresh the unified tasks view which is most commonly used
     queryClient.refetchQueries({ queryKey: queryKeys.tasks.unified() });
@@ -39,6 +42,10 @@ export const useQueryCacheManager = () => {
         queryKey: queryKeys.tasks.clientItems(clientId) 
       });
     }
+    
+    // Force UI refresh by refetching the main data sources
+    queryClient.refetchQueries({ queryKey: ['priorityClients'] });
+    queryClient.refetchQueries({ queryKey: ['clientNextSteps'] });
     
     console.log(`[CACHE] Query invalidation complete`);
     return true;

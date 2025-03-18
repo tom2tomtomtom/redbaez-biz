@@ -32,13 +32,21 @@ export const useCompletionStatus = () => {
       
       console.log(`Successfully updated completion status at ${timestamp}`);
       
+      // More aggressive cache invalidation to ensure UI updates
       // Immediately invalidate queries
       await invalidateQueries(clientId);
       
-      // Secondary invalidation for certainty
+      // Secondary invalidation after a short delay for certainty
       setTimeout(async () => {
+        console.log(`Performing secondary cache invalidation for ${itemId}`);
         await invalidateQueries(clientId);
       }, 500);
+      
+      // Third invalidation after a longer delay as a failsafe
+      setTimeout(async () => {
+        console.log(`Performing tertiary cache invalidation for ${itemId}`);
+        await invalidateQueries(clientId);
+      }, 1500);
 
       return true;
     } catch (error) {

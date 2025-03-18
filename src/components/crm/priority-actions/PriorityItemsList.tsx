@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useRef } from 'react';
 import { PriorityActionItem } from './PriorityActionItem';
 import { PriorityItem } from './hooks/usePriorityData';
@@ -34,14 +35,17 @@ export const PriorityItemsList = ({
   
   const [completionConfirmItem, setCompletionConfirmItem] = useState<PriorityItem | null>(null);
   const deletedItemIds = useRef<Set<string>>(new Set());
+  const completedItemIds = useRef<Set<string>>(new Set());
 
   useEffect(() => {
     deletedItemIds.current = new Set<string>();
-    console.log('Deleted items set reset on component mount');
+    completedItemIds.current = new Set<string>();
+    console.log('Deleted and completed items sets reset on component mount');
     
     return () => {
       deletedItemIds.current.clear();
-      console.log('Deleted items set cleared on component unmount');
+      completedItemIds.current.clear();
+      console.log('Deleted and completed items sets cleared on component unmount');
     };
   }, []);
 
@@ -55,9 +59,14 @@ export const PriorityItemsList = ({
     console.log('PriorityItemsList received items:', items.length, items);
     console.log('showCompleted flag:', showCompleted);
     console.log('Deleted items count:', deletedItemIds.current.size);
+    console.log('Completed items count:', completedItemIds.current.size);
     
     if (deletedItemIds.current.size > 0) {
       console.log('Currently deleted items:', [...deletedItemIds.current]);
+    }
+
+    if (completedItemIds.current.size > 0 && !showCompleted) {
+      console.log('Currently completed items (not showing completed):', [...completedItemIds.current]);
     }
 
     const validItems = items.filter(item => {
@@ -71,6 +80,12 @@ export const PriorityItemsList = ({
       
       if (isDeleted) {
         console.log(`Filtering out locally deleted item: ${uniqueId}`);
+        return false;
+      }
+      
+      // When not showing completed items, filter out items that were just marked as completed
+      if (!showCompleted && completedItemIds.current.has(uniqueId)) {
+        console.log(`Filtering out locally completed item: ${uniqueId}`);
         return false;
       }
       
@@ -185,49 +200,61 @@ export const PriorityItemsList = ({
     
     try {
       setIsProcessingUpdate(true);
+      const itemId = item.data.id;
+      const uniqueItemId = `${item.type}-${itemId}`;
       
-      if (item.type === 'task') {
-        setLocalItems(prevItems => 
-          prevItems.map(i => {
-            if (i.type === 'task' && i.data.id === item.data.id) {
-              return {
-                ...i,
-                data: {
-                  ...i.data,
-                  status: checked ? 'completed' : 'incomplete'
-                }
-              } as PriorityItem;
-            }
-            return i;
-          })
-        );
-      } else if (item.type === 'next_step') {
-        setLocalItems(prevItems => 
-          prevItems.map(i => {
-            if (i.type === 'next_step' && i.data.id === item.data.id) {
-              return {
-                ...i,
-                data: {
-                  ...i.data,
-                  completed_at: checked ? new Date().toISOString() : null
-                }
-              } as PriorityItem;
-            }
-            return i;
-          })
-        );
+      if (checked && !showCompleted) {
+        // Add to completed items set when marking as complete
+        completedItemIds.current.add(uniqueItemId);
+        console.log(`Added ${uniqueItemId} to completedItemIds set`, [...completedItemIds.current]);
+        
+        // Immediately remove from local list if not showing completed items
+        setLocalItems(prevItems => prevItems.filter(i => 
+          !(i.type === item.type && i.data.id === itemId)
+        ));
+      } else {
+        // Remove from completed items set when marking as incomplete
+        completedItemIds.current.delete(uniqueItemId);
+        
+        // Update local state for the item status
+        if (item.type === 'task') {
+          setLocalItems(prevItems => 
+            prevItems.map(i => {
+              if (i.type === 'task' && i.data.id === item.data.id) {
+                return {
+                  ...i,
+                  data: {
+                    ...i.data,
+                    status: checked ? 'completed' : 'incomplete'
+                  }
+                } as PriorityItem;
+              }
+              return i;
+            })
+          );
+        } else if (item.type === 'next_step') {
+          setLocalItems(prevItems => 
+            prevItems.map(i => {
+              if (i.type === 'next_step' && i.data.id === item.data.id) {
+                return {
+                  ...i,
+                  data: {
+                    ...i.data,
+                    completed_at: checked ? new Date().toISOString() : null
+                  }
+                } as PriorityItem;
+              }
+              return i;
+            })
+          );
+        }
       }
       
+      // Update in the database
       const success = await handleCompletedChange(item, checked);
       
-      if (success && checked && !showCompleted) {
-        setLocalItems(prevItems => prevItems.filter(i => 
-          !(i.data.id === item.data.id && i.type === item.type)
-        ));
-      }
-      
       if (success) {
-        console.log('Task updated, refreshing data...');
+        console.log(`Task ${uniqueItemId} ${checked ? 'completed' : 'marked active'} successfully`);
         toast({
           title: "Success",
           description: `${item.type === 'task' ? 'Task' : 'Next step'} marked as ${checked ? 'completed' : 'active'}`,
@@ -236,7 +263,13 @@ export const PriorityItemsList = ({
           onItemUpdated();
         }
       } else {
-        console.error('Failed to update task completion status');
+        console.error(`Failed to update completion status for ${uniqueItemId}`);
+        
+        // Revert the local changes if the API call failed
+        if (checked) {
+          completedItemIds.current.delete(uniqueItemId);
+        }
+        
         if (item.type === 'task') {
           setLocalItems(prevItems => 
             prevItems.map(i => {
