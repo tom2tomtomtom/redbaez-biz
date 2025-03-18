@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
@@ -81,7 +82,7 @@ const fetchMonthlyRevenue = async () => {
     forecast: m.forecast,
     actualClientCount: m.actualClients.length,
     forecastClientCount: m.forecastClients.length
-  }));
+  })));
 
   const annualTotals = clients.reduce((acc: any, client: any) => {
     // Use Number() to ensure we're working with numbers, defaulting to 0 for null/undefined
@@ -112,7 +113,7 @@ export const RevenueSummary = () => {
   
   const { data, isLoading, error } = useQuery<RevenueData>({
     queryKey: ['monthly-revenue'],
-    queryFn: fetchMonthlyRevenue,
+    queryFn: fetchMonthlyRevenue
   });
 
   // Add a log whenever data changes to see what's being returned from the query
