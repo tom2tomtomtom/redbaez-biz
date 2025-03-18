@@ -19,9 +19,25 @@ export const RevenueChart = ({
   // Ensure we have valid data
   const chartData = Array.isArray(revenueData) ? revenueData : [];
   
+  // Check if we have any actual data to display
+  const hasData = chartData.some(item => item.actual > 0 || item.forecast > 0);
+  
   const formatYAxis = (value: number) => {
     return `$${value.toLocaleString()}`;
   };
+  
+  if (!hasData) {
+    return (
+      <div className="space-y-4">
+        <div className="flex justify-between items-center">
+          <p className="text-sm text-gray-600">Monthly Revenue</p>
+        </div>
+        <div className="h-[300px] bg-white p-4 rounded-lg flex items-center justify-center">
+          <p className="text-gray-500">No revenue data available</p>
+        </div>
+      </div>
+    );
+  }
   
   return (
     <div className="space-y-4">

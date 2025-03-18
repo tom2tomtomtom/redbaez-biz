@@ -35,8 +35,10 @@ export const KeyMetricsCard = ({
   
   // Ensure data is valid for rendering
   const safeRevenueData = Array.isArray(revenueData) ? revenueData : [];
-  const safeSignedOff = typeof annualRevenueSignedOff === 'number' ? annualRevenueSignedOff : 0;
-  const safeForecast = typeof annualRevenueForecast === 'number' ? annualRevenueForecast : 0;
+  const safeSignedOff = typeof annualRevenueSignedOff === 'number' && !isNaN(annualRevenueSignedOff) 
+    ? annualRevenueSignedOff : 0;
+  const safeForecast = typeof annualRevenueForecast === 'number' && !isNaN(annualRevenueForecast) 
+    ? annualRevenueForecast : 0;
   
   return (
     <Card className="col-span-1 lg:col-span-12 p-6">

@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Contact } from './ContactInfoCard';
@@ -21,14 +20,23 @@ interface ClientContentProps {
 
 export const ClientContent = ({ client, isEditing, parsedAdditionalContacts }: ClientContentProps) => {
   console.log('ClientContent rendering with client data:', client);
+  
+  // Get revenue calculations
   const { revenueData, totalActualRevenue, totalForecastRevenue } = useRevenueCalculations(client);
+  
+  // Use the calculated values if available, otherwise fall back to stored values from client
+  // This ensures we always have some value to display
+  const displayActualRevenue = client?.annual_revenue_signed_off ?? totalActualRevenue ?? 0;
+  const displayForecastRevenue = client?.annual_revenue_forecast ?? totalForecastRevenue ?? 0;
   
   console.log('Revenue calculation results:', { 
     revenueData, 
     totalActualRevenue, 
     totalForecastRevenue,
-    clientAnnualRevenueSignedOff: client.annual_revenue_signed_off,
-    clientAnnualRevenueForecast: client.annual_revenue_forecast
+    displayActualRevenue,
+    displayForecastRevenue,
+    clientAnnualRevenueSignedOff: client?.annual_revenue_signed_off,
+    clientAnnualRevenueForecast: client?.annual_revenue_forecast
   });
 
   const { data: allItems, isLoading } = useQuery({
@@ -88,18 +96,6 @@ export const ClientContent = ({ client, isEditing, parsedAdditionalContacts }: C
     }))
   ].sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime()) : [];
 
-  // Ensure we have default values for the revenue properties
-  const annualRevenueSignedOff = client.annual_revenue_signed_off || 0;
-  const annualRevenueForecast = client.annual_revenue_forecast || 0;
-
-  console.log('Final revenue data for KeyMetricsCard:', {
-    revenueData,
-    annualRevenueSignedOff,
-    annualRevenueForecast,
-    calculatedTotalActual: totalActualRevenue,
-    calculatedTotalForecast: totalForecastRevenue
-  });
-
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       <div className="bg-white rounded-lg shadow-sm p-6">
@@ -153,9 +149,9 @@ export const ClientContent = ({ client, isEditing, parsedAdditionalContacts }: C
       <KeyMetricsCard
         annualRevenue={client.annual_revenue}
         likelihood={client.likelihood}
-        revenueData={revenueData || []}
-        annualRevenueSignedOff={annualRevenueSignedOff}
-        annualRevenueForecast={annualRevenueForecast}
+        revenueData={revenueData}
+        annualRevenueSignedOff={displayActualRevenue}
+        annualRevenueForecast={displayForecastRevenue}
         clientId={client.id}
       />
     </div>

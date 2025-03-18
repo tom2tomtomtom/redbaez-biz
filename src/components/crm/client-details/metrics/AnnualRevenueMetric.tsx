@@ -13,8 +13,10 @@ export const AnnualRevenueMetric = ({
   annualRevenueForecast,
 }: AnnualRevenueMetricProps) => {
   // Ensure values are numeric and defaulted to 0 for calculations
-  const signedOffValue = typeof annualRevenueSignedOff === 'number' ? annualRevenueSignedOff : 0;
-  const forecastValue = typeof annualRevenueForecast === 'number' ? annualRevenueForecast : 0;
+  const signedOffValue = typeof annualRevenueSignedOff === 'number' && !isNaN(annualRevenueSignedOff) 
+    ? annualRevenueSignedOff : 0;
+  const forecastValue = typeof annualRevenueForecast === 'number' && !isNaN(annualRevenueForecast) 
+    ? annualRevenueForecast : 0;
   const totalRevenue = signedOffValue + forecastValue;
 
   console.log('AnnualRevenueMetric rendering with values:', {
