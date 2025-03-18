@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { toast } from '@/hooks/use-toast';
@@ -65,13 +66,15 @@ export const useTaskDeletion = (onSuccess?: () => void) => {
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: queryKeys.tasks.all() }),
         queryClient.invalidateQueries({ queryKey: queryKeys.tasks.list() }),
-        queryClient.invalidateQueries({ queryKey: queryKeys.tasks.client() })
+        queryClient.invalidateQueries({ queryKey: queryKeys.tasks.client() }),
+        queryClient.invalidateQueries({ queryKey: ['tasks'] }) // Add this for direct tasks fetch
       ]);
       
       // Force immediate refetch of key views
       await Promise.all([
         queryClient.refetchQueries({ queryKey: queryKeys.tasks.list() }),
-        queryClient.refetchQueries({ queryKey: queryKeys.tasks.client() })
+        queryClient.refetchQueries({ queryKey: queryKeys.tasks.client() }),
+        queryClient.refetchQueries({ queryKey: ['tasks'] })
       ]);
       
       toast({

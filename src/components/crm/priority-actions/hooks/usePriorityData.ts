@@ -25,6 +25,9 @@ const fetchTasks = async (category?: string) => {
       query = query.ilike('category', `%${category}%`);
     }
     
+    // Only fetch tasks that have a due_date (for priority actions)
+    query = query.not('due_date', 'is', null);
+    
     const { data, error } = await query;
     
     if (error) {

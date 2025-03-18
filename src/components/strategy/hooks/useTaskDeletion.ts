@@ -19,6 +19,7 @@ export const useTaskDeletion = (onTaskDeleted?: () => void) => {
     // Specifically refetch the strategy-relevant queries
     queryClient.refetchQueries({ queryKey: queryKeys.tasks.general() });
     queryClient.refetchQueries({ queryKey: queryKeys.tasks.unified() });
+    queryClient.refetchQueries({ queryKey: ['tasks'] });
     
     // Call the passed callback
     if (onTaskDeleted) {

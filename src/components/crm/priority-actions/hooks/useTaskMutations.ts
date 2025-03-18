@@ -26,6 +26,7 @@ export const useTaskMutations = () => {
     // First remove the cached data to force fresh fetches
     queryClient.removeQueries({ queryKey: queryKeys.tasks.unified() });
     queryClient.removeQueries({ queryKey: ['unified-tasks'] });
+    queryClient.removeQueries({ queryKey: ['tasks'] });
     
     // Invalidate all task-related queries
     await Promise.all([

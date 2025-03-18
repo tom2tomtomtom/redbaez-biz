@@ -22,6 +22,9 @@ export const useItemDeletion = () => {
     
     // Also refresh the unified view
     queryClient.refetchQueries({ queryKey: queryKeys.tasks.unified() });
+    
+    // Add this line to refresh the tasks directly
+    queryClient.refetchQueries({ queryKey: ['tasks'] });
   });
 
   const handleDelete = async (item: PriorityItem) => {
