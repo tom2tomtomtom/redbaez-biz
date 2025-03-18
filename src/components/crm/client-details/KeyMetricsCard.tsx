@@ -1,3 +1,4 @@
+
 import { Card } from "@/components/ui/card";
 import { AnnualRevenueMetric } from "./metrics/AnnualRevenueMetric";
 import { DealLikelihood } from "./metrics/DealLikelihood";
@@ -28,14 +29,16 @@ export const KeyMetricsCard = ({
   clientId,
 }: KeyMetricsCardProps) => {
   console.log('KeyMetricsCard revenue data:', revenueData);
+  console.log('KeyMetricsCard annualRevenueSignedOff:', annualRevenueSignedOff);
+  console.log('KeyMetricsCard annualRevenueForecast:', annualRevenueForecast);
   
   return (
     <Card className="col-span-1 lg:col-span-12 p-6">
       <div className="grid gap-6 md:grid-cols-2">
         <AnnualRevenueMetric 
           annualRevenue={annualRevenue} 
-          annualRevenueSignedOff={annualRevenueSignedOff}
-          annualRevenueForecast={annualRevenueForecast}
+          annualRevenueSignedOff={annualRevenueSignedOff || 0}
+          annualRevenueForecast={annualRevenueForecast || 0}
         />
         <DealLikelihood likelihood={likelihood} clientId={clientId} />
       </div>

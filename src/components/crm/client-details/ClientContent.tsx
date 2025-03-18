@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Contact } from './ContactInfoCard';
@@ -19,6 +20,7 @@ interface ClientContentProps {
 }
 
 export const ClientContent = ({ client, isEditing, parsedAdditionalContacts }: ClientContentProps) => {
+  console.log('ClientContent rendering with client data:', client);
   const { revenueData, totalActualRevenue } = useRevenueCalculations(client);
 
   const { data: allItems, isLoading } = useQuery({
@@ -78,6 +80,16 @@ export const ClientContent = ({ client, isEditing, parsedAdditionalContacts }: C
     }))
   ].sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime()) : [];
 
+  // Ensure we have default values for the revenue properties
+  const annualRevenueSignedOff = client.annual_revenue_signed_off || 0;
+  const annualRevenueForecast = client.annual_revenue_forecast || 0;
+
+  console.log('Revenue data for KeyMetricsCard:', {
+    revenueData,
+    annualRevenueSignedOff,
+    annualRevenueForecast
+  });
+
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       <div className="bg-white rounded-lg shadow-sm p-6">
@@ -132,8 +144,8 @@ export const ClientContent = ({ client, isEditing, parsedAdditionalContacts }: C
         annualRevenue={client.annual_revenue}
         likelihood={client.likelihood}
         revenueData={revenueData}
-        annualRevenueSignedOff={client.annual_revenue_signed_off || 0}
-        annualRevenueForecast={client.annual_revenue_forecast || 0}
+        annualRevenueSignedOff={annualRevenueSignedOff}
+        annualRevenueForecast={annualRevenueForecast}
         clientId={client.id}
       />
     </div>

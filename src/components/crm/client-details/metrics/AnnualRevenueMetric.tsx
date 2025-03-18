@@ -1,3 +1,4 @@
+
 import React from 'react';
 
 interface AnnualRevenueMetricProps {
@@ -11,7 +12,16 @@ export const AnnualRevenueMetric = ({
   annualRevenueSignedOff,
   annualRevenueForecast,
 }: AnnualRevenueMetricProps) => {
-  const totalRevenue = (annualRevenueSignedOff || 0) + (annualRevenueForecast || 0);
+  const signedOffValue = annualRevenueSignedOff || 0;
+  const forecastValue = annualRevenueForecast || 0;
+  const totalRevenue = signedOffValue + forecastValue;
+
+  console.log('AnnualRevenueMetric values:', {
+    annualRevenue,
+    annualRevenueSignedOff: signedOffValue,
+    annualRevenueForecast: forecastValue,
+    totalRevenue
+  });
 
   return (
     <div className="p-4 bg-blue-50/50 rounded-lg transition-all duration-300 hover:bg-blue-50">
@@ -21,10 +31,10 @@ export const AnnualRevenueMetric = ({
       </p>
       <div className="space-y-1">
         <p className="text-sm text-blue-500">
-          Actual: ${(annualRevenueSignedOff || 0).toLocaleString()}
+          Actual: ${signedOffValue.toLocaleString()}
         </p>
         <p className="text-sm text-blue-500">
-          Forecast: ${(annualRevenueForecast || 0).toLocaleString()}
+          Forecast: ${forecastValue.toLocaleString()}
         </p>
       </div>
     </div>

@@ -1,4 +1,5 @@
-import { useState } from 'react';
+
+import { useState, useEffect } from 'react';
 import { format } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -6,6 +7,7 @@ import { Card } from '@/components/ui/card';
 import { useClientForecasts } from '@/hooks/useClientForecasts';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 
 interface ForecastEditorProps {
   clientId: number;
@@ -37,6 +39,42 @@ export const ForecastEditor = ({ clientId }: ForecastEditorProps) => {
     }), {} as MonthlyData)
   );
 
+  // Fetch the client data when editing starts
+  useEffect(() => {
+    if (isEditing) {
+      const fetchClientData = async () => {
+        try {
+          const { data: client, error } = await supabase
+            .from('clients')
+            .select('*')
+            .eq('id', clientId)
+            .single();
+            
+          if (error) throw error;
+          
+          console.log('Fetched client data for revenue editing:', client);
+          
+          // Update monthly data from client
+          const updatedMonthlyData = { ...monthlyData };
+          
+          months.forEach(month => {
+            const monthLower = month.toLowerCase();
+            updatedMonthlyData[monthLower] = {
+              forecast: client[`forecast_${monthLower}`] || 0,
+              actual: client[`actual_${monthLower}`] || 0
+            };
+          });
+          
+          setMonthlyData(updatedMonthlyData);
+        } catch (error) {
+          console.error('Error fetching client data for revenue editor:', error);
+        }
+      };
+      
+      fetchClientData();
+    }
+  }, [isEditing, clientId]);
+
   const handleValueChange = (month: string, type: 'forecast' | 'actual', value: string) => {
     const numericValue = value === '' ? 0 : parseInt(value, 10);
     setMonthlyData(prev => ({
@@ -50,6 +88,8 @@ export const ForecastEditor = ({ clientId }: ForecastEditorProps) => {
 
   const handleSubmit = async () => {
     try {
+      console.log('Submitting monthly revenue data:', monthlyData);
+      
       for (const [month, values] of Object.entries(monthlyData)) {
         const monthDate = new Date(`${currentYear}-${months.findIndex(m => m.toLowerCase() === month) + 1}-01`);
         
@@ -108,7 +148,7 @@ export const ForecastEditor = ({ clientId }: ForecastEditorProps) => {
                 <TableCell>
                   <Input
                     type="number"
-                    value={monthlyData[month.toLowerCase()].forecast || ''}
+                    value={monthlyData[month.toLowerCase()].forecast}
                     onChange={(e) => handleValueChange(month, 'forecast', e.target.value)}
                     className="w-full"
                     placeholder="Enter forecast"
@@ -119,7 +159,7 @@ export const ForecastEditor = ({ clientId }: ForecastEditorProps) => {
                 <TableCell>
                   <Input
                     type="number"
-                    value={monthlyData[month.toLowerCase()].actual || ''}
+                    value={monthlyData[month.toLowerCase()].actual}
                     onChange={(e) => handleValueChange(month, 'actual', e.target.value)}
                     className="w-full"
                     placeholder="Enter actual"

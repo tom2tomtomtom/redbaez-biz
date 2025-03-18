@@ -1,3 +1,4 @@
+
 interface RevenueData {
   month: string;
   actual: number;
@@ -9,6 +10,8 @@ export const useRevenueCalculations = (client: any) => {
     console.log('No client data provided to useRevenueCalculations');
     return { revenueData: [], totalActualRevenue: 0 };
   }
+
+  console.log('Processing client data for revenue calculations:', client);
 
   const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
   
