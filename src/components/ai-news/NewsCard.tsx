@@ -33,6 +33,9 @@ export const NewsCard = ({
 }: NewsCardProps) => {
   const isGeneratingForThis = isGenerating && selectedNewsItem?.id === item.id;
 
+  // Ensure we have a valid title and summary before enabling LinkedIn generation
+  const canGenerateArticle = !!item.title && !!item.summary;
+
   return (
     <Card className="transition-all hover:shadow-lg">
       <CardHeader>
@@ -53,6 +56,7 @@ export const NewsCard = ({
               size="icon"
               onClick={() => onShare(item)}
               className="shrink-0"
+              title="Share article"
             >
               <Share2 className="h-4 w-4" />
             </Button>
@@ -60,8 +64,9 @@ export const NewsCard = ({
               variant="ghost"
               size="icon"
               onClick={() => onGenerateLinkedInArticle(item)}
-              disabled={isGeneratingForThis}
+              disabled={isGeneratingForThis || !canGenerateArticle}
               className="shrink-0"
+              title="Generate LinkedIn post"
             >
               {isGeneratingForThis ? (
                 <Loader2 className="h-4 w-4 animate-spin" />

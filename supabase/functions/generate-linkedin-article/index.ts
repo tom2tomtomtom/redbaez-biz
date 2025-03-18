@@ -13,11 +13,29 @@ serve(async (req) => {
 
   try {
     const { title, summary } = await req.json()
+    
+    if (!title || !summary) {
+      return new Response(
+        JSON.stringify({ error: 'Title and summary are required' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
+      )
+    }
+
+    console.log('Generating LinkedIn article for:', { title, summary });
+
+    const openaiKey = Deno.env.get('OPENAI_API_KEY');
+    if (!openaiKey) {
+      console.error('OPENAI_API_KEY is not set');
+      return new Response(
+        JSON.stringify({ error: 'OpenAI API key is not configured' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
+      )
+    }
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${Deno.env.get('OPENAI_API_KEY')}`,
+        'Authorization': `Bearer ${openaiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
@@ -59,14 +77,22 @@ Keep it concise and engaging.`
     })
 
     const result = await response.json()
-    console.log('OpenAI API Response:', result)
+    console.log('OpenAI API Response status:', result.choices ? 'Success' : 'Error');
+
+    if (!result.choices || result.choices.length === 0) {
+      console.error('Error from OpenAI:', result);
+      return new Response(
+        JSON.stringify({ error: 'Failed to generate article content', details: result }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
+      )
+    }
 
     return new Response(
       JSON.stringify({ article: result.choices[0].message.content }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
     )
   } catch (error) {
-    console.error('Error:', error)
+    console.error('Error in generate-linkedin-article:', error);
     return new Response(
       JSON.stringify({ error: error.message }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 },
