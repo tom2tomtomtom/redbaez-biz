@@ -11,6 +11,7 @@ import { AiNews } from './pages/AiNews';
 import { ClientDetails } from './components/crm/client-details/ClientDetails';
 import { ThemeProvider } from './hooks/use-theme';
 import { ClientForm } from './components/crm/client-form/ClientForm';
+import { ErrorBoundary } from './components/ui/error-boundary';
 import './App.css';
 
 const queryClient = new QueryClient({
@@ -27,35 +28,37 @@ const queryClient = new QueryClient({
 
 function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <ThemeProvider>
-        <Router>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/marketing" element={<Marketing />} />
-            <Route path="/partnerships" element={<Partnerships />} />
-            <Route path="/product-development" element={<ProductDevelopment />} />
-            <Route path="/ai-news" element={<AiNews />} />
-            <Route path="/business-admin" element={<BusinessAdmin />} />
-            <Route path="/client/:id" element={<ClientDetails />} />
-            <Route 
-              path="/client/new" 
-              element={
-                <ClientForm
-                  contacts={[]}
-                  nextSteps=""
-                  nextDueDate=""
-                  onContactsChange={() => {}}
-                  onNextStepsChange={() => {}}
-                  onNextDueDateChange={() => {}}
-                />
-              } 
-            />
-          </Routes>
-        </Router>
-      </ThemeProvider>
-    </QueryClientProvider>
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <ThemeProvider>
+          <Router>
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/marketing" element={<Marketing />} />
+              <Route path="/partnerships" element={<Partnerships />} />
+              <Route path="/product-development" element={<ProductDevelopment />} />
+              <Route path="/ai-news" element={<AiNews />} />
+              <Route path="/business-admin" element={<BusinessAdmin />} />
+              <Route path="/client/:id" element={<ClientDetails />} />
+              <Route 
+                path="/client/new" 
+                element={
+                  <ClientForm
+                    contacts={[]}
+                    nextSteps=""
+                    nextDueDate=""
+                    onContactsChange={() => {}}
+                    onNextStepsChange={() => {}}
+                    onNextDueDateChange={() => {}}
+                  />
+                } 
+              />
+            </Routes>
+          </Router>
+        </ThemeProvider>
+      </QueryClientProvider>
+    </ErrorBoundary>
   );
 }
 

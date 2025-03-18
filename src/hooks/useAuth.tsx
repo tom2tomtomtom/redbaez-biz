@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/integrations/supabase/client';
 import { AuthError, AuthChangeEvent, Session } from '@supabase/supabase-js';
 import { isAllowedDomain, getAllowedDomainsMessage } from '@/utils/auth';
 
