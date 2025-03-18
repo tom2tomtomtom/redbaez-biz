@@ -41,21 +41,9 @@ export const useCompletionStatus = () => {
       
       console.log(`Successfully updated completion status at ${timestamp}`);
       
-      // More aggressive cache invalidation to ensure UI updates immediately
+      // Immediately invalidate and refetch all related queries
       await invalidateQueries(clientId);
       
-      // Additional invalidation after a short delay to catch any stale data
-      setTimeout(async () => {
-        console.log(`Performing secondary cache invalidation for ${itemId}`);
-        await invalidateQueries(clientId);
-        
-        // Force a third invalidation for good measure
-        setTimeout(async () => {
-          console.log(`Performing tertiary cache invalidation for ${itemId}`);
-          await invalidateQueries(clientId);
-        }, 1000);
-      }, 300);
-
       // Show a toast to confirm the action
       toast({
         title: completed ? "Task Completed" : "Task Reopened",

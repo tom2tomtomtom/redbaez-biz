@@ -113,16 +113,16 @@ export const TaskList = ({
       // Add to completed tasks set
       completedTaskIds.current.add(task.id);
     } else {
-      // Remove from completed tasks set if marking as incomplete
+      // Remove from completed items set if marking as incomplete
       completedTaskIds.current.delete(task.id);
     }
     
     const success = await updateCompletion(task, completed);
     
-    if (success) {
-      // Fix: Don't check boolean return value directly, it could be void
+    // FIX: Don't check success as truthiness directly
+    if (success !== false) {
+      // Force immediate UI refresh to remove the completed task
       if (completed && !showCompleted) {
-        // Force immediate UI refresh to remove the completed task
         setRefreshKey(prev => prev + 1);
       }
     } else {

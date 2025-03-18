@@ -20,17 +20,26 @@ export const useTaskMutations = () => {
   const invalidateTaskQueries = async () => {
     console.log('Invalidating and refetching task queries');
     
-    // First invalidate all task-related queries
+    // Cancel any ongoing queries
+    queryClient.cancelQueries();
+    
+    // First remove the cached data to force fresh fetches
+    queryClient.removeQueries({ queryKey: queryKeys.tasks.unified() });
+    queryClient.removeQueries({ queryKey: ['unified-tasks'] });
+    
+    // Invalidate all task-related queries
     await Promise.all([
       queryClient.invalidateQueries({ queryKey: queryKeys.tasks.all() }),
       queryClient.invalidateQueries({ queryKey: queryKeys.tasks.list() }),
-      queryClient.invalidateQueries({ queryKey: queryKeys.tasks.client() })
+      queryClient.invalidateQueries({ queryKey: queryKeys.tasks.client() }),
+      queryClient.invalidateQueries({ queryKey: ['tasks'] }),
     ]);
     
-    // Then force refetch of key queries
+    // Force refetch of key queries
     await Promise.all([
       queryClient.refetchQueries({ queryKey: queryKeys.tasks.list() }),
-      queryClient.refetchQueries({ queryKey: queryKeys.tasks.client() })
+      queryClient.refetchQueries({ queryKey: queryKeys.tasks.client() }),
+      queryClient.refetchQueries({ queryKey: ['tasks'] }),
     ]);
   };
   
