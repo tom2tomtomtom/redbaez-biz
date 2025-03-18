@@ -120,6 +120,7 @@ export const TaskList = ({
     const success = await updateCompletion(task, completed);
     
     if (success) {
+      // Fix: Don't check boolean return value directly, it could be void
       if (completed && !showCompleted) {
         // Force immediate UI refresh to remove the completed task
         setRefreshKey(prev => prev + 1);
