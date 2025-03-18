@@ -1,131 +1,128 @@
 
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
-import { Task } from '@/hooks/useTaskDeletion';
-import { TaskType } from './taskTypes';
-import logger from '@/utils/logger';
+import { useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/lib/supabase";
+import { PriorityItem } from "./taskTypes";
+import { queryKeys } from "@/lib/queryKeys";
 
-export type PriorityItem = {
-  type: TaskType;
-  date: string | null;
-  data: Task;
-};
+/**
+ * Hook to fetch priority items (tasks, next steps, etc.)
+ * for the priority dashboard
+ */
+export const usePriorityData = () => {
+  const [isLoading, setIsLoading] = useState(true);
+  const queryClient = useQueryClient();
 
-const fetchTasks = async (category?: string) => {
-  logger.info('Fetching tasks', { category });
-  
-  try {
-    let query = supabase
-      .from('tasks')
-      .select('*, clients(name)')
-      .order('urgent', { ascending: false })
-      .order('updated_at', { ascending: false });
-      
-    if (category && category !== 'All') {
-      query = query.ilike('category', `%${category}%`);
-    }
-    
-    // Only fetch tasks that have a due_date (for priority actions)
-    query = query.not('due_date', 'is', null);
-    
-    const { data, error } = await query;
-    
-    if (error) {
-      logger.error('Error fetching tasks:', error);
-      throw error;
-    }
-    
-    logger.info(`Fetched ${data?.length} tasks`);
-    return data || [];
-  } catch (error) {
-    logger.error('Exception in fetchTasks:', error);
-    throw error;
-  }
-};
+  // Fetches all incomplete tasks
+  const { data: tasksData, refetch: refetchTasks } = useQuery({
+    queryKey: queryKeys.tasks.unified(),
+    queryFn: async () => {
+      console.log("Fetching incomplete tasks...");
+      setIsLoading(true);
 
-// Create a unique ID for each item to assist with tracking
-const createUniqueId = (type: string, id: string | number) => `${type}-${id}`;
+      // Only fetch tasks that have a due date (ensure tasks without due dates don't appear in priority list)
+      const { data, error } = await supabase
+        .from("tasks")
+        .select("*, clients(name)")
+        .eq("status", "incomplete")
+        .not("due_date", "is", null)
+        .order("urgent", { ascending: false })
+        .order("due_date", { ascending: true });
 
-export const usePriorityData = (category?: string) => {
-  const tasksQuery = useQuery({
-    queryKey: ['tasks', category], 
-    queryFn: () => fetchTasks(category),
-    staleTime: 0, // Disable caching
-    gcTime: 0, // Do not keep stale data
-    refetchOnWindowFocus: true,
-    refetchOnMount: true
+      if (error) {
+        console.error("Error fetching tasks:", error);
+        throw error;
+      }
+
+      setIsLoading(false);
+      return data || [];
+    },
   });
 
-  // Ensure we have arrays even if queries return null/undefined
-  const tasks = tasksQuery.data || [];
+  // Map task data to the unified PriorityItem format
+  const mapTasksToPriorityItems = (): PriorityItem[] => {
+    if (!tasksData) return [];
 
-  // Create a map to ensure we don't have duplicates
-  const itemsMap = new Map<string, PriorityItem>();
-  
-  // Add tasks to the map
-  tasks.forEach(task => {
-    if (task && task.id) {
-      const key = createUniqueId('task', task.id);
-      itemsMap.set(key, {
-        type: 'task',
-        date: task.due_date,
+    return tasksData.map((task) => {
+      // Handle tasks with client relation
+      if (task.client_id) {
+        return {
+          type: "next-step",
+          data: {
+            id: task.id,
+            title: task.title,
+            description: task.description,
+            client_id: task.client_id,
+            client_name: task.clients?.name || null,
+            category: task.category,
+            due_date: task.due_date,
+            urgent: task.urgent,
+            status: task.status,
+          },
+        };
+      }
+
+      // Handle general tasks
+      return {
+        type: "task",
         data: {
           id: task.id,
           title: task.title,
           description: task.description,
-          client_id: task.client_id,
-          client: task.clients,
-          client_name: task.clients?.name,
+          category: task.category,
           due_date: task.due_date,
-          next_due_date: task.due_date,
-          notes: task.description,
-          urgent: task.urgent || false,
-          status: task.status as 'completed' | 'incomplete',
-          category: task.category || 'general',
-          created_at: task.created_at,
-          updated_at: task.updated_at,
-          created_by: task.created_by,
-          updated_by: task.updated_by,
-          completed_at: task.status === 'completed' ? task.updated_at : null,
-          type: 'task' as TaskType
-        }
-      });
-    }
-  });
-  
-  // Convert map to sorted array
-  const allItems = Array.from(itemsMap.values())
-    .sort((a, b) => {
-      // First sort by urgency
-      const aUrgent = 'urgent' in a.data && a.data.urgent;
-      const bUrgent = 'urgent' in b.data && b.data.urgent;
-
-      if (aUrgent && !bUrgent) return -1;
-      if (!aUrgent && bUrgent) return 1;
-
-      // Then sort by date
-      const aDate = a.date;
-      const bDate = b.date;
-
-      if (!aDate && !bDate) return 0;
-      if (!aDate) return 1;
-      if (!bDate) return -1;
-      
-      return new Date(aDate).getTime() - new Date(bDate).getTime();
+          urgent: task.urgent,
+          status: task.status,
+        },
+      };
     });
+  };
 
-  logger.info('Priority items processed', { count: allItems.length });
-  
-  return {
-    allItems,
-    isLoading: tasksQuery.isLoading,
-    error: tasksQuery.error,
-    refetch: async () => {
-      logger.info('Manually refetching priority data');
-      // First remove any cached data
-      tasksQuery.queryClient.removeQueries({ queryKey: ['tasks', category] });
-      // Then refetch
-      await tasksQuery.refetch();
+  // Sort priority items by urgency, then by due date
+  const sortPriorityItems = (items: PriorityItem[]): PriorityItem[] => {
+    return [...items].sort((a, b) => {
+      // First sort by urgency
+      if (a.data.urgent && !b.data.urgent) return -1;
+      if (!a.data.urgent && b.data.urgent) return 1;
+
+      // Then sort by due date (if both have one)
+      if (a.data.due_date && b.data.due_date) {
+        return new Date(a.data.due_date).getTime() - new Date(b.data.due_date).getTime();
+      }
+
+      // If only one has a due date, prioritize it
+      if (a.data.due_date && !b.data.due_date) return -1;
+      if (!a.data.due_date && b.data.due_date) return 1;
+
+      return 0;
+    });
+  };
+
+  // Get all priority items and sort them
+  const priorityItems = sortPriorityItems(mapTasksToPriorityItems());
+
+  // Refetch all data
+  const refreshAllData = async () => {
+    console.log("Refreshing all priority data...");
+    setIsLoading(true);
+    
+    try {
+      await refetchTasks();
+      
+      // Force invalidate all related query caches to ensure fresh data
+      queryClient.invalidateQueries({ queryKey: queryKeys.tasks.unified() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.tasks.all() });
+      queryClient.invalidateQueries({ queryKey: ['tasks'] });
+    } catch (error) {
+      console.error("Error refreshing priority data:", error);
+    } finally {
+      setIsLoading(false);
     }
+  };
+
+  return {
+    priorityItems,
+    isLoading,
+    refreshAllData,
   };
 };

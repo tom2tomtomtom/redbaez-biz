@@ -92,6 +92,11 @@ export const useNewsOperations = () => {
     setSelectedNewsItem(item);
     
     try {
+      console.log('Invoking generate-linkedin-article with:', {
+        title: item.title,
+        summary: item.summary,
+      });
+      
       const { data, error } = await supabase.functions.invoke('generate-linkedin-article', {
         body: {
           title: item.title,
@@ -99,12 +104,17 @@ export const useNewsOperations = () => {
         },
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error from invoke:', error);
+        throw error;
+      }
       
       if (data?.article) {
+        console.log('Successfully generated LinkedIn article');
         setGeneratedArticle(data.article);
         setShowArticleDialog(true);
       } else {
+        console.error('No article in response data:', data);
         throw new Error('No article generated');
       }
     } catch (error) {

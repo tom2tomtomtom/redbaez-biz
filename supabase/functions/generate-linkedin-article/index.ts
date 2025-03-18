@@ -1,10 +1,6 @@
 
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-}
+import { corsHeaders } from '../_shared/cors.ts'
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -15,6 +11,7 @@ serve(async (req) => {
     const { title, summary } = await req.json()
     
     if (!title || !summary) {
+      console.error('Missing required fields:', { title, summary });
       return new Response(
         JSON.stringify({ error: 'Title and summary are required' }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
