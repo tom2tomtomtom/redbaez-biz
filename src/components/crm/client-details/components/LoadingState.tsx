@@ -1,9 +1,13 @@
+
 import React from 'react';
+import { LoadingState as StandardLoadingState } from '@/components/ui/loading-state';
 
 export const LoadingState = () => {
   return (
-    <div className="flex items-center justify-center h-screen">
-      Loading...
-    </div>
+    <StandardLoadingState 
+      variant="spinner" 
+      text="Loading client details..." 
+      className="h-screen"
+    />
   );
 };

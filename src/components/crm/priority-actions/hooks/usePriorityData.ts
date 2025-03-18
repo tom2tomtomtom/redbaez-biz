@@ -1,8 +1,9 @@
 
 import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/integrations/supabase/client';
 import { Task } from '@/hooks/useTaskDeletion';
 import { TaskType } from './taskTypes';
+import logger from '@/utils/logger';
 
 export type PriorityItem = {
   type: TaskType;
@@ -11,12 +12,9 @@ export type PriorityItem = {
 };
 
 const fetchTasks = async (category?: string) => {
-  console.log('Fetching tasks');
+  logger.info('Fetching tasks', { category });
   
   try {
-    // Create a timestamp for this request to prevent caching
-    const timestamp = new Date().toISOString();
-    
     let query = supabase
       .from('tasks')
       .select('*, clients(name)')
@@ -30,15 +28,15 @@ const fetchTasks = async (category?: string) => {
     const { data, error } = await query;
     
     if (error) {
-      console.error(`Error fetching tasks at ${timestamp}:`, error);
+      logger.error('Error fetching tasks:', error);
       throw error;
     }
     
-    console.log(`Fetched ${data?.length} tasks at ${timestamp}`);
+    logger.info(`Fetched ${data?.length} tasks`);
     return data || [];
   } catch (error) {
-    console.error('Error in fetchTasks:', error);
-    return [];
+    logger.error('Exception in fetchTasks:', error);
+    throw error;
   }
 };
 
@@ -74,18 +72,18 @@ export const usePriorityData = (category?: string) => {
           description: task.description,
           client_id: task.client_id,
           client: task.clients,
-          client_name: task.clients?.name, // Add client_name for compatibility
+          client_name: task.clients?.name,
           due_date: task.due_date,
-          next_due_date: task.due_date, // Map due_date to next_due_date for backward compatibility
-          notes: task.description, // Map description to notes for backward compatibility
+          next_due_date: task.due_date,
+          notes: task.description,
           urgent: task.urgent || false,
           status: task.status as 'completed' | 'incomplete',
-          category: task.category || 'general', // Provide default category
+          category: task.category || 'general',
           created_at: task.created_at,
           updated_at: task.updated_at,
           created_by: task.created_by,
           updated_by: task.updated_by,
-          completed_at: task.status === 'completed' ? task.updated_at : null, // Map status to completed_at
+          completed_at: task.status === 'completed' ? task.updated_at : null,
           type: 'task' as TaskType
         }
       });
@@ -113,14 +111,14 @@ export const usePriorityData = (category?: string) => {
       return new Date(aDate).getTime() - new Date(bDate).getTime();
     });
 
-  console.log('Priority items count:', allItems.length);
+  logger.info('Priority items processed', { count: allItems.length });
   
   return {
     allItems,
     isLoading: tasksQuery.isLoading,
     error: tasksQuery.error,
     refetch: async () => {
-      console.log('Manually refetching priority data');
+      logger.info('Manually refetching priority data');
       await tasksQuery.refetch();
     }
   };

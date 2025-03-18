@@ -6,10 +6,12 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
 import { useTaskMutations } from './hooks/useTaskMutations';
 import { Task } from '@/hooks/useTaskDeletion';
+import { useApiRequest } from '@/hooks/useApiRequest';
+import logger from '@/utils/logger';
 
 interface TaskFormProps {
   task?: Task | null;
@@ -23,75 +25,69 @@ const CATEGORIES = ['Marketing', 'Product Development', 'Partnerships', 'Busines
 export const TaskForm = ({ task, onSaved, onCancel, defaultCategory }: TaskFormProps) => {
   const { toast } = useToast();
   const { invalidateTaskQueries } = useTaskMutations();
+  
   const [title, setTitle] = useState(task?.title || '');
   const [description, setDescription] = useState(task?.description || '');
   const [category, setCategory] = useState(task?.category || defaultCategory || CATEGORIES[0]);
   const [dueDate, setDueDate] = useState(task?.due_date ? new Date(task.due_date).toISOString().split('T')[0] : '');
   const [urgent, setUrgent] = useState(task?.urgent || false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-
-    try {
+  // Use our standardized API request hook for saving the task
+  const { execute: saveTask, isLoading: isSubmitting } = useApiRequest(
+    async (formData: any) => {
       // Get current user
       const { data: { user } } = await supabase.auth.getUser();
-
+      
       if (task?.id) {
         // Update existing task
         const { error } = await supabase
           .from('tasks')
           .update({
-            title,
-            description,
-            category,
-            due_date: dueDate ? new Date(dueDate).toISOString() : null,
-            urgent,
+            ...formData,
             updated_at: new Date().toISOString(),
             updated_by: user?.id
           })
           .eq('id', task.id);
 
         if (error) throw error;
-        toast({
-          title: "Task updated",
-          description: "The task has been successfully updated.",
-        });
+        return { success: true, message: "Task updated successfully" };
       } else {
         // Create new task
         const { error } = await supabase
           .from('tasks')
           .insert({
-            title,
-            description,
-            category,
-            due_date: dueDate ? new Date(dueDate).toISOString() : null,
-            urgent,
+            ...formData,
             created_by: user?.id,
             status: 'incomplete'
           });
 
         if (error) throw error;
-        toast({
-          title: "Task created",
-          description: "The new task has been successfully created.",
-        });
+        return { success: true, message: "Task created successfully" };
       }
-
-      // Invalidate all tasks queries
-      await invalidateTaskQueries();
-      onSaved();
-    } catch (error) {
-      console.error('Error saving task:', error);
-      toast({
-        title: "Error",
-        description: "There was an error saving the task. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsSubmitting(false);
+    },
+    {
+      onSuccess: async () => {
+        await invalidateTaskQueries();
+        onSaved();
+      },
+      successMessage: task ? "Task updated successfully" : "Task created successfully",
+      errorMessage: "There was an error saving the task. Please try again.",
     }
+  );
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    const formData = {
+      title,
+      description,
+      category,
+      due_date: dueDate ? new Date(dueDate).toISOString() : null,
+      urgent,
+    };
+    
+    logger.info('Submitting task form', { isUpdate: !!task?.id, formData });
+    await saveTask(formData);
   };
 
   return (
