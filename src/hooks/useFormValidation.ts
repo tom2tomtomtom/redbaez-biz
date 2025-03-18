@@ -1,6 +1,6 @@
 
 import { useState, useCallback } from 'react';
-import { ZodSchema, ZodError } from 'zod';
+import { ZodSchema, ZodError, z } from 'zod';
 import logger from '@/utils/logger';
 
 interface ValidationOptions<T> {
@@ -62,13 +62,13 @@ export function useFormValidation<T extends Record<string, any>>({
   const validateField = useCallback(
     (field: keyof T, value: any): boolean => {
       try {
-        // Create a partial schema for just this field
-        const fieldSchema = schema.shape[field as string];
-        if (!fieldSchema) {
-          return true;
-        }
-
-        fieldSchema.parse(value);
+        // Create a partial schema with just this field
+        // Note: We can't access schema.shape directly as it might not exist on all ZodSchema types
+        const partialSchema = z.object({ [field as string]: schema }) as ZodSchema;
+        
+        // Attempt to parse just this field's value
+        partialSchema.parse({ [field]: value });
+        
         // Clear error for this field if validation passes
         setErrors((prev) => {
           const updated = { ...prev };
@@ -81,7 +81,7 @@ export function useFormValidation<T extends Record<string, any>>({
           const fieldErrors = formatErrors(error);
           setErrors((prev) => ({
             ...prev,
-            [field]: fieldErrors[0]?.message || 'Invalid value',
+            [field as string]: fieldErrors[Object.keys(fieldErrors)[0]] || 'Invalid value'
           }));
         }
         return false;

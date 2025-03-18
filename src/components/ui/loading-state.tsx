@@ -12,6 +12,8 @@ interface LoadingStateProps {
   width?: string | number;
   count?: number;
   className?: string;
+  isLoading?: boolean;
+  children?: React.ReactNode;
 }
 
 export const LoadingState: React.FC<LoadingStateProps> = ({
@@ -21,7 +23,14 @@ export const LoadingState: React.FC<LoadingStateProps> = ({
   width = '100%',
   count = 1,
   className = '',
+  isLoading = true,
+  children,
 }) => {
+  // If not loading, render children if provided
+  if (!isLoading) {
+    return <>{children}</>;
+  }
+
   // Helper function to render multiple skeletons
   const renderSkeletons = () => {
     return Array.from({ length: count }).map((_, i) => (
@@ -53,4 +62,15 @@ export const LoadingState: React.FC<LoadingStateProps> = ({
     default:
       return <div className="space-y-2">{renderSkeletons()}</div>;
   }
+};
+
+// Create a conditional loading state component for easier usage
+export const ConditionalLoading: React.FC<LoadingStateProps> = (props) => {
+  const { isLoading, children, ...rest } = props;
+  
+  if (!isLoading) {
+    return <>{children}</>;
+  }
+  
+  return <LoadingState {...rest} />;
 };
