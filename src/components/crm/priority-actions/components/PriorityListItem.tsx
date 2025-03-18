@@ -1,8 +1,9 @@
+
 import { useEffect, useState } from 'react';
 import { PriorityItem } from '../hooks/usePriorityData';
 import { GeneralTaskItem } from '../GeneralTaskItem';
 import { ItemControls } from './ItemControls';
-import { Task } from '@/hooks/useTaskDeletion';
+import { Task } from '@/integrations/supabase/types/general-tasks.types'; // Updated import
 import { useNavigate } from 'react-router-dom';
 
 interface PriorityListItemProps {
@@ -70,7 +71,7 @@ export const PriorityListItem = ({
       completed_at: item.data.completed_at || null,
       category: item.data.category || null,
       type: item.type === "next_step" ? "next_step" : "task",
-      source_table: item.type === "next_step" ? "client_next_steps" : "general_tasks"
+      // Removing source_table as it's not in the updated Task type
     };
   };
 
@@ -96,7 +97,7 @@ export const PriorityListItem = ({
         onClick={handleClick}
       >
         <GeneralTaskItem 
-          task={convertToTaskFormat()} 
+          task={convertToTaskFormat() as any} 
           isClientTask={!!item.data.client_id}
         />
       </div>

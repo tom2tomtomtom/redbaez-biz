@@ -16,7 +16,7 @@ export interface Task {
   completed_at?: string | null;
   category?: string | null;
   type: TaskType;
-  source_table: 'general_tasks' | 'client_next_steps';
+  source_table?: 'general_tasks' | 'client_next_steps';
 }
 
 // Define the priority item interface that's used across components

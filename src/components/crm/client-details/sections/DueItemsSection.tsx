@@ -7,7 +7,7 @@ import { useItemStatusChange } from '../../priority-actions/hooks/useItemStatusC
 import { Button } from '@/components/ui/button';
 import { toast } from '@/hooks/use-toast';
 import { useQueryClient } from '@tanstack/react-query';
-import { Task } from '@/hooks/useTaskDeletion';
+import { Task } from '@/integrations/supabase/types/general-tasks.types'; // Updated import
 import {
   AlertDialog,
   AlertDialogAction,
@@ -61,10 +61,10 @@ export const DueItemsSection = ({ items, isLoading }: DueItemsSectionProps) => {
       
       await handleCompletedChange(taskItem, true);
       
-      // Invalidate relevant queries to update UI
+      // Invalidate relevant queries to update UI - fixed the query filter format
       queryClient.invalidateQueries({ queryKey: ['client-items'] });
       queryClient.invalidateQueries({ queryKey: ['generalTasks'] });
-      queryClient.invalidateQueries({ queryKey: queryClient.getQueryCache().findAll(['tasks']).map(q => q.queryKey) });
+      queryClient.invalidateQueries({ queryKey: ['tasks'] });
       
       toast({
         title: "Task completed",
@@ -119,7 +119,7 @@ export const DueItemsSection = ({ items, isLoading }: DueItemsSectionProps) => {
       const success = await handleDelete(taskItem);
       
       if (success) {
-        // Invalidate relevant queries to update UI
+        // Invalidate relevant queries to update UI - fixed the query filter format
         queryClient.invalidateQueries({ queryKey: ['client-items'] });
         queryClient.invalidateQueries({ queryKey: ['generalTasks'] });
         queryClient.invalidateQueries({ queryKey: ['tasks'] });

@@ -1,4 +1,5 @@
-import { Task } from '@/hooks/useTaskDeletion';
+
+import { Task as CoreTask } from '@/hooks/useTaskDeletion';
 
 export type GeneralTaskRow = {
   id: string;
@@ -29,7 +30,7 @@ export type GeneralTaskInsert = Omit<GeneralTaskRow, 'id' | 'created_at' | 'upda
 export type GeneralTaskUpdate = Partial<GeneralTaskInsert>
 
 // Conversion utilities for backward compatibility
-export const taskToGeneralTaskRow = (task: Task): GeneralTaskRow => {
+export const taskToGeneralTaskRow = (task: CoreTask): GeneralTaskRow => {
   return {
     id: task.id,
     title: task.title || '',
@@ -52,7 +53,7 @@ export const taskToGeneralTaskRow = (task: Task): GeneralTaskRow => {
 };
 
 // Convert from GeneralTaskRow to Task for backward compatibility
-export const generalTaskRowToTask = (row: GeneralTaskRow): Task => {
+export const generalTaskRowToTask = (row: GeneralTaskRow): CoreTask => {
   return {
     id: row.id,
     title: row.title,
