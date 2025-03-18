@@ -11,16 +11,37 @@ import { RevenueEditor } from './components/RevenueEditor';
 import { toast } from '@/components/ui/use-toast';
 
 const fetchMonthlyRevenue = async () => {
+  console.log('Starting fetchMonthlyRevenue function...');
+  
   const { data: clients, error } = await supabase
     .from('clients')
     .select('*');
     
-  if (error) throw error;
+  if (error) {
+    console.error('Error fetching clients for revenue data:', error);
+    throw error;
+  }
+
+  console.log(`Fetched ${clients?.length || 0} clients for revenue calculations`);
 
   const months = [
     'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
     'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
   ];
+
+  // Debug each client's revenue data
+  clients.forEach((client, index) => {
+    if (index < 3) { // Only log first 3 clients to avoid flooding console
+      console.log(`Client ${client.id} (${client.name}) revenue data:`, {
+        annual_revenue_signed_off: client.annual_revenue_signed_off,
+        annual_revenue_forecast: client.annual_revenue_forecast,
+        sample_monthly: {
+          actual_jan: client.actual_jan,
+          forecast_jan: client.forecast_jan
+        }
+      });
+    }
+  });
 
   const monthlyData = months.map(month => {
     const monthLower = month.toLowerCase();
@@ -53,12 +74,27 @@ const fetchMonthlyRevenue = async () => {
     };
   });
 
+  // Log the monthly data we've calculated
+  console.log('Calculated monthly revenue data:', monthlyData.map(m => ({
+    month: m.month,
+    actual: m.actual,
+    forecast: m.forecast,
+    actualClientCount: m.actualClients.length,
+    forecastClientCount: m.forecastClients.length
+  }));
+
   const annualTotals = clients.reduce((acc: any, client: any) => {
+    // Use Number() to ensure we're working with numbers, defaulting to 0 for null/undefined
+    const confirmed = Number(client.annual_revenue_signed_off) || 0;
+    const forecast = Number(client.annual_revenue_forecast) || 0;
+    
     return {
-      confirmed: acc.confirmed + (client.annual_revenue_signed_off || 0),
-      forecast: acc.forecast + (client.annual_revenue_forecast || 0)
+      confirmed: acc.confirmed + confirmed,
+      forecast: acc.forecast + forecast
     };
   }, { confirmed: 0, forecast: 0 });
+
+  console.log('Calculated annual totals:', annualTotals);
 
   return {
     monthlyData,
@@ -77,6 +113,13 @@ export const RevenueSummary = () => {
   const { data, isLoading, error } = useQuery<RevenueData>({
     queryKey: ['monthly-revenue'],
     queryFn: fetchMonthlyRevenue,
+  });
+
+  // Add a log whenever data changes to see what's being returned from the query
+  console.log('RevenueSummary received data from query:', {
+    hasData: !!data,
+    monthlyDataLength: data?.monthlyData?.length || 0,
+    annualTotals: data?.annualTotals,
   });
 
   const handleBarClick = (month: string, type: 'actual' | 'forecast') => {

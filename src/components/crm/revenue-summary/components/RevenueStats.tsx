@@ -1,3 +1,4 @@
+
 import { AnnualTotals } from '../types';
 
 interface RevenueStatsProps {
@@ -5,7 +6,18 @@ interface RevenueStatsProps {
 }
 
 export const RevenueStats = ({ annualTotals }: RevenueStatsProps) => {
-  const totalAnnualRevenue = annualTotals.confirmed + annualTotals.forecast;
+  console.log('RevenueStats rendering with annual totals:', annualTotals);
+  
+  // Ensure we have numbers to work with
+  const confirmed = Number(annualTotals?.confirmed || 0);
+  const forecast = Number(annualTotals?.forecast || 0);
+  const totalAnnualRevenue = confirmed + forecast;
+
+  console.log('RevenueStats calculated values:', {
+    confirmed,
+    forecast,
+    totalAnnualRevenue
+  });
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
@@ -16,13 +28,13 @@ export const RevenueStats = ({ annualTotals }: RevenueStatsProps) => {
       <div className="p-4 bg-[#1A1F2C] rounded-lg">
         <p className="text-sm text-white">Actual Revenue</p>
         <p className="text-2xl font-bold text-white">
-          ${annualTotals.confirmed.toLocaleString()}
+          ${confirmed.toLocaleString()}
         </p>
       </div>
       <div className="p-4 bg-[hsl(var(--primary)/0.1)] rounded-lg">
         <p className="text-sm text-primary">Forecast Revenue</p>
         <p className="text-2xl font-bold text-primary">
-          ${annualTotals.forecast.toLocaleString()}
+          ${forecast.toLocaleString()}
         </p>
       </div>
     </div>
