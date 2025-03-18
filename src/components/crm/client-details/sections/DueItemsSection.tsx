@@ -8,6 +8,17 @@ import { Button } from '@/components/ui/button';
 import { toast } from '@/hooks/use-toast';
 import { useQueryClient } from '@tanstack/react-query';
 import { Task } from '@/hooks/useTaskDeletion';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { useState } from 'react';
 
 interface DueItem extends Task {
   type: 'task';
@@ -22,6 +33,9 @@ interface DueItemsSectionProps {
 export const DueItemsSection = ({ items, isLoading }: DueItemsSectionProps) => {
   const { handleCompletedChange, handleDelete } = useItemStatusChange();
   const queryClient = useQueryClient();
+  const [deletingItemId, setDeletingItemId] = useState<string | null>(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
 
   if (isLoading) return <div>Loading items...</div>;
 
@@ -29,7 +43,6 @@ export const DueItemsSection = ({ items, isLoading }: DueItemsSectionProps) => {
     try {
       const taskItem = {
         type: 'task' as const,
-        date: item.dueDate,
         data: {
           id: item.id,
           client_id: item.client_id || null,
@@ -51,6 +64,7 @@ export const DueItemsSection = ({ items, isLoading }: DueItemsSectionProps) => {
       // Invalidate relevant queries to update UI
       queryClient.invalidateQueries({ queryKey: ['client-items'] });
       queryClient.invalidateQueries({ queryKey: ['generalTasks'] });
+      queryClient.invalidateQueries({ queryKey: queryClient.getQueryCache().findAll(['tasks']).map(q => q.queryKey) });
       
       toast({
         title: "Task completed",
@@ -66,37 +80,57 @@ export const DueItemsSection = ({ items, isLoading }: DueItemsSectionProps) => {
     }
   };
 
-  const onDelete = async (item: DueItem) => {
+  const confirmDelete = (item: DueItem) => {
+    setDeletingItemId(item.id);
+    setShowDeleteConfirm(true);
+  };
+
+  const onDelete = async () => {
+    if (!deletingItemId || isProcessing) return;
+    
+    setIsProcessing(true);
+    
     try {
+      const itemToDelete = items.find(item => item.id === deletingItemId);
+      
+      if (!itemToDelete) {
+        throw new Error('Item not found');
+      }
+      
       const taskItem = {
         type: 'task' as const,
-        date: item.dueDate,
         data: {
-          id: item.id,
-          client_id: item.client_id || null,
-          title: item.title || '',
-          description: item.description || '',
-          category: item.category || 'general',
+          id: itemToDelete.id,
+          client_id: itemToDelete.client_id || null,
+          title: itemToDelete.title || '',
+          description: itemToDelete.description || '',
+          category: itemToDelete.category || 'general',
           status: 'incomplete' as const,
-          due_date: item.dueDate,
-          urgent: item.urgent || false,
-          created_at: item.created_at,
-          updated_at: item.updated_at,
-          created_by: item.created_by,
-          updated_by: item.updated_by
+          due_date: itemToDelete.dueDate,
+          urgent: itemToDelete.urgent || false,
+          created_at: itemToDelete.created_at,
+          updated_at: itemToDelete.updated_at,
+          created_by: itemToDelete.created_by,
+          updated_by: itemToDelete.updated_by
         }
       };
       
-      await handleDelete(taskItem);
+      console.log('Deleting task item:', taskItem);
+      const success = await handleDelete(taskItem);
       
-      // Invalidate relevant queries to update UI
-      queryClient.invalidateQueries({ queryKey: ['client-items'] });
-      queryClient.invalidateQueries({ queryKey: ['generalTasks'] });
-      
-      toast({
-        title: "Task deleted",
-        description: "The task has been deleted successfully.",
-      });
+      if (success) {
+        // Invalidate relevant queries to update UI
+        queryClient.invalidateQueries({ queryKey: ['client-items'] });
+        queryClient.invalidateQueries({ queryKey: ['generalTasks'] });
+        queryClient.invalidateQueries({ queryKey: ['tasks'] });
+        
+        toast({
+          title: "Task deleted",
+          description: "The task has been deleted successfully.",
+        });
+      } else {
+        throw new Error('Failed to delete task');
+      }
     } catch (error) {
       console.error('Error deleting item:', error);
       toast({
@@ -104,11 +138,26 @@ export const DueItemsSection = ({ items, isLoading }: DueItemsSectionProps) => {
         description: "Failed to delete the item. Please try again.",
         variant: "destructive",
       });
+    } finally {
+      setIsProcessing(false);
+      setShowDeleteConfirm(false);
+      setDeletingItemId(null);
     }
+  };
+
+  const cancelDelete = () => {
+    setShowDeleteConfirm(false);
+    setDeletingItemId(null);
   };
 
   return (
     <div className="space-y-4">
+      {items.length === 0 && (
+        <div className="text-center text-gray-500 py-4">
+          No due items found for this client.
+        </div>
+      )}
+      
       {items.map((item) => (
         <Card key={`${item.type}-${item.id}`} className="p-4">
           <div className="flex items-start justify-between">
@@ -145,7 +194,7 @@ export const DueItemsSection = ({ items, isLoading }: DueItemsSectionProps) => {
                 <Button
                   variant="ghost"
                   size="icon"
-                  onClick={() => onDelete(item)}
+                  onClick={() => confirmDelete(item)}
                   className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50"
                 >
                   <Trash2 className="h-4 w-4" />
@@ -155,6 +204,27 @@ export const DueItemsSection = ({ items, isLoading }: DueItemsSectionProps) => {
           </div>
         </Card>
       ))}
+
+      <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete this task. You cannot undo this action.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={cancelDelete}>Cancel</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={onDelete}
+              className="bg-red-500 hover:bg-red-600"
+              disabled={isProcessing}
+            >
+              {isProcessing ? 'Deleting...' : 'Delete'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

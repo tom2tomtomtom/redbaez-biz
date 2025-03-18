@@ -1,9 +1,8 @@
-
 import { useEffect, useState } from 'react';
 import { PriorityItem } from '../hooks/usePriorityData';
 import { GeneralTaskItem } from '../GeneralTaskItem';
 import { ItemControls } from './ItemControls';
-import { taskToGeneralTaskRow, Task } from '@/integrations/supabase/types/general-tasks.types';
+import { Task } from '@/hooks/useTaskDeletion';
 import { useNavigate } from 'react-router-dom';
 
 interface PriorityListItemProps {

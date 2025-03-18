@@ -1,4 +1,3 @@
-
 import { Task } from '@/hooks/useTaskDeletion';
 
 export type GeneralTaskRow = {
@@ -75,3 +74,22 @@ export const generalTaskRowToTask = (row: GeneralTaskRow): Task => {
     type: row.type || 'task'
   };
 };
+
+export interface Task {
+  id: string;
+  title: string;
+  description?: string | null;
+  client_id?: number | null;
+  client?: { name: string } | null;
+  due_date?: string | null;
+  urgent: boolean;
+  status: "incomplete" | "completed";
+  completed_at?: string | null;
+  category?: string | null;
+  created_at?: string | null;
+  updated_at?: string | null;
+  created_by?: string | null;
+  updated_by?: string | null;
+  type?: string;
+  source_table?: string;
+}
