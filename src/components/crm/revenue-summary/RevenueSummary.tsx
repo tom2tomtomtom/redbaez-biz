@@ -1,7 +1,7 @@
 
 import { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/integrations/supabase/client'; // Updated import path
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { RevenueStats } from './components/RevenueStats';
@@ -82,7 +82,7 @@ const fetchMonthlyRevenue = async () => {
     forecast: m.forecast,
     actualClientCount: m.actualClients.length,
     forecastClientCount: m.forecastClients.length
-  })));
+  })));  // Fixed extra parenthesis
 
   const annualTotals = clients.reduce((acc: any, client: any) => {
     // Use Number() to ensure we're working with numbers, defaulting to 0 for null/undefined
