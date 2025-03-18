@@ -44,7 +44,7 @@ export const KeyMetricsCard = ({
       </div>
       <div className="mt-6 grid gap-6 md:grid-cols-2">
         <div className="col-span-2">
-          <RevenueChart revenueData={revenueData} />
+          <RevenueChart revenueData={revenueData || []} />
         </div>
         <div className="col-span-2">
           <ForecastEditor clientId={clientId} />

@@ -8,7 +8,7 @@ interface RevenueData {
 export const useRevenueCalculations = (client: any) => {
   if (!client) {
     console.log('No client data provided to useRevenueCalculations');
-    return { revenueData: [], totalActualRevenue: 0 };
+    return { revenueData: [], totalActualRevenue: 0, totalForecastRevenue: 0 };
   }
 
   console.log('Processing client data for revenue calculations:', client);
@@ -31,12 +31,15 @@ export const useRevenueCalculations = (client: any) => {
   });
 
   const totalActualRevenue = revenueData.reduce((sum, data) => sum + data.actual, 0);
+  const totalForecastRevenue = revenueData.reduce((sum, data) => sum + data.forecast, 0);
 
   console.log('Revenue data calculated:', revenueData);
   console.log('Total actual revenue:', totalActualRevenue);
+  console.log('Total forecast revenue:', totalForecastRevenue);
 
   return {
     revenueData,
-    totalActualRevenue
+    totalActualRevenue,
+    totalForecastRevenue
   };
 };
