@@ -46,8 +46,8 @@ const Index = () => {
       console.log("Fetched clients:", data?.length);
       return data;
     },
-    staleTime: 30000, // 30 seconds
-    refetchOnWindowFocus: false
+    staleTime: 0, // Always refetch when requested
+    refetchOnWindowFocus: true // Refetch when window regains focus
   });
 
   const handleRefresh = useCallback(async () => {
@@ -57,8 +57,25 @@ const Index = () => {
     });
     
     try {
-      await invalidateQueries();
+      // Clear all cached data
+      await Promise.all([
+        invalidateQueries(),
+        
+        // Force remove specific cached queries
+        refetchClients.queryClient.removeQueries({ queryKey: ['monthly-revenue'] }),
+        refetchClients.queryClient.removeQueries({ queryKey: ['tasks'] }),
+        refetchClients.queryClient.removeQueries({ queryKey: ['clients'] })
+      ]);
+      
+      // Trigger refresh
       setRefreshTrigger(Date.now());
+      
+      // Force refetch important data
+      await Promise.all([
+        refetchClients.queryClient.refetchQueries({ queryKey: ['monthly-revenue'] }),
+        refetchClients.queryClient.refetchQueries({ queryKey: ['tasks'] }),
+        refetchClients.queryClient.refetchQueries({ queryKey: ['clients'] })
+      ]);
     } catch (err) {
       console.error("Error refreshing dashboard:", err);
       toast({
@@ -67,7 +84,7 @@ const Index = () => {
         variant: "destructive"
       });
     }
-  }, [invalidateQueries]);
+  }, [invalidateQueries, refetchClients]);
 
   // Force refresh only once when page first loads
   useEffect(() => {
@@ -81,6 +98,13 @@ const Index = () => {
           description: "Refreshing your dashboard data..."
         });
         
+        // Clear all cached data first
+        await Promise.all([
+          refetchClients.queryClient.removeQueries({ queryKey: ['monthly-revenue'] }),
+          refetchClients.queryClient.removeQueries({ queryKey: ['tasks'] }),
+          refetchClients.queryClient.removeQueries({ queryKey: ['clients'] })
+        ]);
+        
         // Invalidate all query cache to ensure fresh data
         await invalidateQueries();
         
@@ -91,7 +115,7 @@ const Index = () => {
       
       loadDashboard();
     }
-  }, [invalidateQueries]);
+  }, [invalidateQueries, refetchClients]);
 
   return (
     <div className="min-h-screen bg-background">

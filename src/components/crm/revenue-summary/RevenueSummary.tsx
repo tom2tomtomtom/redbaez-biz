@@ -1,7 +1,7 @@
 
 import { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client'; // Updated import path
+import { supabase } from '@/integrations/supabase/client'; 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { RevenueStats } from './components/RevenueStats';
@@ -10,6 +10,8 @@ import { RevenueData, MonthlyData } from './types';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { RevenueEditor } from './components/RevenueEditor';
 import { toast } from '@/components/ui/use-toast';
+import { Button } from '@/components/ui/button';
+import { RefreshCcw } from 'lucide-react';
 
 const fetchMonthlyRevenue = async () => {
   console.log('Starting fetchMonthlyRevenue function...');
@@ -24,6 +26,16 @@ const fetchMonthlyRevenue = async () => {
   }
 
   console.log(`Fetched ${clients?.length || 0} clients for revenue calculations`);
+
+  // If no clients found, return empty data
+  if (!clients || clients.length === 0) {
+    console.log('No clients found for revenue calculations');
+    return {
+      monthlyData: [],
+      annualTotals: { confirmed: 0, forecast: 0 },
+      clients: []
+    };
+  }
 
   const months = [
     'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
@@ -82,9 +94,9 @@ const fetchMonthlyRevenue = async () => {
     forecast: m.forecast,
     actualClientCount: m.actualClients.length,
     forecastClientCount: m.forecastClients.length
-  })));  // Fixed extra parenthesis
+  })));
 
-  const annualTotals = clients.reduce((acc: any, client: any) => {
+  const annualTotals = clients.reduce((acc, client) => {
     // Use Number() to ensure we're working with numbers, defaulting to 0 for null/undefined
     const confirmed = Number(client.annual_revenue_signed_off) || 0;
     const forecast = Number(client.annual_revenue_forecast) || 0;
@@ -111,9 +123,11 @@ export const RevenueSummary = () => {
   const [selectedClients, setSelectedClients] = useState<any[]>([]);
   const [revenueType, setRevenueType] = useState<'actual' | 'forecast'>('actual');
   
-  const { data, isLoading, error } = useQuery<RevenueData>({
+  const { data, isLoading, error, refetch } = useQuery<RevenueData>({
     queryKey: ['monthly-revenue'],
-    queryFn: fetchMonthlyRevenue
+    queryFn: fetchMonthlyRevenue,
+    staleTime: 0, // Always refetch when requested
+    refetchOnWindowFocus: true // Refetch when window regains focus
   });
 
   // Add a log whenever data changes to see what's being returned from the query
@@ -122,6 +136,25 @@ export const RevenueSummary = () => {
     monthlyDataLength: data?.monthlyData?.length || 0,
     annualTotals: data?.annualTotals,
   });
+
+  const handleRefresh = async () => {
+    console.log('Manually refreshing revenue data...');
+    toast({
+      title: "Refreshing data",
+      description: "Updating revenue information..."
+    });
+    
+    // Clear cached data to force a fresh fetch
+    queryClient.removeQueries({ queryKey: ['monthly-revenue'] });
+    
+    // Trigger a refetch
+    await refetch();
+    
+    toast({
+      title: "Refresh complete",
+      description: "Revenue data has been updated"
+    });
+  };
 
   const handleBarClick = (month: string, type: 'actual' | 'forecast') => {
     if (!data?.clients) return;
@@ -185,8 +218,16 @@ export const RevenueSummary = () => {
     
     try {
       await Promise.all(promises);
-      queryClient.invalidateQueries({ queryKey: ['monthly-revenue'] });
-      queryClient.invalidateQueries({ queryKey: ['clients'] });
+      
+      // Immediately clear stale data
+      queryClient.removeQueries({ queryKey: ['monthly-revenue'] });
+      queryClient.removeQueries({ queryKey: ['clients'] });
+      
+      // Force refetch of necessary data
+      await Promise.all([
+        queryClient.refetchQueries({ queryKey: ['monthly-revenue'] }),
+        queryClient.refetchQueries({ queryKey: ['clients'] })
+      ]);
       
       toast({
         title: "Success",
@@ -207,8 +248,12 @@ export const RevenueSummary = () => {
   if (isLoading) {
     return (
       <Card>
-        <CardHeader>
+        <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>Revenue Overview</CardTitle>
+          <Button variant="outline" size="sm" onClick={handleRefresh}>
+            <RefreshCcw className="h-4 w-4 mr-2" />
+            Refresh Data
+          </Button>
         </CardHeader>
         <CardContent>
           <Skeleton className="h-[300px] w-full" />
@@ -220,40 +265,42 @@ export const RevenueSummary = () => {
   if (error) {
     return (
       <Card>
-        <CardHeader>
+        <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>Revenue Overview</CardTitle>
+          <Button variant="outline" size="sm" onClick={handleRefresh}>
+            <RefreshCcw className="h-4 w-4 mr-2" />
+            Refresh Data
+          </Button>
         </CardHeader>
         <CardContent>
-          <div className="text-red-500">Error loading revenue data</div>
+          <div className="text-red-500">Error loading revenue data: {error.message}</div>
         </CardContent>
       </Card>
     );
   }
 
-  if (!data || !data.monthlyData || !data.annualTotals) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Revenue Overview</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="text-yellow-500">No revenue data available</div>
-        </CardContent>
-      </Card>
-    );
-  }
+  // Initialize empty data if null/undefined
+  const safeData = {
+    monthlyData: data?.monthlyData || [],
+    annualTotals: data?.annualTotals || { confirmed: 0, forecast: 0 },
+    clients: data?.clients || []
+  };
 
   return (
     <Card>
-      <CardHeader>
+      <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle>Revenue Overview</CardTitle>
+        <Button variant="outline" size="sm" onClick={handleRefresh}>
+          <RefreshCcw className="h-4 w-4 mr-2" />
+          Refresh Data
+        </Button>
       </CardHeader>
       <CardContent>
         <div className="mb-8">
-          <RevenueStats annualTotals={data.annualTotals} />
+          <RevenueStats annualTotals={safeData.annualTotals} />
         </div>
         <RevenueChart 
-          monthlyData={data.monthlyData} 
+          monthlyData={safeData.monthlyData} 
           onBarClick={handleBarClick}
         />
 

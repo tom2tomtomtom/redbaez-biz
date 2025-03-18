@@ -17,14 +17,17 @@ export const useItemDeletion = () => {
   const { deleteTask } = useTaskDeletion(async () => {
     console.log("[ITEM_DELETION] Task deleted successfully - refreshing data");
     
-    // Refresh client-specific items if any item is deleted
-    queryClient.refetchQueries({ queryKey: queryKeys.tasks.clientItems() });
+    // Remove cached data to ensure fresh fetches
+    queryClient.removeQueries({ queryKey: queryKeys.tasks.unified() });
+    queryClient.removeQueries({ queryKey: ['tasks'] });
+    queryClient.removeQueries({ queryKey: queryKeys.tasks.clientItems() });
     
-    // Also refresh the unified view
-    queryClient.refetchQueries({ queryKey: queryKeys.tasks.unified() });
-    
-    // Add this line to refresh the tasks directly
-    queryClient.refetchQueries({ queryKey: ['tasks'] });
+    // Force immediate refresh of ALL related queries
+    await Promise.all([
+      queryClient.refetchQueries({ queryKey: queryKeys.tasks.clientItems() }),
+      queryClient.refetchQueries({ queryKey: queryKeys.tasks.unified() }),
+      queryClient.refetchQueries({ queryKey: ['tasks'] })
+    ]);
   });
 
   const handleDelete = async (item: PriorityItem) => {
@@ -52,13 +55,15 @@ export const useItemDeletion = () => {
       
       // If this was a client task, refresh client data
       if (item.data.client_id) {
-        queryClient.refetchQueries({ 
-          queryKey: queryKeys.clients.detail(item.data.client_id) 
-        });
-        
-        queryClient.refetchQueries({ 
-          queryKey: queryKeys.tasks.clientItems(item.data.client_id) 
-        });
+        await Promise.all([
+          queryClient.refetchQueries({ 
+            queryKey: queryKeys.clients.detail(item.data.client_id) 
+          }),
+          
+          queryClient.refetchQueries({ 
+            queryKey: queryKeys.tasks.clientItems(item.data.client_id) 
+          })
+        ]);
       }
       
       return true;

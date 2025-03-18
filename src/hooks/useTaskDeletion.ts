@@ -62,19 +62,25 @@ export const useTaskDeletion = (onSuccess?: () => void) => {
       
       console.log(`[DELETE] Successfully deleted task`);
       
-      // Force immediate invalidation of ALL task-related queries
+      // Immediately invalidate ALL task-related queries to ensure clean state
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: queryKeys.tasks.all() }),
         queryClient.invalidateQueries({ queryKey: queryKeys.tasks.list() }),
         queryClient.invalidateQueries({ queryKey: queryKeys.tasks.client() }),
-        queryClient.invalidateQueries({ queryKey: ['tasks'] }) // Add this for direct tasks fetch
+        queryClient.invalidateQueries({ queryKey: ['tasks'] })
       ]);
       
-      // Force immediate refetch of key views
+      // Force synchronous removal of cached data
+      queryClient.removeQueries({ queryKey: queryKeys.tasks.all() });
+      queryClient.removeQueries({ queryKey: queryKeys.tasks.list() });
+      queryClient.removeQueries({ queryKey: ['tasks'] });
+      
+      // Force immediate refetch of ALL relevant views
       await Promise.all([
         queryClient.refetchQueries({ queryKey: queryKeys.tasks.list() }),
         queryClient.refetchQueries({ queryKey: queryKeys.tasks.client() }),
-        queryClient.refetchQueries({ queryKey: ['tasks'] })
+        queryClient.refetchQueries({ queryKey: ['tasks'] }),
+        queryClient.refetchQueries({ queryKey: queryKeys.tasks.unified() })
       ]);
       
       toast({

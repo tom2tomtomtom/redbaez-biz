@@ -50,8 +50,8 @@ export const usePriorityData = (category?: string) => {
   const tasksQuery = useQuery({
     queryKey: ['tasks', category], 
     queryFn: () => fetchTasks(category),
-    staleTime: 0,
-    gcTime: 0,
+    staleTime: 0, // Disable caching
+    gcTime: 0, // Do not keep stale data
     refetchOnWindowFocus: true,
     refetchOnMount: true
   });
@@ -122,6 +122,9 @@ export const usePriorityData = (category?: string) => {
     error: tasksQuery.error,
     refetch: async () => {
       logger.info('Manually refetching priority data');
+      // First remove any cached data
+      tasksQuery.queryClient.removeQueries({ queryKey: ['tasks', category] });
+      // Then refetch
       await tasksQuery.refetch();
     }
   };
