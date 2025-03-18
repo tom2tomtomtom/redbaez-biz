@@ -20,8 +20,10 @@ export const CalendarView = ({ clientId }: CalendarViewProps) => {
       return CalendarService.getClientMeetings(Number(clientId));
     },
     retry: 1,
-    onError: (error) => {
-      logger.error('Failed to fetch calendar events', { error, clientId });
+    meta: {
+      errorHandler: (error: Error) => {
+        logger.error('Failed to fetch calendar events', { error, clientId });
+      }
     }
   });
 

@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { FormContent } from './form-sections/FormContent';
@@ -73,8 +74,8 @@ export const ClientForm = ({
       next_due_date: nextDueDate || null,
       project_revenue_signed_off: Boolean(revenueState.projectRevenueSignedOff),
       project_revenue_forecast: Boolean(revenueState.projectRevenueForecast),
-      annual_revenue_signed_off: parseFloat(revenueState.annualRevenueSignedOff) || 0,
-      annual_revenue_forecast: parseFloat(revenueState.annualRevenueForecast) || 0,
+      annual_revenue_signed_off: parseFloat(revenueState.annualRevenueSignedOff.toString()) || 0,
+      annual_revenue_forecast: parseFloat(revenueState.annualRevenueForecast.toString()) || 0,
     };
 
     await handleSubmit(formData);
