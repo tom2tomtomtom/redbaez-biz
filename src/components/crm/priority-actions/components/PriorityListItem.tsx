@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { PriorityItem } from '../hooks/usePriorityData';
 import { GeneralTaskItem } from '../GeneralTaskItem';
 import { ItemControls } from './ItemControls';
-import { taskToGeneralTaskRow } from '@/integrations/supabase/types/general-tasks.types';
+import { taskToGeneralTaskRow, Task } from '@/integrations/supabase/types/general-tasks.types';
 import { useNavigate } from 'react-router-dom';
 
 interface PriorityListItemProps {
@@ -57,6 +57,24 @@ export const PriorityListItem = ({
     }, 300); // Delay actual deletion to allow animation
   };
 
+  // Convert PriorityItem to Task format for GeneralTaskItem
+  const convertToTaskFormat = (): Task => {
+    return {
+      id: item.data.id,
+      title: item.data.title,
+      description: item.data.description || null,
+      client_id: item.data.client_id || null,
+      client: item.data.client || null,
+      due_date: item.data.due_date || null,
+      urgent: item.data.urgent,
+      status: item.data.status as "incomplete" | "completed" || "incomplete",
+      completed_at: item.data.completed_at || null,
+      category: item.data.category || null,
+      type: item.type === "next_step" ? "next_step" : "task",
+      source_table: item.type === "next_step" ? "client_next_steps" : "general_tasks"
+    };
+  };
+
   return (
     <div 
       className={`relative transition-all duration-500 transform ${
@@ -79,7 +97,7 @@ export const PriorityListItem = ({
         onClick={handleClick}
       >
         <GeneralTaskItem 
-          task={taskToGeneralTaskRow(item.data)} 
+          task={convertToTaskFormat()} 
           isClientTask={!!item.data.client_id}
         />
       </div>

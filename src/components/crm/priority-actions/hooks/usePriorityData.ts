@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
@@ -50,7 +49,7 @@ export const usePriorityData = () => {
       // Handle tasks with client relation
       if (task.client_id) {
         return {
-          type: "next-step",
+          type: "next_step", // Changed from "next-step" to "next_step" to match the type definition
           data: {
             id: task.id,
             title: task.title,
