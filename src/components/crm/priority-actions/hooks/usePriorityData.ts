@@ -5,6 +5,9 @@ import { supabase } from "@/lib/supabase";
 import { PriorityItem } from "./taskTypes";
 import { queryKeys } from "@/lib/queryKeys";
 
+// Re-export the PriorityItem type to make it available to components
+export type { PriorityItem };
+
 /**
  * Hook to fetch priority items (tasks, next steps, etc.)
  * for the priority dashboard

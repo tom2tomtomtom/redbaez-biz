@@ -1,9 +1,8 @@
-
 import { Suspense, useState, useEffect, useRef, useCallback } from "react";
 import { MainNav } from "@/components/ui/main-nav";
 import { PriorityActions } from "@/components/crm/priority-actions/PriorityActions";
 import { RevenueSummary } from "@/components/crm/revenue-summary/RevenueSummary";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { TaskDialog } from "@/components/crm/priority-actions/TaskDialog";
 import { DashboardHeader } from "@/components/crm/dashboard/DashboardHeader";
@@ -25,6 +24,7 @@ const Index = () => {
   const navigate = useNavigate();
   const { invalidateQueries } = useQueryCacheManager();
   const initialLoadDone = useRef(false);
+  const queryClient = useQueryClient();
 
   const {
     data: clients,
@@ -62,9 +62,9 @@ const Index = () => {
         invalidateQueries(),
         
         // Force remove specific cached queries
-        refetchClients.queryClient.removeQueries({ queryKey: ['monthly-revenue'] }),
-        refetchClients.queryClient.removeQueries({ queryKey: ['tasks'] }),
-        refetchClients.queryClient.removeQueries({ queryKey: ['clients'] })
+        queryClient.removeQueries({ queryKey: ['monthly-revenue'] }),
+        queryClient.removeQueries({ queryKey: ['tasks'] }),
+        queryClient.removeQueries({ queryKey: ['clients'] })
       ]);
       
       // Trigger refresh
@@ -72,9 +72,9 @@ const Index = () => {
       
       // Force refetch important data
       await Promise.all([
-        refetchClients.queryClient.refetchQueries({ queryKey: ['monthly-revenue'] }),
-        refetchClients.queryClient.refetchQueries({ queryKey: ['tasks'] }),
-        refetchClients.queryClient.refetchQueries({ queryKey: ['clients'] })
+        queryClient.refetchQueries({ queryKey: ['monthly-revenue'] }),
+        queryClient.refetchQueries({ queryKey: ['tasks'] }),
+        queryClient.refetchQueries({ queryKey: ['clients'] })
       ]);
     } catch (err) {
       console.error("Error refreshing dashboard:", err);
@@ -84,7 +84,7 @@ const Index = () => {
         variant: "destructive"
       });
     }
-  }, [invalidateQueries, refetchClients]);
+  }, [invalidateQueries, queryClient]);
 
   // Force refresh only once when page first loads
   useEffect(() => {
@@ -100,9 +100,9 @@ const Index = () => {
         
         // Clear all cached data first
         await Promise.all([
-          refetchClients.queryClient.removeQueries({ queryKey: ['monthly-revenue'] }),
-          refetchClients.queryClient.removeQueries({ queryKey: ['tasks'] }),
-          refetchClients.queryClient.removeQueries({ queryKey: ['clients'] })
+          queryClient.removeQueries({ queryKey: ['monthly-revenue'] }),
+          queryClient.removeQueries({ queryKey: ['tasks'] }),
+          queryClient.removeQueries({ queryKey: ['clients'] })
         ]);
         
         // Invalidate all query cache to ensure fresh data
@@ -115,7 +115,7 @@ const Index = () => {
       
       loadDashboard();
     }
-  }, [invalidateQueries, refetchClients]);
+  }, [invalidateQueries, queryClient]);
 
   return (
     <div className="min-h-screen bg-background">
