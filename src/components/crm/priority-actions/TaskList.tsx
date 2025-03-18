@@ -117,19 +117,15 @@ export const TaskList = ({
       completedTaskIds.current.delete(task.id);
     }
     
-    const success = await updateCompletion(task, completed);
+    // Call the updateCompletion function
+    await updateCompletion(task, completed);
     
-    // FIX: Don't check success as truthiness directly
-    if (success !== false) {
-      // Force immediate UI refresh to remove the completed task
-      if (completed && !showCompleted) {
-        setRefreshKey(prev => prev + 1);
-      }
-    } else {
-      // If the operation failed, remove from completed tasks set
-      if (completed) {
-        completedTaskIds.current.delete(task.id);
-      }
+    // FIX: The issue is here. updateCompletion returns void, not a boolean
+    // So we shouldn't be doing a comparison with boolean, just force refresh the UI
+    
+    // Force immediate UI refresh to remove the completed task
+    if (completed && !showCompleted) {
+      setRefreshKey(prev => prev + 1);
     }
   };
 
