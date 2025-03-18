@@ -21,7 +21,15 @@ interface ClientContentProps {
 
 export const ClientContent = ({ client, isEditing, parsedAdditionalContacts }: ClientContentProps) => {
   console.log('ClientContent rendering with client data:', client);
-  const { revenueData, totalActualRevenue } = useRevenueCalculations(client);
+  const { revenueData, totalActualRevenue, totalForecastRevenue } = useRevenueCalculations(client);
+  
+  console.log('Revenue calculation results:', { 
+    revenueData, 
+    totalActualRevenue, 
+    totalForecastRevenue,
+    clientAnnualRevenueSignedOff: client.annual_revenue_signed_off,
+    clientAnnualRevenueForecast: client.annual_revenue_forecast
+  });
 
   const { data: allItems, isLoading } = useQuery({
     queryKey: ['client-items', client.id],
@@ -84,10 +92,12 @@ export const ClientContent = ({ client, isEditing, parsedAdditionalContacts }: C
   const annualRevenueSignedOff = client.annual_revenue_signed_off || 0;
   const annualRevenueForecast = client.annual_revenue_forecast || 0;
 
-  console.log('Revenue data for KeyMetricsCard:', {
+  console.log('Final revenue data for KeyMetricsCard:', {
     revenueData,
     annualRevenueSignedOff,
-    annualRevenueForecast
+    annualRevenueForecast,
+    calculatedTotalActual: totalActualRevenue,
+    calculatedTotalForecast: totalForecastRevenue
   });
 
   return (
@@ -143,7 +153,7 @@ export const ClientContent = ({ client, isEditing, parsedAdditionalContacts }: C
       <KeyMetricsCard
         annualRevenue={client.annual_revenue}
         likelihood={client.likelihood}
-        revenueData={revenueData}
+        revenueData={revenueData || []}
         annualRevenueSignedOff={annualRevenueSignedOff}
         annualRevenueForecast={annualRevenueForecast}
         clientId={client.id}

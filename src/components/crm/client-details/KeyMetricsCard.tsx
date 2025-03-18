@@ -28,23 +28,29 @@ export const KeyMetricsCard = ({
   annualRevenueForecast,
   clientId,
 }: KeyMetricsCardProps) => {
-  console.log('KeyMetricsCard revenue data:', revenueData);
-  console.log('KeyMetricsCard annualRevenueSignedOff:', annualRevenueSignedOff);
-  console.log('KeyMetricsCard annualRevenueForecast:', annualRevenueForecast);
+  console.log('KeyMetricsCard rendering with:');
+  console.log('  - revenueData:', revenueData);
+  console.log('  - annualRevenueSignedOff:', annualRevenueSignedOff);
+  console.log('  - annualRevenueForecast:', annualRevenueForecast);
+  
+  // Ensure data is valid for rendering
+  const safeRevenueData = Array.isArray(revenueData) ? revenueData : [];
+  const safeSignedOff = typeof annualRevenueSignedOff === 'number' ? annualRevenueSignedOff : 0;
+  const safeForecast = typeof annualRevenueForecast === 'number' ? annualRevenueForecast : 0;
   
   return (
     <Card className="col-span-1 lg:col-span-12 p-6">
       <div className="grid gap-6 md:grid-cols-2">
         <AnnualRevenueMetric 
           annualRevenue={annualRevenue} 
-          annualRevenueSignedOff={annualRevenueSignedOff || 0}
-          annualRevenueForecast={annualRevenueForecast || 0}
+          annualRevenueSignedOff={safeSignedOff}
+          annualRevenueForecast={safeForecast}
         />
         <DealLikelihood likelihood={likelihood} clientId={clientId} />
       </div>
       <div className="mt-6 grid gap-6 md:grid-cols-2">
         <div className="col-span-2">
-          <RevenueChart revenueData={revenueData || []} />
+          <RevenueChart revenueData={safeRevenueData} />
         </div>
         <div className="col-span-2">
           <ForecastEditor clientId={clientId} />

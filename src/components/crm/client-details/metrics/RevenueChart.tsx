@@ -1,3 +1,4 @@
+
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 
 interface RevenueData {
@@ -13,7 +14,10 @@ interface RevenueChartProps {
 export const RevenueChart = ({
   revenueData,
 }: RevenueChartProps) => {
-  console.log('Revenue chart data:', revenueData);
+  console.log('Revenue chart rendering with data:', revenueData);
+  
+  // Ensure we have valid data
+  const chartData = Array.isArray(revenueData) ? revenueData : [];
   
   const formatYAxis = (value: number) => {
     return `$${value.toLocaleString()}`;
@@ -27,7 +31,7 @@ export const RevenueChart = ({
       <div className="h-[300px] bg-white p-4 rounded-lg">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart 
-            data={revenueData} 
+            data={chartData} 
             margin={{ top: 20, right: 30, left: 65, bottom: 20 }}
           >
             <CartesianGrid strokeDasharray="3 3" />
@@ -43,7 +47,8 @@ export const RevenueChart = ({
               width={80}
             />
             <Tooltip 
-              formatter={(value) => [`$${Number(value).toLocaleString()}`, value === 'actual' ? 'Actual Revenue' : 'Forecast Revenue']}
+              formatter={(value) => [`$${Number(value).toLocaleString()}`, '']}
+              labelFormatter={(label) => `Month: ${label}`}
               contentStyle={{
                 backgroundColor: 'white',
                 border: '1px solid #ccc',
