@@ -1,5 +1,5 @@
 
-import { Suspense, useState, useEffect, useRef } from "react";
+import { Suspense, useState, useEffect, useRef, useCallback } from "react";
 import { MainNav } from "@/components/ui/main-nav";
 import { PriorityActions } from "@/components/crm/priority-actions/PriorityActions";
 import { RevenueSummary } from "@/components/crm/revenue-summary/RevenueSummary";
@@ -13,6 +13,9 @@ import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { useNavigate } from "react-router-dom";
 import { toast } from "@/hooks/use-toast";
 import { useQueryCacheManager } from "@/components/crm/priority-actions/hooks/useQueryCacheManager";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { RefreshCcw } from "lucide-react";
 
 const Index = () => {
   const [searchInput, setSearchInput] = useState('');
@@ -23,7 +26,12 @@ const Index = () => {
   const { invalidateQueries } = useQueryCacheManager();
   const initialLoadDone = useRef(false);
 
-  const { data: clients, isLoading } = useQuery({
+  const {
+    data: clients,
+    isLoading,
+    error: clientsError,
+    refetch: refetchClients
+  } = useQuery({
     queryKey: ['clients', refreshTrigger],
     queryFn: async () => {
       console.log("Fetching clients...");
@@ -41,6 +49,25 @@ const Index = () => {
     staleTime: 30000, // 30 seconds
     refetchOnWindowFocus: false
   });
+
+  const handleRefresh = useCallback(async () => {
+    toast({
+      title: "Refreshing dashboard",
+      description: "Updating with the latest data..."
+    });
+    
+    try {
+      await invalidateQueries();
+      setRefreshTrigger(Date.now());
+    } catch (err) {
+      console.error("Error refreshing dashboard:", err);
+      toast({
+        title: "Refresh failed",
+        description: "Could not update dashboard data. Please try again.",
+        variant: "destructive"
+      });
+    }
+  }, [invalidateQueries]);
 
   // Force refresh only once when page first loads
   useEffect(() => {
@@ -76,6 +103,19 @@ const Index = () => {
           onNewTaskClick={() => setIsNewTaskOpen(true)}
         />
 
+        {clientsError && (
+          <Alert variant="destructive" className="mb-4">
+            <AlertTitle>Error loading data</AlertTitle>
+            <AlertDescription className="flex justify-between items-center">
+              <span>Failed to load client data. Please try refreshing.</span>
+              <Button size="sm" variant="outline" onClick={handleRefresh}>
+                <RefreshCcw className="mr-2 h-4 w-4" />
+                Refresh
+              </Button>
+            </AlertDescription>
+          </Alert>
+        )}
+
         <div className="space-y-8">
           <SearchSection 
             searchInput={searchInput}
@@ -83,7 +123,13 @@ const Index = () => {
           />
 
           <div className="rounded-lg bg-card p-8 shadow-sm">
-            <h2 className="text-2xl font-semibold mb-6 text-left">Priority Actions</h2>
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-semibold text-left">Priority Actions</h2>
+              <Button variant="outline" size="sm" onClick={handleRefresh}>
+                <RefreshCcw className="mr-2 h-4 w-4" />
+                Refresh Data
+              </Button>
+            </div>
             <PriorityActions 
               key={`priority-actions-${refreshTrigger}`}
               hideAddButton 

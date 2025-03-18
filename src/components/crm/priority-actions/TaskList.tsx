@@ -1,4 +1,3 @@
-
 import { useEffect, useState, useRef } from 'react';
 import { TaskItem } from './TaskItem';
 import { useTaskData } from './hooks/useTaskData';
@@ -23,6 +22,7 @@ export const TaskList = ({
   const [completionConfirmTask, setCompletionConfirmTask] = useState<any | null>(null);
   const initialLoadDone = useRef(false);
   const [refreshKey, setRefreshKey] = useState(0);
+  const refreshIntervalRef = useRef<number | null>(null);
   
   // Use our task data hook with refresh key for forced updates
   const { data: tasks = [], isLoading, error, refetch } = useTaskData(category, showCompleted);
@@ -47,17 +47,21 @@ export const TaskList = ({
       initialLoadDone.current = true;
       
       // Set up periodic refresh every 2 minutes
-      const intervalId = setInterval(() => {
+      refreshIntervalRef.current = window.setInterval(() => {
         console.log("Periodic task refresh");
         refetch().catch(err => {
           console.error("Error in periodic refresh:", err);
         });
       }, 120000); // 2 minutes
-      
-      return () => {
-        clearInterval(intervalId);
-      };
     }
+    
+    // Clean up the interval when component unmounts
+    return () => {
+      if (refreshIntervalRef.current !== null) {
+        window.clearInterval(refreshIntervalRef.current);
+        refreshIntervalRef.current = null;
+      }
+    };
   }, [category, showCompleted, refetch, refreshKey]);
 
   const handleRefresh = async () => {
@@ -90,6 +94,21 @@ export const TaskList = ({
     }
   };
 
+  const handleCompletionChange = (task: any, completed: boolean) => {
+    if (completed) {
+      setCompletionConfirmTask(task);
+    } else {
+      updateCompletion(task, false);
+    }
+  };
+
+  const confirmTaskCompletion = () => {
+    if (completionConfirmTask) {
+      updateCompletion(completionConfirmTask, true);
+      setCompletionConfirmTask(null);
+    }
+  };
+
   if (isLoading && !tasks.length) {
     return <PriorityActionsSkeleton />;
   }
@@ -119,21 +138,6 @@ export const TaskList = ({
       </div>
     );
   }
-
-  const handleCompletionChange = (task: any, completed: boolean) => {
-    if (completed) {
-      setCompletionConfirmTask(task);
-    } else {
-      updateCompletion(task, false);
-    }
-  };
-
-  const confirmTaskCompletion = () => {
-    if (completionConfirmTask) {
-      updateCompletion(completionConfirmTask, true);
-      setCompletionConfirmTask(null);
-    }
-  };
 
   return (
     <div className="space-y-2">

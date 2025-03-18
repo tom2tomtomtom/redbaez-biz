@@ -1,6 +1,7 @@
+
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/lib/supabase';
 import { AuthError, AuthChangeEvent, Session } from '@supabase/supabase-js';
 import { isAllowedDomain, getAllowedDomainsMessage } from '@/utils/auth';
 
@@ -16,16 +17,16 @@ export const useAuth = () => {
       try {
         const { data: { session } } = await supabase.auth.getSession();
         console.log('Initial session check:', session);
-        if (session) {
-          setIsAuthenticated(true);
-        } else {
-          setIsAuthenticated(false);
+        setIsAuthenticated(!!session);
+        if (!session && window.location.pathname !== '/login') {
           navigate('/login');
         }
       } catch (error) {
         console.error('Session check error:', error);
         setIsAuthenticated(false);
-        navigate('/login');
+        if (window.location.pathname !== '/login') {
+          navigate('/login');
+        }
       } finally {
         setIsLoading(false);
       }
