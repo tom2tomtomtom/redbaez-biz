@@ -20,8 +20,9 @@ export const StrategyDashboard = ({ category }: StrategyDashboardProps) => {
   const { data: allTasks, isLoading } = useGeneralTasks(category, refreshTrigger);
   
   // Only show tasks with due_date in active tasks and incomplete status
+  // Tasks with due_date are proper tasks, not just ideas
   const activeTasks = allTasks?.filter(task => 
-    task.status !== 'completed' && task.next_due_date !== null
+    task.status !== 'completed' && task.due_date !== null
   ) || [];
   
   // Only show completed tasks
@@ -30,8 +31,9 @@ export const StrategyDashboard = ({ category }: StrategyDashboardProps) => {
   ) || [];
   
   // Show tasks without due_date and not completed as ideas
+  // Ideas are incomplete items with no due_date - they won't appear in Priority Actions
   const generatedIdeas = allTasks?.filter(task => 
-    task.status !== 'completed' && task.next_due_date === null
+    task.status !== 'completed' && task.due_date === null
   ) || [];
 
   const handleIdeaGenerated = () => {

@@ -92,11 +92,26 @@ export const TaskList = ({
   };
 
   const handleTaskDelete = async (task: any) => {
+    // First, optimistically remove the task from the local UI state
+    // This makes the task disappear immediately
+    completedTaskIds.current.add(task.id);
+    
+    // Force an immediate re-render to remove the task from view
+    setRefreshKey(prev => prev + 1);
+    
+    // Then actually delete it from the database
     const success = await deleteTask(task);
-    if (success) {
-      // Force immediate UI refresh
+    
+    if (!success) {
+      // If deletion failed, remove it from the local tracking and show it again
+      completedTaskIds.current.delete(task.id);
       setRefreshKey(prev => prev + 1);
-      await refetch();
+      
+      toast({
+        title: "Error",
+        description: "Failed to delete task. The task has been restored.",
+        variant: "destructive",
+      });
     }
   };
 

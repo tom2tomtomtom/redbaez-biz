@@ -50,25 +50,45 @@ export const TaskList = ({ tasks, isLoading, onTasksUpdated, isHistory = false }
 
   const handleDateChange = async (taskId: string, date: string) => {
     try {
+      // Update task with due date in the tasks table
       const { error } = await supabase
-        .from('general_tasks')
+        .from('tasks')
         .update({ 
-          next_due_date: date ? new Date(date).toISOString() : null,
+          due_date: date ? new Date(date).toISOString() : null,
           status: 'incomplete'
         })
         .eq('id', taskId);
 
       if (error) throw error;
 
+      // Clear the date input field
       setDateInputs(prev => {
         const newInputs = { ...prev };
         delete newInputs[taskId];
         return newInputs;
       });
 
+      // Invalidate all relevant query caches to ensure the task appears in Priority Actions
+      queryClient.invalidateQueries({ queryKey: ['tasks'] });
+      queryClient.invalidateQueries({ queryKey: ['generalTasks'] });
+      
+      // If adding a due date, update the type from 'idea' to 'task'
+      if (date) {
+        const { error: typeError } = await supabase
+          .from('tasks')
+          .update({ 
+            type: 'task' // Change type from idea to task
+          })
+          .eq('id', taskId);
+          
+        if (typeError) {
+          console.error('Error updating task type:', typeError);
+        }
+      }
+      
       toast({
         title: "Task updated",
-        description: date ? "Task has been moved to active tasks." : "Date removed from task.",
+        description: date ? "Idea has been converted to a task and will appear in Priority Actions." : "Date removed from task.",
       });
 
       // Use setTimeout to break potential render cycles
@@ -94,12 +114,30 @@ export const TaskList = ({ tasks, isLoading, onTasksUpdated, isHistory = false }
   const confirmDeleteTask = async () => {
     console.log("Confirming deletion for task:", taskToDelete);
     if (taskToDelete) {
+      // Before deleting, optimistically remove the task from UI
+      // Clone and filter the tasks prop to create local filtered state
+      const taskIdToDelete = taskToDelete.id;
+      
+      // Immediately close dialog and reset state
+      setIsDialogOpen(false);
+      
+      // Force a UI update to remove the task from view
+      onTasksUpdated();
+      
+      // Then actually delete it from the database
       const success = await deleteTask(taskToDelete);
       if (success) {
         console.log("Task deleted successfully from confirmation dialog");
+      } else {
+        // If deletion failed, tell the user and refresh to show the task again
+        toast({
+          title: "Error",
+          description: "Failed to delete task. The task has been restored.",
+          variant: "destructive",
+        });
+        onTasksUpdated();
       }
     }
-    setIsDialogOpen(false);
     setTaskToDelete(null);
   };
 

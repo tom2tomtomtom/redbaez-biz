@@ -42,14 +42,14 @@ export const IdeaTaskManager = ({ category, onTaskSaved }: IdeaTaskManagerProps)
           description: `Type: ${selectedIdea.type}\nPriority: ${selectedIdea.priority}`,
           category: category,
           status: 'incomplete',
-          due_date: null,
+          due_date: null, // Initially null - when a due date is added, it will appear in Priority Actions
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
-          urgent: false,
+          urgent: selectedIdea.priority === 'High', // Set urgent based on priority
           client_id: null,
           updated_by: null,
           created_by: null,
-          type: 'task'
+          type: 'idea' // Mark as idea type initially
         } : null}
         onSaved={() => {
           setIsTaskDialogOpen(false);

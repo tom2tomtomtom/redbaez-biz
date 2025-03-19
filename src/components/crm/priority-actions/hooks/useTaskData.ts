@@ -4,6 +4,18 @@ import { supabase } from '@/lib/supabase';
 import { Task } from '@/hooks/useTaskDeletion';
 import { queryKeys } from '@/lib/queryKeys';
 
+/**
+ * Custom hook to fetch task data from the Supabase database
+ * 
+ * This hook differentiates between:
+ * - Tasks: Items with assigned due dates that appear in the Priority Actions list
+ * - Ideas: Items without due dates that only appear in the Strategy sections
+ * 
+ * @param category Optional category filter
+ * @param showCompleted Whether to show completed tasks or active tasks
+ * @returns Query result with task data
+ */
+
 export const useTaskData = (category?: string, showCompleted = false) => {
   return useQuery({
     queryKey: queryKeys.tasks.list({ category, showCompleted }),
@@ -15,6 +27,7 @@ export const useTaskData = (category?: string, showCompleted = false) => {
         .from('tasks')
         .select('*, clients(name)')
         .eq('status', showCompleted ? 'completed' : 'incomplete')
+        .not('due_date', 'is', null) // Only include tasks with due dates (not ideas)
         .order('urgent', { ascending: false })
         .order('due_date', { ascending: true });
         
@@ -42,7 +55,8 @@ export const useTaskData = (category?: string, showCompleted = false) => {
         status: task.status,
         category: task.category,
         created_at: task.created_at,
-        updated_at: task.updated_at
+        updated_at: task.updated_at,
+        type: task.type || 'task' // Capture the task type if present
       }));
       
       console.log(`Fetched ${tasks.length} tasks`);

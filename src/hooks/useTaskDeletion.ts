@@ -62,26 +62,32 @@ export const useTaskDeletion = (onSuccess?: () => void) => {
       
       console.log(`[DELETE] Successfully deleted task`);
       
-      // Immediately invalidate ALL task-related queries to ensure clean state
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: queryKeys.tasks.all() }),
-        queryClient.invalidateQueries({ queryKey: queryKeys.tasks.list() }),
-        queryClient.invalidateQueries({ queryKey: queryKeys.tasks.client() }),
-        queryClient.invalidateQueries({ queryKey: ['tasks'] })
-      ]);
+      // Simplify cache management to avoid race conditions and unnecessary refetches
+      // We no longer remove queries or force refetches - let React Query optimistic updates handle this
+      // Just mark the task as deleted for immediate UI update
+      queryClient.setQueryData(
+        ['tasks'],
+        (oldData: Task[] | undefined) => oldData?.filter(t => t.id !== task.id) || []
+      );
       
-      // Force synchronous removal of cached data
-      queryClient.removeQueries({ queryKey: queryKeys.tasks.all() });
-      queryClient.removeQueries({ queryKey: queryKeys.tasks.list() });
-      queryClient.removeQueries({ queryKey: ['tasks'] });
+      // Also update all task list queries to remove the deleted task
+      queryClient.setQueryData(
+        queryKeys.tasks.list(),
+        (oldData: Task[] | undefined) => oldData?.filter(t => t.id !== task.id) || []
+      );
       
-      // Force immediate refetch of ALL relevant views
-      await Promise.all([
-        queryClient.refetchQueries({ queryKey: queryKeys.tasks.list() }),
-        queryClient.refetchQueries({ queryKey: queryKeys.tasks.client() }),
-        queryClient.refetchQueries({ queryKey: ['tasks'] }),
-        queryClient.refetchQueries({ queryKey: queryKeys.tasks.unified() })
-      ]);
+      // Update all other task related queries
+      ['generalTasks', 'unified-tasks', 'clientTasks'].forEach(queryKey => {
+        queryClient.setQueryData(
+          [queryKey],
+          (oldData: any[] | undefined) => oldData?.filter(t => t.id !== task.id) || []
+        );
+      });
+      
+      // After UI is updated immediately, schedule background revalidation
+      setTimeout(() => {
+        queryClient.invalidateQueries({ queryKey: ['tasks'] });
+      }, 500);
       
       toast({
         title: "Task deleted",
