@@ -44,10 +44,12 @@ const Index = () => {
         throw error;
       }
       console.log("Fetched clients:", data?.length);
-      return data;
+      return data || []; // Ensure we always return an array even if data is null
     },
     staleTime: 0, // Always refetch when requested
-    refetchOnWindowFocus: true // Refetch when window regains focus
+    refetchOnWindowFocus: true, // Refetch when window regains focus
+    refetchOnMount: true, // Always refetch when component mounts
+    initialData: [] // Start with empty array instead of undefined
   });
 
   const handleRefresh = useCallback(async () => {
@@ -86,6 +88,25 @@ const Index = () => {
     }
   }, [invalidateQueries, queryClient]);
 
+  // Handle client list toggle with pre-fetching
+  const handleToggleClientList = useCallback(() => {
+    // If we're about to show the client list, ensure data is fresh
+    if (!showClientList) {
+      // Immediately refetch clients before showing the slide-out panel
+      refetchClients().catch(error => {
+        console.error("Error pre-fetching clients:", error);
+        toast({
+          title: "Error loading clients",
+          description: "There was a problem loading the client list.",
+          variant: "destructive"
+        });
+      });
+    }
+    
+    // Toggle the client list display state
+    setShowClientList(prev => !prev);
+  }, [showClientList, refetchClients]);
+
   // Force refresh only once when page first loads
   useEffect(() => {
     if (!initialLoadDone.current) {
@@ -105,6 +126,9 @@ const Index = () => {
           queryClient.removeQueries({ queryKey: ['clients'] })
         ]);
         
+        // Immediately fetch clients data
+        await refetchClients();
+        
         // Invalidate all query cache to ensure fresh data
         await invalidateQueries();
         
@@ -115,7 +139,7 @@ const Index = () => {
       
       loadDashboard();
     }
-  }, [invalidateQueries, queryClient]);
+  }, [invalidateQueries, queryClient, refetchClients]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -123,7 +147,7 @@ const Index = () => {
       <main className="container mx-auto p-4 space-y-8">
         <DashboardHeader 
           showClientList={showClientList}
-          onToggleClientList={() => setShowClientList(!showClientList)}
+          onToggleClientList={handleToggleClientList}
           onNewTaskClick={() => setIsNewTaskOpen(true)}
         />
 

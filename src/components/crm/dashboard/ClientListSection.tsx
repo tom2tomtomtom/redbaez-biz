@@ -12,9 +12,14 @@ import {
 interface Client {
   id: number;
   name: string;
-  industry: string | null;
-  type: string;
-  status: string | null;
+  industry?: string | null;
+  type?: string | null;
+  status?: string | null;
+  // Additional fields that might be in the database
+  contact_person?: string | null;
+  email?: string | null;
+  phone?: string | null;
+  created_at?: string | null;
 }
 
 interface ClientListSectionProps {
@@ -41,7 +46,7 @@ export const ClientListSection: React.FC<ClientListSectionProps> = ({
           </div>
         ) : (
           <div className="space-y-2">
-            {clients?.map((client) => (
+            {Array.isArray(clients) && clients.map((client) => (
               <Link 
                 key={client.id}
                 to={`/client/${client.id}`}
@@ -51,7 +56,8 @@ export const ClientListSection: React.FC<ClientListSectionProps> = ({
                   <div>
                     <h3 className="font-medium">{client.name}</h3>
                     <p className="text-sm text-gray-500">
-                      {client.industry || 'No industry specified'} · {client.type}
+                      {client.industry || client.contact_person || 'No details'} 
+                      {client.type && ` · ${client.type}`}
                     </p>
                   </div>
                   <span className={`px-3 py-1 rounded-full text-sm ${
@@ -64,7 +70,7 @@ export const ClientListSection: React.FC<ClientListSectionProps> = ({
                 </div>
               </Link>
             ))}
-            {clients?.length === 0 && (
+            {(!clients || clients.length === 0) && (
               <p className="text-center text-gray-500 py-4">
                 No clients found. Add a new client to get started.
               </p>
