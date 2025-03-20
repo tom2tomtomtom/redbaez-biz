@@ -17,3 +17,35 @@
 # Enable functions if needed
 [functions]
   directory = "netlify/functions"
+
+# Set proper MIME types for all assets
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Content-Type-Options = "nosniff"
+
+[[headers]]
+  for = "/*.js"
+  [headers.values]
+    Content-Type = "application/javascript; charset=utf-8"
+
+[[headers]]
+  for = "/assets/*.js"
+  [headers.values]
+    Content-Type = "application/javascript; charset=utf-8"
+
+[[headers]]
+  for = "/*.css"
+  [headers.values]
+    Content-Type = "text/css; charset=utf-8"
+
+[[headers]]
+  for = "/assets/*.css"
+  [headers.values]
+    Content-Type = "text/css; charset=utf-8"
+
+# Also add for source maps
+[[headers]]
+  for = "/*.map"
+  [headers.values]
+    Content-Type = "application/json; charset=utf-8"
