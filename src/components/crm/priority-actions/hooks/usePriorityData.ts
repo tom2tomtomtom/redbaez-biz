@@ -23,36 +23,44 @@ export const usePriorityData = () => {
       console.log("Fetching incomplete tasks...");
       setIsLoading(true);
 
-      // Only fetch tasks that have a due date (ensure tasks without due dates don't appear in priority list)
-      const response = await supabase
-        .from("tasks")
-        .select("*, clients(name)")
-        .eq("status", "incomplete")
-        .not("due_date", "is", null)
-        .order("urgent", { ascending: false })
-        .order("due_date", { ascending: true });
-      
-      logResponse(response, response.error, "usePriorityData");
-      
-      if (response.error) {
-        console.error("Error fetching tasks:", response.error);
-        throw response.error;
-      }
+      try {
+        // Only fetch tasks that have a due date (ensure tasks without due dates don't appear in priority list)
+        const response = await supabase
+          .from("tasks")
+          .select("*, clients(name)")
+          .eq("status", "incomplete")
+          .not("due_date", "is", null)
+          .order("urgent", { ascending: false })
+          .order("due_date", { ascending: true });
+        
+        logResponse(response, response.error, "usePriorityData");
+        
+        if (response.error) {
+          console.error("Error fetching tasks:", response.error);
+          throw response.error;
+        }
 
-      setIsLoading(false);
-      console.log(`Successfully fetched ${response.data?.length || 0} tasks`);
-      
-      // Add debug output of first task if available
-      if (response.data && response.data.length > 0) {
-        console.log("Sample task:", response.data[0]);
-      } else {
-        console.log("No tasks returned from the database");
+        setIsLoading(false);
+        console.log(`Successfully fetched ${response.data?.length || 0} tasks`);
+        
+        // Add debug output of first task if available
+        if (response.data && response.data.length > 0) {
+          console.log("Sample task:", response.data[0]);
+        } else {
+          console.log("No tasks returned from the database");
+        }
+        
+        return response.data || [];
+      } catch (error) {
+        console.error("Error in fetchTasks:", error);
+        setIsLoading(false);
+        throw error;
       }
-      
-      return response.data || [];
     },
     staleTime: 0, // Don't cache results
     gcTime: 0,    // Don't keep old results
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
   });
 
   // Map task data to the unified PriorityItem format
@@ -129,12 +137,13 @@ export const usePriorityData = () => {
     setIsLoading(true);
     
     try {
-      await refetchTasks();
-      
       // Force invalidate all related query caches to ensure fresh data
       queryClient.invalidateQueries({ queryKey: queryKeys.tasks.unified() });
       queryClient.invalidateQueries({ queryKey: queryKeys.tasks.all() });
       queryClient.invalidateQueries({ queryKey: ['tasks'] });
+      
+      // Force a refetch
+      await refetchTasks();
       
       console.log("Data refresh complete");
     } catch (error) {

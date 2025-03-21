@@ -18,12 +18,14 @@ export const useQueryCacheManager = () => {
       // Remove data from cache to force a clean refetch
       queryClient.removeQueries({ queryKey: queryKeys.tasks.unified() });
       queryClient.removeQueries({ queryKey: ['unified-tasks'] });
+      queryClient.removeQueries({ queryKey: ['tasks'] });
       
       // Invalidate all task-related queries
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: queryKeys.tasks.all() }),
         queryClient.invalidateQueries({ queryKey: ['tasks'] }),
         queryClient.invalidateQueries({ queryKey: ['generalTasks'] }),
+        queryClient.invalidateQueries({ queryKey: queryKeys.tasks.general() }),
         queryClient.invalidateQueries({ queryKey: ['priorityClients'] }),
         queryClient.invalidateQueries({ queryKey: ['clientNextSteps'] }),
       ]);

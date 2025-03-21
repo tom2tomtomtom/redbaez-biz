@@ -1,11 +1,12 @@
 
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/lib/supabase";
+import { supabase } from "@/integrations/supabase/client";
 import { Task } from "@/hooks/useTaskDeletion";
+import { queryKeys } from "@/lib/queryKeys";
 
 export const useGeneralTasks = (category: string, refreshTrigger: number) => {
   return useQuery({
-    queryKey: ['generalTasks', category, refreshTrigger],
+    queryKey: [...queryKeys.tasks.general(), category, refreshTrigger],
     queryFn: async () => {
       console.log('Fetching tasks for category:', category);
 
@@ -38,7 +39,7 @@ export const useGeneralTasks = (category: string, refreshTrigger: number) => {
     },
     staleTime: 3000, // Add 3 seconds stale time to prevent immediate refetches 
     gcTime: 60000,   // Keep unused data for 1 minute
-    refetchOnMount: false, // Don't refetch when component mounts
-    refetchOnWindowFocus: false // Don't refetch when window gets focus
+    refetchOnMount: true, // Always refetch when component mounts
+    refetchOnWindowFocus: true // Always refetch when window gets focus
   });
 };

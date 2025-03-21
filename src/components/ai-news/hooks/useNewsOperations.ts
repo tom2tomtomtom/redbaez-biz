@@ -1,7 +1,6 @@
-
 import { useState } from "react";
-import { supabase } from "@/lib/supabase";
-import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "@/components/ui/use-toast";
 
 interface NewsItem {
@@ -23,6 +22,7 @@ export const useNewsOperations = () => {
   const [generatedArticle, setGeneratedArticle] = useState("");
   const [generatedNewsletter, setGeneratedNewsletter] = useState("");
   const [selectedNewsItem, setSelectedNewsItem] = useState<NewsItem | null>(null);
+  const queryClient = useQueryClient();
 
   const { data: newsItems, isLoading, refetch } = useQuery({
     queryKey: ['ai-news'],
@@ -41,12 +41,20 @@ export const useNewsOperations = () => {
       console.log('Successfully fetched news items:', data?.length);
       return data as NewsItem[];
     },
+    staleTime: 0, // Don't cache results for news
+    gcTime: 0,    // Don't keep old results
+    refetchOnMount: true,
+    refetchOnWindowFocus: true
   });
 
   const refreshNews = async () => {
     try {
       setIsRefreshing(true);
       console.log('Starting news refresh...');
+      
+      // Ensure cache is invalidated
+      queryClient.invalidateQueries({ queryKey: ['ai-news'] });
+      
       const { error } = await supabase.functions.invoke('fetch-ai-news');
       if (error) {
         console.error('Error invoking fetch-ai-news function:', error);
@@ -54,7 +62,13 @@ export const useNewsOperations = () => {
       }
       
       console.log('Successfully invoked fetch-ai-news function, refetching data...');
+      
+      // Force short delay to allow the edge function to complete
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Then refetch
       await refetch();
+      
       toast({
         title: "Success",
         description: "News refreshed successfully",

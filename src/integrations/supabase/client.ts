@@ -20,10 +20,12 @@ const getCacheHeaders = () => ({
 // Validate Supabase configuration
 if (!SUPABASE_URL) {
   logger.error('Missing Supabase URL. Please check environment variables.');
+  console.error('CRITICAL ERROR: Missing Supabase URL in environment variables');
 }
 
 if (!SUPABASE_ANON_KEY) {
   logger.error('Missing Supabase Anon Key. Please check environment variables.');
+  console.error('CRITICAL ERROR: Missing Supabase Anon Key in environment variables');
 }
 
 // Create Supabase client with aggressive anti-caching configuration
@@ -45,9 +47,24 @@ export const supabase = createClient(
   }
 );
 
-// Simple diagnostics helper
+// Simple diagnostics helper with added debug output
 export const logQuery = (table: string, action: string) => {
   logger.info(`Supabase ${action} from ${table} at ${new Date().toISOString()}`);
+  console.log(`Debug: Supabase ${action} query on ${table}`);
+};
+
+// Helper to log Supabase responses and errors
+export const logResponse = (response: any, error: any, source: string) => {
+  if (error) {
+    logger.error(`Supabase error in ${source}:`, error);
+    console.error(`Debug: Supabase error in ${source}:`, error);
+    return;
+  }
+  
+  const count = response?.data?.length || 0;
+  logger.info(`Supabase success in ${source}: Retrieved ${count} records`);
+  console.log(`Debug: Supabase success in ${source}: Retrieved ${count} records`, 
+    count > 0 ? response.data[0] : 'No data');
 };
 
 // Default export for backward compatibility

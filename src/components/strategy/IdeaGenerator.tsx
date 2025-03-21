@@ -18,15 +18,16 @@ export const IdeaGenerator = ({ category, onIdeaGenerated }: IdeaGeneratorProps)
   
   const { isGenerating, generateIdeas } = useIdeaGeneration(category, onIdeaGenerated);
 
-  const handleCreateTask = (idea: { suggestion: string; priority: string; type: string }) => {
-    setSelectedIdea(idea);
+  const handleGenerateIdeas = (prompt: string) => {
+    console.log("Generating ideas with prompt:", prompt);
+    generateIdeas(prompt);
   };
 
   return (
     <div className="space-y-4">
       <IdeaGenerationForm 
         isGenerating={isGenerating}
-        onGenerate={generateIdeas}
+        onGenerate={handleGenerateIdeas}
       />
 
       <IdeaTaskManager

@@ -1,7 +1,7 @@
 
 import { useState } from "react";
 import { toast } from "@/components/ui/use-toast";
-import { supabase } from "@/lib/supabase";
+import { supabase } from "@/integrations/supabase/client";
 
 export const useIdeaGeneration = (category: string, onIdeasGenerated: () => void) => {
   const [isGenerating, setIsGenerating] = useState(false);
@@ -99,6 +99,8 @@ export const useIdeaGeneration = (category: string, onIdeasGenerated: () => void
         results.forEach((result, index) => {
           if (result.status === 'rejected') {
             console.error(`Error inserting task ${index}:`, result.reason);
+          } else {
+            console.log(`Successfully inserted task ${index}`);
           }
         });
         
@@ -108,6 +110,9 @@ export const useIdeaGeneration = (category: string, onIdeasGenerated: () => void
             title: "Ideas Generated",
             description: "Click on any idea to convert it into a task.",
           });
+          
+          // Call the callback to refresh the ideas list
+          onIdeasGenerated();
         } else {
           toast({
             title: "Error",
@@ -123,9 +128,6 @@ export const useIdeaGeneration = (category: string, onIdeasGenerated: () => void
           variant: "destructive",
         });
       }
-
-      // Only trigger refresh after all operations are complete
-      onIdeasGenerated();
     } catch (error) {
       console.error('Error generating ideas:', error);
       toast({

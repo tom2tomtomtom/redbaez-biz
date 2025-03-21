@@ -1,8 +1,10 @@
+
 export const queryKeys = {
   clients: {
     all: () => ['clients'],
     lists: () => ['clients', 'list'],
-    details: (id: string) => ['clients', 'detail', id]
+    details: (id: string) => ['clients', 'detail', id],
+    detail: (id: number) => ['clients', 'detail', id.toString()]
   },
   contacts: {
     all: () => ['contacts'],
@@ -36,7 +38,13 @@ export const queryKeys = {
     all: () => ['tasks', 'all'],
     
     // Single task by ID
-    detail: (id: string) => ['tasks', 'detail', id]
+    detail: (id: string) => ['tasks', 'detail', id],
+    
+    // Tasks for a specific client
+    clientItems: (clientId: number | null) => ['tasks', 'client', clientId?.toString() || 'none'],
+    
+    // General tasks (for strategy section)
+    general: () => ['tasks', 'general']
   },
   settings: {
     all: () => ['settings'],
