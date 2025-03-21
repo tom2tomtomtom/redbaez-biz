@@ -44,7 +44,10 @@ export const queryKeys = {
     clientItems: (clientId: number | null) => ['tasks', 'client', clientId?.toString() || 'none'],
     
     // General tasks (for strategy section)
-    general: () => ['tasks', 'general']
+    general: () => ['tasks', 'general'],
+    
+    // Add a client method to fix the error
+    client: (clientId?: number | null) => ['tasks', 'client', clientId?.toString() || 'none']
   },
   settings: {
     all: () => ['settings'],

@@ -20,11 +20,11 @@ export const useItemDeletion = () => {
     // Remove cached data to ensure fresh fetches
     queryClient.removeQueries({ queryKey: queryKeys.tasks.unified() });
     queryClient.removeQueries({ queryKey: ['tasks'] });
-    queryClient.removeQueries({ queryKey: queryKeys.tasks.clientItems() });
+    queryClient.removeQueries({ queryKey: queryKeys.tasks.clientItems(null) });
     
     // Force immediate refresh of ALL related queries
     await Promise.all([
-      queryClient.refetchQueries({ queryKey: queryKeys.tasks.clientItems() }),
+      queryClient.refetchQueries({ queryKey: queryKeys.tasks.clientItems(null) }),
       queryClient.refetchQueries({ queryKey: queryKeys.tasks.unified() }),
       queryClient.refetchQueries({ queryKey: ['tasks'] })
     ]);
