@@ -32,14 +32,14 @@ export const useTaskMutations = () => {
     await Promise.all([
       queryClient.invalidateQueries({ queryKey: queryKeys.tasks.all() }),
       queryClient.invalidateQueries({ queryKey: queryKeys.tasks.list() }),
-      queryClient.invalidateQueries({ queryKey: queryKeys.tasks.clientItems() }),
+      queryClient.invalidateQueries({ queryKey: queryKeys.tasks.clientItems(null) }),
       queryClient.invalidateQueries({ queryKey: ['tasks'] }),
     ]);
     
     // Force refetch of key queries
     await Promise.all([
       queryClient.refetchQueries({ queryKey: queryKeys.tasks.list() }),
-      queryClient.refetchQueries({ queryKey: queryKeys.tasks.clientItems() }),
+      queryClient.refetchQueries({ queryKey: queryKeys.tasks.clientItems(null) }),
       queryClient.refetchQueries({ queryKey: ['tasks'] }),
     ]);
   };
