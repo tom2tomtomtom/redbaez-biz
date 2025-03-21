@@ -25,6 +25,9 @@ export const PERPLEXITY_API_KEY = getEnvVariable('VITE_PERPLEXITY_API_KEY');
 // Feature Flags
 export const ENABLE_AI_FEATURES = getEnvVariable('VITE_ENABLE_AI_FEATURES', 'true') === 'true';
 export const DEBUG_MODE = getEnvVariable('VITE_DEBUG_MODE', 'false') === 'true';
+export const ENABLE_PERFORMANCE_MONITORING = getEnvVariable('VITE_ENABLE_PERFORMANCE_MONITORING', 'false') === 'true';
+export const ENABLE_CODE_SPLITTING = getEnvVariable('VITE_ENABLE_CODE_SPLITTING', 'true') === 'true';
+export const ENABLE_PREFETCHING = getEnvVariable('VITE_ENABLE_PREFETCHING', 'true') === 'true';
 
 // Other Application Settings
 export const APP_NAME = getEnvVariable('VITE_APP_NAME', 'Business Dashboard');
@@ -38,6 +41,9 @@ export const ENV = {
   PERPLEXITY_API_KEY,
   ENABLE_AI_FEATURES,
   DEBUG_MODE,
+  ENABLE_PERFORMANCE_MONITORING,
+  ENABLE_CODE_SPLITTING,
+  ENABLE_PREFETCHING,
   APP_NAME,
   API_TIMEOUT
 };
