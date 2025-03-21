@@ -1,30 +1,47 @@
-
-/**
- * Centralized query key definitions for React Query
- * This ensures consistency across the application
- */
-
 export const queryKeys = {
-  tasks: {
-    all: () => ['tasks'],
-    list: (params?: { category?: string, showCompleted?: boolean }) => 
-      ['tasks-list', params?.category, params?.showCompleted],
-    client: (clientId?: string | number) => 
-      clientId ? ['client-tasks', String(clientId)] : ['client-tasks'],
-    // Adding missing query keys that were causing errors
-    unified: () => ['unified-tasks'],
-    general: () => ['general-tasks'],
-    clientItems: (clientId?: string | number) => 
-      clientId ? ['client-items', String(clientId)] : ['client-items']
-  },
   clients: {
-    all: (refreshTrigger?: number) => ['clients', refreshTrigger],
-    detail: (id?: string | number) => id ? ['client', String(id)] : ['client']
+    all: () => ['clients'],
+    lists: () => ['clients', 'list'],
+    details: (id: string) => ['clients', 'detail', id]
   },
-  revenue: {
-    monthly: () => ['monthly-revenue']
+  contacts: {
+    all: () => ['contacts'],
+    lists: () => ['contacts', 'list'],
+    details: (id: string) => ['contacts', 'detail', id]
   },
-  intel: {
-    search: (query?: string) => ['intel-search', query]
+  deals: {
+    all: () => ['deals'],
+    lists: () => ['deals', 'list'],
+    details: (id: string) => ['deals', 'detail', id]
+  },
+  quotes: {
+    all: () => ['quotes'],
+    lists: () => ['quotes', 'list'],
+    details: (id: string) => ['quotes', 'detail', id]
+  },
+  invoices: {
+    all: () => ['invoices'],
+    lists: () => ['invoices', 'list'],
+    details: (id: string) => ['invoices', 'detail', id]
+  },
+  tasks: {
+    // Unified query key for all tasks
+    unified: () => ['tasks', 'unified'],
+    
+    // Tasks list with filters
+    list: (filters?: { category?: string; showCompleted?: boolean }) => 
+      ['tasks', 'list', filters?.category || 'all', filters?.showCompleted ? 'completed' : 'active'],
+    
+    // All tasks 
+    all: () => ['tasks', 'all'],
+    
+    // Single task by ID
+    detail: (id: string) => ['tasks', 'detail', id]
+  },
+  settings: {
+    all: () => ['settings'],
+    user: () => ['settings', 'user'],
   }
 };
+
+export default queryKeys;

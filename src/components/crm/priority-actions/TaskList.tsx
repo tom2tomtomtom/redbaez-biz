@@ -7,7 +7,8 @@ import { PriorityActionsSkeleton } from './PriorityActionsSkeleton';
 import { CompletionConfirmDialog } from './components/CompletionConfirmDialog';
 import { toast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
-import { RefreshCcw } from 'lucide-react';
+import { RefreshCcw, AlertCircle } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 interface TaskListProps {
   category?: string;
@@ -26,6 +27,9 @@ export const TaskList = ({
   const refreshIntervalRef = useRef<number | null>(null);
   const completedTaskIds = useRef<Set<string>>(new Set());
   
+  // Log component rendering for debugging
+  console.log(`TaskList rendering with category: ${category}, showCompleted: ${showCompleted}, refreshKey: ${refreshKey}`);
+  
   // Use our task data hook with refresh key for forced updates
   const { data: tasks = [], isLoading, error, refetch } = useTaskData(category, showCompleted);
   
@@ -40,17 +44,22 @@ export const TaskList = ({
 
   // Force refresh when component mounts and when refreshKey changes
   useEffect(() => {
-    console.log("TaskList refreshing data with key:", refreshKey);
-    refetch().catch(err => {
+    console.log(`TaskList useEffect running with refreshKey: ${refreshKey}`);
+    console.log(`Current tasks count: ${tasks.length}`);
+    
+    refetch().then(result => {
+      console.log(`Refetch completed with ${result.data?.length || 0} tasks`);
+    }).catch(err => {
       console.error("Error refreshing tasks:", err);
     });
     
     if (!initialLoadDone.current) {
       initialLoadDone.current = true;
+      console.log("Initial load complete, setting up periodic refresh");
       
       // Set up periodic refresh every 2 minutes
       refreshIntervalRef.current = window.setInterval(() => {
-        console.log("Periodic task refresh");
+        console.log("Periodic task refresh triggered");
         refetch().catch(err => {
           console.error("Error in periodic refresh:", err);
         });
@@ -60,6 +69,7 @@ export const TaskList = ({
     // Clean up the interval when component unmounts
     return () => {
       if (refreshIntervalRef.current !== null) {
+        console.log("Cleaning up refresh interval");
         window.clearInterval(refreshIntervalRef.current);
         refreshIntervalRef.current = null;
       }
@@ -69,6 +79,8 @@ export const TaskList = ({
   }, [category, showCompleted, refetch, refreshKey]);
 
   const handleRefresh = async () => {
+    console.log("Manual refresh requested");
+    
     toast({
       title: "Refreshing tasks",
       description: "Fetching latest task data..."
@@ -76,7 +88,9 @@ export const TaskList = ({
     
     try {
       await invalidateTaskQueries();
-      await refetch();
+      const result = await refetch();
+      console.log(`Manual refresh completed with ${result.data?.length || 0} tasks`);
+      
       // Force component update by changing refresh key
       setRefreshKey(prev => prev + 1);
       // Clear the completed tasks set on manual refresh
@@ -135,9 +149,6 @@ export const TaskList = ({
     // Call the updateCompletion function
     await updateCompletion(task, completed);
     
-    // FIX: The issue is here. updateCompletion returns void, not a boolean
-    // So we shouldn't be doing a comparison with boolean, just force refresh the UI
-    
     // Force immediate UI refresh to remove the completed task
     if (completed && !showCompleted) {
       setRefreshKey(prev => prev + 1);
@@ -158,7 +169,12 @@ export const TaskList = ({
   if (error) {
     return (
       <div className="p-4 text-center">
-        <p className="text-red-500 mb-2">Error loading tasks: {error.message}</p>
+        <Alert variant="destructive" className="mb-4">
+          <AlertCircle className="h-4 w-4 mr-2" />
+          <AlertDescription>
+            Error loading tasks: {error.message || "Unknown error"}
+          </AlertDescription>
+        </Alert>
         <Button onClick={handleRefresh} variant="outline" size="sm">
           <RefreshCcw className="mr-2 h-4 w-4" />
           Try Again
@@ -174,6 +190,8 @@ export const TaskList = ({
     }
     return true;
   });
+
+  console.log(`Rendering TaskList with ${filteredTasks.length} tasks after filtering`);
 
   if (!filteredTasks.length) {
     return (

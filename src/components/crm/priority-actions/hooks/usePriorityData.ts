@@ -1,6 +1,7 @@
+
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/lib/supabase";
+import { supabase, logResponse } from "@/lib/supabase";
 import { PriorityItem } from "./taskTypes";
 import { queryKeys } from "@/lib/queryKeys";
 
@@ -23,27 +24,45 @@ export const usePriorityData = () => {
       setIsLoading(true);
 
       // Only fetch tasks that have a due date (ensure tasks without due dates don't appear in priority list)
-      const { data, error } = await supabase
+      const response = await supabase
         .from("tasks")
         .select("*, clients(name)")
         .eq("status", "incomplete")
         .not("due_date", "is", null)
         .order("urgent", { ascending: false })
         .order("due_date", { ascending: true });
-
-      if (error) {
-        console.error("Error fetching tasks:", error);
-        throw error;
+      
+      logResponse(response, response.error, "usePriorityData");
+      
+      if (response.error) {
+        console.error("Error fetching tasks:", response.error);
+        throw response.error;
       }
 
       setIsLoading(false);
-      return data || [];
+      console.log(`Successfully fetched ${response.data?.length || 0} tasks`);
+      
+      // Add debug output of first task if available
+      if (response.data && response.data.length > 0) {
+        console.log("Sample task:", response.data[0]);
+      } else {
+        console.log("No tasks returned from the database");
+      }
+      
+      return response.data || [];
     },
+    staleTime: 0, // Don't cache results
+    gcTime: 0,    // Don't keep old results
   });
 
   // Map task data to the unified PriorityItem format
   const mapTasksToPriorityItems = (): PriorityItem[] => {
-    if (!tasksData) return [];
+    if (!tasksData) {
+      console.log("No task data available to map");
+      return [];
+    }
+    
+    console.log(`Mapping ${tasksData.length} tasks to priority items`);
 
     return tasksData.map((task) => {
       // Handle tasks with client relation
@@ -102,6 +121,7 @@ export const usePriorityData = () => {
 
   // Get all priority items and sort them
   const priorityItems = sortPriorityItems(mapTasksToPriorityItems());
+  console.log(`Total priority items after sorting: ${priorityItems.length}`);
 
   // Refetch all data
   const refreshAllData = async () => {
@@ -115,6 +135,8 @@ export const usePriorityData = () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.tasks.unified() });
       queryClient.invalidateQueries({ queryKey: queryKeys.tasks.all() });
       queryClient.invalidateQueries({ queryKey: ['tasks'] });
+      
+      console.log("Data refresh complete");
     } catch (error) {
       console.error("Error refreshing priority data:", error);
     } finally {
