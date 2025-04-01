@@ -6,6 +6,8 @@ import { CompletionConfirmDialog } from './components/CompletionConfirmDialog';
 import { TaskListHeader } from './components/TaskListHeader';
 import { TaskListEmptyState } from './components/TaskListEmptyState';
 import { TaskListErrorState } from './components/TaskListErrorState';
+import { useEffect } from 'react';
+import logger from '@/utils/logger';
 
 interface TaskListProps {
   category?: string;
@@ -34,12 +36,25 @@ export const TaskList = ({
     refreshKey
   } = useTaskList({ category, showCompleted });
   
+  useEffect(() => {
+    logger.info("TaskList mounted with:", { 
+      category, 
+      showCompleted, 
+      taskCount: filteredTasks?.length || 0,
+      hasError: !!error
+    });
+    
+    // Force a refresh when component mounts to ensure we have fresh data
+    handleRefresh();
+  }, [category, showCompleted]);
+  
   console.log("TaskList rendering with:", { 
     category, 
     showCompleted, 
     taskCount: filteredTasks?.length || 0,
     isLoading,
-    hasError: !!error
+    hasError: !!error,
+    refreshKey
   });
   
   // Show loading skeleton while initial data loads

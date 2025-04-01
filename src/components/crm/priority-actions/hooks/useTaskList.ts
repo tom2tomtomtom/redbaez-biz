@@ -16,6 +16,7 @@ export const useTaskList = ({
 }: UseTaskListOptions) => {
   const [refreshKey, setRefreshKey] = useState(0);
   const [completionConfirmTask, setCompletionConfirmTask] = useState<Task | null>(null);
+  const [filteredTasks, setFilteredTasks] = useState<Task[]>([]);
   
   // Get task data with the specified filters
   const { 
@@ -34,63 +35,63 @@ export const useTaskList = ({
     invalidateTaskQueries
   } = useTaskMutations();
 
-  // Log task data for debugging
+  // Apply category filtering if needed (secondary filtering beyond what the query does)
   useEffect(() => {
-    logger.info(`Tasks loaded: ${tasks.length}`, { 
-      category, 
-      showCompleted, 
-      hasError: !!error 
-    });
+    logger.info('TaskList useEffect running for filtering with refreshKey:', refreshKey);
+    logger.info('Current tasks count:', tasks.length);
     
-    console.log("useTaskList received tasks:", { 
-      count: tasks.length, 
-      category, 
-      showCompleted, 
-      hasError: !!error,
-      sample: tasks.slice(0, 2)
-    });
-    
-    if (tasks.length > 0) {
-      logger.info('First task sample:', tasks[0]);
+    if (tasks.length === 0) {
+      setFilteredTasks([]);
+      return;
     }
-  }, [tasks, category, showCompleted, error]);
+    
+    // Apply additional filtering if needed
+    let filtered = [...tasks];
+    
+    if (category && category !== 'All') {
+      // Additional client-side filtering if needed
+      filtered = filtered.filter(task => {
+        return task.category?.toLowerCase().includes(category.toLowerCase());
+      });
+    }
+    
+    logger.info(`Tasks filtered by category "${category}": ${filtered.length} of ${tasks.length}`);
+    setFilteredTasks(filtered);
+  }, [tasks, category, refreshKey]);
 
-  // Filter tasks based on category if needed
-  const filteredTasks = tasks.filter(task => {
-    if (!category || category === 'All') return true;
-    return task.category?.toLowerCase().includes((category || '').toLowerCase());
-  });
+  // Handle refresh button
+  const handleRefresh = useCallback(async () => {
+    logger.info('Manual refresh requested');
+    await invalidateTaskQueries();
+    const result = await refetch();
+    logger.info('Manual refresh completed with', result.data?.length, 'tasks');
+    setRefreshKey(prev => prev + 1);
+    return result;
+  }, [refetch, invalidateTaskQueries]);
 
-  console.log("Filtered tasks:", {
-    before: tasks.length,
-    after: filteredTasks.length,
-    filterCategory: category
-  });
-
-  // Handle task completion with confirmation
-  const handleCompletionChange = (task: Task, completed: boolean) => {
-    if (completed) {
+  // Handle completion status change with confirmation for important tasks
+  const handleCompletionChange = useCallback((task: Task, completed: boolean) => {
+    if (completed && task.urgent) {
+      // Show confirmation dialog for urgent tasks
       setCompletionConfirmTask(task);
     } else {
+      // For non-urgent tasks or unmarking as completed, proceed directly
       updateCompletion(task, completed);
     }
-  };
+  }, [updateCompletion]);
 
-  // Confirm task completion after dialog
-  const confirmTaskCompletion = () => {
+  // Handle deletion
+  const handleTaskDelete = useCallback((task: Task) => {
+    deleteTask(task);
+  }, [deleteTask]);
+
+  // Confirm task completion
+  const confirmTaskCompletion = useCallback(() => {
     if (completionConfirmTask) {
       updateCompletion(completionConfirmTask, true);
       setCompletionConfirmTask(null);
     }
-  };
-
-  // Handle refresh of task list
-  const handleRefresh = useCallback(async () => {
-    console.log("Manual refresh requested");
-    await invalidateTaskQueries();
-    await refetch();
-    setRefreshKey(prev => prev + 1);
-  }, [invalidateTaskQueries, refetch]);
+  }, [completionConfirmTask, updateCompletion]);
 
   return {
     filteredTasks,
@@ -98,7 +99,7 @@ export const useTaskList = ({
     error,
     isProcessing,
     handleRefresh,
-    handleTaskDelete: deleteTask,
+    handleTaskDelete,
     handleCompletionChange,
     updateUrgency,
     completionConfirmTask,

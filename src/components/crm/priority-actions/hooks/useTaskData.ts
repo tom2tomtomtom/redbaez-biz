@@ -1,6 +1,6 @@
 
 import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/lib/supabaseClient';
+import { supabase, logResponse } from '@/lib/supabaseClient';
 import { Task } from '@/types/task';
 import { queryKeys } from '@/lib/queryKeys';
 import logger from '@/utils/logger';
@@ -34,6 +34,9 @@ export const useTaskData = (category?: string, showCompleted = false) => {
         .order('urgent', { ascending: false })
         .order('due_date', { ascending: true });
 
+      // Log the complete response for debugging
+      logResponse({ data }, error, 'useTaskData');
+
       if (error) {
         logger.error('Error fetching tasks:', error);
         console.error('Error fetching tasks:', error);
@@ -41,8 +44,12 @@ export const useTaskData = (category?: string, showCompleted = false) => {
       }
 
       // Log the raw data for debugging
-      logger.info(`Raw tasks data from database: ${JSON.stringify(data?.slice(0, 2))}`);
-      console.log('Raw tasks data:', data);
+      if (data && data.length > 0) {
+        logger.info(`Raw tasks data sample: ${JSON.stringify(data.slice(0, 2))}`);
+        console.log('Raw tasks data sample:', data.slice(0, 2));
+      } else {
+        console.log('No tasks data returned from query');
+      }
 
       // Map the data to our Task type
       const tasks: Task[] = (data || []).map(task => ({
@@ -63,11 +70,11 @@ export const useTaskData = (category?: string, showCompleted = false) => {
         type: 'task' // Set default type
       }));
       
-      logger.info(`Fetched ${tasks.length} tasks with status: ${showCompleted ? 'completed' : 'incomplete'}`);
-      console.log(`Fetched ${tasks.length} tasks with status: ${showCompleted ? 'completed' : 'incomplete'}`);
+      logger.info(`Processed ${tasks.length} tasks with status: ${showCompleted ? 'completed' : 'incomplete'}`);
+      console.log(`Processed ${tasks.length} tasks with status: ${showCompleted ? 'completed' : 'incomplete'}`);
       return tasks;
     },
-    staleTime: 5000, // 5 seconds before refetching
+    staleTime: 0, // Disable stale time to always fetch fresh data
     gcTime: 60000,   // Keep data for 1 minute after component unmounts
     refetchOnWindowFocus: true, // Auto refetch on window focus
     refetchOnMount: true, // Refetch on mount

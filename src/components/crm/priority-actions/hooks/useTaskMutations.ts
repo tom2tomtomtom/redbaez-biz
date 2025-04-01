@@ -1,20 +1,14 @@
 
 import { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/lib/supabase';
-import { Task, useTaskDeletion } from '@/hooks/useTaskDeletion';
+import { supabase, logResponse } from '@/lib/supabaseClient';
+import { Task } from '@/types/task';
 import { toast } from '@/hooks/use-toast';
 import { queryKeys } from '@/lib/queryKeys';
 
 export const useTaskMutations = () => {
   const queryClient = useQueryClient();
   const [isProcessing, setIsProcessing] = useState(false);
-  
-  // Use the core task deletion hook with our own callback
-  const { deleteTask: deleteTaskHook } = useTaskDeletion(async () => {
-    console.log("Task deletion callback - refreshing queries");
-    await invalidateTaskQueries();
-  });
   
   // Helper function to invalidate task queries
   const invalidateTaskQueries = async () => {
@@ -24,22 +18,19 @@ export const useTaskMutations = () => {
     queryClient.cancelQueries();
     
     // First remove the cached data to force fresh fetches
-    queryClient.removeQueries({ queryKey: queryKeys.tasks.unified() });
-    queryClient.removeQueries({ queryKey: ['unified-tasks'] });
+    queryClient.removeQueries({ queryKey: queryKeys.tasks.all() });
     queryClient.removeQueries({ queryKey: ['tasks'] });
     
     // Invalidate all task-related queries
     await Promise.all([
       queryClient.invalidateQueries({ queryKey: queryKeys.tasks.all() }),
       queryClient.invalidateQueries({ queryKey: queryKeys.tasks.list() }),
-      queryClient.invalidateQueries({ queryKey: queryKeys.tasks.clientItems(null) }),
       queryClient.invalidateQueries({ queryKey: ['tasks'] }),
     ]);
     
     // Force refetch of key queries
     await Promise.all([
       queryClient.refetchQueries({ queryKey: queryKeys.tasks.list() }),
-      queryClient.refetchQueries({ queryKey: queryKeys.tasks.clientItems(null) }),
       queryClient.refetchQueries({ queryKey: ['tasks'] }),
     ]);
   };
@@ -50,20 +41,25 @@ export const useTaskMutations = () => {
       setIsProcessing(true);
       console.log(`TASKS: Updating task ${task.id} completion to ${completed}`);
       
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('tasks')
         .update({
           status: completed ? 'completed' : 'incomplete',
           updated_at: new Date().toISOString()
         })
-        .eq('id', task.id);
+        .eq('id', task.id)
+        .select();
+
+      // Log the response
+      logResponse({ data }, error, 'updateTaskCompletion');
 
       if (error) throw error;
 
-      return { taskId: task.id, completed };
+      return { taskId: task.id, completed, data };
     },
-    onSuccess: () => {
+    onSuccess: (result) => {
       invalidateTaskQueries();
+      console.log('Task completion update successful', result);
       toast({
         title: 'Task updated',
         description: 'Task completion status has been updated',
@@ -88,20 +84,25 @@ export const useTaskMutations = () => {
       setIsProcessing(true);
       console.log(`Updating task ${task.id} urgency to ${urgent}`);
       
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('tasks')
         .update({
           urgent: urgent,
           updated_at: new Date().toISOString()
         })
-        .eq('id', task.id);
+        .eq('id', task.id)
+        .select();
+
+      // Log the response
+      logResponse({ data }, error, 'updateTaskUrgency');
 
       if (error) throw error;
 
-      return { taskId: task.id, urgent };
+      return { taskId: task.id, urgent, data };
     },
-    onSuccess: () => {
+    onSuccess: (result) => {
       invalidateTaskQueries();
+      console.log('Task urgency update successful', result);
       toast({
         title: 'Task updated',
         description: 'Task urgency has been updated',
@@ -120,11 +121,50 @@ export const useTaskMutations = () => {
     }
   });
 
+  // Delete task
+  const deleteTaskMutation = useMutation({
+    mutationFn: async (task: Task) => {
+      setIsProcessing(true);
+      console.log(`Deleting task ${task.id}`);
+      
+      const { data, error } = await supabase
+        .from('tasks')
+        .delete()
+        .eq('id', task.id)
+        .select();
+
+      // Log the response
+      logResponse({ data }, error, 'deleteTask');
+
+      if (error) throw error;
+
+      return { taskId: task.id };
+    },
+    onSuccess: () => {
+      invalidateTaskQueries();
+      toast({
+        title: 'Task deleted',
+        description: 'Task has been removed successfully',
+      });
+    },
+    onError: (error) => {
+      console.error('Error deleting task:', error);
+      toast({
+        title: 'Delete failed',
+        description: error.message,
+        variant: 'destructive',
+      });
+    },
+    onSettled: () => {
+      setIsProcessing(false);
+    }
+  });
+
   return {
     isProcessing,
     updateCompletion: (task: Task, completed: boolean) => updateTaskCompletion.mutate({ task, completed }),
     updateUrgency: (task: Task, urgent: boolean) => updateTaskUrgency.mutate({ task, urgent }),
-    deleteTask: (task: Task) => deleteTaskHook(task),
+    deleteTask: (task: Task) => deleteTaskMutation.mutate(task),
     invalidateTaskQueries
   };
 };
