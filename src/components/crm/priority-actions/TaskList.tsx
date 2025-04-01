@@ -58,7 +58,10 @@ export const TaskList = ({
   // Show the task list
   return (
     <div className="space-y-2">
-      <TaskListHeader onRefresh={handleRefresh} />
+      <TaskListHeader 
+        onRefresh={handleRefresh} 
+        tasksCount={filteredTasks.length}
+      />
       
       {filteredTasks.map((task) => (
         <TaskItem

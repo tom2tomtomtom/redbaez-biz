@@ -49,16 +49,19 @@ export const useTaskData = (category?: string, showCompleted = false) => {
         description: task.description,
         client_id: task.client_id,
         client: task.clients,
+        client_name: task.clients?.name,
         due_date: task.due_date,
         urgent: task.urgent || false,
         status: task.status,
         category: task.category,
         created_at: task.created_at,
         updated_at: task.updated_at,
+        created_by: task.created_by,
+        updated_by: task.updated_by,
         type: task.type || 'task' // Capture the task type if present
       }));
       
-      console.log(`Fetched ${tasks.length} tasks`);
+      console.log(`Fetched ${tasks.length} tasks with status: ${showCompleted ? 'completed' : 'incomplete'}`);
       return tasks;
     },
     staleTime: 5000, // 5 seconds before refetching
