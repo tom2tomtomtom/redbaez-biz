@@ -5,19 +5,30 @@ import { Plus } from 'lucide-react';
 import { TaskList } from './TaskList';
 import { PriorityActionsFilter } from './PriorityActionsFilter';
 import { TaskDialog } from './TaskDialog';
+import { Task } from '@/types/task';
 
 interface PriorityActionsProps {
   hideAddButton?: boolean;
+  initialCategory?: string;
+  onTaskClick?: (taskId: string) => void;
 }
 
-export const PriorityActions = ({ hideAddButton = false }: PriorityActionsProps) => {
-  const [filter, setFilter] = useState<string>('All');
+export const PriorityActions = ({ 
+  hideAddButton = false, 
+  initialCategory,
+  onTaskClick
+}: PriorityActionsProps) => {
+  const [filter, setFilter] = useState<string>(initialCategory || 'All');
   const [showCompleted, setShowCompleted] = useState(false);
   const [isNewTaskOpen, setIsNewTaskOpen] = useState(false);
-  const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
 
   const handleTaskSelected = (taskId: string) => {
-    setSelectedTaskId(taskId);
+    if (onTaskClick) {
+      onTaskClick(taskId);
+    } else {
+      setSelectedTask({ id: taskId } as Task);
+    }
   };
 
   return (
@@ -49,13 +60,15 @@ export const PriorityActions = ({ hideAddButton = false }: PriorityActionsProps)
         onOpenChange={setIsNewTaskOpen}
         task={null}
         onSaved={() => setIsNewTaskOpen(false)}
+        defaultCategory={initialCategory}
       />
       
       <TaskDialog
-        isOpen={!!selectedTaskId}
-        onOpenChange={() => setSelectedTaskId(null)}
-        taskId={selectedTaskId}
-        onSaved={() => setSelectedTaskId(null)}
+        isOpen={!!selectedTask}
+        onOpenChange={() => setSelectedTask(null)}
+        task={selectedTask}
+        onSaved={() => setSelectedTask(null)}
+        defaultCategory={initialCategory}
       />
     </div>
   );
