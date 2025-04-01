@@ -4,7 +4,6 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase, logResponse } from '@/lib/supabaseClient';
 import { Task } from '@/types/task';
 import { toast } from '@/hooks/use-toast';
-import { queryKeys } from '@/lib/queryKeys';
 
 export const useTaskMutations = () => {
   const queryClient = useQueryClient();
@@ -12,34 +11,23 @@ export const useTaskMutations = () => {
   
   // Helper function to invalidate task queries
   const invalidateTaskQueries = async () => {
-    console.log('Invalidating and refetching task queries');
+    console.log('Invalidating task queries');
     
-    // Cancel any ongoing queries
-    queryClient.cancelQueries();
-    
-    // First remove the cached data to force fresh fetches
-    queryClient.removeQueries({ queryKey: queryKeys.tasks.all() });
+    // Clear all cached data for tasks
     queryClient.removeQueries({ queryKey: ['tasks'] });
     
     // Invalidate all task-related queries
-    await Promise.all([
-      queryClient.invalidateQueries({ queryKey: queryKeys.tasks.all() }),
-      queryClient.invalidateQueries({ queryKey: queryKeys.tasks.list() }),
-      queryClient.invalidateQueries({ queryKey: ['tasks'] }),
-    ]);
+    await queryClient.invalidateQueries({ queryKey: ['tasks'] });
     
-    // Force refetch of key queries
-    await Promise.all([
-      queryClient.refetchQueries({ queryKey: queryKeys.tasks.list() }),
-      queryClient.refetchQueries({ queryKey: ['tasks'] }),
-    ]);
+    // Force refetch of all task queries
+    await queryClient.refetchQueries({ queryKey: ['tasks'] });
   };
   
   // Update task completion status
   const updateTaskCompletion = useMutation({
     mutationFn: async ({ task, completed }: { task: Task, completed: boolean }) => {
       setIsProcessing(true);
-      console.log(`TASKS: Updating task ${task.id} completion to ${completed}`);
+      console.log(`Updating task ${task.id} completion to ${completed}`);
       
       const { data, error } = await supabase
         .from('tasks')
@@ -50,16 +38,14 @@ export const useTaskMutations = () => {
         .eq('id', task.id)
         .select();
 
-      // Log the response
+      // Log response for debugging
       logResponse({ data }, error, 'updateTaskCompletion');
 
       if (error) throw error;
-
       return { taskId: task.id, completed, data };
     },
-    onSuccess: (result) => {
+    onSuccess: () => {
       invalidateTaskQueries();
-      console.log('Task completion update successful', result);
       toast({
         title: 'Task updated',
         description: 'Task completion status has been updated',
@@ -69,7 +55,7 @@ export const useTaskMutations = () => {
       console.error('Error updating task completion:', error);
       toast({
         title: 'Update failed',
-        description: error.message,
+        description: 'Failed to update task. Please try again.',
         variant: 'destructive',
       });
     },
@@ -93,16 +79,14 @@ export const useTaskMutations = () => {
         .eq('id', task.id)
         .select();
 
-      // Log the response
+      // Log response for debugging
       logResponse({ data }, error, 'updateTaskUrgency');
 
       if (error) throw error;
-
       return { taskId: task.id, urgent, data };
     },
-    onSuccess: (result) => {
+    onSuccess: () => {
       invalidateTaskQueries();
-      console.log('Task urgency update successful', result);
       toast({
         title: 'Task updated',
         description: 'Task urgency has been updated',
@@ -112,7 +96,7 @@ export const useTaskMutations = () => {
       console.error('Error updating task urgency:', error);
       toast({
         title: 'Update failed',
-        description: error.message,
+        description: 'Failed to update task urgency. Please try again.',
         variant: 'destructive',
       });
     },
@@ -133,11 +117,10 @@ export const useTaskMutations = () => {
         .eq('id', task.id)
         .select();
 
-      // Log the response
+      // Log response for debugging
       logResponse({ data }, error, 'deleteTask');
 
       if (error) throw error;
-
       return { taskId: task.id };
     },
     onSuccess: () => {
@@ -151,7 +134,7 @@ export const useTaskMutations = () => {
       console.error('Error deleting task:', error);
       toast({
         title: 'Delete failed',
-        description: error.message,
+        description: 'Failed to delete task. Please try again.',
         variant: 'destructive',
       });
     },
@@ -162,9 +145,12 @@ export const useTaskMutations = () => {
 
   return {
     isProcessing,
-    updateCompletion: (task: Task, completed: boolean) => updateTaskCompletion.mutate({ task, completed }),
-    updateUrgency: (task: Task, urgent: boolean) => updateTaskUrgency.mutate({ task, urgent }),
-    deleteTask: (task: Task) => deleteTaskMutation.mutate(task),
+    updateCompletion: (task: Task, completed: boolean) => 
+      updateTaskCompletion.mutate({ task, completed }),
+    updateUrgency: (task: Task, urgent: boolean) => 
+      updateTaskUrgency.mutate({ task, urgent }),
+    deleteTask: (task: Task) => 
+      deleteTaskMutation.mutate(task),
     invalidateTaskQueries
   };
 };

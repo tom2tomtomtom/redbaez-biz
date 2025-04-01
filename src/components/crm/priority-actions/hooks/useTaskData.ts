@@ -2,7 +2,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase, logResponse } from '@/lib/supabaseClient';
 import { Task } from '@/types/task';
-import { queryKeys } from '@/lib/queryKeys';
 import logger from '@/utils/logger';
 
 /**
@@ -14,13 +13,13 @@ import logger from '@/utils/logger';
  */
 export const useTaskData = (category?: string, showCompleted = false) => {
   return useQuery({
-    queryKey: queryKeys.tasks.list({ category, showCompleted }),
+    queryKey: ['tasks', { category, showCompleted, timestamp: Date.now() }],
     queryFn: async (): Promise<Task[]> => {
       logger.info(`Fetching tasks with category: ${category}, showCompleted: ${showCompleted}`);
       console.log(`DEBUG: Fetching tasks with category: ${category}, showCompleted: ${showCompleted}`);
       
       try {
-        // Build query for tasks table with more explicit query parameters
+        // Build query for tasks table with explicit parameters
         let query = supabase
           .from('tasks')
           .select('*, clients(name)')
@@ -46,8 +45,8 @@ export const useTaskData = (category?: string, showCompleted = false) => {
         }
 
         // Log the raw data for debugging
+        logger.info(`Raw tasks data: ${JSON.stringify(data?.slice(0, 2))}`);
         if (data && data.length > 0) {
-          logger.info(`Raw tasks data sample: ${JSON.stringify(data.slice(0, 2))}`);
           console.log('Raw tasks data sample:', data.slice(0, 2));
         } else {
           console.log('No tasks data returned from query');
@@ -75,7 +74,6 @@ export const useTaskData = (category?: string, showCompleted = false) => {
         logger.info(`Processed ${tasks.length} tasks with status: ${showCompleted ? 'completed' : 'incomplete'}`);
         console.log(`Processed ${tasks.length} tasks with status: ${showCompleted ? 'completed' : 'incomplete'}`);
         
-        // Return the mapped tasks
         return tasks;
       } catch (error) {
         logger.error('Exception in useTaskData:', error);
@@ -83,8 +81,8 @@ export const useTaskData = (category?: string, showCompleted = false) => {
         throw error;
       }
     },
-    staleTime: 0, // Disable stale time to always fetch fresh data
-    gcTime: 60000,   // Keep data for 1 minute after component unmounts
+    staleTime: 0, // Always fetch fresh data
+    gcTime: 60000, // Keep data for 1 minute after component unmounts
     refetchOnWindowFocus: true, // Auto refetch on window focus
     refetchOnMount: true, // Refetch on mount
   });

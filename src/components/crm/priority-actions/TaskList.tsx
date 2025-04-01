@@ -1,4 +1,5 @@
 
+import { useEffect } from 'react';
 import { TaskItem } from './TaskItem';
 import { useTaskList } from './hooks/useTaskList';
 import { PriorityActionsSkeleton } from './PriorityActionsSkeleton';
@@ -6,7 +7,6 @@ import { CompletionConfirmDialog } from './components/CompletionConfirmDialog';
 import { TaskListHeader } from './components/TaskListHeader';
 import { TaskListEmptyState } from './components/TaskListEmptyState';
 import { TaskListErrorState } from './components/TaskListErrorState';
-import { useEffect } from 'react';
 import logger from '@/utils/logger';
 
 interface TaskListProps {
@@ -20,7 +20,7 @@ export const TaskList = ({
   showCompleted = false,
   onItemSelected
 }: TaskListProps) => {
-  // Use our custom hook to handle all the task list logic
+  // Use the task list hook to manage state
   const {
     filteredTasks,
     isLoading,
@@ -36,6 +36,7 @@ export const TaskList = ({
     refreshKey
   } = useTaskList({ category, showCompleted });
   
+  // Force refresh when component mounts
   useEffect(() => {
     logger.info("TaskList mounted with:", { 
       category, 
@@ -44,11 +45,12 @@ export const TaskList = ({
       hasError: !!error
     });
     
-    // Force a refresh when component mounts to ensure we have fresh data
+    // Force a refresh when component mounts to ensure fresh data
     handleRefresh();
-  }, [category, showCompleted]);
+  }, [category, showCompleted, handleRefresh]);
   
-  console.log("TaskList rendering with:", { 
+  // Debug log for rendering
+  logger.info("TaskList rendering with:", { 
     category, 
     showCompleted, 
     taskCount: filteredTasks?.length || 0,
@@ -57,17 +59,17 @@ export const TaskList = ({
     refreshKey
   });
   
-  // Show loading skeleton while initial data loads
+  // Show loading state
   if (isLoading && !filteredTasks.length) {
     return <PriorityActionsSkeleton />;
   }
 
-  // Show error state if there was an error
+  // Show error state
   if (error) {
     return <TaskListErrorState error={error} onRefresh={handleRefresh} />;
   }
 
-  // Show empty state if there are no tasks
+  // Show empty state
   if (!filteredTasks.length) {
     return (
       <TaskListEmptyState 
@@ -78,7 +80,7 @@ export const TaskList = ({
     );
   }
 
-  // Show the task list
+  // Show task list
   return (
     <div className="space-y-2">
       <TaskListHeader 

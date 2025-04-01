@@ -15,8 +15,13 @@ export const useTaskList = ({ category, showCompleted = false }: UseTaskListProp
   const [completionConfirmTask, setCompletionConfirmTask] = useState<Task | null>(null);
   const [filteredTasks, setFilteredTasks] = useState<Task[]>([]);
   
-  // Get tasks data with direct query parameters
-  const { data: tasks = [], isLoading, error, refetch } = useTaskData(category, showCompleted);
+  // Fetch tasks with useTaskData hook
+  const { 
+    data: tasks = [], 
+    isLoading, 
+    error, 
+    refetch 
+  } = useTaskData(category, showCompleted);
   
   // Get task mutations
   const { 
@@ -27,24 +32,31 @@ export const useTaskList = ({ category, showCompleted = false }: UseTaskListProp
     invalidateTaskQueries
   } = useTaskMutations();
 
-  // Filter and process tasks based on props
+  // Process and filter tasks based on props
   useEffect(() => {
-    logger.info('TaskList useEffect running with refreshKey:', refreshKey);
-    logger.info('Current tasks count:', tasks.length);
+    logger.info(`TaskList useEffect running for filtering with refreshKey: ${refreshKey}`);
+    logger.info(`Current tasks count: ${tasks.length}`);
     
     // Apply any additional client-side filtering if needed
     const filtered = [...tasks];
-    logger.info('Filtered task list has', filtered.length, 'tasks after filtering');
+    logger.info(`Filtered task list has ${filtered.length} tasks after filtering`);
     setFilteredTasks(filtered);
   }, [tasks, category, showCompleted, refreshKey]);
 
-  // Handle refresh button with explicit cache invalidation
+  // Handle explicit refresh with cache invalidation
   const handleRefresh = useCallback(async () => {
     logger.info('Manual refresh requested');
+    
+    // First invalidate caches
     await invalidateTaskQueries();
+    
+    // Then force refetch with new refreshKey
     const result = await refetch();
-    logger.info('Manual refresh completed with', result.data?.length, 'tasks');
+    logger.info(`Manual refresh completed with ${result.data?.length} tasks`);
+    
+    // Update refresh key to trigger re-render
     setRefreshKey(prev => prev + 1);
+    
     return result;
   }, [refetch, invalidateTaskQueries]);
 
@@ -59,12 +71,12 @@ export const useTaskList = ({ category, showCompleted = false }: UseTaskListProp
     }
   }, [updateCompletion]);
 
-  // Handle deletion
+  // Handle task deletion
   const handleTaskDelete = useCallback((task: Task) => {
     deleteTask(task);
   }, [deleteTask]);
 
-  // Confirm task completion
+  // Handle confirmation of task completion
   const confirmTaskCompletion = useCallback(() => {
     if (completionConfirmTask) {
       updateCompletion(completionConfirmTask, true);
