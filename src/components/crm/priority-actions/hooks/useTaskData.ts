@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { Task } from '@/types/task';
 import { queryKeys } from '@/lib/queryKeys';
+import logger from '@/utils/logger';
 
 /**
  * Custom hook to fetch task data from the Supabase database
@@ -16,7 +17,7 @@ export const useTaskData = (category?: string, showCompleted = false) => {
   return useQuery({
     queryKey: queryKeys.tasks.list({ category, showCompleted }),
     queryFn: async (): Promise<Task[]> => {
-      console.log(`Fetching tasks with category: ${category}, showCompleted: ${showCompleted}`);
+      logger.info(`Fetching tasks with category: ${category}, showCompleted: ${showCompleted}`);
       
       // Build query for tasks table
       let query = supabase
@@ -34,12 +35,12 @@ export const useTaskData = (category?: string, showCompleted = false) => {
         .order('due_date', { ascending: true });
 
       if (error) {
-        console.error('Error fetching tasks:', error);
+        logger.error('Error fetching tasks:', error);
         throw error;
       }
 
       // Log the raw data for debugging
-      console.log('Raw tasks data from database:', data);
+      logger.info('Raw tasks data from database:', data);
 
       // Map the data to our Task type
       const tasks: Task[] = (data || []).map(task => ({
@@ -60,7 +61,7 @@ export const useTaskData = (category?: string, showCompleted = false) => {
         type: task.type || 'task' // Capture the task type if present
       }));
       
-      console.log(`Fetched ${tasks.length} tasks with status: ${showCompleted ? 'completed' : 'incomplete'}`);
+      logger.info(`Fetched ${tasks.length} tasks with status: ${showCompleted ? 'completed' : 'incomplete'}`);
       return tasks;
     },
     staleTime: 5000, // 5 seconds before refetching

@@ -15,6 +15,8 @@ import { useQueryCacheManager } from "@/components/crm/priority-actions/hooks/us
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { RefreshCcw } from "lucide-react";
+import { TaskDebugPanel } from "@/components/debug/TaskDebugPanel";
+import logger from "@/utils/logger";
 
 const Index = () => {
   const [searchInput, setSearchInput] = useState('');
@@ -34,16 +36,16 @@ const Index = () => {
   } = useQuery({
     queryKey: ['clients', refreshTrigger],
     queryFn: async () => {
-      console.log("Fetching clients...");
+      logger.info("Fetching clients...");
       const { data, error } = await supabase
         .from('clients')
         .select('*')
         .order('name');
       if (error) {
-        console.error("Error fetching clients:", error);
+        logger.error("Error fetching clients:", error);
         throw error;
       }
-      console.log("Fetched clients:", data?.length);
+      logger.info("Fetched clients:", data?.length);
       return data || []; // Ensure we always return an array even if data is null
     },
     staleTime: 0, // Always refetch when requested
@@ -111,25 +113,34 @@ const Index = () => {
   useEffect(() => {
     if (!initialLoadDone.current) {
       const loadDashboard = async () => {
-        console.log("Index page mounted - refreshing data");
+        logger.info("Index page mounted - refreshing data");
         
         toast({
           title: "Loading dashboard",
           description: "Refreshing your dashboard data..."
         });
         
+        // Force clear cache for critical data
         await Promise.all([
           queryClient.removeQueries({ queryKey: ['monthly-revenue'] }),
           queryClient.removeQueries({ queryKey: ['tasks'] }),
-          queryClient.removeQueries({ queryKey: ['clients'] })
+          queryClient.removeQueries({ queryKey: ['clients'] }),
+          queryClient.removeQueries({ queryKey: ['unified-tasks'] })
         ]);
         
+        // Force refetch of clients
         await refetchClients();
         
+        // Invalidate all cached queries
         await invalidateQueries();
         
+        // Trigger refresh
         setRefreshTrigger(Date.now());
+        
+        // Mark initial load as done
         initialLoadDone.current = true;
+        
+        logger.info("Initial data load complete");
       };
       
       loadDashboard();
@@ -184,6 +195,8 @@ const Index = () => {
           </div>
         </div>
       </main>
+
+      {import.meta.env.DEV && <TaskDebugPanel />}
 
       <Sheet open={showClientList} onOpenChange={setShowClientList}>
         <SheetContent side="right" className="w-full sm:max-w-xl overflow-y-auto h-screen">

@@ -1,55 +1,50 @@
 
-import React from 'react';
-import { Button } from '@/components/ui/button';
+import { ReactNode } from 'react';
 import { cn } from '@/lib/utils';
 
 interface CategoryProps {
   active?: boolean;
-  onClick: () => void;
-  children: React.ReactNode;
+  children: ReactNode;
+  onClick?: () => void;
   category?: string;
 }
 
-export const Category = ({ active = false, onClick, children, category }: CategoryProps) => {
-  const getCategoryColorClasses = (category: string | undefined, isActive: boolean) => {
-    if (!category) return '';
+export const Category = ({
+  active = false,
+  children,
+  onClick,
+  category
+}: CategoryProps) => {
+  // Map category names to colors
+  const getCategoryColor = (category?: string) => {
+    if (!category || category === 'All') return 'bg-gray-100 hover:bg-gray-200';
     
-    const categoryLower = category.toLowerCase();
-    
-    if (categoryLower === 'business admin') {
-      return isActive ? 'bg-gray-700 text-white hover:bg-gray-800' : 'bg-gray-100 hover:bg-gray-200 text-gray-700';
+    switch (category) {
+      case 'Marketing':
+        return 'bg-purple-100 hover:bg-purple-200';
+      case 'Product Development':
+        return 'bg-blue-100 hover:bg-blue-200';
+      case 'Partnerships':
+        return 'bg-green-100 hover:bg-green-200';
+      case 'Business Admin':
+        return 'bg-gray-100 hover:bg-gray-200';
+      case 'Client':
+        return 'bg-orange-100 hover:bg-orange-200';
+      default:
+        return 'bg-gray-100 hover:bg-gray-200';
     }
-    
-    if (categoryLower === 'marketing') {
-      return isActive ? 'bg-[#F0D4FA] text-purple-800 hover:bg-[#F0D4FA]/90' : 'bg-[#F0D4FA]/30 hover:bg-[#F0D4FA]/50 text-purple-700';
-    }
-    
-    if (categoryLower === 'product development') {
-      return isActive ? 'bg-blue-200 text-blue-800 hover:bg-blue-300' : 'bg-blue-100/50 hover:bg-blue-100 text-blue-700';
-    }
-    
-    if (categoryLower === 'partnerships') {
-      return isActive ? 'bg-green-200 text-green-800 hover:bg-green-300' : 'bg-green-100/50 hover:bg-green-100 text-green-700';
-    }
-
-    if (categoryLower === 'client') {
-      return isActive ? 'bg-[#FEC6A1] text-orange-800 hover:bg-[#FEC6A1]/90' : 'bg-[#FEC6A1]/30 hover:bg-[#FEC6A1]/50 text-orange-700';
-    }
-    
-    return '';
   };
 
   return (
-    <Button
-      variant={active ? "default" : "outline"}
-      size="sm"
+    <button 
       onClick={onClick}
       className={cn(
-        "h-8 transition-colors font-medium",
-        getCategoryColorClasses(category?.toString() || children?.toString(), active)
+        'px-3 py-1 text-sm rounded-full transition-colors',
+        getCategoryColor(category),
+        active ? 'ring-2 ring-primary/50' : ''
       )}
     >
       {children}
-    </Button>
+    </button>
   );
 };
