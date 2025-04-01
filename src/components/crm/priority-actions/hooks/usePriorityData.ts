@@ -24,12 +24,11 @@ export const usePriorityData = () => {
       setIsLoading(true);
 
       try {
-        // Only fetch tasks that have a due date (ensure tasks without due dates don't appear in priority list)
+        // Fetch all incomplete tasks
         const response = await supabase
           .from("tasks")
           .select("*, clients(name)")
           .eq("status", "incomplete")
-          .not("due_date", "is", null)
           .order("urgent", { ascending: false })
           .order("due_date", { ascending: true });
         

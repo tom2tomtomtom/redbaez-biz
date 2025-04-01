@@ -26,17 +26,16 @@ export const useTaskData = (category?: string, showCompleted = false) => {
       let query = supabase
         .from('tasks')
         .select('*, clients(name)')
-        .eq('status', showCompleted ? 'completed' : 'incomplete')
-        .not('due_date', 'is', null) // Only include tasks with due dates (not ideas)
-        .order('urgent', { ascending: false })
-        .order('due_date', { ascending: true });
-        
+        .eq('status', showCompleted ? 'completed' : 'incomplete');
+      
       // Add category filter if specified
       if (category && category !== 'All') {
         query = query.ilike('category', `%${category}%`);
       }
 
-      const { data, error } = await query;
+      const { data, error } = await query
+        .order('urgent', { ascending: false })
+        .order('due_date', { ascending: true });
 
       if (error) {
         console.error('Error fetching tasks:', error);
@@ -64,7 +63,7 @@ export const useTaskData = (category?: string, showCompleted = false) => {
     },
     staleTime: 5000, // 5 seconds before refetching
     gcTime: 60000,   // Keep data for 1 minute after component unmounts
-    refetchOnWindowFocus: false, // Don't automatically refetch on window focus
+    refetchOnWindowFocus: true, // Auto refetch on window focus
     refetchOnMount: true, // Refetch on mount
   });
 };

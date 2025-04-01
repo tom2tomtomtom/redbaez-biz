@@ -87,6 +87,7 @@ export const TaskList = ({
     });
     
     try {
+      console.log("Invalidating and refetching task queries");
       await invalidateTaskQueries();
       const result = await refetch();
       console.log(`Manual refresh completed with ${result.data?.length || 0} tasks`);
