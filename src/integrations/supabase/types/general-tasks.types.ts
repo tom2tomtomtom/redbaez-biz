@@ -36,7 +36,7 @@ export const taskToGeneralTaskRow = (task: CoreTask): GeneralTaskRow => {
     title: task.title || '',
     description: task.description || null,
     category: task.category || 'general',
-    status: task.status,
+    status: (task.status === 'completed' ? 'completed' : 'incomplete') as 'completed' | 'incomplete',
     next_due_date: task.due_date || null,
     due_date: task.due_date || null,
     created_at: task.created_at || null,

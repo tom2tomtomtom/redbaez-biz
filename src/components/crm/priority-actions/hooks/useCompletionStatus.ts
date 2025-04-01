@@ -42,7 +42,7 @@ export const useCompletionStatus = () => {
       console.log(`Successfully updated completion status at ${timestamp}`);
       
       // Immediately invalidate and refetch all related queries
-      await invalidateQueries(clientId);
+      await invalidateQueries();
       
       // Show a toast to confirm the action
       toast({

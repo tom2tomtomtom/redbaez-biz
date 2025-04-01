@@ -33,11 +33,11 @@ export const useUrgencyStatus = () => {
       console.log(`Successfully updated urgency at ${timestamp}`);
       
       // Immediately invalidate after database update
-      await invalidateQueries(clientId);
+      await invalidateQueries();
       
       // Secondary invalidation for certainty
       setTimeout(async () => {
-        await invalidateQueries(clientId);
+        await invalidateQueries();
       }, 500);
 
       return true;
