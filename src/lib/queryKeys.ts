@@ -30,6 +30,7 @@ export const queryKeys = {
   revenue: {
     all: () => ['revenue'],
     monthly: () => ['monthly-revenue'],
+    annual: () => ['annual-revenue'],
     forecast: () => ['forecast'],
   }
 };

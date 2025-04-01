@@ -127,7 +127,7 @@ export class QueryCacheManager {
       
       await Promise.all([
         this.queryClient.invalidateQueries({ queryKey: queryKeys.revenue.monthly() }),
-        this.queryClient.invalidateQueries({ queryKey: queryKeys.revenue.annual() }),
+        this.queryClient.invalidateQueries({ queryKey: queryKeys.revenue.forecast() }),
       ]);
       
       logger.info('[CACHE] Revenue query invalidation complete');
