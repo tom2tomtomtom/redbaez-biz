@@ -19,60 +19,69 @@ export const useTaskData = (category?: string, showCompleted = false) => {
       logger.info(`Fetching tasks with category: ${category}, showCompleted: ${showCompleted}`);
       console.log(`DEBUG: Fetching tasks with category: ${category}, showCompleted: ${showCompleted}`);
       
-      // Build query for tasks table
-      let query = supabase
-        .from('tasks')
-        .select('*, clients(name)')
-        .eq('status', showCompleted ? 'completed' : 'incomplete');
-      
-      // Add category filter if specified
-      if (category && category !== 'All') {
-        query = query.ilike('category', `%${category}%`);
-      }
+      try {
+        // Build query for tasks table with more explicit query parameters
+        let query = supabase
+          .from('tasks')
+          .select('*, clients(name)')
+          .eq('status', showCompleted ? 'completed' : 'incomplete');
+        
+        // Add category filter if specified
+        if (category && category !== 'All') {
+          query = query.ilike('category', `%${category}%`);
+        }
 
-      const { data, error } = await query
-        .order('urgent', { ascending: false })
-        .order('due_date', { ascending: true });
+        // Execute query with explicit ordering
+        const { data, error } = await query
+          .order('urgent', { ascending: false })
+          .order('due_date', { ascending: true });
 
-      // Log the complete response for debugging
-      logResponse({ data }, error, 'useTaskData');
+        // Log the complete response for debugging
+        logResponse({ data }, error, 'useTaskData');
 
-      if (error) {
-        logger.error('Error fetching tasks:', error);
-        console.error('Error fetching tasks:', error);
+        if (error) {
+          logger.error('Error fetching tasks:', error);
+          console.error('Error fetching tasks:', error);
+          throw error;
+        }
+
+        // Log the raw data for debugging
+        if (data && data.length > 0) {
+          logger.info(`Raw tasks data sample: ${JSON.stringify(data.slice(0, 2))}`);
+          console.log('Raw tasks data sample:', data.slice(0, 2));
+        } else {
+          console.log('No tasks data returned from query');
+        }
+
+        // Map the data to our Task type
+        const tasks: Task[] = (data || []).map(task => ({
+          id: task.id,
+          title: task.title,
+          description: task.description,
+          client_id: task.client_id,
+          client: task.clients,
+          client_name: task.clients?.name,
+          due_date: task.due_date,
+          urgent: task.urgent || false,
+          status: task.status,
+          category: task.category,
+          created_at: task.created_at,
+          updated_at: task.updated_at,
+          created_by: task.created_by,
+          updated_by: task.updated_by,
+          type: 'task' // Set default type
+        }));
+        
+        logger.info(`Processed ${tasks.length} tasks with status: ${showCompleted ? 'completed' : 'incomplete'}`);
+        console.log(`Processed ${tasks.length} tasks with status: ${showCompleted ? 'completed' : 'incomplete'}`);
+        
+        // Return the mapped tasks
+        return tasks;
+      } catch (error) {
+        logger.error('Exception in useTaskData:', error);
+        console.error('Exception in useTaskData:', error);
         throw error;
       }
-
-      // Log the raw data for debugging
-      if (data && data.length > 0) {
-        logger.info(`Raw tasks data sample: ${JSON.stringify(data.slice(0, 2))}`);
-        console.log('Raw tasks data sample:', data.slice(0, 2));
-      } else {
-        console.log('No tasks data returned from query');
-      }
-
-      // Map the data to our Task type
-      const tasks: Task[] = (data || []).map(task => ({
-        id: task.id,
-        title: task.title,
-        description: task.description,
-        client_id: task.client_id,
-        client: task.clients,
-        client_name: task.clients?.name,
-        due_date: task.due_date,
-        urgent: task.urgent || false,
-        status: task.status,
-        category: task.category,
-        created_at: task.created_at,
-        updated_at: task.updated_at,
-        created_by: task.created_by,
-        updated_by: task.updated_by,
-        type: 'task' // Set default type
-      }));
-      
-      logger.info(`Processed ${tasks.length} tasks with status: ${showCompleted ? 'completed' : 'incomplete'}`);
-      console.log(`Processed ${tasks.length} tasks with status: ${showCompleted ? 'completed' : 'incomplete'}`);
-      return tasks;
     },
     staleTime: 0, // Disable stale time to always fetch fresh data
     gcTime: 60000,   // Keep data for 1 minute after component unmounts

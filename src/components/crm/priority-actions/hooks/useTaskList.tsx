@@ -15,7 +15,7 @@ export const useTaskList = ({ category, showCompleted = false }: UseTaskListProp
   const [completionConfirmTask, setCompletionConfirmTask] = useState<Task | null>(null);
   const [filteredTasks, setFilteredTasks] = useState<Task[]>([]);
   
-  // Get tasks data
+  // Get tasks data with direct query parameters
   const { data: tasks = [], isLoading, error, refetch } = useTaskData(category, showCompleted);
   
   // Get task mutations
@@ -27,18 +27,18 @@ export const useTaskList = ({ category, showCompleted = false }: UseTaskListProp
     invalidateTaskQueries
   } = useTaskMutations();
 
-  // Filter tasks based on props
+  // Filter and process tasks based on props
   useEffect(() => {
     logger.info('TaskList useEffect running with refreshKey:', refreshKey);
     logger.info('Current tasks count:', tasks.length);
     
-    // Filter tasks based on showCompleted
+    // Apply any additional client-side filtering if needed
     const filtered = [...tasks];
     logger.info('Filtered task list has', filtered.length, 'tasks after filtering');
     setFilteredTasks(filtered);
   }, [tasks, category, showCompleted, refreshKey]);
 
-  // Handle refresh button
+  // Handle refresh button with explicit cache invalidation
   const handleRefresh = useCallback(async () => {
     logger.info('Manual refresh requested');
     await invalidateTaskQueries();
