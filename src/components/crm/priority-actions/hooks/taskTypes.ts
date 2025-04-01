@@ -1,8 +1,8 @@
 
 import { supabase } from '@/lib/supabase';
+import { TaskType } from '@/types/task';
 
-// Define the task type as a proper union type
-export type TaskType = 'task' | 'next_step';
+export { TaskType } from '@/types/task';
 
 export interface Task {
   id: string;
@@ -21,7 +21,7 @@ export interface Task {
 
 // Define the priority item interface that's used across components
 export interface PriorityItem {
-  type: 'task' | 'next_step';
+  type: TaskType;
   data: {
     id: string;
     title: string;

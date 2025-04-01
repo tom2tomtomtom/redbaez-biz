@@ -25,4 +25,5 @@ export interface Task {
   created_by?: string | null;
   updated_by?: string | null;
   source_table?: 'tasks' | 'general_tasks' | 'client_next_steps';
+  next_due_date?: string | null; // Added for backward compatibility
 }

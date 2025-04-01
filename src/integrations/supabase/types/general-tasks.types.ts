@@ -1,5 +1,5 @@
 
-import { Task as CoreTask } from '@/hooks/useTaskDeletion';
+import { Task as CoreTask, TaskType } from '@/types/task';
 
 export type GeneralTaskRow = {
   id: string;
@@ -18,7 +18,7 @@ export type GeneralTaskRow = {
   completed_at: string | null;
   notes: string | null;
   client_name?: string | null;
-  type?: 'task' | 'next_step'; // Add type property for compatibility
+  type?: TaskType; // Use TaskType from the core definition
 }
 
 export type GeneralTaskInsert = Omit<GeneralTaskRow, 'id' | 'created_at' | 'updated_at'> & {
@@ -37,7 +37,7 @@ export const taskToGeneralTaskRow = (task: CoreTask): GeneralTaskRow => {
     description: task.description || null,
     category: task.category || 'general',
     status: (task.status === 'completed' ? 'completed' : 'incomplete') as 'completed' | 'incomplete',
-    next_due_date: task.due_date || null,
+    next_due_date: task.due_date || task.next_due_date || null,
     due_date: task.due_date || null,
     created_at: task.created_at || null,
     updated_at: task.updated_at || null,
@@ -47,7 +47,7 @@ export const taskToGeneralTaskRow = (task: CoreTask): GeneralTaskRow => {
     created_by: task.created_by || null,
     completed_at: task.status === 'completed' ? task.updated_at : null,
     notes: task.description || null,
-    client_name: task.client?.name || null,
+    client_name: task.client?.name || task.client_name || null,
     type: task.type || 'task'
   };
 };
@@ -61,6 +61,7 @@ export const generalTaskRowToTask = (row: GeneralTaskRow): CoreTask => {
     category: row.category,
     status: row.status,
     due_date: row.due_date || row.next_due_date,
+    next_due_date: row.next_due_date, // Add next_due_date for backward compatibility
     urgent: row.urgent,
     client_id: row.client_id,
     created_at: row.created_at,
@@ -68,7 +69,6 @@ export const generalTaskRowToTask = (row: GeneralTaskRow): CoreTask => {
     created_by: row.created_by,
     updated_by: row.updated_by,
     notes: row.notes || row.description,
-    next_due_date: row.next_due_date,
     completed_at: row.completed_at,
     client_name: row.client_name,
     client: row.client_name ? { name: row.client_name } : null,
@@ -91,6 +91,6 @@ export interface Task {
   updated_at?: string | null;
   created_by?: string | null;
   updated_by?: string | null;
-  type?: string;
+  type?: TaskType;
   source_table?: string;
 }

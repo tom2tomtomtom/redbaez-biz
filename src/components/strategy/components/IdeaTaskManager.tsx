@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { TaskDialog } from "@/components/crm/priority-actions/TaskDialog";
 import { CreateTaskDialog } from "./CreateTaskDialog";
+import { TaskType } from "@/types/task";
 
 interface IdeaTaskManagerProps {
   category: string;
@@ -49,7 +50,7 @@ export const IdeaTaskManager = ({ category, onTaskSaved }: IdeaTaskManagerProps)
           client_id: null,
           updated_by: null,
           created_by: null,
-          type: 'idea' // Mark as idea type initially
+          type: 'idea' as TaskType // Cast to TaskType to ensure compatibility
         } : null}
         onSaved={() => {
           setIsTaskDialogOpen(false);
