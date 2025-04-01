@@ -1,64 +1,10 @@
 
-import { createClient } from '@supabase/supabase-js';
-import { SUPABASE_URL, SUPABASE_ANON_KEY } from '@/config/env';
-import logger from '@/utils/logger';
+/**
+ * @deprecated Use @/lib/supabaseClient instead
+ * This file is maintained for backward compatibility but will be removed in a future update.
+ */
+import { supabase, logQuery, logResponse } from './supabaseClient';
 
-// Enhanced caching prevention headers with timestamp to ensure uniqueness
-const getCacheHeaders = () => ({
-  'Cache-Control': 'no-cache, no-store, must-revalidate, max-age=0',
-  'Pragma': 'no-cache',
-  'Expires': '0',
-  'X-Request-ID': `req_${Math.random().toString(36).substring(2, 15)}`,
-  'X-Custom-Timestamp': new Date().toISOString()
-});
-
-// Validate Supabase configuration
-if (!SUPABASE_URL) {
-  logger.error('Missing Supabase URL. Please check environment variables.');
-}
-
-if (!SUPABASE_ANON_KEY) {
-  logger.error('Missing Supabase Anon Key. Please check environment variables.');
-}
-
-// Create Supabase client with aggressive anti-caching configuration
-export const supabase = createClient(
-  SUPABASE_URL,
-  SUPABASE_ANON_KEY,
-  {
-    auth: {
-      persistSession: true,
-      autoRefreshToken: true,
-      storage: localStorage
-    },
-    global: {
-      headers: getCacheHeaders()
-    },
-    db: {
-      schema: 'public'
-    }
-  }
-);
-
-// Simple diagnostics helper with added debug output
-export const logQuery = (table: string, action: string) => {
-  logger.info(`Supabase ${action} from ${table} at ${new Date().toISOString()}`);
-  console.log(`Debug: Supabase ${action} query on ${table}`);
-};
-
-// Helper to log Supabase responses and errors
-export const logResponse = (response: any, error: any, source: string) => {
-  if (error) {
-    logger.error(`Supabase error in ${source}:`, error);
-    console.error(`Debug: Supabase error in ${source}:`, error);
-    return;
-  }
-  
-  const count = response?.data?.length || 0;
-  logger.info(`Supabase success in ${source}: Retrieved ${count} records`);
-  console.log(`Debug: Supabase success in ${source}: Retrieved ${count} records`, 
-    count > 0 ? response.data[0] : 'No data');
-};
-
-// Default export for backward compatibility
+// Re-export everything for backward compatibility
+export { supabase, logQuery, logResponse };
 export default supabase;

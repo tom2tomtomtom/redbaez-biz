@@ -1,32 +1,13 @@
 
 import { useState } from 'react';
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/lib/supabaseClient';
 import { toast } from '@/hooks/use-toast';
 import { useQueryClient } from '@tanstack/react-query';
 import { queryKeys } from '@/lib/queryKeys';
-import { TaskType } from '@/components/crm/priority-actions/hooks/taskTypes';
+import { Task, TaskType } from '@/types/task';
 
-export type Task = {
-  id: string;
-  title: string;
-  description?: string | null;
-  category?: string | null;
-  client_id?: number | null;
-  client?: { name: string } | null;
-  due_date?: string | null;
-  urgent: boolean;
-  status: 'completed' | 'incomplete';
-  created_at?: string | null;
-  updated_at?: string | null;
-  created_by?: string | null;
-  updated_by?: string | null;
-  // Add fields for backward compatibility
-  notes?: string | null;
-  next_due_date?: string | null;
-  completed_at?: string | null;
-  client_name?: string | null;
-  type?: TaskType; // Define using the union type
-};
+// Re-export the Task type for backward compatibility
+export type { Task } from '@/types/task';
 
 /**
  * Simplified task deletion hook with focused responsibility

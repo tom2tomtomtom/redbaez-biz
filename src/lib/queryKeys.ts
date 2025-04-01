@@ -1,4 +1,9 @@
 
+/**
+ * Centralized query key management for React Query.
+ * This ensures consistent cache handling across the application.
+ */
+
 export const queryKeys = {
   clients: {
     all: () => ['clients'],
@@ -6,26 +11,31 @@ export const queryKeys = {
     details: (id: string) => ['clients', 'detail', id],
     detail: (id: number) => ['clients', 'detail', id.toString()]
   },
+  
   contacts: {
     all: () => ['contacts'],
     lists: () => ['contacts', 'list'],
     details: (id: string) => ['contacts', 'detail', id]
   },
+  
   deals: {
     all: () => ['deals'],
     lists: () => ['deals', 'list'],
     details: (id: string) => ['deals', 'detail', id]
   },
+  
   quotes: {
     all: () => ['quotes'],
     lists: () => ['quotes', 'list'],
     details: (id: string) => ['quotes', 'detail', id]
   },
+  
   invoices: {
     all: () => ['invoices'],
     lists: () => ['invoices', 'list'],
     details: (id: string) => ['invoices', 'detail', id]
   },
+  
   tasks: {
     // Unified query key for all tasks
     unified: () => ['tasks', 'unified'],
@@ -46,12 +56,24 @@ export const queryKeys = {
     // General tasks (for strategy section)
     general: () => ['tasks', 'general'],
     
-    // Add a client method to fix the error
-    client: (clientId?: number | null) => ['tasks', 'client', clientId?.toString() || 'none']
+    // Client tasks (alias for clientItems for backward compatibility)
+    client: (clientId: number | null) => ['tasks', 'client', clientId?.toString() || 'none']
   },
+  
   settings: {
     all: () => ['settings'],
     user: () => ['settings', 'user'],
+  },
+  
+  news: {
+    all: () => ['news'],
+    category: (category: string) => ['news', 'category', category],
+    latest: () => ['news', 'latest']
+  },
+  
+  revenue: {
+    monthly: () => ['monthly-revenue'],
+    annual: () => ['annual-revenue']
   }
 };
 
