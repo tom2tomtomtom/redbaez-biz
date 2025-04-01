@@ -1,15 +1,11 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
-import { Task } from '@/hooks/useTaskDeletion';
+import { Task } from '@/types/task';
 import { queryKeys } from '@/lib/queryKeys';
 
 /**
  * Custom hook to fetch task data from the Supabase database
- * 
- * This hook differentiates between:
- * - Tasks: Items with assigned due dates that appear in the Priority Actions list
- * - Ideas: Items without due dates that only appear in the Strategy sections
  * 
  * @param category Optional category filter
  * @param showCompleted Whether to show completed tasks or active tasks
@@ -41,6 +37,9 @@ export const useTaskData = (category?: string, showCompleted = false) => {
         console.error('Error fetching tasks:', error);
         throw error;
       }
+
+      // Log the raw data for debugging
+      console.log('Raw tasks data from database:', data);
 
       // Map the data to our Task type
       const tasks: Task[] = (data || []).map(task => ({

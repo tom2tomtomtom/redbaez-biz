@@ -1,179 +1,127 @@
 
-import { Calendar, AlertCircle, Trash2 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Checkbox } from '@/components/ui/checkbox';
-import { cn } from '@/lib/utils';
-import { Task } from '@/hooks/useTaskDeletion';
-import { 
-  AlertDialog, 
-  AlertDialogAction, 
-  AlertDialogCancel, 
-  AlertDialogContent, 
-  AlertDialogDescription, 
-  AlertDialogFooter, 
-  AlertDialogHeader, 
-  AlertDialogTitle
-} from '@/components/ui/alert-dialog';
 import { useState } from 'react';
+import { format } from 'date-fns';
+import { Check, Calendar, Trash2, AlertCircle } from 'lucide-react';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
+import { Task } from '@/types/task';
+import logger from '@/utils/logger';
 
 interface TaskItemProps {
   task: Task;
   onUpdateCompletion: (completed: boolean) => void;
   onUpdateUrgency: (urgent: boolean) => void;
   onDelete: () => void;
-  isUpdating: boolean;
-  isDeleting: boolean;
+  isUpdating?: boolean;
+  isDeleting?: boolean;
   onSelect?: () => void;
 }
 
-export const TaskItem = ({ 
-  task, 
-  onUpdateCompletion, 
-  onUpdateUrgency, 
+export const TaskItem = ({
+  task,
+  onUpdateCompletion,
+  onUpdateUrgency,
   onDelete,
-  isUpdating,
-  isDeleting,
-  onSelect
+  isUpdating = false,
+  isDeleting = false,
+  onSelect,
 }: TaskItemProps) => {
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  // Debug output for task data
+  logger.info(`Rendering TaskItem for task ${task.id}`, { 
+    title: task.title,
+    status: task.status,
+    urgent: task.urgent
+  });
+
+  const [isHovered, setIsHovered] = useState(false);
   
-  // Determine background color based on client and category
-  const getBackgroundColorClass = () => {
-    // If it's a client-related task 
-    if (task.client_id) {
-      return 'bg-[#FEC6A1]/30 hover:bg-[#FEC6A1]/50';
-    }
-    
-    const category = task.category?.toLowerCase() || '';
-    
-    if (category.includes('business admin')) {
-      return 'bg-gray-100 hover:bg-gray-200';
-    }
-    
-    if (category.includes('marketing')) {
-      return 'bg-[#F0D4FA]/30 hover:bg-[#F0D4FA]/50';
-    }
-    
-    if (category.includes('product development')) {
-      return 'bg-blue-100/50 hover:bg-blue-100';
-    }
-    
-    if (category.includes('partnerships')) {
-      return 'bg-green-100/50 hover:bg-green-100';
-    }
-    
-    return 'bg-gray-50 hover:bg-gray-100';
-  };
+  // Format due date
+  const formattedDueDate = task.due_date 
+    ? format(new Date(task.due_date), 'MMM d, yyyy') 
+    : 'No due date';
 
-  // Add client indicator
-  const getClientIndicator = () => {
-    if (task.client_id && task.client?.name) {
-      return <Badge variant="outline" className="ml-2 text-xs">{task.client.name}</Badge>;
-    }
-    return null;
-  };
-
-  // Get the appropriate due date 
-  const getDueDate = () => {
-    return task.due_date ? new Date(task.due_date).toLocaleDateString() : 'No due date';
-  };
-
-  const isCompleted = task.status === 'completed';
-
-  const handleDelete = () => {
-    console.log(`TaskItem: Delete initiated for task ${task.id}`);
-    onDelete();
-    setShowDeleteConfirm(false);
-  };
+  const clientName = task.client_name || 
+    (task.client ? task.client.name : null);
 
   return (
-    <div className="flex items-start gap-2 p-2 border rounded-lg hover:bg-gray-50 cursor-pointer">
-      <div className="pt-1" onClick={(e) => e.stopPropagation()}>
-        <Checkbox 
-          checked={isCompleted} 
-          onCheckedChange={(checked) => onUpdateCompletion(checked as boolean)}
-          disabled={isUpdating}
-        />
-      </div>
-      
-      <div 
-        className={cn(
-          "flex-1 flex flex-col space-y-1 p-4 rounded-lg transition-colors", 
-          getBackgroundColorClass(),
-          task.urgent && "ring-2 ring-red-400"
-        )}
-        onClick={() => onSelect?.()}
-      >
-        <div className="font-medium flex items-center gap-2">
-          {task.title}
-          {getClientIndicator()}
-          {task.urgent && (
-            <Badge variant="destructive" className="ml-2 text-xs">
-              <AlertCircle className="h-3 w-3 mr-1" />
-              Urgent
-            </Badge>
-          )}
-        </div>
-        
-        {task.description && (
-          <p className="text-sm text-gray-600">{task.description}</p>
-        )}
-        
-        <div className="flex items-center justify-between">
-          <div className="text-sm text-gray-500 flex items-center gap-1">
-            <Calendar size={14} />
-            {getDueDate()}
+    <div
+      className={`p-4 border rounded-lg transition-all ${
+        isHovered ? 'shadow-md' : 'shadow-sm'
+      } ${task.urgent ? 'border-red-200 bg-red-50/50' : 'border-gray-200'}`}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      onClick={onSelect}
+    >
+      <div className="flex justify-between">
+        <div className="space-y-1 flex-1">
+          <div className="flex items-center gap-2">
+            {task.urgent && (
+              <AlertCircle size={16} className="text-red-500" />
+            )}
+            <h4 className="font-medium">{task.title}</h4>
           </div>
           
-          <Button 
-            variant="ghost" 
-            size="sm"
-            className={task.urgent ? "text-red-500 hover:text-red-700" : "text-gray-500 hover:text-gray-700"}
+          {task.description && (
+            <p className="text-sm text-gray-600">{task.description}</p>
+          )}
+          
+          <div className="flex items-center gap-2 text-xs text-gray-500">
+            <Calendar size={14} />
+            <span>{formattedDueDate}</span>
+            
+            {task.category && (
+              <Badge variant="outline" className="ml-2">
+                {task.category}
+              </Badge>
+            )}
+          </div>
+
+          {clientName && (
+            <div className="flex items-center mt-2">
+              <Avatar className="h-5 w-5 mr-1">
+                <AvatarFallback className="text-xs">
+                  {clientName.substring(0, 2).toUpperCase()}
+                </AvatarFallback>
+              </Avatar>
+              <span className="text-xs text-gray-600">{clientName}</span>
+            </div>
+          )}
+        </div>
+
+        <div className="flex space-x-2">
+          <button
+            className={`p-1.5 rounded-full transition-colors ${
+              task.status === 'completed'
+                ? 'bg-green-100 text-green-600 hover:bg-green-200'
+                : 'bg-gray-100 text-gray-400 hover:bg-gray-200 hover:text-gray-600'
+            }`}
             onClick={(e) => {
               e.stopPropagation();
-              onUpdateUrgency(!task.urgent);
+              onUpdateCompletion(task.status !== 'completed');
             }}
             disabled={isUpdating}
+            aria-label={task.status === 'completed' ? 'Mark as incomplete' : 'Mark as complete'}
           >
-            {task.urgent ? 'Remove Urgent' : 'Mark Urgent'}
-          </Button>
+            <Check size={16} />
+          </button>
+          
+          <button
+            className={`p-1.5 rounded-full transition-colors ${
+              isDeleting
+                ? 'bg-gray-100 text-gray-400'
+                : 'bg-gray-100 text-gray-400 hover:bg-red-100 hover:text-red-600'
+            }`}
+            onClick={(e) => {
+              e.stopPropagation();
+              onDelete();
+            }}
+            disabled={isDeleting}
+            aria-label="Delete task"
+          >
+            <Trash2 size={16} />
+          </button>
         </div>
       </div>
-      
-      <Button 
-        variant="ghost" 
-        size="sm" 
-        onClick={(e) => {
-          e.stopPropagation();
-          console.log('TaskItem: Opening delete confirmation dialog');
-          setShowDeleteConfirm(true);
-        }}
-        disabled={isDeleting}
-      >
-        <Trash2 className="h-4 w-4 text-gray-500 hover:text-red-500" />
-      </Button>
-      
-      <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This will permanently delete this task.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction 
-              onClick={handleDelete}
-              disabled={isDeleting}
-              className="bg-red-500 hover:bg-red-600"
-            >
-              {isDeleting ? 'Deleting...' : 'Delete'}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
   );
 };

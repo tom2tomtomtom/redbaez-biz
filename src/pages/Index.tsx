@@ -78,6 +78,11 @@ const Index = () => {
         queryClient.refetchQueries({ queryKey: ['tasks'] }),
         queryClient.refetchQueries({ queryKey: ['clients'] })
       ]);
+      
+      toast({
+        title: "Refresh complete",
+        description: "Dashboard updated with latest data"
+      });
     } catch (err) {
       console.error("Error refreshing dashboard:", err);
       toast({
@@ -88,11 +93,8 @@ const Index = () => {
     }
   }, [invalidateQueries, queryClient]);
 
-  // Handle client list toggle with pre-fetching
   const handleToggleClientList = useCallback(() => {
-    // If we're about to show the client list, ensure data is fresh
     if (!showClientList) {
-      // Immediately refetch clients before showing the slide-out panel
       refetchClients().catch(error => {
         console.error("Error pre-fetching clients:", error);
         toast({
@@ -103,36 +105,29 @@ const Index = () => {
       });
     }
     
-    // Toggle the client list display state
     setShowClientList(prev => !prev);
   }, [showClientList, refetchClients]);
 
-  // Force refresh only once when page first loads
   useEffect(() => {
     if (!initialLoadDone.current) {
       const loadDashboard = async () => {
         console.log("Index page mounted - refreshing data");
         
-        // Show a toast to indicate the data is being loaded
         toast({
           title: "Loading dashboard",
           description: "Refreshing your dashboard data..."
         });
         
-        // Clear all cached data first
         await Promise.all([
           queryClient.removeQueries({ queryKey: ['monthly-revenue'] }),
           queryClient.removeQueries({ queryKey: ['tasks'] }),
           queryClient.removeQueries({ queryKey: ['clients'] })
         ]);
         
-        // Immediately fetch clients data
         await refetchClients();
         
-        // Invalidate all query cache to ensure fresh data
         await invalidateQueries();
         
-        // Update refresh trigger to force component refreshes
         setRefreshTrigger(Date.now());
         initialLoadDone.current = true;
       };
@@ -202,7 +197,6 @@ const Index = () => {
         task={null}
         onSaved={async () => {
           setIsNewTaskOpen(false);
-          // Refresh all data when a new task is saved
           await invalidateQueries();
           setRefreshTrigger(Date.now());
         }}
