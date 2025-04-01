@@ -34,6 +34,14 @@ export const TaskList = ({
     refreshKey
   } = useTaskList({ category, showCompleted });
   
+  console.log("TaskList rendering with:", { 
+    category, 
+    showCompleted, 
+    taskCount: filteredTasks?.length || 0,
+    isLoading,
+    hasError: !!error
+  });
+  
   // Show loading skeleton while initial data loads
   if (isLoading && !filteredTasks.length) {
     return <PriorityActionsSkeleton />;
@@ -61,6 +69,7 @@ export const TaskList = ({
       <TaskListHeader 
         onRefresh={handleRefresh} 
         tasksCount={filteredTasks.length}
+        isLoading={isProcessing}
       />
       
       {filteredTasks.map((task) => (

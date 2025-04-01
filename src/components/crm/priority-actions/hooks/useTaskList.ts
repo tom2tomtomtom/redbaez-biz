@@ -3,7 +3,7 @@ import { useState, useCallback, useEffect } from 'react';
 import { useTaskData } from './useTaskData';
 import { useTaskMutations } from './useTaskMutations';
 import { Task } from '@/types/task';
-import logger from '@/lib/logger';
+import logger from '@/utils/logger';
 
 interface UseTaskListOptions {
   category?: string;
@@ -42,6 +42,14 @@ export const useTaskList = ({
       hasError: !!error 
     });
     
+    console.log("useTaskList received tasks:", { 
+      count: tasks.length, 
+      category, 
+      showCompleted, 
+      hasError: !!error,
+      sample: tasks.slice(0, 2)
+    });
+    
     if (tasks.length > 0) {
       logger.info('First task sample:', tasks[0]);
     }
@@ -50,7 +58,13 @@ export const useTaskList = ({
   // Filter tasks based on category if needed
   const filteredTasks = tasks.filter(task => {
     if (!category || category === 'All') return true;
-    return task.category?.includes(category);
+    return task.category?.toLowerCase().includes((category || '').toLowerCase());
+  });
+
+  console.log("Filtered tasks:", {
+    before: tasks.length,
+    after: filteredTasks.length,
+    filterCategory: category
   });
 
   // Handle task completion with confirmation
@@ -72,6 +86,7 @@ export const useTaskList = ({
 
   // Handle refresh of task list
   const handleRefresh = useCallback(async () => {
+    console.log("Manual refresh requested");
     await invalidateTaskQueries();
     await refetch();
     setRefreshKey(prev => prev + 1);

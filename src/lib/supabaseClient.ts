@@ -14,7 +14,7 @@ const getCacheHeaders = () => ({
   'Cache-Control': 'no-cache, no-store, must-revalidate, max-age=0',
   'Pragma': 'no-cache',
   'Expires': '0',
-  'X-Request-ID': `req_${Math.random().toString(36).substring(2, 15)}`,
+  'X-Request-ID': `req_${Math.random().toString(36).substring(2, 15)}_${Date.now()}`,
   'X-Custom-Timestamp': new Date().toISOString()
 });
 
@@ -50,8 +50,9 @@ export const supabase = createClient(
 
 // Simple diagnostics helper with added debug output
 export const logQuery = (table: string, action: string) => {
-  logger.info(`Supabase ${action} from ${table} at ${new Date().toISOString()}`);
-  console.log(`Debug: Supabase ${action} query on ${table}`);
+  const timestamp = new Date().toISOString();
+  logger.info(`Supabase ${action} from ${table} at ${timestamp}`);
+  console.log(`[${timestamp}] Debug: Supabase ${action} query on ${table}`);
 };
 
 // Helper to log Supabase responses and errors
