@@ -81,6 +81,11 @@ npm run dev
 npm run build
 ```
 
+## Simplified Task System
+
+For quick personal task tracking you can use the `/simple-tasks` route which relies only on local storage.
+This lightweight page lets you add items, mark them complete and clear finished tasks without any backend.
+
 ## Best Practices
 
 - Use the task system to track all priority actions

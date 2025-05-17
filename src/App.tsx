@@ -9,6 +9,7 @@ import Index from './pages/Index';
 import { BusinessAdmin } from './pages/BusinessAdmin';
 import { AiNews } from './pages/AiNews';
 import { ClientDetails } from './components/crm/client-details/ClientDetails';
+import { SimpleTasks } from './pages/SimpleTasks';
 import { ThemeProvider } from './hooks/use-theme';
 import { ClientForm } from './components/crm/client-form/ClientForm';
 import { ErrorBoundary } from './components/ui/error-boundary';
@@ -39,6 +40,7 @@ function App() {
               <Route path="/partnerships" element={<Partnerships />} />
               <Route path="/product-development" element={<ProductDevelopment />} />
               <Route path="/ai-news" element={<AiNews />} />
+              <Route path="/simple-tasks" element={<SimpleTasks />} />
               <Route path="/business-admin" element={<BusinessAdmin />} />
               <Route path="/client/:id" element={<ClientDetails />} />
               <Route 
