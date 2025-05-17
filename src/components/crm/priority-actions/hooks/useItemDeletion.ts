@@ -1,3 +1,4 @@
+import logger from '@/utils/logger';
 
 import { toast } from '@/hooks/use-toast';
 import { PriorityItem } from './usePriorityData';
@@ -15,7 +16,7 @@ export const useItemDeletion = () => {
   
   // Use the central task deletion hook with a direct callback
   const { deleteTask } = useTaskDeletion(async () => {
-    console.log("[ITEM_DELETION] Task deleted successfully - refreshing data");
+    logger.info("[ITEM_DELETION] Task deleted successfully - refreshing data");
     
     // Remove cached data to ensure fresh fetches
     queryClient.removeQueries({ queryKey: queryKeys.tasks.unified() });
@@ -39,7 +40,7 @@ export const useItemDeletion = () => {
     
     try {
       const itemId = item.data.id;
-      console.log(`[ITEM_DELETION] Deleting item ${item.type}:${itemId}`);
+      logger.info(`[ITEM_DELETION] Deleting item ${item.type}:${itemId}`);
       
       // Format task for deletion
       const taskToDelete = {
@@ -68,7 +69,7 @@ export const useItemDeletion = () => {
       
       return true;
     } catch (error) {
-      console.error('[ITEM_DELETION] Error deleting item:', error);
+      logger.error('[ITEM_DELETION] Error deleting item:', error);
       toast({
         title: "Error",
         description: `Failed to delete item: ${error.message}`,

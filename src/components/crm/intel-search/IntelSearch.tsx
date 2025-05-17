@@ -1,3 +1,4 @@
+import logger from '@/utils/logger';
 
 import { useState, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
@@ -32,7 +33,7 @@ export const IntelSearch = ({ searchInput, onSearchInputChange }: IntelSearchPro
       return;
     }
     setQuery(searchInput);
-    console.log('Searching for:', searchInput);
+    logger.info('Searching for:', searchInput);
   };
 
   const formatInsight = (text: string) => {

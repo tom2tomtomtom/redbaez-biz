@@ -9,7 +9,7 @@ import logger from '@/utils/logger';
 // Validate Supabase configuration
 if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
   logger.error('Missing Supabase URL or Anon Key. Please check environment variables.');
-  console.error('CRITICAL ERROR: Missing Supabase configuration in environment variables');
+  logger.error('CRITICAL ERROR: Missing Supabase configuration in environment variables');
 }
 
 // Enhanced caching prevention headers
@@ -49,7 +49,7 @@ export const logQuery = (table: string, action: string) => {
 export const logResponse = (response: any, error: any, source: string) => {
   if (error) {
     logger.error(`Supabase error in ${source}:`, error);
-    console.error(`Supabase error in ${source}:`, error);
+    logger.error(`Supabase error in ${source}:`, error);
     return;
   }
   

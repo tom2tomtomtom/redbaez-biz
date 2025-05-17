@@ -1,3 +1,4 @@
+import logger from '@/utils/logger';
 
 interface RevenueData {
   month: string;
@@ -7,11 +8,11 @@ interface RevenueData {
 
 export const useRevenueCalculations = (client: any) => {
   if (!client) {
-    console.log('No client data provided to useRevenueCalculations');
+    logger.info('No client data provided to useRevenueCalculations');
     return { revenueData: [], totalActualRevenue: 0, totalForecastRevenue: 0 };
   }
 
-  console.log('Processing client data for revenue calculations:', client);
+  logger.info('Processing client data for revenue calculations:', client);
 
   const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
   
@@ -37,7 +38,7 @@ export const useRevenueCalculations = (client: any) => {
   const totalActualRevenue = revenueData.reduce((sum, data) => sum + data.actual, 0);
   const totalForecastRevenue = revenueData.reduce((sum, data) => sum + data.forecast, 0);
 
-  console.log('Revenue data calculated:', {
+  logger.info('Revenue data calculated:', {
     revenueData,
     totalActualRevenue,
     totalForecastRevenue

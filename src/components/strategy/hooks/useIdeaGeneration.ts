@@ -1,3 +1,4 @@
+import logger from '@/utils/logger';
 
 import { useState } from "react";
 import { toast } from "@/components/ui/use-toast";
@@ -10,7 +11,7 @@ export const useIdeaGeneration = (category: string, onIdeasGenerated: () => void
     try {
       setIsGenerating(true);
       
-      console.log('Generating ideas for category:', category);
+      logger.info('Generating ideas for category:', category);
 
       // First, delete existing incomplete tasks for this category
       const { error: deleteError } = await supabase
@@ -21,7 +22,7 @@ export const useIdeaGeneration = (category: string, onIdeasGenerated: () => void
         .eq('status', 'incomplete');
 
       if (deleteError) {
-        console.error('Error deleting existing tasks:', deleteError);
+        logger.error('Error deleting existing tasks:', deleteError);
         throw deleteError;
       }
 
@@ -59,20 +60,20 @@ export const useIdeaGeneration = (category: string, onIdeasGenerated: () => void
           }
         });
 
-        console.log('Response from Edge Function:', data, error);
+        logger.info('Response from Edge Function:', data, error);
 
         if (error) {
-          console.error('Error from Edge Function:', error);
+          logger.error('Error from Edge Function:', error);
           throw error;
         }
 
         if (data?.recommendations && Array.isArray(data.recommendations)) {
           recommendations = data.recommendations;
         } else {
-          console.log('Invalid response format, using fallback recommendations');
+          logger.info('Invalid response format, using fallback recommendations');
         }
       } catch (functionError) {
-        console.error('Error generating ideas:', functionError);
+        logger.error('Error generating ideas:', functionError);
         toast({
           title: "Using default recommendations",
           description: "Could not connect to the idea generator service. Using default recommendations instead.",
@@ -98,9 +99,9 @@ export const useIdeaGeneration = (category: string, onIdeasGenerated: () => void
         // Check for rejected promises and log them
         results.forEach((result, index) => {
           if (result.status === 'rejected') {
-            console.error(`Error inserting task ${index}:`, result.reason);
+            logger.error(`Error inserting task ${index}:`, result.reason);
           } else {
-            console.log(`Successfully inserted task ${index}`);
+            logger.info(`Successfully inserted task ${index}`);
           }
         });
         
@@ -121,7 +122,7 @@ export const useIdeaGeneration = (category: string, onIdeasGenerated: () => void
           });
         }
       } catch (insertError) {
-        console.error('Error inserting tasks:', insertError);
+        logger.error('Error inserting tasks:', insertError);
         toast({
           title: "Error",
           description: "Some ideas couldn't be saved. Please try again.",
@@ -129,7 +130,7 @@ export const useIdeaGeneration = (category: string, onIdeasGenerated: () => void
         });
       }
     } catch (error) {
-      console.error('Error generating ideas:', error);
+      logger.error('Error generating ideas:', error);
       toast({
         title: "Error",
         description: "Failed to generate ideas. Please try again.",
