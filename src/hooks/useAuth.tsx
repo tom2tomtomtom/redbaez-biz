@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/lib/supabaseClient';
 import { AuthError, AuthChangeEvent, Session } from '@supabase/supabase-js';
 import { isAllowedDomain, getAllowedDomainsMessage } from '@/utils/auth';
 
@@ -15,11 +15,32 @@ export const useAuth = () => {
     // Check initial session
     const checkSession = async () => {
       try {
-        const { data: { session } } = await supabase.auth.getSession();
+        const {
+          data: { session }
+        } = await supabase.auth.getSession();
         console.log('Initial session check:', session);
-        setIsAuthenticated(!!session);
-        if (!session && window.location.pathname !== '/login') {
-          navigate('/login');
+
+        if (session) {
+          const email = session.user.email;
+          if (email && !isAllowedDomain(email)) {
+            await supabase.auth.signOut();
+            setError(
+              `Only ${getAllowedDomainsMessage()} email addresses are allowed.`
+            );
+            setIsAuthenticated(false);
+            if (window.location.pathname !== '/login') {
+              navigate('/login');
+            }
+            return;
+          }
+
+          setError('');
+          setIsAuthenticated(true);
+        } else {
+          setIsAuthenticated(false);
+          if (window.location.pathname !== '/login') {
+            navigate('/login');
+          }
         }
       } catch (error) {
         console.error('Session check error:', error);
