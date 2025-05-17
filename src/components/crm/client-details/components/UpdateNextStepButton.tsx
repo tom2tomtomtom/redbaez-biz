@@ -6,7 +6,8 @@ import { Label } from "@/components/ui/label";
 import { Calendar } from 'lucide-react';
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/lib/supabaseClient";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQueryManager } from "@/hooks/useQueryManager";
+import logger from "@/utils/logger";
 import { toast } from "@/components/ui/use-toast";
 import { Switch } from "@/components/ui/switch";
 
@@ -21,7 +22,7 @@ export const UpdateNextStepButton = ({ clientId }: UpdateNextStepButtonProps) =>
   const [notes, setNotes] = useState('');
   const [dueDate, setDueDate] = useState('');
   const [isUrgent, setIsUrgent] = useState(false);
-  const queryClient = useQueryClient();
+  const { invalidateTaskQueries } = useQueryManager();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -41,7 +42,7 @@ export const UpdateNextStepButton = ({ clientId }: UpdateNextStepButtonProps) =>
         .single();
 
       if (profileError || !profileData) {
-        console.error('Error fetching profile:', profileError);
+        logger.error('Error fetching profile:', profileError);
         throw new Error('Could not find user profile');
       }
 
@@ -58,7 +59,7 @@ export const UpdateNextStepButton = ({ clientId }: UpdateNextStepButtonProps) =>
         });
 
       if (error) {
-        console.error('Error adding next step:', error);
+        logger.error('Error adding next step:', error);
         toast({
           title: "Error",
           description: "Failed to add next step: " + error.message,
@@ -75,7 +76,7 @@ export const UpdateNextStepButton = ({ clientId }: UpdateNextStepButtonProps) =>
           .eq('id', clientId);
 
         if (clientError) {
-          console.error('Error updating client urgent status:', clientError);
+          logger.error('Error updating client urgent status:', clientError);
         }
       }
 
@@ -84,11 +85,8 @@ export const UpdateNextStepButton = ({ clientId }: UpdateNextStepButtonProps) =>
         description: "Next step added successfully",
       });
       
-      // Invalidate all relevant queries
-      queryClient.invalidateQueries({ queryKey: ['client-items', clientId] });
-      queryClient.invalidateQueries({ queryKey: ['next-steps-history'] });
-      queryClient.invalidateQueries({ queryKey: ['client'] });
-      queryClient.invalidateQueries({ queryKey: ['unified-tasks'] });
+      // Invalidate all relevant queries via centralized manager
+      await invalidateTaskQueries(clientId);
       
       // Reset form and close dialog
       setNotes('');
@@ -96,7 +94,7 @@ export const UpdateNextStepButton = ({ clientId }: UpdateNextStepButtonProps) =>
       setIsUrgent(false);
       setOpen(false);
     } catch (error) {
-      console.error('Error adding next step:', error);
+      logger.error('Error adding next step:', error);
       toast({
         title: "Error",
         description: "Failed to add next step. Please try again.",

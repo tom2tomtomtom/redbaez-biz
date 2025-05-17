@@ -4,7 +4,9 @@ import { supabase } from '@/lib/supabaseClient';
 import { toast } from '@/hooks/use-toast';
 import { useQueryClient } from '@tanstack/react-query';
 import { queryKeys } from '@/lib/queryKeys';
+import { useQueryManager } from '@/hooks/useQueryManager';
 import { Task, TaskType } from '@/types/task';
+import logger from '@/utils/logger';
 
 // Re-export the Task type for backward compatibility
 export type { Task } from '@/types/task';
@@ -15,20 +17,21 @@ export type { Task } from '@/types/task';
 export const useTaskDeletion = (onSuccess?: () => void) => {
   const [isDeleting, setIsDeleting] = useState(false);
   const queryClient = useQueryClient();
+  const { invalidateTaskQueries } = useQueryManager();
 
   const deleteTask = async (task: Pick<Task, 'id'>) => {
     if (!task?.id) {
-      console.error("No valid task ID provided for deletion");
+      logger.error('No valid task ID provided for deletion');
       return false;
     }
     
     if (isDeleting) {
-      console.log("Already processing a deletion");
+      logger.info('Already processing a deletion');
       return false;
     }
     
     setIsDeleting(true);
-    console.log(`[DELETE] Starting deletion for task ID: ${task.id}`);
+    logger.info(`[DELETE] Starting deletion for task ID: ${task.id}`);
     
     try {
       // Execute the actual deletion from the unified tasks table
@@ -41,7 +44,7 @@ export const useTaskDeletion = (onSuccess?: () => void) => {
         throw error;
       }
       
-      console.log(`[DELETE] Successfully deleted task`);
+      logger.info('[DELETE] Successfully deleted task');
       
       // Simplify cache management to avoid race conditions and unnecessary refetches
       // We no longer remove queries or force refetches - let React Query optimistic updates handle this
@@ -67,7 +70,7 @@ export const useTaskDeletion = (onSuccess?: () => void) => {
       
       // After UI is updated immediately, schedule background revalidation
       setTimeout(() => {
-        queryClient.invalidateQueries({ queryKey: ['tasks'] });
+        invalidateTaskQueries();
       }, 500);
       
       toast({
@@ -82,7 +85,7 @@ export const useTaskDeletion = (onSuccess?: () => void) => {
       
       return true;
     } catch (error) {
-      console.error('[DELETE] Error deleting task:', error);
+      logger.error('[DELETE] Error deleting task:', error);
       toast({
         title: "Error",
         description: "Failed to delete task. Please try again.",

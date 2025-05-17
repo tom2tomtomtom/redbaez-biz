@@ -5,6 +5,8 @@ import { useState } from 'react';
 import { useTaskDeletion } from '@/hooks/useTaskDeletion';
 import { useQueryClient } from '@tanstack/react-query';
 import { queryKeys } from '@/lib/queryKeys';
+import { useQueryManager } from '@/hooks/useQueryManager';
+import logger from '@/utils/logger';
 
 /**
  * Simplified hook for deleting priority items
@@ -12,17 +14,14 @@ import { queryKeys } from '@/lib/queryKeys';
 export const useItemDeletion = () => {
   const [isDeleting, setIsDeleting] = useState(false);
   const queryClient = useQueryClient();
+  const { invalidateTaskQueries } = useQueryManager();
   
   // Use the central task deletion hook with a direct callback
   const { deleteTask } = useTaskDeletion(async () => {
-    console.log("[ITEM_DELETION] Task deleted successfully - refreshing data");
-    
-    // Remove cached data to ensure fresh fetches
-    queryClient.removeQueries({ queryKey: queryKeys.tasks.unified() });
-    queryClient.removeQueries({ queryKey: ['tasks'] });
-    queryClient.removeQueries({ queryKey: queryKeys.tasks.clientItems(null) });
-    
-    // Force immediate refresh of ALL related queries
+    logger.info('[ITEM_DELETION] Task deleted successfully - refreshing data');
+
+    await invalidateTaskQueries();
+
     await Promise.all([
       queryClient.refetchQueries({ queryKey: queryKeys.tasks.clientItems(null) }),
       queryClient.refetchQueries({ queryKey: queryKeys.tasks.unified() }),
@@ -39,7 +38,7 @@ export const useItemDeletion = () => {
     
     try {
       const itemId = item.data.id;
-      console.log(`[ITEM_DELETION] Deleting item ${item.type}:${itemId}`);
+      logger.info(`[ITEM_DELETION] Deleting item ${item.type}:${itemId}`);
       
       // Format task for deletion
       const taskToDelete = {
@@ -68,7 +67,7 @@ export const useItemDeletion = () => {
       
       return true;
     } catch (error) {
-      console.error('[ITEM_DELETION] Error deleting item:', error);
+      logger.error('[ITEM_DELETION] Error deleting item:', error);
       toast({
         title: "Error",
         description: `Failed to delete item: ${error.message}`,

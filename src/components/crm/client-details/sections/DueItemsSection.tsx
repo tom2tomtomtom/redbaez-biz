@@ -6,7 +6,8 @@ import { CalendarDays, Check, Trash2 } from 'lucide-react';
 import { useItemStatusChange } from '../../priority-actions/hooks/useItemStatusChange';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/hooks/use-toast';
-import { useQueryClient } from '@tanstack/react-query';
+import { useQueryManager } from '@/hooks/useQueryManager';
+import logger from '@/utils/logger';
 import { Task } from '@/integrations/supabase/types/general-tasks.types'; // Updated import
 import {
   AlertDialog,
@@ -32,7 +33,7 @@ interface DueItemsSectionProps {
 
 export const DueItemsSection = ({ items, isLoading }: DueItemsSectionProps) => {
   const { handleCompletedChange, handleDelete } = useItemStatusChange();
-  const queryClient = useQueryClient();
+  const { invalidateTaskQueries } = useQueryManager();
   const [deletingItemId, setDeletingItemId] = useState<string | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -61,17 +62,15 @@ export const DueItemsSection = ({ items, isLoading }: DueItemsSectionProps) => {
       
       await handleCompletedChange(taskItem, true);
       
-      // Invalidate relevant queries to update UI - fixed the query filter format
-      queryClient.invalidateQueries({ queryKey: ['client-items'] });
-      queryClient.invalidateQueries({ queryKey: ['generalTasks'] });
-      queryClient.invalidateQueries({ queryKey: ['tasks'] });
+      // Invalidate relevant queries using the centralized manager
+      await invalidateTaskQueries(item.client_id || undefined);
       
       toast({
         title: "Task completed",
         description: "The task has been marked as complete.",
       });
     } catch (error) {
-      console.error('Error completing item:', error);
+      logger.error('Error completing item:', error);
       toast({
         title: "Error",
         description: "Failed to complete the item. Please try again.",
@@ -115,14 +114,12 @@ export const DueItemsSection = ({ items, isLoading }: DueItemsSectionProps) => {
         }
       };
       
-      console.log('Deleting task item:', taskItem);
+      logger.info('Deleting task item:', taskItem);
       const success = await handleDelete(taskItem);
       
       if (success) {
-        // Invalidate relevant queries to update UI - fixed the query filter format
-        queryClient.invalidateQueries({ queryKey: ['client-items'] });
-        queryClient.invalidateQueries({ queryKey: ['generalTasks'] });
-        queryClient.invalidateQueries({ queryKey: ['tasks'] });
+        // Invalidate relevant queries via centralized manager
+        await invalidateTaskQueries(itemToDelete.client_id || undefined);
         
         toast({
           title: "Task deleted",
@@ -132,7 +129,7 @@ export const DueItemsSection = ({ items, isLoading }: DueItemsSectionProps) => {
         throw new Error('Failed to delete task');
       }
     } catch (error) {
-      console.error('Error deleting item:', error);
+      logger.error('Error deleting item:', error);
       toast({
         title: "Error",
         description: "Failed to delete the item. Please try again.",

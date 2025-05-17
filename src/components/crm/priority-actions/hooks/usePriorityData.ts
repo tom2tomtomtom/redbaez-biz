@@ -1,9 +1,11 @@
 
 import { useState } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { supabase, logResponse } from "@/lib/supabaseClient";
 import { PriorityItem } from "./taskTypes";
 import { queryKeys } from "@/lib/queryKeys";
+import { useQueryManager } from '@/hooks/useQueryManager';
+import logger from '@/utils/logger';
 
 // Re-export the PriorityItem type to make it available to components
 export type { PriorityItem };
@@ -14,13 +16,13 @@ export type { PriorityItem };
  */
 export const usePriorityData = () => {
   const [isLoading, setIsLoading] = useState(true);
-  const queryClient = useQueryClient();
+  const { invalidateTaskQueries } = useQueryManager();
 
   // Fetches all incomplete tasks
   const { data: tasksData, refetch: refetchTasks } = useQuery({
     queryKey: queryKeys.tasks.unified(),
     queryFn: async () => {
-      console.log("Fetching incomplete tasks...");
+      logger.info('Fetching incomplete tasks...');
       setIsLoading(true);
 
       try {
@@ -35,23 +37,23 @@ export const usePriorityData = () => {
         logResponse(response, response.error, "usePriorityData");
         
         if (response.error) {
-          console.error("Error fetching tasks:", response.error);
+          logger.error('Error fetching tasks:', response.error);
           throw response.error;
         }
 
         setIsLoading(false);
-        console.log(`Successfully fetched ${response.data?.length || 0} tasks`);
+        logger.info(`Successfully fetched ${response.data?.length || 0} tasks`);
         
         // Add debug output of first task if available
         if (response.data && response.data.length > 0) {
-          console.log("Sample task:", response.data[0]);
+          logger.debug('Sample task:', response.data[0]);
         } else {
-          console.log("No tasks returned from the database");
+          logger.info('No tasks returned from the database');
         }
         
         return response.data || [];
       } catch (error) {
-        console.error("Error in fetchTasks:", error);
+        logger.error('Error in fetchTasks:', error);
         setIsLoading(false);
         throw error;
       }
@@ -65,11 +67,11 @@ export const usePriorityData = () => {
   // Map task data to the unified PriorityItem format
   const mapTasksToPriorityItems = (): PriorityItem[] => {
     if (!tasksData) {
-      console.log("No task data available to map");
+      logger.info('No task data available to map');
       return [];
     }
     
-    console.log(`Mapping ${tasksData.length} tasks to priority items`);
+    logger.debug(`Mapping ${tasksData.length} tasks to priority items`);
 
     return tasksData.map((task) => {
       // Handle tasks with client relation
@@ -128,25 +130,23 @@ export const usePriorityData = () => {
 
   // Get all priority items and sort them
   const priorityItems = sortPriorityItems(mapTasksToPriorityItems());
-  console.log(`Total priority items after sorting: ${priorityItems.length}`);
+  logger.info(`Total priority items after sorting: ${priorityItems.length}`);
 
   // Refetch all data
   const refreshAllData = async () => {
-    console.log("Refreshing all priority data...");
+    logger.info('Refreshing all priority data...');
     setIsLoading(true);
     
     try {
-      // Force invalidate all related query caches to ensure fresh data
-      queryClient.invalidateQueries({ queryKey: queryKeys.tasks.unified() });
-      queryClient.invalidateQueries({ queryKey: queryKeys.tasks.all() });
-      queryClient.invalidateQueries({ queryKey: ['tasks'] });
-      
+      // Invalidate all related task queries via the centralized manager
+      await invalidateTaskQueries();
+
       // Force a refetch
       await refetchTasks();
       
-      console.log("Data refresh complete");
+      logger.info('Data refresh complete');
     } catch (error) {
-      console.error("Error refreshing priority data:", error);
+      logger.error('Error refreshing priority data:', error);
     } finally {
       setIsLoading(false);
     }
