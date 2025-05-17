@@ -6,6 +6,7 @@ import { Edit2, Save } from 'lucide-react';
 import { supabase } from '@/lib/supabaseClient';
 import { toast } from '@/components/ui/use-toast';
 import { useQueryClient } from '@tanstack/react-query';
+import { useQueryManager } from '@/hooks/useQueryManager';
 
 interface BackgroundSectionProps {
   clientId: number;
@@ -16,6 +17,7 @@ export const BackgroundSection = ({ clientId, background }: BackgroundSectionPro
   const [isEditingBackground, setIsEditingBackground] = useState(false);
   const [editedBackground, setEditedBackground] = useState(background || '');
   const queryClient = useQueryClient();
+  const { invalidateClientQueries } = useQueryManager();
 
   const handleSaveBackground = async () => {
     try {
@@ -27,7 +29,7 @@ export const BackgroundSection = ({ clientId, background }: BackgroundSectionPro
       if (error) throw error;
 
       // Invalidate and refetch client data
-      await queryClient.invalidateQueries({ queryKey: ['client', clientId] });
+      await invalidateClientQueries(clientId);
 
       toast({
         title: "Success",

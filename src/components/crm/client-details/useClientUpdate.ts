@@ -3,6 +3,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabaseClient';
 import { toast } from '@/components/ui/use-toast';
 import { Contact } from './ContactInfoCard';
+import { useQueryManager } from '@/hooks/useQueryManager';
 
 interface UpdateClientData {
   formData: any;
@@ -11,6 +12,7 @@ interface UpdateClientData {
 
 export const useClientUpdate = (clientId: string | undefined, onSuccess?: () => void) => {
   const queryClient = useQueryClient();
+  const { invalidateClientQueries } = useQueryManager();
   const numericId = clientId ? parseInt(clientId, 10) : undefined;
 
   if (!numericId || isNaN(numericId)) {
@@ -73,8 +75,7 @@ export const useClientUpdate = (clientId: string | undefined, onSuccess?: () => 
     },
     onSuccess: (data) => {
       queryClient.setQueryData(['client', numericId], data);
-      queryClient.invalidateQueries({ queryKey: ['client', numericId] });
-      queryClient.invalidateQueries({ queryKey: ['clients'] });
+      invalidateClientQueries(numericId);
       
       toast({
         title: "Success",

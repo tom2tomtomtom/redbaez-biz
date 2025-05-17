@@ -2,7 +2,7 @@ import { Suspense, useState, useEffect, useRef, useCallback } from "react";
 import { MainNav } from "@/components/ui/main-nav";
 import { PriorityActions } from "@/components/crm/priority-actions/PriorityActions";
 import { RevenueSummary } from "@/components/crm/revenue-summary/RevenueSummary";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabaseClient";
 import { TaskDialog } from "@/components/crm/priority-actions/TaskDialog";
 import { DashboardHeader } from "@/components/crm/dashboard/DashboardHeader";
@@ -26,7 +26,6 @@ const Index = () => {
   const navigate = useNavigate();
   const { invalidateAllQueries, invalidateTaskQueries } = useQueryManager();
   const initialLoadDone = useRef(false);
-  const queryClient = useQueryClient();
 
   const {
     data: clients,
@@ -61,25 +60,13 @@ const Index = () => {
     });
     
     try {
-      // Clear all cached data
-      await Promise.all([
-        invalidateAllQueries(),
-        
-        // Force remove specific cached queries
-        queryClient.removeQueries({ queryKey: ['monthly-revenue'] }),
-        queryClient.removeQueries({ queryKey: ['tasks'] }),
-        queryClient.removeQueries({ queryKey: ['clients'] })
-      ]);
-      
-      // Trigger refresh
+      // Invalidate and remove all cached queries via the manager
+      await invalidateAllQueries();
+
+      // Trigger refresh so components refetch data
       setRefreshTrigger(Date.now());
-      
-      // Force refetch important data
-      await Promise.all([
-        queryClient.refetchQueries({ queryKey: ['monthly-revenue'] }),
-        queryClient.refetchQueries({ queryKey: ['tasks'] }),
-        queryClient.refetchQueries({ queryKey: ['clients'] })
-      ]);
+
+
       
       toast({
         title: "Refresh complete",
@@ -93,7 +80,7 @@ const Index = () => {
         variant: "destructive"
       });
     }
-  }, [invalidateAllQueries, queryClient]);
+  }, [invalidateAllQueries]);
 
   const handleToggleClientList = useCallback(() => {
     if (!showClientList) {
@@ -120,15 +107,7 @@ const Index = () => {
           description: "Refreshing your dashboard data..."
         });
         
-        // Force clear cache for critical data
-        await Promise.all([
-          queryClient.removeQueries({ queryKey: ['monthly-revenue'] }),
-          queryClient.removeQueries({ queryKey: ['tasks'] }),
-          queryClient.removeQueries({ queryKey: ['clients'] }),
-          queryClient.removeQueries({ queryKey: ['unified-tasks'] })
-        ]);
-        
-        // Force refetch of clients
+        // Force clear cache and refetch critical data
         await refetchClients();
         
         // Invalidate all cached queries
@@ -145,7 +124,7 @@ const Index = () => {
       
       loadDashboard();
     }
-  }, [invalidateAllQueries, queryClient, refetchClients]);
+  }, [invalidateAllQueries, refetchClients]);
 
   return (
     <div className="min-h-screen bg-background">

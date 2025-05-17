@@ -8,6 +8,7 @@ import { useClientForecasts } from '@/hooks/useClientForecasts';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabaseClient';
+import { useQueryManager } from '@/hooks/useQueryManager';
 
 interface ForecastEditorProps {
   clientId: number;
@@ -24,6 +25,7 @@ type MonthlyData = {
 
 export const ForecastEditor = ({ clientId }: ForecastEditorProps) => {
   const queryClient = useQueryClient();
+  const { invalidateRevenueQueries, invalidateClientQueries } = useQueryManager();
   const { updateForecast } = useClientForecasts(clientId);
   const [isEditing, setIsEditing] = useState(false);
   const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -107,8 +109,8 @@ export const ForecastEditor = ({ clientId }: ForecastEditorProps) => {
       }
 
       // Invalidate relevant queries to trigger updates
-      queryClient.invalidateQueries({ queryKey: ['monthly-revenue'] });
-      queryClient.invalidateQueries({ queryKey: ['client', clientId] });
+      invalidateRevenueQueries();
+      invalidateClientQueries(clientId);
       
       setIsEditing(false);
     } catch (error) {
