@@ -1,3 +1,4 @@
+import logger from '@/utils/logger';
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Contact } from './ContactInfoCard';
@@ -19,7 +20,7 @@ interface ClientContentProps {
 }
 
 export const ClientContent = ({ client, isEditing, parsedAdditionalContacts }: ClientContentProps) => {
-  console.log('ClientContent rendering with client data:', client);
+  logger.info('ClientContent rendering with client data:', client);
   
   // Get revenue calculations
   const { revenueData, totalActualRevenue, totalForecastRevenue } = useRevenueCalculations(client);
@@ -29,7 +30,7 @@ export const ClientContent = ({ client, isEditing, parsedAdditionalContacts }: C
   const displayActualRevenue = client?.annual_revenue_signed_off ?? totalActualRevenue ?? 0;
   const displayForecastRevenue = client?.annual_revenue_forecast ?? totalForecastRevenue ?? 0;
   
-  console.log('Revenue calculation results:', { 
+  logger.info('Revenue calculation results:', { 
     revenueData, 
     totalActualRevenue, 
     totalForecastRevenue,

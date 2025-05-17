@@ -1,3 +1,4 @@
+import logger from '@/utils/logger';
 
 import { useQuery } from '@tanstack/react-query';
 import { Task, tasksTable } from './taskTypes';
@@ -8,7 +9,7 @@ export const useTasksQuery = (category?: string, showCompleted = false) => {
   const fetchTasks = async (): Promise<Task[]> => {
     // Log query execution with timestamp for debugging
     logQuery('tasks', 'fetching');
-    console.log(`Fetching tasks with category: ${category}, showCompleted: ${showCompleted}`);
+    logger.info(`Fetching tasks with category: ${category}, showCompleted: ${showCompleted}`);
 
     try {
       // Prepare query builder for general_tasks table
@@ -32,7 +33,7 @@ export const useTasksQuery = (category?: string, showCompleted = false) => {
         .order('next_due_date', { ascending: true });
 
       if (error) {
-        console.error('Error fetching tasks:', error);
+        logger.error('Error fetching tasks:', error);
         toast({
           title: 'Error fetching tasks',
           description: error.message,
@@ -41,7 +42,7 @@ export const useTasksQuery = (category?: string, showCompleted = false) => {
         throw error;
       }
 
-      console.log(`Fetched ${data?.length} tasks`);
+      logger.info(`Fetched ${data?.length} tasks`);
       
       // Map the returned data to our Task interface
       const tasks = (data || []).map(task => ({
@@ -52,7 +53,7 @@ export const useTasksQuery = (category?: string, showCompleted = false) => {
       
       return tasks;
     } catch (e) {
-      console.error('Exception in fetchTasks:', e);
+      logger.error('Exception in fetchTasks:', e);
       return [];
     }
   };

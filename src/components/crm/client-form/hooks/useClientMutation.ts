@@ -1,3 +1,4 @@
+import logger from '@/utils/logger';
 
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -37,7 +38,7 @@ export const useClientMutation = (clientId?: number) => {
       .single();
 
     if (error) {
-      console.error('Error creating client:', error);
+      logger.error('Error creating client:', error);
       throw new Error(error.message);
     }
 
@@ -56,7 +57,7 @@ export const useClientMutation = (clientId?: number) => {
       });
 
     if (error) {
-      console.error('Error creating next step:', error);
+      logger.error('Error creating next step:', error);
       throw new Error(error.message);
     }
   };
@@ -88,7 +89,7 @@ export const useClientMutation = (clientId?: number) => {
       .eq('id', clientId);
 
     if (error) {
-      console.error('Error updating client:', error);
+      logger.error('Error updating client:', error);
       throw new Error(error.message);
     }
   };

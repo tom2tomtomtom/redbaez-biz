@@ -1,3 +1,4 @@
+import logger from '@/utils/logger';
 import React, { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -35,7 +36,7 @@ export const BackgroundSection = ({ clientId, background }: BackgroundSectionPro
       });
       setIsEditingBackground(false);
     } catch (error) {
-      console.error('Error updating background:', error);
+      logger.error('Error updating background:', error);
       toast({
         title: "Error",
         description: "Failed to update background",

@@ -1,3 +1,4 @@
+import logger from '@/utils/logger';
 
 import React from 'react';
 import { Card } from '@/components/ui/card';
@@ -71,7 +72,7 @@ export const DueItemsSection = ({ items, isLoading }: DueItemsSectionProps) => {
         description: "The task has been marked as complete.",
       });
     } catch (error) {
-      console.error('Error completing item:', error);
+      logger.error('Error completing item:', error);
       toast({
         title: "Error",
         description: "Failed to complete the item. Please try again.",
@@ -115,7 +116,7 @@ export const DueItemsSection = ({ items, isLoading }: DueItemsSectionProps) => {
         }
       };
       
-      console.log('Deleting task item:', taskItem);
+      logger.info('Deleting task item:', taskItem);
       const success = await handleDelete(taskItem);
       
       if (success) {
@@ -132,7 +133,7 @@ export const DueItemsSection = ({ items, isLoading }: DueItemsSectionProps) => {
         throw new Error('Failed to delete task');
       }
     } catch (error) {
-      console.error('Error deleting item:', error);
+      logger.error('Error deleting item:', error);
       toast({
         title: "Error",
         description: "Failed to delete the item. Please try again.",
