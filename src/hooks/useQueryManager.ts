@@ -16,7 +16,7 @@ export const useQueryManager = () => {
     manager.setQueryClient(queryClient);
   }, [queryClient]);
   
-  // Return the same interface as useQueryCacheManager for ease of use
+  // Expose the QueryCacheManager methods for ease of use
   const manager = QueryCacheManager.getInstance();
   
   return {

@@ -7,6 +7,7 @@ import { Calendar } from 'lucide-react';
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/lib/supabaseClient";
 import { useQueryClient } from "@tanstack/react-query";
+import { useQueryManager } from '@/hooks/useQueryManager';
 import { toast } from "@/components/ui/use-toast";
 import { Switch } from "@/components/ui/switch";
 
@@ -22,6 +23,7 @@ export const UpdateNextStepButton = ({ clientId }: UpdateNextStepButtonProps) =>
   const [dueDate, setDueDate] = useState('');
   const [isUrgent, setIsUrgent] = useState(false);
   const queryClient = useQueryClient();
+  const { invalidateClientQueries, invalidateTaskQueries } = useQueryManager();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -85,10 +87,8 @@ export const UpdateNextStepButton = ({ clientId }: UpdateNextStepButtonProps) =>
       });
       
       // Invalidate all relevant queries
-      queryClient.invalidateQueries({ queryKey: ['client-items', clientId] });
-      queryClient.invalidateQueries({ queryKey: ['next-steps-history'] });
-      queryClient.invalidateQueries({ queryKey: ['client'] });
-      queryClient.invalidateQueries({ queryKey: ['unified-tasks'] });
+      invalidateClientQueries(clientId);
+      invalidateTaskQueries();
       
       // Reset form and close dialog
       setNotes('');

@@ -4,24 +4,12 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase, logResponse } from '@/lib/supabaseClient';
 import { Task } from '@/types/task';
 import { toast } from '@/hooks/use-toast';
+import { useQueryManager } from '@/hooks/useQueryManager';
 
 export const useTaskMutations = () => {
   const queryClient = useQueryClient();
   const [isProcessing, setIsProcessing] = useState(false);
-  
-  // Helper function to invalidate task queries
-  const invalidateTaskQueries = async () => {
-    console.log('Invalidating task queries');
-    
-    // Clear all cached data for tasks
-    queryClient.removeQueries({ queryKey: ['tasks'] });
-    
-    // Invalidate all task-related queries
-    await queryClient.invalidateQueries({ queryKey: ['tasks'] });
-    
-    // Force refetch of all task queries
-    await queryClient.refetchQueries({ queryKey: ['tasks'] });
-  };
+  const { invalidateTaskQueries } = useQueryManager();
   
   // Update task completion status
   const updateTaskCompletion = useMutation({

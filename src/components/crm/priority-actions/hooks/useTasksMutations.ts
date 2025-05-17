@@ -4,9 +4,11 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Task, tasksTable } from './taskTypes';
 import { supabase, logQuery } from '@/lib/supabaseClient';
 import { toast } from '@/hooks/use-toast';
+import { useQueryManager } from '@/hooks/useQueryManager';
 
 export const useTasksMutations = () => {
   const queryClient = useQueryClient();
+  const { invalidateTaskQueries } = useQueryManager();
   const [isUpdating, setIsUpdating] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -44,7 +46,7 @@ export const useTasksMutations = () => {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['tasks'] });
+      invalidateTaskQueries();
       toast({
         title: 'Task updated',
         description: 'Task status has been updated',
@@ -90,7 +92,7 @@ export const useTasksMutations = () => {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['tasks'] });
+      invalidateTaskQueries();
       toast({
         title: 'Task updated',
         description: 'Task urgency has been updated',
@@ -132,7 +134,7 @@ export const useTasksMutations = () => {
       return taskId;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['tasks'] });
+      invalidateTaskQueries();
       toast({
         title: 'Task deleted',
         description: 'Task has been removed',

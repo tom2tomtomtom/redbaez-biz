@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/lib/supabaseClient";
 import { toast } from "@/components/ui/use-toast";
 import { useQueryClient } from '@tanstack/react-query';
+import { useQueryManager } from '@/hooks/useQueryManager';
 
 interface DealLikelihoodProps {
   likelihood: number | null;
@@ -14,6 +15,7 @@ export const DealLikelihood = ({ likelihood, clientId }: DealLikelihoodProps) =>
   const [isEditing, setIsEditing] = useState(false);
   const [value, setValue] = useState(likelihood?.toString() || '');
   const queryClient = useQueryClient();
+  const { invalidateClientQueries } = useQueryManager();
 
   const handleSave = async () => {
     const numericValue = parseFloat(value);
@@ -36,7 +38,7 @@ export const DealLikelihood = ({ likelihood, clientId }: DealLikelihoodProps) =>
       if (error) throw error;
 
       // Invalidate and refetch queries that depend on this client's data
-      await queryClient.invalidateQueries({ queryKey: ['client', clientId] });
+      await invalidateClientQueries(clientId);
 
       toast({
         title: "Success",

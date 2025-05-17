@@ -4,6 +4,7 @@ import { AlertTriangle } from 'lucide-react';
 import { supabase } from '@/lib/supabaseClient';
 import { toast } from '@/components/ui/use-toast';
 import { useQueryClient } from '@tanstack/react-query';
+import { useQueryManager } from '@/hooks/useQueryManager';
 
 interface UrgentFlagToggleProps {
   clientId: number;
@@ -12,6 +13,7 @@ interface UrgentFlagToggleProps {
 
 export const UrgentFlagToggle = ({ clientId, isUrgent }: UrgentFlagToggleProps) => {
   const queryClient = useQueryClient();
+  const { invalidateClientQueries } = useQueryManager();
 
   const handleUrgentChange = async (checked: boolean) => {
     try {
@@ -33,10 +35,7 @@ export const UrgentFlagToggle = ({ clientId, isUrgent }: UrgentFlagToggleProps) 
       if (nextStepsError) throw nextStepsError;
 
       // Invalidate relevant queries to refresh the data
-      queryClient.invalidateQueries({ queryKey: ['client'] });
-      queryClient.invalidateQueries({ queryKey: ['client-next-steps'] });
-      queryClient.invalidateQueries({ queryKey: ['priorityClients'] });
-      queryClient.invalidateQueries({ queryKey: ['nextSteps'] });
+      invalidateClientQueries(clientId);
 
       toast({
         title: checked ? "Marked as urgent" : "Removed urgent flag",

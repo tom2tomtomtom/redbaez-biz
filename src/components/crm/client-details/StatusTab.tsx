@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
+import { useQueryManager } from '@/hooks/useQueryManager';
 import { supabase } from '@/lib/supabaseClient';
 import { useToast } from '@/hooks/use-toast';
 import { useQuery } from '@tanstack/react-query';
@@ -23,6 +24,7 @@ export const StatusTab = ({ clientId, currentStatus }: StatusTabProps) => {
   const [isEditingStatus, setIsEditingStatus] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { invalidateClientQueries } = useQueryManager();
 
   // Fetch all status history entries
   const { data: statusHistory } = useQuery({
@@ -85,9 +87,7 @@ export const StatusTab = ({ clientId, currentStatus }: StatusTabProps) => {
       });
       
       // Invalidate queries to refresh data
-      queryClient.invalidateQueries({ queryKey: ['client', clientId] });
-      queryClient.invalidateQueries({ queryKey: ['statusHistory', clientId] });
-      queryClient.invalidateQueries({ queryKey: ['clients'] }); // Add this line to refresh the clients list
+      invalidateClientQueries(clientId);
     } catch (error) {
       console.error('Error updating status:', error);
       // Revert cache to previous state on error
@@ -149,9 +149,7 @@ export const StatusTab = ({ clientId, currentStatus }: StatusTabProps) => {
       setIsEditingStatus(false);
       
       // Invalidate queries to refresh data
-      queryClient.invalidateQueries({ queryKey: ['client', clientId] });
-      queryClient.invalidateQueries({ queryKey: ['statusHistory', clientId] });
-      queryClient.invalidateQueries({ queryKey: ['clients'] }); // Add this line to refresh the clients list
+      invalidateClientQueries(clientId);
     } catch (error) {
       console.error('Error updating status:', error);
       // Revert cache to previous state on error
