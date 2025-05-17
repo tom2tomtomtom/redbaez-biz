@@ -14,12 +14,21 @@ const getEnvVariable = (key: string, defaultValue: string = ''): string => {
   return value as string;
 };
 
+// Helper function to enforce required variables
+const getRequiredEnvVariable = (key: string): string => {
+  const value = import.meta.env[key];
+  if (value === undefined || value === '') {
+    throw new Error(`Required environment variable ${key} is missing`);
+  }
+  return value as string;
+};
+
 // Supabase Configuration
-export const SUPABASE_URL = getEnvVariable('VITE_SUPABASE_URL', 'https://ryomveanixzshfatalcd.supabase.co');
-export const SUPABASE_ANON_KEY = getEnvVariable('VITE_SUPABASE_ANON_KEY', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ5b212ZWFuaXh6c2hmYXRhbGNkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzYxMjg0NDYsImV4cCI6MjA1MTcwNDQ0Nn0.WP3UUPsFzllI_gvkpYoj4Z8MLkGRt0bJgPAqK80S8JQ');
+export const SUPABASE_URL = getRequiredEnvVariable('VITE_SUPABASE_URL');
+export const SUPABASE_ANON_KEY = getRequiredEnvVariable('VITE_SUPABASE_ANON_KEY');
 
 // API Keys (if needed)
-export const OPENAI_API_KEY = getEnvVariable('VITE_OPENAI_API_KEY');
+export const OPENAI_API_KEY = getRequiredEnvVariable('VITE_OPENAI_API_KEY');
 export const PERPLEXITY_API_KEY = getEnvVariable('VITE_PERPLEXITY_API_KEY');
 
 // Feature Flags

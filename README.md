@@ -64,6 +64,21 @@ Red Baez Business Suite is an all-in-one solution designed for small to medium b
 - `generate-newsletter`: Compile newsletters from news
 - `generate-strategy-ideas`: Create business ideas for specific departments
 
+#### Running Edge Functions Locally
+
+You can test the Supabase edge functions using the Supabase CLI:
+
+```bash
+# Start Supabase with local functions
+npx supabase start
+
+# Deploy a specific function for testing
+npx supabase functions deploy fetch-ai-news --no-verify-jwt
+
+# Invoke a function locally
+npx supabase functions invoke fetch-ai-news --no-verify-jwt
+```
+
 ## Development
 
 ```bash
