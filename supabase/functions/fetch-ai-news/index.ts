@@ -1,3 +1,4 @@
+import logger from '../_shared/logger.ts';
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3'
 import { corsHeaders } from '../_shared/cors.ts'
@@ -58,7 +59,7 @@ Deno.serve(async (req) => {
       throw new Error('Missing Perplexity API key')
     }
 
-    console.log('Fetching news from Perplexity API...')
+    logger.info('Fetching news from Perplexity API...')
     
     const response = await fetch('https://api.perplexity.ai/chat/completions', {
       method: 'POST',
@@ -91,39 +92,39 @@ Deno.serve(async (req) => {
 
     if (!response.ok) {
       const error = await response.text()
-      console.error('Perplexity API error:', error)
+      logger.error('Perplexity API error:', error)
       throw new Error(`Perplexity API error: ${response.status} - ${error}`)
     }
 
     const data = await response.json()
-    console.log('Perplexity API response:', JSON.stringify(data, null, 2))
+    logger.info('Perplexity API response:', JSON.stringify(data, null, 2))
 
     if (!data.choices?.[0]?.message?.content) {
-      console.error('Invalid API response structure:', data)
+      logger.error('Invalid API response structure:', data)
       throw new Error('Invalid API response structure')
     }
 
     const content = data.choices[0].message.content.trim()
-    console.log('Raw content:', content)
+    logger.info('Raw content:', content)
     
     let newsItems: NewsResponse
     try {
       newsItems = JSON.parse(content)
       
       if (!newsItems?.news || !Array.isArray(newsItems.news)) {
-        console.error('Invalid news format:', content)
+        logger.error('Invalid news format:', content)
         throw new Error('Response must contain a "news" array')
       }
 
       if (newsItems.news.length !== 5) {
-        console.error('Wrong number of news items:', newsItems.news.length)
+        logger.error('Wrong number of news items:', newsItems.news.length)
         throw new Error('Response must contain exactly 5 news items')
       }
 
       // Verify source diversity
       const sources = new Set(newsItems.news.map(item => item.source))
       if (sources.size !== newsItems.news.length) {
-        console.error('Duplicate sources found:', sources)
+        logger.error('Duplicate sources found:', sources)
         throw new Error('Each news item must be from a different source')
       }
 
@@ -135,7 +136,7 @@ Deno.serve(async (req) => {
       }
 
       const supabase = createClient(supabaseUrl, supabaseKey)
-      console.log('Storing news items in database...')
+      logger.info('Storing news items in database...')
 
       // Clear existing news items first
       const { error: deleteError } = await supabase
@@ -144,7 +145,7 @@ Deno.serve(async (req) => {
         .neq('id', 0) // Delete all records
       
       if (deleteError) {
-        console.error('Error clearing existing news:', deleteError)
+        logger.error('Error clearing existing news:', deleteError)
         throw deleteError
       }
 
@@ -161,23 +162,23 @@ Deno.serve(async (req) => {
           })
         
         if (error) {
-          console.error('Error inserting news item:', error)
+          logger.error('Error inserting news item:', error)
           throw error
         }
       }
 
-      console.log('Successfully stored news items')
+      logger.info('Successfully stored news items')
 
       return new Response(JSON.stringify({ success: true, data: newsItems }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       })
     } catch (e) {
-      console.error('Failed to parse or validate news items:', e)
-      console.error('Raw content that failed validation:', content)
+      logger.error('Failed to parse or validate news items:', e)
+      logger.error('Raw content that failed validation:', content)
       throw new Error(`Invalid news format: ${e.message}`)
     }
   } catch (error) {
-    console.error('Error:', error)
+    logger.error('Error:', error)
     return new Response(
       JSON.stringify({ 
         error: error.message,

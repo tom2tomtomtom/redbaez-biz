@@ -1,3 +1,4 @@
+import logger from '../_shared/logger.ts';
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { corsHeaders } from '../_shared/cors.ts'
 
@@ -10,7 +11,7 @@ serve(async (req) => {
 
   try {
     const { query } = await req.json()
-    console.log('Searching for:', query)
+    logger.info('Searching for:', query)
 
     if (!query) {
       throw new Error('No search query provided')
@@ -51,10 +52,10 @@ serve(async (req) => {
     }
 
     const data = await response.json()
-    console.log('API Response:', data)
+    logger.info('API Response:', data)
 
     const insight = data.choices[0].message.content
-    console.log('Processed insight:', insight)
+    logger.info('Processed insight:', insight)
 
     return new Response(
       JSON.stringify(insight),
@@ -64,7 +65,7 @@ serve(async (req) => {
       },
     )
   } catch (error) {
-    console.error('Error:', error)
+    logger.error('Error:', error)
     return new Response(
       JSON.stringify({ error: error.message }),
       {

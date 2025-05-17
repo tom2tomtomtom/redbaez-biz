@@ -1,10 +1,11 @@
+import logger from '../_shared/logger.ts';
 export const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
 export async function generateRecommendations(prompt: string, apiKey: string) {
-  console.log('Starting recommendation generation with prompt:', prompt);
+  logger.info('Starting recommendation generation with prompt:', prompt);
   
   const response = await fetch('https://api.perplexity.ai/chat/completions', {
     method: 'POST',
@@ -54,12 +55,12 @@ Return ONLY a JSON array with type (revenue/engagement/opportunity/risk), priori
 
   if (!response.ok) {
     const errorText = await response.text();
-    console.error('Error from Perplexity API:', errorText);
+    logger.error('Error from Perplexity API:', errorText);
     throw new Error(`Failed to get response from Perplexity API: ${errorText}`);
   }
 
   const aiResponse = await response.json();
-  console.log('Received AI response:', aiResponse);
+  logger.info('Received AI response:', aiResponse);
 
   if (!aiResponse?.choices?.[0]?.message?.content) {
     throw new Error('Invalid response format from AI');
@@ -67,15 +68,15 @@ Return ONLY a JSON array with type (revenue/engagement/opportunity/risk), priori
 
   try {
     const content = aiResponse.choices[0].message.content;
-    console.log('Raw content from AI:', content);
+    logger.info('Raw content from AI:', content);
     
     // Remove any markdown code block syntax
     const cleanedContent = content.replace(/```json\n?|\n?```/g, '').trim();
-    console.log('Cleaned content:', cleanedContent);
+    logger.info('Cleaned content:', cleanedContent);
     
     // Parse the JSON
     const parsed = JSON.parse(cleanedContent);
-    console.log('Parsed JSON:', parsed);
+    logger.info('Parsed JSON:', parsed);
     
     // Clean any remaining square brackets from suggestions
     const cleaned = parsed.map((rec: any) => ({
@@ -85,10 +86,10 @@ Return ONLY a JSON array with type (revenue/engagement/opportunity/risk), priori
       priority: rec.priority.toLowerCase()
     }));
     
-    console.log('Final cleaned recommendations:', cleaned);
+    logger.info('Final cleaned recommendations:', cleaned);
     return cleaned;
   } catch (error) {
-    console.error('Error parsing AI response:', error);
+    logger.error('Error parsing AI response:', error);
     throw new Error(`Failed to parse AI recommendations: ${error.message}`);
   }
 }

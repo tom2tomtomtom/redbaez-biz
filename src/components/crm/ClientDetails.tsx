@@ -1,3 +1,4 @@
+import logger from '@/utils/logger';
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams, Navigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
@@ -20,14 +21,14 @@ export const ClientDetails = () => {
   // Validate and convert id parameter
   const numericId = id ? parseInt(id, 10) : null;
   if (!numericId || isNaN(numericId)) {
-    console.error('Invalid client ID:', id);
+    logger.error('Invalid client ID:', id);
     return <Navigate to="/" replace />;
   }
 
   const { data: client, isLoading, error } = useQuery({
     queryKey: ['client', numericId],
     queryFn: async () => {
-      console.log('Fetching client data for ID:', numericId);
+      logger.info('Fetching client data for ID:', numericId);
       const { data, error } = await supabase
         .from('clients')
         .select('*')
@@ -37,7 +38,7 @@ export const ClientDetails = () => {
       if (error) throw error;
       if (!data) throw new Error('Client not found');
       
-      console.log('Received client data:', data);
+      logger.info('Received client data:', data);
       return data;
     },
   });
@@ -68,8 +69,8 @@ export const ClientDetails = () => {
   }
 
   const handleSave = async (formData: any) => {
-    console.log('Saving client with form data:', formData);
-    console.log('Current contacts:', contacts);
+    logger.info('Saving client with form data:', formData);
+    logger.info('Current contacts:', contacts);
     updateMutation.mutate({ 
       formData: {
         ...formData,

@@ -86,7 +86,7 @@ const Index = () => {
         description: "Dashboard updated with latest data"
       });
     } catch (err) {
-      console.error("Error refreshing dashboard:", err);
+      logger.error("Error refreshing dashboard:", err);
       toast({
         title: "Refresh failed",
         description: "Could not update dashboard data. Please try again.",
@@ -98,7 +98,7 @@ const Index = () => {
   const handleToggleClientList = useCallback(() => {
     if (!showClientList) {
       refetchClients().catch(error => {
-        console.error("Error pre-fetching clients:", error);
+        logger.error("Error pre-fetching clients:", error);
         toast({
           title: "Error loading clients",
           description: "There was a problem loading the client list.",

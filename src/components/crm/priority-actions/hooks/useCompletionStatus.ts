@@ -1,3 +1,4 @@
+import logger from '@/utils/logger';
 
 import { supabase } from '@/lib/supabaseClient';
 import { toast } from '@/hooks/use-toast';
@@ -12,13 +13,13 @@ export const useCompletionStatus = () => {
   const handleCompletedChange = async (item: PriorityItem, completed: boolean) => {
     // Prevent multiple simultaneous updates
     if (processing) {
-      console.log('Already processing a completion change, ignoring request');
+      logger.info('Already processing a completion change, ignoring request');
       return false;
     }
     
     try {
       setProcessing(true);
-      console.log(`Updating item (${item.type}:${item.data.id}) completed status to: ${completed}`);
+      logger.info(`Updating item (${item.type}:${item.data.id}) completed status to: ${completed}`);
       
       // Add timestamp for debugging
       const timestamp = new Date().toISOString();
@@ -35,11 +36,11 @@ export const useCompletionStatus = () => {
         .eq('id', itemId);
       
       if (error) {
-        console.error(`Error updating completion status at ${timestamp}:`, error);
+        logger.error(`Error updating completion status at ${timestamp}:`, error);
         throw error;
       }
       
-      console.log(`Successfully updated completion status at ${timestamp}`);
+      logger.info(`Successfully updated completion status at ${timestamp}`);
       
       // Immediately invalidate and refetch all related queries
       await invalidateTaskQueries();
@@ -54,7 +55,7 @@ export const useCompletionStatus = () => {
       
       return true;
     } catch (error) {
-      console.error('Error updating completion status:', error);
+      logger.error('Error updating completion status:', error);
       toast({
         title: "Error",
         description: "Failed to update completion status",

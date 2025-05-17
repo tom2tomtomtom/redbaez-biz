@@ -1,3 +1,4 @@
+import logger from '@/utils/logger';
 import { useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -27,7 +28,7 @@ export const useNewsOperations = () => {
   const { data: newsItems, isLoading, refetch } = useQuery({
     queryKey: ['ai-news'],
     queryFn: async () => {
-      console.log('Fetching AI news from database...');
+      logger.info('Fetching AI news from database...');
       const { data, error } = await supabase
         .from('ai_news')
         .select('*')
@@ -35,10 +36,10 @@ export const useNewsOperations = () => {
         .limit(20);
       
       if (error) {
-        console.error('Error fetching news:', error);
+        logger.error('Error fetching news:', error);
         throw error;
       }
-      console.log('Successfully fetched news items:', data?.length);
+      logger.info('Successfully fetched news items:', data?.length);
       return data as NewsItem[];
     },
     staleTime: 0, // Don't cache results for news
@@ -50,18 +51,18 @@ export const useNewsOperations = () => {
   const refreshNews = async () => {
     try {
       setIsRefreshing(true);
-      console.log('Starting news refresh...');
+      logger.info('Starting news refresh...');
       
       // Ensure cache is invalidated
       queryClient.invalidateQueries({ queryKey: ['ai-news'] });
       
       const { error } = await supabase.functions.invoke('fetch-ai-news');
       if (error) {
-        console.error('Error invoking fetch-ai-news function:', error);
+        logger.error('Error invoking fetch-ai-news function:', error);
         throw error;
       }
       
-      console.log('Successfully invoked fetch-ai-news function, refetching data...');
+      logger.info('Successfully invoked fetch-ai-news function, refetching data...');
       
       // Force short delay to allow the edge function to complete
       await new Promise(resolve => setTimeout(resolve, 1000));
@@ -74,7 +75,7 @@ export const useNewsOperations = () => {
         description: "News refreshed successfully",
       });
     } catch (error) {
-      console.error('Error refreshing news:', error);
+      logger.error('Error refreshing news:', error);
       toast({
         title: "Error",
         description: "Failed to refresh news",
@@ -91,7 +92,7 @@ export const useNewsOperations = () => {
         title: item.title,
         text: item.summary || '',
         url: item.url,
-      }).catch((error) => console.log('Error sharing:', error));
+      }).catch((error) => logger.info('Error sharing:', error));
     } else if (item.url) {
       navigator.clipboard.writeText(item.url);
       toast({
@@ -106,7 +107,7 @@ export const useNewsOperations = () => {
     setSelectedNewsItem(item);
     
     try {
-      console.log('Invoking generate-linkedin-article with:', {
+      logger.info('Invoking generate-linkedin-article with:', {
         title: item.title,
         summary: item.summary,
       });
@@ -119,20 +120,20 @@ export const useNewsOperations = () => {
       });
 
       if (error) {
-        console.error('Error from invoke:', error);
+        logger.error('Error from invoke:', error);
         throw error;
       }
       
       if (data?.article) {
-        console.log('Successfully generated LinkedIn article');
+        logger.info('Successfully generated LinkedIn article');
         setGeneratedArticle(data.article);
         setShowArticleDialog(true);
       } else {
-        console.error('No article in response data:', data);
+        logger.error('No article in response data:', data);
         throw new Error('No article generated');
       }
     } catch (error) {
-      console.error('Error generating LinkedIn article:', error);
+      logger.error('Error generating LinkedIn article:', error);
       toast({
         title: "Error",
         description: "Failed to generate LinkedIn article",
@@ -175,7 +176,7 @@ export const useNewsOperations = () => {
         throw new Error('No newsletter generated');
       }
     } catch (error) {
-      console.error('Error generating newsletter:', error);
+      logger.error('Error generating newsletter:', error);
       toast({
         title: "Error",
         description: "Failed to generate newsletter",

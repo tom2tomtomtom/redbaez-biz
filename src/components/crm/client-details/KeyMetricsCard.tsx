@@ -1,3 +1,4 @@
+import logger from '@/utils/logger';
 
 import { Card } from "@/components/ui/card";
 import { AnnualRevenueMetric } from "./metrics/AnnualRevenueMetric";
@@ -28,10 +29,10 @@ export const KeyMetricsCard = ({
   annualRevenueForecast,
   clientId,
 }: KeyMetricsCardProps) => {
-  console.log('KeyMetricsCard rendering with:');
-  console.log('  - revenueData:', revenueData);
-  console.log('  - annualRevenueSignedOff:', annualRevenueSignedOff);
-  console.log('  - annualRevenueForecast:', annualRevenueForecast);
+  logger.info('KeyMetricsCard rendering with:');
+  logger.info('  - revenueData:', revenueData);
+  logger.info('  - annualRevenueSignedOff:', annualRevenueSignedOff);
+  logger.info('  - annualRevenueForecast:', annualRevenueForecast);
   
   // Ensure data is valid for rendering
   const safeRevenueData = Array.isArray(revenueData) ? revenueData : [];
