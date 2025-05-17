@@ -4,6 +4,7 @@ import { supabase } from '@/lib/supabaseClient';
 import { toast } from '@/hooks/use-toast';
 import { useQueryClient } from '@tanstack/react-query';
 import { queryKeys } from '@/lib/queryKeys';
+import { useQueryManager } from '@/hooks/useQueryManager';
 import { Task, TaskType } from '@/types/task';
 
 // Re-export the Task type for backward compatibility
@@ -15,6 +16,7 @@ export type { Task } from '@/types/task';
 export const useTaskDeletion = (onSuccess?: () => void) => {
   const [isDeleting, setIsDeleting] = useState(false);
   const queryClient = useQueryClient();
+  const { invalidateTaskQueries } = useQueryManager();
 
   const deleteTask = async (task: Pick<Task, 'id'>) => {
     if (!task?.id) {
@@ -67,7 +69,7 @@ export const useTaskDeletion = (onSuccess?: () => void) => {
       
       // After UI is updated immediately, schedule background revalidation
       setTimeout(() => {
-        queryClient.invalidateQueries({ queryKey: ['tasks'] });
+        invalidateTaskQueries();
       }, 500);
       
       toast({

@@ -5,6 +5,7 @@ import { useState } from 'react';
 import { useTaskDeletion } from '@/hooks/useTaskDeletion';
 import { useQueryClient } from '@tanstack/react-query';
 import { queryKeys } from '@/lib/queryKeys';
+import { useQueryManager } from '@/hooks/useQueryManager';
 
 /**
  * Simplified hook for deleting priority items
@@ -12,17 +13,14 @@ import { queryKeys } from '@/lib/queryKeys';
 export const useItemDeletion = () => {
   const [isDeleting, setIsDeleting] = useState(false);
   const queryClient = useQueryClient();
+  const { invalidateTaskQueries } = useQueryManager();
   
   // Use the central task deletion hook with a direct callback
   const { deleteTask } = useTaskDeletion(async () => {
     console.log("[ITEM_DELETION] Task deleted successfully - refreshing data");
-    
-    // Remove cached data to ensure fresh fetches
-    queryClient.removeQueries({ queryKey: queryKeys.tasks.unified() });
-    queryClient.removeQueries({ queryKey: ['tasks'] });
-    queryClient.removeQueries({ queryKey: queryKeys.tasks.clientItems(null) });
-    
-    // Force immediate refresh of ALL related queries
+
+    await invalidateTaskQueries();
+
     await Promise.all([
       queryClient.refetchQueries({ queryKey: queryKeys.tasks.clientItems(null) }),
       queryClient.refetchQueries({ queryKey: queryKeys.tasks.unified() }),

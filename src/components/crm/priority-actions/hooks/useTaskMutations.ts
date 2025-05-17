@@ -4,22 +4,16 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase, logResponse } from '@/lib/supabaseClient';
 import { Task } from '@/types/task';
 import { toast } from '@/hooks/use-toast';
+import { useQueryManager } from '@/hooks/useQueryManager';
 
 export const useTaskMutations = () => {
   const queryClient = useQueryClient();
+  const { invalidateTaskQueries } = useQueryManager();
   const [isProcessing, setIsProcessing] = useState(false);
-  
-  // Helper function to invalidate task queries
-  const invalidateTaskQueries = async () => {
-    console.log('Invalidating task queries');
-    
-    // Clear all cached data for tasks
-    queryClient.removeQueries({ queryKey: ['tasks'] });
-    
-    // Invalidate all task-related queries
-    await queryClient.invalidateQueries({ queryKey: ['tasks'] });
-    
-    // Force refetch of all task queries
+
+  // Helper function to invalidate and refetch task queries
+  const refreshTasks = async () => {
+    await invalidateTaskQueries();
     await queryClient.refetchQueries({ queryKey: ['tasks'] });
   };
   
@@ -45,7 +39,7 @@ export const useTaskMutations = () => {
       return { taskId: task.id, completed, data };
     },
     onSuccess: () => {
-      invalidateTaskQueries();
+      refreshTasks();
       toast({
         title: 'Task updated',
         description: 'Task completion status has been updated',
@@ -86,7 +80,7 @@ export const useTaskMutations = () => {
       return { taskId: task.id, urgent, data };
     },
     onSuccess: () => {
-      invalidateTaskQueries();
+      refreshTasks();
       toast({
         title: 'Task updated',
         description: 'Task urgency has been updated',
@@ -124,7 +118,7 @@ export const useTaskMutations = () => {
       return { taskId: task.id };
     },
     onSuccess: () => {
-      invalidateTaskQueries();
+      refreshTasks();
       toast({
         title: 'Task deleted',
         description: 'Task has been removed successfully',
@@ -149,8 +143,8 @@ export const useTaskMutations = () => {
       updateTaskCompletion.mutate({ task, completed }),
     updateUrgency: (task: Task, urgent: boolean) => 
       updateTaskUrgency.mutate({ task, urgent }),
-    deleteTask: (task: Task) => 
+    deleteTask: (task: Task) =>
       deleteTaskMutation.mutate(task),
-    invalidateTaskQueries
+    invalidateTaskQueries: refreshTasks
   };
 };

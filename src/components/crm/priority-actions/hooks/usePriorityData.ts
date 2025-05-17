@@ -1,9 +1,10 @@
 
 import { useState } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { supabase, logResponse } from "@/lib/supabaseClient";
 import { PriorityItem } from "./taskTypes";
 import { queryKeys } from "@/lib/queryKeys";
+import { useQueryManager } from '@/hooks/useQueryManager';
 
 // Re-export the PriorityItem type to make it available to components
 export type { PriorityItem };
@@ -14,7 +15,7 @@ export type { PriorityItem };
  */
 export const usePriorityData = () => {
   const [isLoading, setIsLoading] = useState(true);
-  const queryClient = useQueryClient();
+  const { invalidateTaskQueries } = useQueryManager();
 
   // Fetches all incomplete tasks
   const { data: tasksData, refetch: refetchTasks } = useQuery({
@@ -136,11 +137,9 @@ export const usePriorityData = () => {
     setIsLoading(true);
     
     try {
-      // Force invalidate all related query caches to ensure fresh data
-      queryClient.invalidateQueries({ queryKey: queryKeys.tasks.unified() });
-      queryClient.invalidateQueries({ queryKey: queryKeys.tasks.all() });
-      queryClient.invalidateQueries({ queryKey: ['tasks'] });
-      
+      // Invalidate all related task queries via the centralized manager
+      await invalidateTaskQueries();
+
       // Force a refetch
       await refetchTasks();
       
