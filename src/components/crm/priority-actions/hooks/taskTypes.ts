@@ -1,5 +1,5 @@
 
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/lib/supabaseClient';
 import { TaskType } from '@/types/task';
 
 export { TaskType } from '@/types/task';

@@ -3,7 +3,7 @@ import { MainNav } from "@/components/ui/main-nav";
 import { PriorityActions } from "@/components/crm/priority-actions/PriorityActions";
 import { RevenueSummary } from "@/components/crm/revenue-summary/RevenueSummary";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/lib/supabase";
+import { supabase } from "@/lib/supabaseClient";
 import { TaskDialog } from "@/components/crm/priority-actions/TaskDialog";
 import { DashboardHeader } from "@/components/crm/dashboard/DashboardHeader";
 import { SearchSection } from "@/components/crm/dashboard/SearchSection";

@@ -1,5 +1,5 @@
 
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/lib/supabaseClient';
 import { CalendarEventInsert, CalendarEventRow } from '@/integrations/supabase/types/calendar-events.types';
 import logger from '@/utils/logger';
 
