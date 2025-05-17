@@ -1,3 +1,4 @@
+import logger from '@/utils/logger';
 
 import { useTasksQuery } from './useTasksQuery';
 import { useTasksMutations } from './useTasksMutations';
@@ -26,7 +27,7 @@ export const useTasks = (category?: string, showCompleted = false) => {
   
   // Helper function to force a global refresh
   const forceRefresh = async () => {
-    console.log('Force refreshing all task data');
+    logger.info('Force refreshing all task data');
     
     // Use our centralized cache manager
     await invalidateTaskQueries();
@@ -37,7 +38,7 @@ export const useTasks = (category?: string, showCompleted = false) => {
 
   // If we encountered an error, log it
   if (error) {
-    console.error('Error in useTasks:', error);
+    logger.error('Error in useTasks:', error);
   }
 
   return {

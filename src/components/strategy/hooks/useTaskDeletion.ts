@@ -1,3 +1,4 @@
+import logger from '@/utils/logger';
 
 import { useState } from "react";
 import { toast } from "@/hooks/use-toast";
@@ -14,7 +15,7 @@ export const useTaskDeletion = (onTaskDeleted?: () => void) => {
   
   // Use the core deletion hook with a simpler callback
   const { deleteTask: globalDeleteTask } = useGlobalTaskDeletion(() => {
-    console.log("[STRATEGY] Deletion callback executed");
+    logger.info("[STRATEGY] Deletion callback executed");
     
     // Specifically refetch the strategy-relevant queries
     queryClient.refetchQueries({ queryKey: queryKeys.tasks.general() });
@@ -29,7 +30,7 @@ export const useTaskDeletion = (onTaskDeleted?: () => void) => {
 
   const deleteTask = async (task: any) => {
     if (!task) {
-      console.error("[STRATEGY] No task provided for deletion");
+      logger.error("[STRATEGY] No task provided for deletion");
       return false;
     }
     
@@ -44,7 +45,7 @@ export const useTaskDeletion = (onTaskDeleted?: () => void) => {
       const success = await globalDeleteTask(task);
       return success;
     } catch (error) {
-      console.error('[STRATEGY] Error in deletion process:', error);
+      logger.error('[STRATEGY] Error in deletion process:', error);
       toast({
         title: "Error",
         description: "An unexpected error occurred. Please try again.",

@@ -1,3 +1,4 @@
+import logger from '@/utils/logger';
 
 import { useState, useRef, useEffect } from "react";
 import { GeneralTaskItem } from "../crm/priority-actions/GeneralTaskItem";
@@ -28,7 +29,7 @@ export const TaskList = ({ tasks, isLoading, onTasksUpdated, isHistory = false }
   
   // Use our task deletion hook with a callback that will execute after deletion completes
   const { deleteTask, isDeleting } = useTaskDeletion(() => {
-    console.log("Deletion callback executed");
+    logger.info("Deletion callback executed");
     // Force refetch all relevant queries
     queryClient.invalidateQueries({ queryKey: ['generalTasks'] });
     queryClient.invalidateQueries({ queryKey: ['clientNextSteps'] });
@@ -44,7 +45,7 @@ export const TaskList = ({ tasks, isLoading, onTasksUpdated, isHistory = false }
   useEffect(() => {
     if (!initialRenderDone.current) {
       initialRenderDone.current = true;
-      console.log("Strategy TaskList initial render completed");
+      logger.info("Strategy TaskList initial render completed");
     }
   }, []);
 
@@ -82,7 +83,7 @@ export const TaskList = ({ tasks, isLoading, onTasksUpdated, isHistory = false }
           .eq('id', taskId);
           
         if (typeError) {
-          console.error('Error updating task type:', typeError);
+          logger.error('Error updating task type:', typeError);
         }
       }
       
@@ -96,7 +97,7 @@ export const TaskList = ({ tasks, isLoading, onTasksUpdated, isHistory = false }
         onTasksUpdated();
       }, 300);
     } catch (error) {
-      console.error('Error updating task date:', error);
+      logger.error('Error updating task date:', error);
       toast({
         title: "Error",
         description: "Failed to update task date. Please try again.",
@@ -106,13 +107,13 @@ export const TaskList = ({ tasks, isLoading, onTasksUpdated, isHistory = false }
   };
 
   const handleDeleteClick = (task: any) => {
-    console.log("Delete button clicked for task:", task);
+    logger.info("Delete button clicked for task:", task);
     setTaskToDelete(task);
     setIsDialogOpen(true);
   };
 
   const confirmDeleteTask = async () => {
-    console.log("Confirming deletion for task:", taskToDelete);
+    logger.info("Confirming deletion for task:", taskToDelete);
     if (taskToDelete) {
       // Before deleting, optimistically remove the task from UI
       // Clone and filter the tasks prop to create local filtered state
@@ -127,7 +128,7 @@ export const TaskList = ({ tasks, isLoading, onTasksUpdated, isHistory = false }
       // Then actually delete it from the database
       const success = await deleteTask(taskToDelete);
       if (success) {
-        console.log("Task deleted successfully from confirmation dialog");
+        logger.info("Task deleted successfully from confirmation dialog");
       } else {
         // If deletion failed, tell the user and refresh to show the task again
         toast({
@@ -147,7 +148,7 @@ export const TaskList = ({ tasks, isLoading, onTasksUpdated, isHistory = false }
   };
 
   const handleManualRefresh = () => {
-    console.log("Manual refresh requested");
+    logger.info("Manual refresh requested");
     queryClient.invalidateQueries({ queryKey: ['generalTasks'] });
     queryClient.invalidateQueries({ queryKey: ['clientNextSteps'] });
     queryClient.invalidateQueries({ queryKey: ['unified-tasks'] });

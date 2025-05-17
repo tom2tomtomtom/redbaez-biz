@@ -1,3 +1,4 @@
+import logger from '@/utils/logger';
 
 import { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
@@ -11,7 +12,7 @@ export const useTaskMutations = () => {
   
   // Helper function to invalidate task queries
   const invalidateTaskQueries = async () => {
-    console.log('Invalidating task queries');
+    logger.info('Invalidating task queries');
     
     // Clear all cached data for tasks
     queryClient.removeQueries({ queryKey: ['tasks'] });
@@ -27,7 +28,7 @@ export const useTaskMutations = () => {
   const updateTaskCompletion = useMutation({
     mutationFn: async ({ task, completed }: { task: Task, completed: boolean }) => {
       setIsProcessing(true);
-      console.log(`Updating task ${task.id} completion to ${completed}`);
+      logger.info(`Updating task ${task.id} completion to ${completed}`);
       
       const { data, error } = await supabase
         .from('tasks')
@@ -52,7 +53,7 @@ export const useTaskMutations = () => {
       });
     },
     onError: (error) => {
-      console.error('Error updating task completion:', error);
+      logger.error('Error updating task completion:', error);
       toast({
         title: 'Update failed',
         description: 'Failed to update task. Please try again.',
@@ -68,7 +69,7 @@ export const useTaskMutations = () => {
   const updateTaskUrgency = useMutation({
     mutationFn: async ({ task, urgent }: { task: Task, urgent: boolean }) => {
       setIsProcessing(true);
-      console.log(`Updating task ${task.id} urgency to ${urgent}`);
+      logger.info(`Updating task ${task.id} urgency to ${urgent}`);
       
       const { data, error } = await supabase
         .from('tasks')
@@ -93,7 +94,7 @@ export const useTaskMutations = () => {
       });
     },
     onError: (error) => {
-      console.error('Error updating task urgency:', error);
+      logger.error('Error updating task urgency:', error);
       toast({
         title: 'Update failed',
         description: 'Failed to update task urgency. Please try again.',
@@ -109,7 +110,7 @@ export const useTaskMutations = () => {
   const deleteTaskMutation = useMutation({
     mutationFn: async (task: Task) => {
       setIsProcessing(true);
-      console.log(`Deleting task ${task.id}`);
+      logger.info(`Deleting task ${task.id}`);
       
       const { data, error } = await supabase
         .from('tasks')
@@ -131,7 +132,7 @@ export const useTaskMutations = () => {
       });
     },
     onError: (error) => {
-      console.error('Error deleting task:', error);
+      logger.error('Error deleting task:', error);
       toast({
         title: 'Delete failed',
         description: 'Failed to delete task. Please try again.',

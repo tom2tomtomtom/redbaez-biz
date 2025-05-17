@@ -1,3 +1,4 @@
+import logger from '@/utils/logger';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -31,7 +32,7 @@ export const RevenueInputs = ({
   onAnnualRevenueSignedOffChange,
   onAnnualRevenueForecastChange,
 }: RevenueInputsProps) => {
-  console.log('RevenueInputs render with props:', {
+  logger.info('RevenueInputs render with props:', {
     projectRevenue,
     revenue,
     projectRevenueSignedOff,
@@ -41,12 +42,12 @@ export const RevenueInputs = ({
   });
 
   const handleProjectRevenueSignedOffChange = (checked: boolean) => {
-    console.log('Project revenue signed off changed:', checked);
+    logger.info('Project revenue signed off changed:', checked);
     onProjectRevenueSignedOffChange(checked);
   };
 
   const handleProjectRevenueForecastChange = (checked: boolean) => {
-    console.log('Project revenue forecast changed:', checked);
+    logger.info('Project revenue forecast changed:', checked);
     onProjectRevenueForecastChange(checked);
   };
 
@@ -63,7 +64,7 @@ export const RevenueInputs = ({
             value={projectRevenue}
             onChange={(e) => {
               const value = e.target.value;
-              console.log('Project revenue changed:', value);
+              logger.info('Project revenue changed:', value);
               onProjectRevenueChange(value);
             }}
             className="transition-all duration-300" 
@@ -102,7 +103,7 @@ export const RevenueInputs = ({
             value={revenue}
             onChange={(e) => {
               const value = e.target.value;
-              console.log('Annual revenue changed:', value);
+              logger.info('Annual revenue changed:', value);
               onRevenueChange(value);
             }}
             className="transition-all duration-300" 
@@ -118,7 +119,7 @@ export const RevenueInputs = ({
               value={annualRevenueSignedOff}
               onChange={(e) => {
                 const value = e.target.value;
-                console.log('Annual revenue signed off changed:', value);
+                logger.info('Annual revenue signed off changed:', value);
                 onAnnualRevenueSignedOffChange(value);
               }}
               className="transition-all duration-300" 
@@ -133,7 +134,7 @@ export const RevenueInputs = ({
               value={annualRevenueForecast}
               onChange={(e) => {
                 const value = e.target.value;
-                console.log('Annual revenue forecast changed:', value);
+                logger.info('Annual revenue forecast changed:', value);
                 onAnnualRevenueForecastChange(value);
               }}
               className="transition-all duration-300" 

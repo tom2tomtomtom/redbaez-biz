@@ -16,7 +16,7 @@ export const useTaskData = (category?: string, showCompleted = false) => {
     queryKey: ['tasks', { category, showCompleted, timestamp: Date.now() }],
     queryFn: async (): Promise<Task[]> => {
       logger.info(`Fetching tasks with category: ${category}, showCompleted: ${showCompleted}`);
-      console.log(`DEBUG: Fetching tasks with category: ${category}, showCompleted: ${showCompleted}`);
+      logger.info(`DEBUG: Fetching tasks with category: ${category}, showCompleted: ${showCompleted}`);
       
       try {
         // Build query for tasks table with explicit parameters
@@ -40,16 +40,16 @@ export const useTaskData = (category?: string, showCompleted = false) => {
 
         if (error) {
           logger.error('Error fetching tasks:', error);
-          console.error('Error fetching tasks:', error);
+          logger.error('Error fetching tasks:', error);
           throw error;
         }
 
         // Log the raw data for debugging
         logger.info(`Raw tasks data: ${JSON.stringify(data?.slice(0, 2))}`);
         if (data && data.length > 0) {
-          console.log('Raw tasks data sample:', data.slice(0, 2));
+          logger.info('Raw tasks data sample:', data.slice(0, 2));
         } else {
-          console.log('No tasks data returned from query');
+          logger.info('No tasks data returned from query');
         }
 
         // Map the data to our Task type
@@ -72,12 +72,12 @@ export const useTaskData = (category?: string, showCompleted = false) => {
         }));
         
         logger.info(`Processed ${tasks.length} tasks with status: ${showCompleted ? 'completed' : 'incomplete'}`);
-        console.log(`Processed ${tasks.length} tasks with status: ${showCompleted ? 'completed' : 'incomplete'}`);
+        logger.info(`Processed ${tasks.length} tasks with status: ${showCompleted ? 'completed' : 'incomplete'}`);
         
         return tasks;
       } catch (error) {
         logger.error('Exception in useTaskData:', error);
-        console.error('Exception in useTaskData:', error);
+        logger.error('Exception in useTaskData:', error);
         throw error;
       }
     },

@@ -1,3 +1,4 @@
+import logger from '@/utils/logger';
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabaseClient';
@@ -35,7 +36,7 @@ export const NextStepsHistory: React.FC<NextStepsHistoryProps> = ({ clientId }) 
   const { data: history, isLoading } = useQuery<HistoryEntry[]>({
     queryKey: ['next-steps-history', clientId],
     queryFn: async () => {
-      console.log('Fetching history for client:', clientId);
+      logger.info('Fetching history for client:', clientId);
       const { data, error } = await supabase
         .from('next_steps_history')
         .select('*, profiles:created_by(full_name)')
@@ -43,10 +44,10 @@ export const NextStepsHistory: React.FC<NextStepsHistoryProps> = ({ clientId }) 
         .order('created_at', { ascending: false });
 
       if (error) {
-        console.error('Error fetching history:', error);
+        logger.error('Error fetching history:', error);
         throw error;
       }
-      console.log('Fetched history data:', data);
+      logger.info('Fetched history data:', data);
       return data;
     },
   });

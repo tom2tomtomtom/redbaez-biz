@@ -1,6 +1,7 @@
 
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { corsHeaders } from '../_shared/cors.ts'
+import logger from '../_shared/logger.ts'
 
 interface NewsItem {
   title: string;
@@ -59,14 +60,14 @@ Organize them by category and add insightful commentary.`
     })
 
     const result = await response.json()
-    console.log('OpenAI API Response:', result)
+    logger.info('OpenAI API Response:', result)
 
     return new Response(
       JSON.stringify({ newsletter: result.choices[0].message.content }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
     )
   } catch (error) {
-    console.error('Error:', error)
+    logger.error('Error:', error)
     return new Response(
       JSON.stringify({ error: error.message }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 },

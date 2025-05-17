@@ -1,3 +1,4 @@
+import logger from '@/utils/logger';
 
 import { useState } from 'react';
 import { Button } from "@/components/ui/button";
@@ -41,7 +42,7 @@ export const UpdateNextStepButton = ({ clientId }: UpdateNextStepButtonProps) =>
         .single();
 
       if (profileError || !profileData) {
-        console.error('Error fetching profile:', profileError);
+        logger.error('Error fetching profile:', profileError);
         throw new Error('Could not find user profile');
       }
 
@@ -58,7 +59,7 @@ export const UpdateNextStepButton = ({ clientId }: UpdateNextStepButtonProps) =>
         });
 
       if (error) {
-        console.error('Error adding next step:', error);
+        logger.error('Error adding next step:', error);
         toast({
           title: "Error",
           description: "Failed to add next step: " + error.message,
@@ -75,7 +76,7 @@ export const UpdateNextStepButton = ({ clientId }: UpdateNextStepButtonProps) =>
           .eq('id', clientId);
 
         if (clientError) {
-          console.error('Error updating client urgent status:', clientError);
+          logger.error('Error updating client urgent status:', clientError);
         }
       }
 
@@ -96,7 +97,7 @@ export const UpdateNextStepButton = ({ clientId }: UpdateNextStepButtonProps) =>
       setIsUrgent(false);
       setOpen(false);
     } catch (error) {
-      console.error('Error adding next step:', error);
+      logger.error('Error adding next step:', error);
       toast({
         title: "Error",
         description: "Failed to add next step. Please try again.",

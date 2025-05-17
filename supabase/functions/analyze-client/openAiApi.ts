@@ -1,8 +1,9 @@
 
 import { corsHeaders } from "../_shared/cors.ts";
+import logger from "../_shared/logger.ts";
 
 export async function generateRecommendations(prompt: string, apiKey: string) {
-  console.log('Generating recommendations with prompt:', prompt);
+  logger.info('Generating recommendations with prompt:', prompt);
   
   try {
     // Input validation
@@ -53,20 +54,20 @@ export async function generateRecommendations(prompt: string, apiKey: string) {
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('OpenAI API error:', errorText);
+      logger.error('OpenAI API error:', errorText);
       throw new Error(`OpenAI API error: ${response.status} ${errorText}`);
     }
 
     const data = await response.json();
-    console.log('Raw OpenAI response:', data);
+    logger.info('Raw OpenAI response:', data);
 
     try {
       // Extract the content and ensure it's valid JSON
       const content = data.choices[0].message.content;
-      console.log('Parsing content:', content);
+      logger.info('Parsing content:', content);
       
       const parsed = JSON.parse(content);
-      console.log('Parsed recommendations:', parsed);
+      logger.info('Parsed recommendations:', parsed);
       
       if (!parsed.recommendations || !Array.isArray(parsed.recommendations)) {
         throw new Error('Invalid response format: recommendations array is missing');
@@ -79,21 +80,21 @@ export async function generateRecommendations(prompt: string, apiKey: string) {
         }
         
         if (!['revenue', 'engagement', 'risk', 'opportunity'].includes(rec.type)) {
-          console.warn(`Warning: recommendation ${index} has unusual type: ${rec.type}`);
+          logger.warn(`Warning: recommendation ${index} has unusual type: ${rec.type}`);
         }
         
         if (!['high', 'medium', 'low'].includes(rec.priority)) {
-          console.warn(`Warning: recommendation ${index} has unusual priority: ${rec.priority}`);
+          logger.warn(`Warning: recommendation ${index} has unusual priority: ${rec.priority}`);
         }
       });
       
       return parsed.recommendations;
     } catch (error) {
-      console.error('Error parsing OpenAI response:', error);
+      logger.error('Error parsing OpenAI response:', error);
       throw new Error(`Failed to parse AI recommendations: ${error.message}`);
     }
   } catch (error) {
-    console.error('Error in OpenAI API call:', error);
+    logger.error('Error in OpenAI API call:', error);
     throw error;
   }
 }

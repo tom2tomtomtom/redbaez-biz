@@ -1,3 +1,4 @@
+import logger from '@/utils/logger';
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabaseClient';
@@ -19,7 +20,7 @@ export const useClientUpdate = (clientId: string | undefined, onSuccess?: () => 
 
   return useMutation({
     mutationFn: async ({ formData, contacts }: UpdateClientData) => {
-      console.log('Updating client with contacts:', contacts);
+      logger.info('Updating client with contacts:', contacts);
       
       // Handle empty contacts array or undefined contacts
       const { primaryContact, additionalContacts } = contacts?.length 
@@ -37,7 +38,7 @@ export const useClientUpdate = (clientId: string | undefined, onSuccess?: () => 
         additional_contacts: additionalContacts || formData.additional_contacts,
       };
 
-      console.log('Updating client with data:', clientData);
+      logger.info('Updating client with data:', clientData);
       
       const { error, data } = await supabase
         .from('clients')
@@ -61,7 +62,7 @@ export const useClientUpdate = (clientId: string | undefined, onSuccess?: () => 
       return { previousClient };
     },
     onError: (error, variables, context) => {
-      console.error('Error updating client:', error);
+      logger.error('Error updating client:', error);
       if (context?.previousClient) {
         queryClient.setQueryData(['client', numericId], context.previousClient);
       }

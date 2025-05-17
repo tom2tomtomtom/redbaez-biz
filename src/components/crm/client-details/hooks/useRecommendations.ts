@@ -1,3 +1,4 @@
+import logger from '@/utils/logger';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabaseClient';
 import { toast } from '@/components/ui/use-toast';
@@ -19,7 +20,7 @@ const deleteExistingRecommendations = async (clientId: number) => {
     .eq('client_id', clientId);
     
   if (error) {
-    console.error('Error deleting existing recommendations:', error);
+    logger.error('Error deleting existing recommendations:', error);
     throw error;
   }
 };
@@ -29,7 +30,7 @@ const fetchClientAnalysisData = async (clientId: number) => {
     .rpc('get_client_analysis_data', { p_client_id: clientId });
   
   if (error) {
-    console.error('Error fetching client analysis data:', error);
+    logger.error('Error fetching client analysis data:', error);
     throw error;
   }
   
@@ -42,7 +43,7 @@ const analyzeClientData = async (clientData: any) => {
   });
 
   if (response.error) {
-    console.error('Error from analyze-client function:', response.error);
+    logger.error('Error from analyze-client function:', response.error);
     throw response.error;
   }
 
@@ -65,7 +66,7 @@ const insertNewRecommendations = async (clientId: number, recommendations: any[]
     })));
     
   if (error) {
-    console.error('Error inserting recommendations:', error);
+    logger.error('Error inserting recommendations:', error);
     throw error;
   }
 };
@@ -102,7 +103,7 @@ export const useRecommendations = (clientId: number) => {
 
   const analyzeMutation = useMutation({
     mutationFn: async () => {
-      console.log('Starting client analysis for ID:', clientId);
+      logger.info('Starting client analysis for ID:', clientId);
       
       // Immediately clear recommendations in UI
       queryClient.setQueryData(['recommendations', clientId], []);
@@ -110,10 +111,10 @@ export const useRecommendations = (clientId: number) => {
       // Execute analysis process
       await deleteExistingRecommendations(clientId);
       const clientData = await fetchClientAnalysisData(clientId);
-      console.log('Retrieved client data:', clientData);
+      logger.info('Retrieved client data:', clientData);
       
       const recommendations = await analyzeClientData(clientData);
-      console.log('Received recommendations:', recommendations);
+      logger.info('Received recommendations:', recommendations);
       
       await insertNewRecommendations(clientId, recommendations);
       return recommendations;
@@ -126,7 +127,7 @@ export const useRecommendations = (clientId: number) => {
       });
     },
     onError: (error) => {
-      console.error('Error generating recommendations:', error);
+      logger.error('Error generating recommendations:', error);
       toast({
         title: "Error",
         description: "Failed to generate recommendations. Please try again.",
