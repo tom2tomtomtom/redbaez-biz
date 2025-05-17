@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Task, tasksTable } from './taskTypes';
-import { supabase, logQuery } from '@/lib/supabase';
+import { supabase, logQuery } from '@/lib/supabaseClient';
 import { toast } from '@/hooks/use-toast';
 
 export const useTasksMutations = () => {

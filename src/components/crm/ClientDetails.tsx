@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams, Navigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/lib/supabaseClient';
 import { Contact } from './client-details/ContactInfoCard';
 import { useClientUpdate } from './client-details/useClientUpdate';
 import { useClientInitialization } from './client-details/useClientInitialization';

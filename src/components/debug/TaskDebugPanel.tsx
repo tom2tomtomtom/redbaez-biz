@@ -5,7 +5,7 @@ import { useTaskData } from '@/components/crm/priority-actions/hooks/useTaskData
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Database, Bug, X } from 'lucide-react';
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/lib/supabaseClient';
 
 export const TaskDebugPanel = () => {
   const [isOpen, setIsOpen] = useState(false);
