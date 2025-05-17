@@ -11,6 +11,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Trash2, RefreshCw } from "lucide-react";
 import { useTaskDeletion } from "./hooks/useTaskDeletion";
 import { useQueryClient } from "@tanstack/react-query";
+import { useQueryManager } from '@/hooks/useQueryManager';
 
 interface TaskListProps {
   tasks: any[];
@@ -25,14 +26,13 @@ export const TaskList = ({ tasks, isLoading, onTasksUpdated, isHistory = false }
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const initialRenderDone = useRef(false);
   const queryClient = useQueryClient();
+  const { invalidateTaskQueries } = useQueryManager();
   
   // Use our task deletion hook with a callback that will execute after deletion completes
   const { deleteTask, isDeleting } = useTaskDeletion(() => {
     console.log("Deletion callback executed");
     // Force refetch all relevant queries
-    queryClient.invalidateQueries({ queryKey: ['generalTasks'] });
-    queryClient.invalidateQueries({ queryKey: ['clientNextSteps'] });
-    queryClient.invalidateQueries({ queryKey: ['unified-tasks'] });
+    invalidateTaskQueries();
     
     // Using setTimeout to break potential render cycles
     setTimeout(() => {
@@ -69,8 +69,7 @@ export const TaskList = ({ tasks, isLoading, onTasksUpdated, isHistory = false }
       });
 
       // Invalidate all relevant query caches to ensure the task appears in Priority Actions
-      queryClient.invalidateQueries({ queryKey: ['tasks'] });
-      queryClient.invalidateQueries({ queryKey: ['generalTasks'] });
+      invalidateTaskQueries();
       
       // If adding a due date, update the type from 'idea' to 'task'
       if (date) {
@@ -148,9 +147,7 @@ export const TaskList = ({ tasks, isLoading, onTasksUpdated, isHistory = false }
 
   const handleManualRefresh = () => {
     console.log("Manual refresh requested");
-    queryClient.invalidateQueries({ queryKey: ['generalTasks'] });
-    queryClient.invalidateQueries({ queryKey: ['clientNextSteps'] });
-    queryClient.invalidateQueries({ queryKey: ['unified-tasks'] });
+    invalidateTaskQueries();
     onTasksUpdated();
   };
 

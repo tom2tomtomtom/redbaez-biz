@@ -4,9 +4,11 @@ import { supabase } from '@/lib/supabaseClient';
 import { MonthlyForecast, ForecastUpdate } from '@/types/forecast';
 import { format, parseISO } from 'date-fns';
 import { toast } from '@/components/ui/use-toast';
+import { useQueryManager } from './useQueryManager';
 
 export function useClientForecasts(clientId: number) {
   const queryClient = useQueryClient();
+  const { invalidateRevenueQueries, invalidateClientQueries } = useQueryManager();
 
   const { data: forecasts, isLoading } = useQuery({
     queryKey: ['client-forecasts', clientId],
@@ -71,8 +73,8 @@ export function useClientForecasts(clientId: number) {
     },
     onSuccess: () => {
       // Invalidate both the forecasts and client data
-      queryClient.invalidateQueries({ queryKey: ['client-forecasts', clientId] });
-      queryClient.invalidateQueries({ queryKey: ['client', clientId] });
+      invalidateRevenueQueries();
+      invalidateClientQueries(clientId);
       
       toast({
         title: "Success",

@@ -5,6 +5,7 @@ import { PriorityActions } from "@/components/crm/priority-actions/PriorityActio
 import { useState } from "react";
 import { TaskDialog } from "@/components/crm/priority-actions/TaskDialog";
 import { useQueryClient } from "@tanstack/react-query";
+import { useQueryManager } from '@/hooks/useQueryManager';
 import { Tables } from "@/integrations/supabase/types";
 import { GeneralTaskRow } from "@/integrations/supabase/types/general-tasks.types";
 
@@ -12,9 +13,10 @@ export const BusinessAdmin = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Tables<'general_tasks'> | null>(null);
   const queryClient = useQueryClient();
+  const { invalidateTaskQueries } = useQueryManager();
 
   const handleTaskSaved = () => {
-    queryClient.invalidateQueries({ queryKey: ['generalTasks'] });
+    invalidateTaskQueries();
     setIsDialogOpen(false);
     setEditingTask(null);
   };

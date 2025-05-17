@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/lib/supabaseClient';
 import { useQueryClient } from '@tanstack/react-query';
+import { useQueryManager } from '@/hooks/useQueryManager';
 import { ClientFormData } from '../types';
 import { toast } from '@/components/ui/use-toast';
 
@@ -10,6 +11,7 @@ export const useClientMutation = (clientId?: number) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { invalidateClientQueries, invalidateTaskQueries } = useQueryManager();
 
   const createClient = async (formData: ClientFormData) => {
     const { data, error } = await supabase
@@ -94,9 +96,8 @@ export const useClientMutation = (clientId?: number) => {
   };
 
   const invalidateQueries = () => {
-    queryClient.invalidateQueries({ queryKey: ['clients'] });
-    queryClient.invalidateQueries({ queryKey: ['client'] });
-    queryClient.invalidateQueries({ queryKey: ['unified-tasks'] });
+    invalidateClientQueries();
+    invalidateTaskQueries();
   };
 
   return {

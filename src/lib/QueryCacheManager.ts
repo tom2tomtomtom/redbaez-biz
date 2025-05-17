@@ -168,18 +168,3 @@ export class QueryCacheManager {
   }
 }
 
-// Create and export a hook to use the QueryCacheManager
-import { useQueryClient } from '@tanstack/react-query';
-
-export const useQueryCacheManager = () => {
-  const queryClient = useQueryClient();
-  const cacheManager = QueryCacheManager.getInstance();
-  cacheManager.setQueryClient(queryClient);
-  
-  return {
-    invalidateTaskQueries: (clientId?: number | null) => cacheManager.invalidateTaskQueries(clientId),
-    invalidateClientQueries: (clientId?: number) => cacheManager.invalidateClientQueries(clientId),
-    invalidateRevenueQueries: () => cacheManager.invalidateRevenueQueries(),
-    invalidateAllQueries: () => cacheManager.invalidateAllQueries()
-  };
-};
