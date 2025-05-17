@@ -1,7 +1,7 @@
 
 import { useState } from "react";
 import { toast } from "@/components/ui/use-toast";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/lib/supabaseClient";
 
 export const useIdeaGeneration = (category: string, onIdeasGenerated: () => void) => {
   const [isGenerating, setIsGenerating] = useState(false);

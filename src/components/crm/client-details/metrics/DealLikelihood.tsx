@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/lib/supabaseClient";
 import { toast } from "@/components/ui/use-toast";
 import { useQueryClient } from '@tanstack/react-query';
 

@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Users, PlusCircle } from "lucide-react";
 import { ClientListSection } from "@/components/crm/dashboard/ClientListSection";
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/lib/supabaseClient";
 import { ThemeToggle } from "./theme-toggle";
 
 export function MainNav() {
