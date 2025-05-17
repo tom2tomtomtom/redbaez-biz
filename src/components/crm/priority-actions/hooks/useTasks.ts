@@ -1,7 +1,7 @@
 
 import { useTasksQuery } from './useTasksQuery';
 import { useTasksMutations } from './useTasksMutations';
-import { useQueryCacheManager } from './useQueryCacheManager';
+import { useQueryManager } from '@/hooks/useQueryManager';
 import { Task } from './taskTypes';
 
 export type { Task } from './taskTypes';
@@ -22,14 +22,14 @@ export const useTasks = (category?: string, showCompleted = false) => {
     deleteTask 
   } = useTasksMutations();
   
-  const { invalidateQueries } = useQueryCacheManager();
+  const { invalidateTaskQueries } = useQueryManager();
   
   // Helper function to force a global refresh
   const forceRefresh = async () => {
     console.log('Force refreshing all task data');
     
     // Use our centralized cache manager
-    await invalidateQueries();
+    await invalidateTaskQueries();
     
     // Then force a refetch
     return refetch();
