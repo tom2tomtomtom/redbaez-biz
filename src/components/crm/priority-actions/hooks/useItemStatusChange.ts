@@ -2,18 +2,18 @@
 import { useCompletionStatus } from './useCompletionStatus';
 import { useUrgencyStatus } from './useUrgencyStatus';
 import { useItemDeletion } from './useItemDeletion';
-import { useQueryCacheManager } from './useQueryCacheManager';
+import { useQueryManager } from '@/hooks/useQueryManager';
 
 export const useItemStatusChange = () => {
   const { handleCompletedChange } = useCompletionStatus();
   const { handleUrgentChange } = useUrgencyStatus();
   const { handleDelete } = useItemDeletion();
-  const { invalidateQueries } = useQueryCacheManager();
+  const { invalidateTaskQueries } = useQueryManager();
 
   return {
     handleCompletedChange,
     handleUrgentChange,
     handleDelete,
-    refreshAllTaskData: invalidateQueries
+    refreshAllTaskData: invalidateTaskQueries
   };
 };

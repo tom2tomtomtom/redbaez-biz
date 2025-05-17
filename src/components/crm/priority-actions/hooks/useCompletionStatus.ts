@@ -2,11 +2,11 @@
 import { supabase } from '@/lib/supabase';
 import { toast } from '@/hooks/use-toast';
 import { PriorityItem } from './usePriorityData';
-import { useQueryCacheManager } from './useQueryCacheManager';
+import { useQueryManager } from '@/hooks/useQueryManager';
 import { useState } from 'react';
 
 export const useCompletionStatus = () => {
-  const { invalidateQueries } = useQueryCacheManager();
+  const { invalidateTaskQueries } = useQueryManager();
   const [processing, setProcessing] = useState(false);
 
   const handleCompletedChange = async (item: PriorityItem, completed: boolean) => {
@@ -42,7 +42,7 @@ export const useCompletionStatus = () => {
       console.log(`Successfully updated completion status at ${timestamp}`);
       
       // Immediately invalidate and refetch all related queries
-      await invalidateQueries();
+      await invalidateTaskQueries();
       
       // Show a toast to confirm the action
       toast({

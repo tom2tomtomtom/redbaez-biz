@@ -2,10 +2,10 @@
 import { supabase } from '@/lib/supabase';
 import { toast } from '@/hooks/use-toast';
 import { PriorityItem } from './usePriorityData';
-import { useQueryCacheManager } from './useQueryCacheManager';
+import { useQueryManager } from '@/hooks/useQueryManager';
 
 export const useUrgencyStatus = () => {
-  const { invalidateQueries } = useQueryCacheManager();
+  const { invalidateTaskQueries } = useQueryManager();
 
   const handleUrgentChange = async (item: PriorityItem, checked: boolean) => {
     try {
@@ -33,11 +33,11 @@ export const useUrgencyStatus = () => {
       console.log(`Successfully updated urgency at ${timestamp}`);
       
       // Immediately invalidate after database update
-      await invalidateQueries();
+      await invalidateTaskQueries();
       
       // Secondary invalidation for certainty
       setTimeout(async () => {
-        await invalidateQueries();
+        await invalidateTaskQueries();
       }, 500);
 
       return true;

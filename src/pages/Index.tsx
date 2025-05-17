@@ -11,7 +11,7 @@ import { ClientListSection } from "@/components/crm/dashboard/ClientListSection"
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { useNavigate } from "react-router-dom";
 import { toast } from "@/hooks/use-toast";
-import { useQueryCacheManager } from "@/components/crm/priority-actions/hooks/useQueryCacheManager";
+import { useQueryManager } from "@/hooks/useQueryManager";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { RefreshCcw } from "lucide-react";
@@ -24,7 +24,7 @@ const Index = () => {
   const [isNewTaskOpen, setIsNewTaskOpen] = useState(false);
   const [refreshTrigger, setRefreshTrigger] = useState(Date.now());
   const navigate = useNavigate();
-  const { invalidateQueries } = useQueryCacheManager();
+  const { invalidateAllQueries, invalidateTaskQueries } = useQueryManager();
   const initialLoadDone = useRef(false);
   const queryClient = useQueryClient();
 
@@ -63,7 +63,7 @@ const Index = () => {
     try {
       // Clear all cached data
       await Promise.all([
-        invalidateQueries(),
+        invalidateAllQueries(),
         
         // Force remove specific cached queries
         queryClient.removeQueries({ queryKey: ['monthly-revenue'] }),
@@ -93,7 +93,7 @@ const Index = () => {
         variant: "destructive"
       });
     }
-  }, [invalidateQueries, queryClient]);
+  }, [invalidateAllQueries, queryClient]);
 
   const handleToggleClientList = useCallback(() => {
     if (!showClientList) {
@@ -132,7 +132,7 @@ const Index = () => {
         await refetchClients();
         
         // Invalidate all cached queries
-        await invalidateQueries();
+        await invalidateAllQueries();
         
         // Trigger refresh
         setRefreshTrigger(Date.now());
@@ -145,7 +145,7 @@ const Index = () => {
       
       loadDashboard();
     }
-  }, [invalidateQueries, queryClient, refetchClients]);
+  }, [invalidateAllQueries, queryClient, refetchClients]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -210,7 +210,7 @@ const Index = () => {
         task={null}
         onSaved={async () => {
           setIsNewTaskOpen(false);
-          await invalidateQueries();
+          await invalidateTaskQueries();
           setRefreshTrigger(Date.now());
         }}
       />
