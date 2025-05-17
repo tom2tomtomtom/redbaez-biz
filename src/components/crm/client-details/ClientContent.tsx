@@ -7,7 +7,7 @@ import { ContactInfoCard } from './ContactInfoCard';
 import { StatusTab } from './StatusTab';
 import { TaskHistory } from './TaskHistory';
 import { UpdateNextStepButton } from './components/UpdateNextStepButton';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/lib/supabaseClient';
 import { BackgroundSection } from './sections/BackgroundSection';
 import { DueItemsSection } from './sections/DueItemsSection';
 import { useRevenueCalculations } from './hooks/useRevenueCalculations';

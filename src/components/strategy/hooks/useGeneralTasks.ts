@@ -1,6 +1,6 @@
 
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/lib/supabaseClient";
 import { Task } from "@/hooks/useTaskDeletion";
 import { queryKeys } from "@/lib/queryKeys";
 
