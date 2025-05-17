@@ -48,10 +48,18 @@ Red Baez Business Suite is an all-in-one solution designed for small to medium b
 ## Setup Requirements
 
 ### Environment Variables
-- `SUPABASE_URL`: Your Supabase project URL
-- `SUPABASE_ANON_KEY`: Your Supabase anonymous key
-- `OPENAI_API_KEY`: For AI content generation
-- `PERPLEXITY_API_KEY`: For AI news curation
+The application reads the following variables from `src/config/env.ts`:
+- `VITE_SUPABASE_URL`: Your Supabase project URL
+- `VITE_SUPABASE_ANON_KEY`: Supabase anonymous key for client requests
+- `VITE_OPENAI_API_KEY`: API key for OpenAI
+- `VITE_PERPLEXITY_API_KEY`: API key for Perplexity
+- `VITE_ENABLE_AI_FEATURES`: Toggle AI features (`true` or `false`)
+- `VITE_DEBUG_MODE`: Enable verbose logging (`true` or `false`)
+- `VITE_ENABLE_PERFORMANCE_MONITORING`: Enable performance metrics (`true` or `false`)
+- `VITE_ENABLE_CODE_SPLITTING`: Enable bundler code splitting (`true` or `false`)
+- `VITE_ENABLE_PREFETCHING`: Enable data prefetching (`true` or `false`)
+- `VITE_APP_NAME`: Application display name
+- `VITE_API_TIMEOUT`: API request timeout in milliseconds
 
 ### Database Tables
 - `clients`: Client information and revenue tracking
@@ -63,6 +71,25 @@ Red Baez Business Suite is an all-in-one solution designed for small to medium b
 - `generate-linkedin-article`: Create professional posts
 - `generate-newsletter`: Compile newsletters from news
 - `generate-strategy-ideas`: Create business ideas for specific departments
+
+### Running Supabase Functions Locally
+
+```bash
+# Start the local Supabase stack
+supabase start
+
+# Serve a specific function
+supabase functions serve fetch-ai-news --env-file .env.production
+
+# Invoke the function
+curl http://localhost:54321/functions/v1/fetch-ai-news
+```
+
+### Deploying Functions
+
+```bash
+supabase functions deploy fetch-ai-news
+```
 
 ## Development
 
@@ -80,6 +107,11 @@ npm run dev
 # Build for production
 npm run build
 ```
+
+## Continuous Integration
+
+GitHub Actions checks defined in `.github/workflows/ci.yml` run `npm run lint` and
+`npm run build` on every push and pull request.
 
 ## Best Practices
 
