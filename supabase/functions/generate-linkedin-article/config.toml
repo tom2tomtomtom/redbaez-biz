@@ -3,7 +3,7 @@
 project_id = "ryomveanixzshfatalcd"
 
 [functions.generate-linkedin-article]
-verify_jwt = false
+verify_jwt = true
 
 [functions.generate-linkedin-article.import_map]
 imports = {}
