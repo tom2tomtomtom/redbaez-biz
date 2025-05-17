@@ -52,6 +52,13 @@ Red Baez Business Suite is an all-in-one solution designed for small to medium b
 - `SUPABASE_ANON_KEY`: Your Supabase anonymous key
 - `OPENAI_API_KEY`: For AI content generation
 - `PERPLEXITY_API_KEY`: For AI news curation
+- `VITE_ENABLE_AI_FEATURES`: Enable optional AI-driven functionality
+- `VITE_DEBUG_MODE`: Toggle extra logging for debugging purposes
+- `VITE_ENABLE_PERFORMANCE_MONITORING`: Turn on performance metrics collection
+- `VITE_ENABLE_CODE_SPLITTING`: Split bundles for faster loading
+- `VITE_ENABLE_PREFETCHING`: Prefetch data to speed up navigation
+- `VITE_APP_NAME`: Display name used throughout the UI
+- `VITE_API_TIMEOUT`: Request timeout (in milliseconds) for API calls
 
 ### Database Tables
 - `clients`: Client information and revenue tracking
@@ -80,6 +87,11 @@ npm run dev
 # Build for production
 npm run build
 ```
+
+## Continuous Integration
+GitHub Actions runs the workflow defined in `.github/workflows/ci.yml` on every
+push and pull request. The job installs dependencies using Node 20, then
+executes `npm run lint` followed by `npm test` if present.
 
 ## Simplified Task System
 
