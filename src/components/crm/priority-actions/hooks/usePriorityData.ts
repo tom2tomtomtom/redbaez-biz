@@ -1,7 +1,7 @@
 
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { supabase, logResponse } from "@/lib/supabase";
+import { supabase, logResponse } from "@/lib/supabaseClient";
 import { PriorityItem } from "./taskTypes";
 import { queryKeys } from "@/lib/queryKeys";
 

@@ -7,7 +7,7 @@ import { Card } from '@/components/ui/card';
 import { useClientForecasts } from '@/hooks/useClientForecasts';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/lib/supabaseClient';
 
 interface ForecastEditorProps {
   clientId: number;

@@ -2,8 +2,9 @@ export const ALLOWED_DOMAINS = ['redbaez.com', 'thefamily.network'];
 const ALLOWED_EMAILS = ['chrismaples2014@gmail.com'];
 
 export const isAllowedDomain = (email: string): boolean => {
-  return ALLOWED_DOMAINS.some(domain => email.endsWith(`@${domain}`)) || 
-         ALLOWED_EMAILS.includes(email.toLowerCase());
+  const normalizedEmail = email.toLowerCase();
+  return ALLOWED_DOMAINS.some(domain => normalizedEmail.endsWith(`@${domain.toLowerCase()}`)) ||
+         ALLOWED_EMAILS.includes(normalizedEmail);
 };
 
 export const getAllowedDomainsMessage = (separator: 'and' | 'or' = 'and'): string => {
