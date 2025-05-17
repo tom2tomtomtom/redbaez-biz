@@ -3,7 +3,7 @@
 project_id = "ryomveanixzshfatalcd"
 
 [functions.generate-newsletter]
-verify_jwt = false
+verify_jwt = true
 
 [functions.generate-newsletter.import_map]
 imports = {}
