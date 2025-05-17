@@ -1,3 +1,4 @@
+import logger from '@/utils/logger';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { AlertTriangle } from 'lucide-react';
@@ -43,7 +44,7 @@ export const UrgentFlagToggle = ({ clientId, isUrgent }: UrgentFlagToggleProps) 
         description: `Successfully ${checked ? 'marked' : 'unmarked'} as urgent`,
       });
     } catch (error) {
-      console.error('Error updating urgent status:', error);
+      logger.error('Error updating urgent status:', error);
       toast({
         title: "Error",
         description: "Failed to update urgent status",

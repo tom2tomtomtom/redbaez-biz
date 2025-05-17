@@ -1,3 +1,4 @@
+import logger from '@/utils/logger';
 
 import { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -14,22 +15,22 @@ import { Button } from '@/components/ui/button';
 import { RefreshCcw } from 'lucide-react';
 
 const fetchMonthlyRevenue = async () => {
-  console.log('Starting fetchMonthlyRevenue function...');
+  logger.info('Starting fetchMonthlyRevenue function...');
   
   const { data: clients, error } = await supabase
     .from('clients')
     .select('*');
     
   if (error) {
-    console.error('Error fetching clients for revenue data:', error);
+    logger.error('Error fetching clients for revenue data:', error);
     throw error;
   }
 
-  console.log(`Fetched ${clients?.length || 0} clients for revenue calculations`);
+  logger.info(`Fetched ${clients?.length || 0} clients for revenue calculations`);
 
   // If no clients found, return empty data
   if (!clients || clients.length === 0) {
-    console.log('No clients found for revenue calculations');
+    logger.info('No clients found for revenue calculations');
     return {
       monthlyData: [],
       annualTotals: { confirmed: 0, forecast: 0 },
@@ -45,7 +46,7 @@ const fetchMonthlyRevenue = async () => {
   // Debug each client's revenue data
   clients.forEach((client, index) => {
     if (index < 3) { // Only log first 3 clients to avoid flooding console
-      console.log(`Client ${client.id} (${client.name}) revenue data:`, {
+      logger.info(`Client ${client.id} (${client.name}) revenue data:`, {
         annual_revenue_signed_off: client.annual_revenue_signed_off,
         annual_revenue_forecast: client.annual_revenue_forecast,
         sample_monthly: {
@@ -88,7 +89,7 @@ const fetchMonthlyRevenue = async () => {
   });
 
   // Log the monthly data we've calculated
-  console.log('Calculated monthly revenue data:', monthlyData.map(m => ({
+  logger.info('Calculated monthly revenue data:', monthlyData.map(m => ({
     month: m.month,
     actual: m.actual,
     forecast: m.forecast,
@@ -107,7 +108,7 @@ const fetchMonthlyRevenue = async () => {
     };
   }, { confirmed: 0, forecast: 0 });
 
-  console.log('Calculated annual totals:', annualTotals);
+  logger.info('Calculated annual totals:', annualTotals);
 
   return {
     monthlyData,
@@ -131,14 +132,14 @@ export const RevenueSummary = () => {
   });
 
   // Add a log whenever data changes to see what's being returned from the query
-  console.log('RevenueSummary received data from query:', {
+  logger.info('RevenueSummary received data from query:', {
     hasData: !!data,
     monthlyDataLength: data?.monthlyData?.length || 0,
     annualTotals: data?.annualTotals,
   });
 
   const handleRefresh = async () => {
-    console.log('Manually refreshing revenue data...');
+    logger.info('Manually refreshing revenue data...');
     toast({
       title: "Refreshing data",
       description: "Updating revenue information..."
@@ -180,7 +181,7 @@ export const RevenueSummary = () => {
         .eq('id', client.id);
       
       if (updateError) {
-        console.error(`Error updating client ${client.id}:`, updateError);
+        logger.error(`Error updating client ${client.id}:`, updateError);
         throw updateError;
       }
       
@@ -236,7 +237,7 @@ export const RevenueSummary = () => {
       
       setIsEditDialogOpen(false);
     } catch (error) {
-      console.error('Error updating revenue:', error);
+      logger.error('Error updating revenue:', error);
       toast({
         title: "Error",
         description: "Failed to update revenue",

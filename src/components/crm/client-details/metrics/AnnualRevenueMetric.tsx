@@ -1,3 +1,4 @@
+import logger from '@/utils/logger';
 
 import React from 'react';
 
@@ -19,7 +20,7 @@ export const AnnualRevenueMetric = ({
     ? annualRevenueForecast : 0;
   const totalRevenue = signedOffValue + forecastValue;
 
-  console.log('AnnualRevenueMetric rendering with values:', {
+  logger.info('AnnualRevenueMetric rendering with values:', {
     annualRevenue,
     annualRevenueSignedOff: signedOffValue,
     annualRevenueForecast: forecastValue,

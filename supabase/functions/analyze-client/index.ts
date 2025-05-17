@@ -1,3 +1,4 @@
+import logger from '../_shared/logger.ts';
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
@@ -20,7 +21,7 @@ serve(async (req) => {
     try {
       requestData = await req.json();
     } catch (e) {
-      console.error("Failed to parse request JSON:", e);
+      logger.error("Failed to parse request JSON:", e);
       return new Response(
         JSON.stringify({ 
           error: "Invalid JSON in request body",
@@ -31,12 +32,12 @@ serve(async (req) => {
     }
     
     const { clientData, category = "marketing", prompt, type = "strategy" } = requestData;
-    console.log('Received request:', { category, type, prompt, clientData });
+    logger.info('Received request:', { category, type, prompt, clientData });
     
     // Check if OpenAI API key is available
     const apiKey = Deno.env.get('OPENAI_API_KEY');
     if (!apiKey) {
-      console.error('OpenAI API key not configured in Supabase Edge Function Secrets');
+      logger.error('OpenAI API key not configured in Supabase Edge Function Secrets');
       return new Response(
         JSON.stringify({ 
           error: 'OpenAI API key not configured', 
@@ -88,19 +89,19 @@ serve(async (req) => {
       
       IMPORTANT: Do not use any square brackets [] within the suggestion text.`;
 
-      console.log('Sending request to OpenAI API with prompt:', strategyPrompt);
+      logger.info('Sending request to OpenAI API with prompt:', strategyPrompt);
 
       try {
         recommendations = await generateRecommendations(strategyPrompt, apiKey);
-        console.log('Processed recommendations:', recommendations);
+        logger.info('Processed recommendations:', recommendations);
       } catch (aiError) {
-        console.error('Error generating AI recommendations:', aiError);
+        logger.error('Error generating AI recommendations:', aiError);
         recommendations = getFallbackRecommendations(category);
       }
     } else {
       // Handle client analysis
       if (!clientData) {
-        console.error('Client data is required for analysis but was not provided');
+        logger.error('Client data is required for analysis but was not provided');
         return new Response(
           JSON.stringify({ 
             error: 'Client data is required for analysis',
@@ -110,7 +111,7 @@ serve(async (req) => {
         );
       }
 
-      console.log('Analyzing client data:', clientData);
+      logger.info('Analyzing client data:', clientData);
 
       const analysisPrompt = `
         Analyze this client data and generate 3 strategic recommendations:
@@ -134,12 +135,12 @@ serve(async (req) => {
         IMPORTANT: Do not use any square brackets [] within the suggestion text.
       `;
 
-      console.log('Sending client analysis request to OpenAI API');
+      logger.info('Sending client analysis request to OpenAI API');
       try {
         recommendations = await generateRecommendations(analysisPrompt, apiKey);
-        console.log('Generated client recommendations:', recommendations);
+        logger.info('Generated client recommendations:', recommendations);
       } catch (aiError) {
-        console.error('Error generating client recommendations:', aiError);
+        logger.error('Error generating client recommendations:', aiError);
         recommendations = getFallbackRecommendations("client");
       }
     }
@@ -150,7 +151,7 @@ serve(async (req) => {
     );
 
   } catch (error) {
-    console.error('Error in analyze-client function:', error);
+    logger.error('Error in analyze-client function:', error);
     return new Response(
       JSON.stringify({ 
         error: error.message,

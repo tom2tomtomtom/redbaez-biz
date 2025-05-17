@@ -1,3 +1,4 @@
+import logger from '@/utils/logger';
 import { useParams } from 'react-router-dom';
 
 export const useClientValidation = () => {
@@ -5,7 +6,7 @@ export const useClientValidation = () => {
   const numericId = id ? parseInt(id, 10) : null;
 
   if (!numericId || isNaN(numericId)) {
-    console.error('Invalid client ID:', id);
+    logger.error('Invalid client ID:', id);
     return { isValid: false, clientId: null };
   }
 

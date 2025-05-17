@@ -1,3 +1,4 @@
+import logger from '@/utils/logger';
 import React, { useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabaseClient';
@@ -89,7 +90,7 @@ export const StatusTab = ({ clientId, currentStatus }: StatusTabProps) => {
       queryClient.invalidateQueries({ queryKey: ['statusHistory', clientId] });
       queryClient.invalidateQueries({ queryKey: ['clients'] }); // Add this line to refresh the clients list
     } catch (error) {
-      console.error('Error updating status:', error);
+      logger.error('Error updating status:', error);
       // Revert cache to previous state on error
       if (previousData) {
         queryClient.setQueryData(['client', clientId], previousData);
@@ -153,7 +154,7 @@ export const StatusTab = ({ clientId, currentStatus }: StatusTabProps) => {
       queryClient.invalidateQueries({ queryKey: ['statusHistory', clientId] });
       queryClient.invalidateQueries({ queryKey: ['clients'] }); // Add this line to refresh the clients list
     } catch (error) {
-      console.error('Error updating status:', error);
+      logger.error('Error updating status:', error);
       // Revert cache to previous state on error
       if (previousData) {
         queryClient.setQueryData(['client', clientId], previousData);

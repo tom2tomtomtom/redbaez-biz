@@ -1,3 +1,4 @@
+import logger from '@/utils/logger';
 
 import { 
   BarChart, 
@@ -17,7 +18,7 @@ interface RevenueChartProps {
 }
 
 export const RevenueChart = ({ monthlyData, onBarClick }: RevenueChartProps) => {
-  console.log('RevenueChart rendering with data:', {
+  logger.info('RevenueChart rendering with data:', {
     dataLength: monthlyData?.length || 0,
     firstThreeMonths: monthlyData?.slice(0, 3).map(m => ({
       month: m.month,
@@ -40,14 +41,14 @@ export const RevenueChart = ({ monthlyData, onBarClick }: RevenueChartProps) => 
     m => (m.actual > 0 || m.forecast > 0)
   );
 
-  console.log('RevenueChart data validation:', {
+  logger.info('RevenueChart data validation:', {
     validData,
     hasRevenueData
   });
 
   // If we don't have valid data or all revenue values are zero, show a message
   if (!validData || !hasRevenueData) {
-    console.log('RevenueChart showing empty state - no valid revenue data');
+    logger.info('RevenueChart showing empty state - no valid revenue data');
     return (
       <div className="h-[300px] flex items-center justify-center text-gray-500">
         <p>No revenue data available to display</p>

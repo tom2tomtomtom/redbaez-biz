@@ -1,3 +1,4 @@
+import logger from '@/utils/logger';
 
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabaseClient";
@@ -8,7 +9,7 @@ export const useGeneralTasks = (category: string, refreshTrigger: number) => {
   return useQuery({
     queryKey: [...queryKeys.tasks.general(), category, refreshTrigger],
     queryFn: async () => {
-      console.log('Fetching tasks for category:', category);
+      logger.info('Fetching tasks for category:', category);
 
       // Fetch tasks from the unified tasks table
       const { data: tasks, error } = await supabase
@@ -17,11 +18,11 @@ export const useGeneralTasks = (category: string, refreshTrigger: number) => {
         .ilike('category', `%${category}%`);
 
       if (error) {
-        console.error('Error fetching tasks:', error);
+        logger.error('Error fetching tasks:', error);
         throw error;
       }
 
-      console.log('Strategy - fetched tasks:', tasks?.length);
+      logger.info('Strategy - fetched tasks:', tasks?.length);
       
       // Format tasks for display
       const formattedTasks = tasks?.map(task => ({
@@ -34,7 +35,7 @@ export const useGeneralTasks = (category: string, refreshTrigger: number) => {
         original_data: task // Store the full original object for reference
       })) || [];
 
-      console.log('Strategy - formatted tasks count:', formattedTasks.length);
+      logger.info('Strategy - formatted tasks count:', formattedTasks.length);
       return formattedTasks;
     },
     staleTime: 3000, // Add 3 seconds stale time to prevent immediate refetches 

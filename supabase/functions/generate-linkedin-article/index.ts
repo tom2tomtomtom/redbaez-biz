@@ -1,3 +1,4 @@
+import logger from '../_shared/logger.ts';
 
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { corsHeaders } from '../_shared/cors.ts'
@@ -11,18 +12,18 @@ serve(async (req) => {
     const { title, summary } = await req.json()
     
     if (!title || !summary) {
-      console.error('Missing required fields:', { title, summary });
+      logger.error('Missing required fields:', { title, summary });
       return new Response(
         JSON.stringify({ error: 'Title and summary are required' }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
       )
     }
 
-    console.log('Generating LinkedIn article for:', { title, summary });
+    logger.info('Generating LinkedIn article for:', { title, summary });
 
     const openaiKey = Deno.env.get('OPENAI_API_KEY');
     if (!openaiKey) {
-      console.error('OPENAI_API_KEY is not set');
+      logger.error('OPENAI_API_KEY is not set');
       return new Response(
         JSON.stringify({ error: 'OpenAI API key is not configured' }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
@@ -74,10 +75,10 @@ Keep it concise and engaging.`
     })
 
     const result = await response.json()
-    console.log('OpenAI API Response status:', result.choices ? 'Success' : 'Error');
+    logger.info('OpenAI API Response status:', result.choices ? 'Success' : 'Error');
 
     if (!result.choices || result.choices.length === 0) {
-      console.error('Error from OpenAI:', result);
+      logger.error('Error from OpenAI:', result);
       return new Response(
         JSON.stringify({ error: 'Failed to generate article content', details: result }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
@@ -89,7 +90,7 @@ Keep it concise and engaging.`
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
     )
   } catch (error) {
-    console.error('Error in generate-linkedin-article:', error);
+    logger.error('Error in generate-linkedin-article:', error);
     return new Response(
       JSON.stringify({ error: error.message }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 },

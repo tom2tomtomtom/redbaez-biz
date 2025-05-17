@@ -1,3 +1,4 @@
+import logger from '@/utils/logger';
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabaseClient';
@@ -11,7 +12,7 @@ export function useClientForecasts(clientId: number) {
   const { data: forecasts, isLoading } = useQuery({
     queryKey: ['client-forecasts', clientId],
     queryFn: async () => {
-      console.log('Fetching forecasts for client:', clientId);
+      logger.info('Fetching forecasts for client:', clientId);
       const { data, error } = await supabase
         .from('client_forecasts')
         .select('*')
@@ -25,7 +26,7 @@ export function useClientForecasts(clientId: number) {
 
   const updateForecast = useMutation({
     mutationFn: async ({ month, amount, isActual }: ForecastUpdate & { isActual: boolean }) => {
-      console.log('Updating revenue:', { clientId, month, amount, isActual });
+      logger.info('Updating revenue:', { clientId, month, amount, isActual });
       
       const monthName = format(parseISO(month), 'MMM').toLowerCase();
       const columnPrefix = isActual ? 'actual' : 'forecast';
@@ -80,7 +81,7 @@ export function useClientForecasts(clientId: number) {
       });
     },
     onError: (error) => {
-      console.error('Error updating revenue:', error);
+      logger.error('Error updating revenue:', error);
       toast({
         title: "Error",
         description: "Failed to update revenue",

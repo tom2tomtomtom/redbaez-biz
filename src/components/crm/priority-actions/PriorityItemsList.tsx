@@ -1,3 +1,4 @@
+import logger from '@/utils/logger';
 
 import { useState, useEffect, useRef } from 'react';
 import { PriorityActionItem } from './PriorityActionItem';
@@ -40,38 +41,38 @@ export const PriorityItemsList = ({
   useEffect(() => {
     deletedItemIds.current = new Set<string>();
     completedItemIds.current = new Set<string>();
-    console.log('Deleted and completed items sets reset on component mount');
+    logger.info('Deleted and completed items sets reset on component mount');
     
     return () => {
       deletedItemIds.current.clear();
       completedItemIds.current.clear();
-      console.log('Deleted and completed items sets cleared on component unmount');
+      logger.info('Deleted and completed items sets cleared on component unmount');
     };
   }, []);
 
   useEffect(() => {
     if (!items || !Array.isArray(items)) {
-      console.log('No items received or invalid items format');
+      logger.info('No items received or invalid items format');
       setLocalItems([]);
       return;
     }
     
-    console.log('PriorityItemsList received items:', items.length, items);
-    console.log('showCompleted flag:', showCompleted);
-    console.log('Deleted items count:', deletedItemIds.current.size);
-    console.log('Completed items count:', completedItemIds.current.size);
+    logger.info('PriorityItemsList received items:', items.length, items);
+    logger.info('showCompleted flag:', showCompleted);
+    logger.info('Deleted items count:', deletedItemIds.current.size);
+    logger.info('Completed items count:', completedItemIds.current.size);
     
     if (deletedItemIds.current.size > 0) {
-      console.log('Currently deleted items:', [...deletedItemIds.current]);
+      logger.info('Currently deleted items:', [...deletedItemIds.current]);
     }
 
     if (completedItemIds.current.size > 0 && !showCompleted) {
-      console.log('Currently completed items (not showing completed):', [...completedItemIds.current]);
+      logger.info('Currently completed items (not showing completed):', [...completedItemIds.current]);
     }
 
     const validItems = items.filter(item => {
       if (!item || !item.data || !item.data.id) {
-        console.log('Filtering out invalid item:', item);
+        logger.info('Filtering out invalid item:', item);
         return false;
       }
       
@@ -79,20 +80,20 @@ export const PriorityItemsList = ({
       const isDeleted = deletedItemIds.current.has(uniqueId);
       
       if (isDeleted) {
-        console.log(`Filtering out locally deleted item: ${uniqueId}`);
+        logger.info(`Filtering out locally deleted item: ${uniqueId}`);
         return false;
       }
       
       // When not showing completed items, filter out items that were just marked as completed
       if (!showCompleted && completedItemIds.current.has(uniqueId)) {
-        console.log(`Filtering out locally completed item: ${uniqueId}`);
+        logger.info(`Filtering out locally completed item: ${uniqueId}`);
         return false;
       }
       
       return true;
     });
     
-    console.log('PriorityItemsList filtered valid items:', validItems.length);
+    logger.info('PriorityItemsList filtered valid items:', validItems.length);
 
     let filteredItems;
     
@@ -102,14 +103,14 @@ export const PriorityItemsList = ({
           (item.type === 'next_step' && item.data.completed_at !== null);
         return isCompleted;
       });
-      console.log('Filtered for completed items:', filteredItems.length);
+      logger.info('Filtered for completed items:', filteredItems.length);
     } else {
       filteredItems = validItems.filter(item => {
         const isIncomplete = (item.type === 'task' && item.data.status !== 'completed') || 
           (item.type === 'next_step' && item.data.completed_at === null);
         return isIncomplete;
       });
-      console.log('Filtered for active items:', filteredItems.length);
+      logger.info('Filtered for active items:', filteredItems.length);
     }
     
     setLocalItems(filteredItems);
@@ -117,7 +118,7 @@ export const PriorityItemsList = ({
 
   const confirmDelete = (item: PriorityItem) => {
     if (!item || !item.data || !item.data.id) {
-      console.error('Invalid item for deletion:', item);
+      logger.error('Invalid item for deletion:', item);
       return;
     }
     setOpenAlertDialogId(item.data.id);
@@ -129,7 +130,7 @@ export const PriorityItemsList = ({
 
   const proceedWithDelete = async (item: PriorityItem) => {
     if (isProcessingDelete) {
-      console.log('Already processing a delete operation, ignoring');
+      logger.info('Already processing a delete operation, ignoring');
       return;
     }
     
@@ -138,21 +139,21 @@ export const PriorityItemsList = ({
       const itemId = item.data.id;
       const uniqueItemId = `${item.type}-${itemId}`;
       
-      console.log(`Deleting item ${uniqueItemId}`);
+      logger.info(`Deleting item ${uniqueItemId}`);
       
       deletedItemIds.current.add(uniqueItemId);
-      console.log(`Added ${uniqueItemId} to deletedItemIds set`, [...deletedItemIds.current]);
+      logger.info(`Added ${uniqueItemId} to deletedItemIds set`, [...deletedItemIds.current]);
       
       setLocalItems(prevItems => {
         const filtered = prevItems.filter(i => !(i.type === item.type && i.data.id === itemId));
-        console.log(`Removed item from localItems, before: ${prevItems.length}, after: ${filtered.length}`);
+        logger.info(`Removed item from localItems, before: ${prevItems.length}, after: ${filtered.length}`);
         return filtered;
       });
       
       const success = await handleDelete(item);
       
       if (success) {
-        console.log(`${item.type} deleted successfully:`, itemId);
+        logger.info(`${item.type} deleted successfully:`, itemId);
         
         toast({
           title: "Success",
@@ -160,11 +161,11 @@ export const PriorityItemsList = ({
         });
         
         if (onItemRemoved) {
-          console.log('Calling onItemRemoved callback');
+          logger.info('Calling onItemRemoved callback');
           onItemRemoved();
         }
       } else {
-        console.error(`Failed to delete ${item.type}:`, itemId);
+        logger.error(`Failed to delete ${item.type}:`, itemId);
         
         toast({
           title: "Error",
@@ -173,7 +174,7 @@ export const PriorityItemsList = ({
         });
       }
     } catch (error) {
-      console.error('Error in deletion process:', error);
+      logger.error('Error in deletion process:', error);
       toast({
         title: "Error",
         description: "An unexpected error occurred",
@@ -206,7 +207,7 @@ export const PriorityItemsList = ({
       if (checked && !showCompleted) {
         // Add to completed items set when marking as complete
         completedItemIds.current.add(uniqueItemId);
-        console.log(`Added ${uniqueItemId} to completedItemIds set`, [...completedItemIds.current]);
+        logger.info(`Added ${uniqueItemId} to completedItemIds set`, [...completedItemIds.current]);
         
         // Immediately remove from local list if not showing completed items
         setLocalItems(prevItems => prevItems.filter(i => 
@@ -254,7 +255,7 @@ export const PriorityItemsList = ({
       const success = await handleCompletedChange(item, checked);
       
       if (success) {
-        console.log(`Task ${uniqueItemId} ${checked ? 'completed' : 'marked active'} successfully`);
+        logger.info(`Task ${uniqueItemId} ${checked ? 'completed' : 'marked active'} successfully`);
         toast({
           title: "Success",
           description: `${item.type === 'task' ? 'Task' : 'Next step'} marked as ${checked ? 'completed' : 'active'}`,
@@ -263,7 +264,7 @@ export const PriorityItemsList = ({
           onItemUpdated();
         }
       } else {
-        console.error(`Failed to update completion status for ${uniqueItemId}`);
+        logger.error(`Failed to update completion status for ${uniqueItemId}`);
         
         // Revert the local changes if the API call failed
         if (checked) {
@@ -303,7 +304,7 @@ export const PriorityItemsList = ({
         }
       }
     } catch (error) {
-      console.error('Error handling completion status change:', error);
+      logger.error('Error handling completion status change:', error);
     } finally {
       setIsProcessingUpdate(false);
     }
@@ -350,12 +351,12 @@ export const PriorityItemsList = ({
       handleUrgentChange(item, checked)
         .then(success => {
           if (success) {
-            console.log('Urgent status updated successfully');
+            logger.info('Urgent status updated successfully');
             if (onItemUpdated) {
               onItemUpdated();
             }
           } else {
-            console.error('Failed to update urgent status');
+            logger.error('Failed to update urgent status');
             if (item.type === 'task') {
               setLocalItems(prevItems => 
                 prevItems.map(i => {
@@ -391,11 +392,11 @@ export const PriorityItemsList = ({
           setIsProcessingUpdate(false);
         })
         .catch(error => {
-          console.error('Error in handleUrgentChange:', error);
+          logger.error('Error in handleUrgentChange:', error);
           setIsProcessingUpdate(false);
         });
     } catch (error) {
-      console.error('Error setting up urgent status change:', error);
+      logger.error('Error setting up urgent status change:', error);
       setIsProcessingUpdate(false);
     }
   };
@@ -426,7 +427,7 @@ export const PriorityItemsList = ({
         const uniqueItemId = `${item.type}-${itemId}`;
         
         if (deletedItemIds.current.has(uniqueItemId)) {
-          console.log(`Skipping rendering of deleted item ${uniqueItemId}`);
+          logger.info(`Skipping rendering of deleted item ${uniqueItemId}`);
           return null;
         }
         

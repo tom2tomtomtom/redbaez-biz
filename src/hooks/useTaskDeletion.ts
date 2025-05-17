@@ -1,3 +1,4 @@
+import logger from '@/utils/logger';
 
 import { useState } from 'react';
 import { supabase } from '@/lib/supabaseClient';
@@ -18,17 +19,17 @@ export const useTaskDeletion = (onSuccess?: () => void) => {
 
   const deleteTask = async (task: Pick<Task, 'id'>) => {
     if (!task?.id) {
-      console.error("No valid task ID provided for deletion");
+      logger.error("No valid task ID provided for deletion");
       return false;
     }
     
     if (isDeleting) {
-      console.log("Already processing a deletion");
+      logger.info("Already processing a deletion");
       return false;
     }
     
     setIsDeleting(true);
-    console.log(`[DELETE] Starting deletion for task ID: ${task.id}`);
+    logger.info(`[DELETE] Starting deletion for task ID: ${task.id}`);
     
     try {
       // Execute the actual deletion from the unified tasks table
@@ -41,7 +42,7 @@ export const useTaskDeletion = (onSuccess?: () => void) => {
         throw error;
       }
       
-      console.log(`[DELETE] Successfully deleted task`);
+      logger.info(`[DELETE] Successfully deleted task`);
       
       // Simplify cache management to avoid race conditions and unnecessary refetches
       // We no longer remove queries or force refetches - let React Query optimistic updates handle this
@@ -82,7 +83,7 @@ export const useTaskDeletion = (onSuccess?: () => void) => {
       
       return true;
     } catch (error) {
-      console.error('[DELETE] Error deleting task:', error);
+      logger.error('[DELETE] Error deleting task:', error);
       toast({
         title: "Error",
         description: "Failed to delete task. Please try again.",

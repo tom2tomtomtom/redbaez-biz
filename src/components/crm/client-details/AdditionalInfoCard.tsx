@@ -1,3 +1,4 @@
+import logger from '@/utils/logger';
 import React, { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -44,7 +45,7 @@ export const AdditionalInfoCard: React.FC<AdditionalInfoCardProps> = ({
       });
       setIsEditing(false);
     } catch (error) {
-      console.error('Error updating additional information:', error);
+      logger.error('Error updating additional information:', error);
       toast({
         title: "Error",
         description: "Failed to update additional information",

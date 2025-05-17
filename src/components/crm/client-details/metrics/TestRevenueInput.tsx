@@ -1,3 +1,4 @@
+import logger from '@/utils/logger';
 import React, { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
@@ -7,9 +8,9 @@ export const TestRevenueInput = () => {
   const [showDebug, setShowDebug] = useState(true);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    console.log('Raw input value:', e.target.value);
-    console.log('Input value type:', typeof e.target.value);
-    console.log('Parsed number:', parseFloat(e.target.value));
+    logger.info('Raw input value:', e.target.value);
+    logger.info('Input value type:', typeof e.target.value);
+    logger.info('Parsed number:', parseFloat(e.target.value));
     setValue(e.target.value);
   };
 

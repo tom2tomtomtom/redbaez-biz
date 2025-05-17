@@ -1,3 +1,4 @@
+import logger from '@/utils/logger';
 
 import { useState } from "react";
 import { IdeaGenerationForm } from "./components/IdeaGenerationForm";
@@ -19,7 +20,7 @@ export const IdeaGenerator = ({ category, onIdeaGenerated }: IdeaGeneratorProps)
   const { isGenerating, generateIdeas } = useIdeaGeneration(category, onIdeaGenerated);
 
   const handleGenerateIdeas = (prompt: string) => {
-    console.log("Generating ideas with prompt:", prompt);
+    logger.info("Generating ideas with prompt:", prompt);
     generateIdeas(prompt);
   };
 

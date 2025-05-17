@@ -1,3 +1,4 @@
+import logger from '@/utils/logger';
 
 import React, { Component, ErrorInfo, ReactNode } from 'react';
 import { Button } from '@/components/ui/button';
@@ -31,8 +32,8 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
-    console.error('Error caught by ErrorBoundary:', error);
-    console.error('Component stack:', errorInfo.componentStack);
+    logger.error('Error caught by ErrorBoundary:', error);
+    logger.error('Component stack:', errorInfo.componentStack);
     
     // Here you could also send the error to an error reporting service
   }

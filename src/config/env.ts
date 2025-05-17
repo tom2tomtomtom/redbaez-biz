@@ -1,3 +1,4 @@
+import logger from '@/utils/logger';
 /**
  * Centralized environment configuration module.
  * This helps ensure consistent access to environment variables
@@ -8,7 +9,7 @@
 const getEnvVariable = (key: string, defaultValue: string = ''): string => {
   const value = import.meta.env[key];
   if (value === undefined) {
-    console.warn(`Environment variable ${key} not defined, using default value`);
+    logger.warn(`Environment variable ${key} not defined, using default value`);
     return defaultValue;
   }
   return value as string;

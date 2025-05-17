@@ -1,3 +1,4 @@
+import logger from '@/utils/logger';
 import { useState, useEffect } from 'react';
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -44,7 +45,7 @@ export const DealLikelihood = ({ likelihood, clientId }: DealLikelihoodProps) =>
       });
       setIsEditing(false);
     } catch (error) {
-      console.error('Error updating likelihood:', error);
+      logger.error('Error updating likelihood:', error);
       toast({
         title: "Error",
         description: "Failed to update deal likelihood",

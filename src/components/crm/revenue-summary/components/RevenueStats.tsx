@@ -1,3 +1,4 @@
+import logger from '@/utils/logger';
 
 import { AnnualTotals } from '../types';
 
@@ -6,14 +7,14 @@ interface RevenueStatsProps {
 }
 
 export const RevenueStats = ({ annualTotals }: RevenueStatsProps) => {
-  console.log('RevenueStats rendering with annual totals:', annualTotals);
+  logger.info('RevenueStats rendering with annual totals:', annualTotals);
   
   // Ensure we have numbers to work with
   const confirmed = Number(annualTotals?.confirmed || 0);
   const forecast = Number(annualTotals?.forecast || 0);
   const totalAnnualRevenue = confirmed + forecast;
 
-  console.log('RevenueStats calculated values:', {
+  logger.info('RevenueStats calculated values:', {
     confirmed,
     forecast,
     totalAnnualRevenue

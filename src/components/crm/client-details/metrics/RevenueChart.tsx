@@ -1,3 +1,4 @@
+import logger from '@/utils/logger';
 
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 
@@ -14,7 +15,7 @@ interface RevenueChartProps {
 export const RevenueChart = ({
   revenueData,
 }: RevenueChartProps) => {
-  console.log('Revenue chart rendering with data:', revenueData);
+  logger.info('Revenue chart rendering with data:', revenueData);
   
   // Ensure we have valid data
   const chartData = Array.isArray(revenueData) ? revenueData : [];

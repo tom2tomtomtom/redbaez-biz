@@ -1,3 +1,4 @@
+import logger from '@/utils/logger';
 
 /**
  * Hook to handle dashboard refresh logic.
@@ -38,7 +39,7 @@ export const useDashboardRefresh = () => {
       
       return true;
     } catch (err) {
-      console.error("Error refreshing dashboard:", err);
+      logger.error("Error refreshing dashboard:", err);
       toast({
         title: "Refresh failed",
         description: "Could not update dashboard data. Please try again.",
@@ -49,7 +50,7 @@ export const useDashboardRefresh = () => {
   }, [queryClient, queryManager]);
 
   const initialLoadDashboard = useCallback(async () => {
-    console.log("Initial dashboard load - refreshing data");
+    logger.info("Initial dashboard load - refreshing data");
     
     // Show a toast to indicate the data is being loaded
     toast({

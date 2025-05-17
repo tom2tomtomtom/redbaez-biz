@@ -1,3 +1,4 @@
+import logger from '@/utils/logger';
 
 import { useState, useEffect } from 'react';
 import { format } from 'date-fns';
@@ -52,7 +53,7 @@ export const ForecastEditor = ({ clientId }: ForecastEditorProps) => {
             
           if (error) throw error;
           
-          console.log('Fetched client data for revenue editing:', client);
+          logger.info('Fetched client data for revenue editing:', client);
           
           // Update monthly data from client
           const updatedMonthlyData = { ...monthlyData };
@@ -67,7 +68,7 @@ export const ForecastEditor = ({ clientId }: ForecastEditorProps) => {
           
           setMonthlyData(updatedMonthlyData);
         } catch (error) {
-          console.error('Error fetching client data for revenue editor:', error);
+          logger.error('Error fetching client data for revenue editor:', error);
         }
       };
       
@@ -88,7 +89,7 @@ export const ForecastEditor = ({ clientId }: ForecastEditorProps) => {
 
   const handleSubmit = async () => {
     try {
-      console.log('Submitting monthly revenue data:', monthlyData);
+      logger.info('Submitting monthly revenue data:', monthlyData);
       
       for (const [month, values] of Object.entries(monthlyData)) {
         const monthDate = new Date(`${currentYear}-${months.findIndex(m => m.toLowerCase() === month) + 1}-01`);
@@ -112,7 +113,7 @@ export const ForecastEditor = ({ clientId }: ForecastEditorProps) => {
       
       setIsEditing(false);
     } catch (error) {
-      console.error('Error updating revenue:', error);
+      logger.error('Error updating revenue:', error);
     }
   };
 

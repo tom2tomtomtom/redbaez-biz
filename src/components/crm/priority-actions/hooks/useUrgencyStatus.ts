@@ -1,3 +1,4 @@
+import logger from '@/utils/logger';
 
 import { supabase } from '@/lib/supabaseClient';
 import { toast } from '@/hooks/use-toast';
@@ -14,7 +15,7 @@ export const useUrgencyStatus = () => {
       const itemId = item.data.id;
       const clientId = item.data.client_id;
       
-      console.log(`Updating urgency for ${item.type}:${itemId} to ${checked} at ${timestamp}`);
+      logger.info(`Updating urgency for ${item.type}:${itemId} to ${checked} at ${timestamp}`);
       
       // Update database
       const { error } = await supabase
@@ -26,11 +27,11 @@ export const useUrgencyStatus = () => {
         .eq('id', itemId);
 
       if (error) {
-        console.error(`Error updating urgent status at ${timestamp}:`, error);
+        logger.error(`Error updating urgent status at ${timestamp}:`, error);
         throw error;
       }
 
-      console.log(`Successfully updated urgency at ${timestamp}`);
+      logger.info(`Successfully updated urgency at ${timestamp}`);
       
       // Immediately invalidate after database update
       await invalidateTaskQueries();
@@ -42,7 +43,7 @@ export const useUrgencyStatus = () => {
 
       return true;
     } catch (error) {
-      console.error('Error updating urgent status:', error);
+      logger.error('Error updating urgent status:', error);
       toast({
         title: "Error",
         description: "Failed to update urgent status",

@@ -1,3 +1,4 @@
+import logger from '@/utils/logger';
 
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabaseClient';
@@ -7,7 +8,7 @@ export const useClientData = (clientId: number) => {
   return useQuery({
     queryKey: queryKeys.clients.detail(clientId),
     queryFn: async () => {
-      console.log('Fetching client data for ID:', clientId);
+      logger.info('Fetching client data for ID:', clientId);
       const { data, error } = await supabase
         .from('clients')
         .select('*')
@@ -17,7 +18,7 @@ export const useClientData = (clientId: number) => {
       if (error) throw error;
       if (!data) throw new Error('Client not found');
       
-      console.log('Received client data:', data);
+      logger.info('Received client data:', data);
       return data;
     },
   });

@@ -1,3 +1,4 @@
+import logger from '@/utils/logger';
 
 import { useState } from 'react';
 import { Task } from '@/types/task';
@@ -29,7 +30,7 @@ export const TaskDebugPanel = () => {
       
       setRawData(data || []);
     } catch (err: any) {
-      console.error('Error fetching raw task data:', err);
+      logger.error('Error fetching raw task data:', err);
       setError(err.message || 'Failed to fetch data');
     } finally {
       setIsLoading(false);

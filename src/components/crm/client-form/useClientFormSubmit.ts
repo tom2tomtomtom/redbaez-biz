@@ -1,3 +1,4 @@
+import logger from '@/utils/logger';
 import { ClientFormData, UseClientFormSubmitProps } from './types';
 import { useClientValidation } from './hooks/useClientValidation';
 import { useClientMutation } from './hooks/useClientMutation';
@@ -16,7 +17,7 @@ export const useClientFormSubmit = ({ clientId, onSuccess }: UseClientFormSubmit
   } = useClientMutation(clientId ? parseInt(clientId) : undefined);
 
   const handleSubmit = async (formData: ClientFormData) => {
-    console.log('Submitting form data:', formData);
+    logger.info('Submitting form data:', formData);
     
     if (!validateForm(formData)) {
       return;
@@ -32,7 +33,7 @@ export const useClientFormSubmit = ({ clientId, onSuccess }: UseClientFormSubmit
         });
       } else {
         const newClient = await createClient(formData);
-        console.log('New client created:', newClient);
+        logger.info('New client created:', newClient);
 
         if (newClient) {
           await createNextStep(newClient.id, formData.notes!, formData.next_due_date!);
@@ -45,7 +46,7 @@ export const useClientFormSubmit = ({ clientId, onSuccess }: UseClientFormSubmit
         onSuccess();
       }
     } catch (error: any) {
-      console.error('Error submitting client:', error);
+      logger.error('Error submitting client:', error);
       toast({
         title: "Error",
         description: error.message || "Failed to save client information",

@@ -1,3 +1,4 @@
+import logger from '@/utils/logger';
 
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -18,7 +19,7 @@ export const useAuth = () => {
         const {
           data: { session }
         } = await supabase.auth.getSession();
-        console.log('Initial session check:', session);
+        logger.info('Initial session check:', session);
 
         if (session) {
           const email = session.user.email;
@@ -43,7 +44,7 @@ export const useAuth = () => {
           }
         }
       } catch (error) {
-        console.error('Session check error:', error);
+        logger.error('Session check error:', error);
         setIsAuthenticated(false);
         if (window.location.pathname !== '/login') {
           navigate('/login');
@@ -57,8 +58,8 @@ export const useAuth = () => {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event: AuthChangeEvent, session: Session | null) => {
-        console.log('Auth event:', event);
-        console.log('Session:', session);
+        logger.info('Auth event:', event);
+        logger.info('Session:', session);
 
         if (event === 'SIGNED_IN' && session) {
           const email = session.user.email;
@@ -69,7 +70,7 @@ export const useAuth = () => {
               setIsAuthenticated(false);
               navigate('/login');
             } catch (signOutError) {
-              console.error('Error during sign out:', signOutError);
+              logger.error('Error during sign out:', signOutError);
             }
             return;
           }
@@ -80,7 +81,7 @@ export const useAuth = () => {
         }
         
         if (event === 'SIGNED_OUT') {
-          console.log('User signed out');
+          logger.info('User signed out');
           setError('');
           setIsAuthenticated(false);
           navigate('/login');
@@ -95,7 +96,7 @@ export const useAuth = () => {
             setIsAuthenticated(!!session);
             if (session) navigate('/');
           } catch (error) {
-            console.error('Session update error:', error);
+            logger.error('Session update error:', error);
             if (error instanceof Error) setError(error.message);
           }
           return;

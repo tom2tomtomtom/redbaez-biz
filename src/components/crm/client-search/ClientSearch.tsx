@@ -1,3 +1,4 @@
+import logger from '@/utils/logger';
 
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -44,7 +45,7 @@ export const ClientSearch = () => {
         });
       }
     } catch (error) {
-      console.error('Search error:', error);
+      logger.error('Search error:', error);
       toast({
         title: "Search Error",
         description: "Failed to search for clients",

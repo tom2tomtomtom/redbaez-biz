@@ -1,3 +1,4 @@
+import logger from '@/utils/logger';
 
 import { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
@@ -32,7 +33,7 @@ export const useTasksMutations = () => {
         .select();
 
       if (error) {
-        console.error('Error updating task completion:', error);
+        logger.error('Error updating task completion:', error);
         toast({
           title: 'Update failed',
           description: error.message,
@@ -51,7 +52,7 @@ export const useTasksMutations = () => {
       });
     },
     onError: (error) => {
-      console.error('Mutation error:', error);
+      logger.error('Mutation error:', error);
     },
     onSettled: () => {
       setIsUpdating(false);
@@ -78,7 +79,7 @@ export const useTasksMutations = () => {
         .select();
 
       if (error) {
-        console.error('Error updating task urgency:', error);
+        logger.error('Error updating task urgency:', error);
         toast({
           title: 'Update failed',
           description: error.message,
@@ -120,7 +121,7 @@ export const useTasksMutations = () => {
         .eq('id', taskId.replace('next-step-', ''));
 
       if (error) {
-        console.error('Error deleting task:', error);
+        logger.error('Error deleting task:', error);
         toast({
           title: 'Delete failed',
           description: error.message,
