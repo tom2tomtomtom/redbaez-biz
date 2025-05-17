@@ -3,7 +3,7 @@
 project_id = "ryomveanixzshfatalcd"
 
 [functions.fetch-ai-news]
-verify_jwt = false
+verify_jwt = true
 
 [functions.fetch-ai-news.import_map]
 imports = {}

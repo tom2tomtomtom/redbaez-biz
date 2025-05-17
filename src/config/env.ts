@@ -15,12 +15,13 @@ const getEnvVariable = (key: string, defaultValue: string = ''): string => {
 };
 
 // Supabase Configuration
-export const SUPABASE_URL = getEnvVariable('VITE_SUPABASE_URL', 'https://ryomveanixzshfatalcd.supabase.co');
-export const SUPABASE_ANON_KEY = getEnvVariable('VITE_SUPABASE_ANON_KEY', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ5b212ZWFuaXh6c2hmYXRhbGNkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzYxMjg0NDYsImV4cCI6MjA1MTcwNDQ0Nn0.WP3UUPsFzllI_gvkpYoj4Z8MLkGRt0bJgPAqK80S8JQ');
+export const SUPABASE_URL = getEnvVariable('VITE_SUPABASE_URL');
+export const SUPABASE_ANON_KEY = getEnvVariable('VITE_SUPABASE_ANON_KEY');
 
 // API Keys (if needed)
 export const OPENAI_API_KEY = getEnvVariable('VITE_OPENAI_API_KEY');
 export const PERPLEXITY_API_KEY = getEnvVariable('VITE_PERPLEXITY_API_KEY');
+export const ALLOWED_EMAILS = getEnvVariable('VITE_ALLOWED_EMAILS');
 
 // Feature Flags
 export const ENABLE_AI_FEATURES = getEnvVariable('VITE_ENABLE_AI_FEATURES', 'true') === 'true';
@@ -39,6 +40,7 @@ export const ENV = {
   SUPABASE_ANON_KEY,
   OPENAI_API_KEY,
   PERPLEXITY_API_KEY,
+  ALLOWED_EMAILS,
   ENABLE_AI_FEATURES,
   DEBUG_MODE,
   ENABLE_PERFORMANCE_MONITORING,

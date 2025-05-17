@@ -8,6 +8,20 @@ import {
   DialogTitle,
 } from "../ui/dialog";
 
+const sanitizeHtml = (html: string) => {
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(html, 'text/html');
+  doc.querySelectorAll('script').forEach((s) => s.remove());
+  doc.querySelectorAll('*').forEach((el) => {
+    for (const attr of Array.from(el.attributes)) {
+      if (attr.name.startsWith('on')) {
+        el.removeAttribute(attr.name);
+      }
+    }
+  });
+  return doc.body.innerHTML;
+};
+
 interface GenerationDialogsProps {
   showArticleDialog: boolean;
   setShowArticleDialog: (show: boolean) => void;
@@ -37,7 +51,7 @@ const formatNewsletterContent = (content: string) => {
     formatted = `<p class="my-3">${formatted}</p>`;
   }
 
-  return formatted;
+  return sanitizeHtml(formatted);
 };
 
 export const GenerationDialogs = ({
