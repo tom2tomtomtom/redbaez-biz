@@ -48,10 +48,19 @@ Red Baez Business Suite is an all-in-one solution designed for small to medium b
 ## Setup Requirements
 
 ### Environment Variables
-- `SUPABASE_URL`: Your Supabase project URL
-- `SUPABASE_ANON_KEY`: Your Supabase anonymous key
-- `OPENAI_API_KEY`: For AI content generation
-- `PERPLEXITY_API_KEY`: For AI news curation
+Use `.env.example` as a template for your own `.env` file. Important variables include:
+- `VITE_SUPABASE_URL`: Your Supabase project URL
+- `VITE_SUPABASE_ANON_KEY`: Your Supabase anonymous key
+- `VITE_OPENAI_API_KEY`: For AI content generation
+- `VITE_PERPLEXITY_API_KEY`: For AI news curation
+- `VITE_ENABLE_AI_FEATURES`: Toggle AI-powered features
+- `VITE_DEBUG_MODE`: Enable verbose debug output
+- `VITE_ENABLE_PERFORMANCE_MONITORING`: Record performance metrics
+- `VITE_ENABLE_CODE_SPLITTING`: Enable dynamic code splitting
+- `VITE_ENABLE_PREFETCHING`: Prefetch assets for faster navigation
+- `VITE_APP_NAME`: Name displayed in the interface
+- `VITE_API_TIMEOUT`: API request timeout in milliseconds
+- `VITE_ALLOWED_EMAILS`: Comma-separated list of allowed user emails
 
 ### Database Tables
 - `clients`: Client information and revenue tracking
@@ -80,6 +89,11 @@ npm run dev
 # Build for production
 npm run build
 ```
+
+## Continuous Integration
+
+A GitHub Actions workflow automatically runs `npm run lint` and `npm run build`
+on every push and pull request to ensure the project remains stable.
 
 ## Simplified Task System
 
