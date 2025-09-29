@@ -12,6 +12,7 @@ import { ClientDetails } from './components/crm/client-details/ClientDetails';
 import { SimpleTasks } from './pages/SimpleTasks';
 import { ThemeProvider } from './hooks/use-theme';
 import { ClientForm } from './components/crm/client-form/ClientForm';
+import { AuthGuard } from './components/auth/AuthGuard';
 import { ErrorBoundary } from './components/ui/error-boundary';
 import './App.css';
 
@@ -34,27 +35,29 @@ function App() {
         <ThemeProvider>
           <Router>
             <Routes>
-              <Route path="/" element={<Index />} />
               <Route path="/login" element={<Login />} />
-              <Route path="/marketing" element={<Marketing />} />
-              <Route path="/partnerships" element={<Partnerships />} />
-              <Route path="/product-development" element={<ProductDevelopment />} />
-              <Route path="/ai-news" element={<AiNews />} />
-              <Route path="/simple-tasks" element={<SimpleTasks />} />
-              <Route path="/business-admin" element={<BusinessAdmin />} />
-              <Route path="/client/:id" element={<ClientDetails />} />
-              <Route 
-                path="/client/new" 
+              <Route path="/" element={<AuthGuard><Index /></AuthGuard>} />
+              <Route path="/marketing" element={<AuthGuard><Marketing /></AuthGuard>} />
+              <Route path="/partnerships" element={<AuthGuard><Partnerships /></AuthGuard>} />
+              <Route path="/product-development" element={<AuthGuard><ProductDevelopment /></AuthGuard>} />
+              <Route path="/ai-news" element={<AuthGuard><AiNews /></AuthGuard>} />
+              <Route path="/simple-tasks" element={<AuthGuard><SimpleTasks /></AuthGuard>} />
+              <Route path="/business-admin" element={<AuthGuard><BusinessAdmin /></AuthGuard>} />
+              <Route path="/client/:id" element={<AuthGuard><ClientDetails /></AuthGuard>} />
+              <Route
+                path="/client/new"
                 element={
-                  <ClientForm
-                    contacts={[]}
-                    nextSteps=""
-                    nextDueDate=""
-                    onContactsChange={() => {}}
-                    onNextStepsChange={() => {}}
-                    onNextDueDateChange={() => {}}
-                  />
-                } 
+                  <AuthGuard>
+                    <ClientForm
+                      contacts={[]}
+                      nextSteps=""
+                      nextDueDate=""
+                      onContactsChange={() => {}}
+                      onNextStepsChange={() => {}}
+                      onNextDueDateChange={() => {}}
+                    />
+                  </AuthGuard>
+                }
               />
             </Routes>
           </Router>
