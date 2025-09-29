@@ -1,0 +1,74 @@
+{
+  "training_briefs": [
+    {
+      "id": 1,
+      "brief": "Write a tagline for a new premium electric vehicle that emphasizes sustainability and luxury."
+    },
+    {
+      "id": 2,
+      "brief": "Create a tagline for a fitness app that focuses on personalized workouts and mental wellbeing."
+    },
+    {
+      "id": 3,
+      "brief": "Develop a tagline for a plant-based food brand that highlights taste and environmental benefits."
+    },
+    {
+      "id": 4,
+      "brief": "Write a tagline for a travel booking platform that specializes in sustainable tourism."
+    },
+    {
+      "id": 5,
+      "brief": "Create a tagline for a new streaming service that focuses on independent films and documentaries."
+    },
+    {
+      "id": 6,
+      "brief": "Develop a tagline for a smart home security system that emphasizes ease of use and peace of mind."
+    },
+    {
+      "id": 7,
+      "brief": "Write a tagline for a premium coffee subscription service that delivers globally sourced beans."
+    },
+    {
+      "id": 8,
+      "brief": "Create a tagline for a skincare brand that uses only natural, ethically sourced ingredients."
+    },
+    {
+      "id": 9,
+      "brief": "Develop a tagline for a financial app that helps young people save and invest money."
+    },
+    {
+      "id": 10,
+      "brief": "Write a tagline for a new co-working space designed for creative professionals."
+    },
+    {
+      "id": 11,
+      "brief": "Create a tagline for an online education platform specializing in creative skills."
+    },
+    {
+      "id": 12,
+      "brief": "Develop a tagline for an energy drink targeting professionals who need sustained focus."
+    }
+  ],
+  "evaluation_briefs": [
+    {
+      "id": 13,
+      "brief": "Write a tagline for a sustainable fashion brand that uses recycled materials."
+    },
+    {
+      "id": 14,
+      "brief": "Create a tagline for a premium headphone brand focusing on immersive sound quality."
+    },
+    {
+      "id": 15,
+      "brief": "Develop a tagline for a meal kit delivery service emphasizing fresh, local ingredients."
+    },
+    {
+      "id": 16,
+      "brief": "Write a tagline for a virtual reality gaming platform that promises new worlds to explore."
+    },
+    {
+      "id": 17,
+      "brief": "Create a tagline for a productivity app that helps users manage their time better."
+    }
+  ]
+}

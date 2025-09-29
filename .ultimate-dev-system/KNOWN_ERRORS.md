@@ -4,15 +4,28 @@
 
 ### Failed to construct 'URL': Invalid URL at supabaseClient.ts
 **Date**: 2025-09-29
-**Cause**: Environment variables returning empty strings, causing URL constructor to fail
-**Root Issue**: .env.production file had placeholder values overriding .env file
-**Solution**: 
-1. Check ALL .env files (.env, .env.production, .env.local, .env.development)
-2. Update .env.production with correct values matching .env
-3. Restart development server completely (stop and start, not just refresh)
-4. Use `getRequiredEnvVariable` for critical config like SUPABASE_URL
-**Files Modified**: .env, .env.production, src/config/env.ts
-**Prevention**: Always sync all environment files and restart dev server after env changes
+**Cause**: Environment variables not available in local development
+**Root Issue**: Variables set in Netlify dashboard but not available when running `npm run dev` locally
+**Solution Options**:
+
+**Option A: Use Netlify Dev (Recommended)**
+```bash
+netlify link  # One-time setup
+netlify dev   # Always use this instead of npm run dev
+```
+
+**Option B: Sync Variables to Local .env**
+```bash
+npm run env:sync  # Downloads from Netlify to .env
+npm run dev       # Now works with local .env
+```
+
+**Option C: Manual .env Setup**
+Copy variables from Netlify dashboard → Site Settings → Environment Variables
+and paste into local .env file
+
+**Files Modified**: .env, package.json, scripts/sync-netlify-env.sh
+**Prevention**: Always use `netlify dev` or sync env vars before starting development
 
 ## Environment Variable Warnings
 

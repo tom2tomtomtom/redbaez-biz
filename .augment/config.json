@@ -1,0 +1,27 @@
+{
+  "projectName": "redbaez-biz",
+  "projectType": "nodejs",
+  "ultimateDevSystem": {
+    "enabled": true,
+    "specialists": [
+      "senior-code-reviewer",
+      "performance-engineer", 
+      "security-auditor"
+    ],
+    "routing": {
+      "largeRefactoring": true,
+      "crossFileChanges": true,
+      "complexArchitecture": true
+    }
+  },
+  "codeStyle": {
+    "typescript": {
+      "strict": true,
+      "noImplicitAny": true
+    },
+    "formatting": {
+      "semicolons": true,
+      "trailingComma": "es5"
+    }
+  }
+}
