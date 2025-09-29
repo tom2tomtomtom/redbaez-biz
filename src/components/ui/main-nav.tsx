@@ -1,8 +1,8 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { Users, PlusCircle } from "lucide-react";
+import { Users, PlusCircle, LogOut } from "lucide-react";
 import { ClientListSection } from "@/components/crm/dashboard/ClientListSection";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabaseClient";
@@ -10,6 +10,7 @@ import { ThemeToggle } from "./theme-toggle";
 
 export function MainNav() {
   const [showClientList, setShowClientList] = useState(false);
+  const navigate = useNavigate();
 
   const { data: clients, isLoading } = useQuery({
     queryKey: ['clients'],
@@ -48,6 +49,20 @@ export function MainNav() {
         </nav>
         <div className="ml-auto flex items-center space-x-4">
           <ThemeToggle />
+          <Button 
+            variant="ghost"
+            onClick={async () => {
+              try {
+                await supabase.auth.signOut();
+              } catch {}
+              navigate('/login');
+            }}
+            className="gap-2"
+            title="Log out"
+          >
+            <LogOut className="h-4 w-4" />
+            Logout
+          </Button>
           <Button 
             variant="outline"
             onClick={() => setShowClientList(true)}
