@@ -112,14 +112,14 @@ export const useTaskMutations = () => {
       setIsProcessing(true);
       logger.info(`Deleting task ${task.id}`);
       
-      const { data, error } = await supabase
+      // Do NOT call .select() after delete, as that requires a SELECT RLS policy
+      const { error } = await supabase
         .from('tasks')
         .delete()
-        .eq('id', task.id)
-        .select();
+        .eq('id', task.id);
 
       // Log response for debugging
-      logResponse({ data }, error, 'deleteTask');
+      logResponse(undefined, error, 'deleteTask');
 
       if (error) throw error;
       return { taskId: task.id };
