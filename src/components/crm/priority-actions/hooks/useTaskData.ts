@@ -17,13 +17,28 @@ export const useTaskData = (category?: string, showCompleted = false) => {
     queryFn: async (): Promise<Task[]> => {
       logger.info(`Fetching tasks with category: ${category}, showCompleted: ${showCompleted}`);
       logger.info(`DEBUG: Fetching tasks with category: ${category}, showCompleted: ${showCompleted}`);
-      
+
+      // Check authentication status first
+      const { data: { session } } = await supabase.auth.getSession();
+      logger.info('Current auth session:', session ? 'authenticated' : 'not authenticated');
+      if (session) {
+        logger.info('User email:', session.user.email);
+      } else {
+        logger.warn('No authentication session - RLS queries may fail');
+      }
+
       try {
         // Build query for tasks table with explicit parameters
         let query = supabase
           .from('tasks')
           .select('*, clients(name)')
-          [showCompleted ? 'eq' : 'not']('status', showCompleted ? 'completed' : 'completed');
+
+        // Filter by completion status
+        if (showCompleted) {
+          query = query.eq('status', 'completed');
+        } else {
+          query = query.not('status', 'eq', 'completed');
+        }
         
         // Add category filter if specified
         if (category && category !== 'All') {
@@ -40,7 +55,12 @@ export const useTaskData = (category?: string, showCompleted = false) => {
 
         if (error) {
           logger.error('Error fetching tasks:', error);
-          logger.error('Error fetching tasks:', error);
+
+          // Check for common RLS/auth errors
+          if (error.code === '42501' || error.message.includes('row-level security')) {
+            logger.error('RLS Policy Error: User may not be authenticated or have permissions');
+          }
+
           throw error;
         }
 
