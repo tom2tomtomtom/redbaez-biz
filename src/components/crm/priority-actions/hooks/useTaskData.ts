@@ -19,9 +19,9 @@ export const useTaskData = (category?: string, showCompleted = false) => {
       logger.info(`DEBUG: Fetching tasks with category: ${category}, showCompleted: ${showCompleted}`);
       
       try {
-        // Build query for tasks table with explicit parameters
+        // Build query for general_tasks table with explicit parameters
         let query = supabase
-          .from('tasks')
+          .from('general_tasks')
           .select('*, clients(name)')
           .eq('status', showCompleted ? 'completed' : 'incomplete');
         
@@ -33,7 +33,7 @@ export const useTaskData = (category?: string, showCompleted = false) => {
         // Execute query with explicit ordering
         const { data, error } = await query
           .order('urgent', { ascending: false })
-          .order('due_date', { ascending: true });
+          .order('next_due_date', { ascending: true });
 
         // Log the complete response for debugging
         logResponse({ data }, error, 'useTaskData');
@@ -60,7 +60,7 @@ export const useTaskData = (category?: string, showCompleted = false) => {
           client_id: task.client_id,
           client: task.clients,
           client_name: task.clients?.name,
-          due_date: task.due_date,
+          due_date: task.next_due_date || task.due_date,
           urgent: task.urgent || false,
           status: task.status,
           category: task.category,
