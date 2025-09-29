@@ -51,6 +51,7 @@ export function MainNav() {
           <ThemeToggle />
           <Button 
             variant="ghost"
+            type="button"
             onClick={async () => {
               try {
                 await supabase.auth.signOut();

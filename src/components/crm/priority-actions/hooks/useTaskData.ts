@@ -13,7 +13,8 @@ import logger from '@/utils/logger';
  */
 export const useTaskData = (category?: string, showCompleted = false) => {
   return useQuery({
-    queryKey: ['tasks', { category, showCompleted, timestamp: Date.now() }],
+    // Stable key to prevent infinite refetch loops
+    queryKey: ['tasks', { category, showCompleted }],
     queryFn: async (): Promise<Task[]> => {
       logger.info(`Fetching tasks with category: ${category}, showCompleted: ${showCompleted}`);
       logger.info(`DEBUG: Fetching tasks with category: ${category}, showCompleted: ${showCompleted}`);
