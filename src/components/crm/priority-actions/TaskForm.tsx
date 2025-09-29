@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label';
 import { supabase } from '@/lib/supabaseClient';
 import { useToast } from '@/components/ui/use-toast';
 import { useTaskMutations } from './hooks/useTaskMutations';
-import { Task } from '@/hooks/useTaskDeletion';
+import { Task, TaskPriority, TaskStatus } from '@/types/task';
 import { useApiRequest } from '@/hooks/useApiRequest';
 import logger from '@/utils/logger';
 
@@ -18,11 +18,12 @@ interface TaskFormProps {
   onSaved: () => void;
   onCancel: () => void;
   defaultCategory?: string;
+  clientId?: number; // Add client association support
 }
 
 const CATEGORIES = ['Marketing', 'Product Development', 'Partnerships', 'Business Admin'] as const;
 
-export const TaskForm = ({ task, onSaved, onCancel, defaultCategory }: TaskFormProps) => {
+export const TaskForm = ({ task, onSaved, onCancel, defaultCategory, clientId }: TaskFormProps) => {
   const { toast } = useToast();
   const { invalidateTaskQueries } = useTaskMutations();
   
@@ -30,7 +31,8 @@ export const TaskForm = ({ task, onSaved, onCancel, defaultCategory }: TaskFormP
   const [description, setDescription] = useState(task?.description || '');
   const [category, setCategory] = useState(task?.category || defaultCategory || CATEGORIES[0]);
   const [dueDate, setDueDate] = useState(task?.due_date ? new Date(task.due_date).toISOString().split('T')[0] : '');
-  const [urgent, setUrgent] = useState(task?.urgent || false);
+  const [priority, setPriority] = useState<TaskPriority>(task?.priority || 'normal');
+  const [status, setStatus] = useState<TaskStatus>(task?.status || 'pending');
 
   // Use our standardized API request hook for saving the task
   const { execute: saveTask, isLoading: isSubmitting } = useApiRequest(
@@ -58,7 +60,7 @@ export const TaskForm = ({ task, onSaved, onCancel, defaultCategory }: TaskFormP
           .insert({
             ...formData,
             created_by: user?.id,
-            status: 'incomplete'
+            status: 'pending'
           });
 
         if (error) throw error;
@@ -83,7 +85,10 @@ export const TaskForm = ({ task, onSaved, onCancel, defaultCategory }: TaskFormP
       description,
       category,
       due_date: dueDate ? new Date(dueDate).toISOString() : null,
-      urgent,
+      priority,
+      status: task ? status : 'pending', // New tasks default to pending
+      urgent: priority === 'urgent', // Map priority to legacy urgent field
+      client_id: clientId || task?.client_id || null, // Support client association
     };
     
     logger.info('Submitting task form', { isUpdate: !!task?.id, formData });
@@ -148,14 +153,40 @@ export const TaskForm = ({ task, onSaved, onCancel, defaultCategory }: TaskFormP
         />
       </div>
 
-      <div className="flex items-center space-x-2">
-        <Switch
-          id="urgent"
-          checked={urgent}
-          onCheckedChange={setUrgent}
-        />
-        <Label htmlFor="urgent">Mark as Urgent</Label>
+      <div className="space-y-2">
+        <label htmlFor="priority" className="text-sm font-medium">
+          Priority
+        </label>
+        <Select value={priority} onValueChange={(value: TaskPriority) => setPriority(value)}>
+          <SelectTrigger>
+            <SelectValue placeholder="Select priority" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="low">🟢 Low</SelectItem>
+            <SelectItem value="normal">🔵 Normal</SelectItem>
+            <SelectItem value="high">🟠 High</SelectItem>
+            <SelectItem value="urgent">🔴 Urgent</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
+
+      {task && (
+        <div className="space-y-2">
+          <label htmlFor="status" className="text-sm font-medium">
+            Status
+          </label>
+          <Select value={status} onValueChange={(value: TaskStatus) => setStatus(value)}>
+            <SelectTrigger>
+              <SelectValue placeholder="Select status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="pending">Pending</SelectItem>
+              <SelectItem value="in_progress">In Progress</SelectItem>
+              <SelectItem value="completed">Completed</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      )}
 
       <div className="flex justify-end space-x-2">
         <Button type="button" variant="outline" onClick={onCancel}>

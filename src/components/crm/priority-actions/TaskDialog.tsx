@@ -8,14 +8,16 @@ interface TaskDialogProps {
   task: any | null;
   onSaved: () => void;
   defaultCategory?: string;
+  clientId?: number; // Add client association support
 }
 
-export const TaskDialog = ({ 
-  isOpen, 
-  onOpenChange, 
-  task, 
+export const TaskDialog = ({
+  isOpen,
+  onOpenChange,
+  task,
   onSaved,
-  defaultCategory 
+  defaultCategory,
+  clientId
 }: TaskDialogProps) => {
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
@@ -23,11 +25,12 @@ export const TaskDialog = ({
         <DialogHeader>
           <DialogTitle>{task ? 'Edit Task' : 'Add New Task'}</DialogTitle>
         </DialogHeader>
-        <TaskForm 
-          task={task} 
-          onSaved={onSaved} 
+        <TaskForm
+          task={task}
+          onSaved={onSaved}
           onCancel={() => onOpenChange(false)}
           defaultCategory={defaultCategory}
+          clientId={clientId}
         />
       </DialogContent>
     </Dialog>

@@ -65,9 +65,14 @@ export const useTaskData = (options: UseTaskDataOptions = {}) => {
           .from('tasks')
           .select('*, clients(name)')
 
-        // Apply filters
-        if (status !== 'all') {
+        // Apply filters - by default exclude completed tasks unless specifically requested
+        if (status === 'completed') {
+          query = query.eq('status', 'completed');
+        } else if (status !== 'all') {
           query = query.eq('status', status);
+        } else {
+          // Default: show only non-completed tasks
+          query = query.not('status', 'eq', 'completed');
         }
 
         if (category && category !== 'All') {

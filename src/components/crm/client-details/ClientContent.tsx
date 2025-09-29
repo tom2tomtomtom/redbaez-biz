@@ -1,6 +1,5 @@
 import logger from '@/utils/logger';
 import React from 'react';
-import { useQuery } from '@tanstack/react-query';
 import { Contact } from './ContactInfoCard';
 import { AdditionalInfoCard } from './AdditionalInfoCard';
 import { KeyMetricsCard } from './KeyMetricsCard';
@@ -8,10 +7,13 @@ import { ContactInfoCard } from './ContactInfoCard';
 import { StatusTab } from './StatusTab';
 import { TaskHistory } from './TaskHistory';
 import { UpdateNextStepButton } from './components/UpdateNextStepButton';
-import { supabase } from '@/lib/supabaseClient';
 import { BackgroundSection } from './sections/BackgroundSection';
-import { DueItemsSection } from './sections/DueItemsSection';
 import { useRevenueCalculations } from './hooks/useRevenueCalculations';
+import { UnifiedTaskList } from '../priority-actions/UnifiedTaskList';
+import { TaskDialog } from '../priority-actions/TaskDialog';
+import { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Plus } from 'lucide-react';
 
 interface ClientContentProps {
   client: any;
@@ -21,7 +23,8 @@ interface ClientContentProps {
 
 export const ClientContent = ({ client, isEditing, parsedAdditionalContacts }: ClientContentProps) => {
   logger.info('ClientContent rendering with client data:', client);
-  
+  const [isNewTaskOpen, setIsNewTaskOpen] = useState(false);
+
   // Get revenue calculations
   const { revenueData, totalActualRevenue, totalForecastRevenue } = useRevenueCalculations(client);
   
@@ -40,62 +43,8 @@ export const ClientContent = ({ client, isEditing, parsedAdditionalContacts }: C
     clientAnnualRevenueForecast: client?.annual_revenue_forecast
   });
 
-  const { data: allItems, isLoading } = useQuery({
-    queryKey: ['client-items', client.id],
-    queryFn: async () => {
-      const [tasksResponse, nextStepsResponse, ideasResponse] = await Promise.all([
-        supabase
-          .from('general_tasks')
-          .select('*')
-          .eq('client_id', client.id)
-          .is('status', null)
-          .not('next_due_date', 'is', null)
-          .order('next_due_date', { ascending: true }),
-        supabase
-          .from('client_next_steps')
-          .select('*')
-          .eq('client_id', client.id)
-          .is('completed_at', null)
-          .not('due_date', 'is', null)
-          .order('due_date', { ascending: true }),
-        supabase
-          .from('recommendations')
-          .select('*')
-          .eq('client_id', client.id)
-          .eq('status', 'pending')
-          .not('due_date', 'is', null)
-          .order('due_date', { ascending: true })
-      ]);
+  // No longer need complex query - UnifiedTaskList handles this
 
-      return {
-        tasks: tasksResponse.data || [],
-        nextSteps: nextStepsResponse.data || [],
-        ideas: ideasResponse.data || []
-      };
-    }
-  });
-
-  const dueItems = allItems ? [
-    ...allItems.tasks.map(task => ({
-      ...task,
-      type: 'task' as const,
-      dueDate: task.next_due_date,
-      title: task.title,
-      description: task.description
-    })),
-    ...allItems.nextSteps.map(step => ({
-      ...step,
-      type: 'next-step' as const,
-      dueDate: step.due_date,
-      notes: step.notes
-    })),
-    ...allItems.ideas.map(idea => ({
-      ...idea,
-      type: 'idea' as const,
-      dueDate: idea.due_date,
-      description: idea.description
-    }))
-  ].sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime()) : [];
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
@@ -117,10 +66,20 @@ export const ClientContent = ({ client, isEditing, parsedAdditionalContacts }: C
           <UpdateNextStepButton clientId={client.id} />
         </div>
         
-        {/* Due Items Section */}
+        {/* Client Tasks Section */}
         <div className="mb-6">
-          <h4 className="text-md font-medium mb-4">Due Items</h4>
-          <DueItemsSection items={dueItems} isLoading={isLoading} />
+          <div className="flex items-center justify-between mb-4">
+            <h4 className="text-md font-medium">Client Tasks</h4>
+            <Button onClick={() => setIsNewTaskOpen(true)} size="sm">
+              <Plus size={16} className="mr-2" />
+              Add Task
+            </Button>
+          </div>
+          <UnifiedTaskList
+            title=""
+            showAddButton={false}
+            clientId={client.id}
+          />
         </div>
 
         <TaskHistory clientId={client.id} />
@@ -153,6 +112,15 @@ export const ClientContent = ({ client, isEditing, parsedAdditionalContacts }: C
         revenueData={revenueData}
         annualRevenueSignedOff={displayActualRevenue}
         annualRevenueForecast={displayForecastRevenue}
+        clientId={client.id}
+      />
+
+      <TaskDialog
+        isOpen={isNewTaskOpen}
+        onOpenChange={setIsNewTaskOpen}
+        task={null}
+        onSaved={() => setIsNewTaskOpen(false)}
+        defaultCategory="Client Work"
         clientId={client.id}
       />
     </div>
