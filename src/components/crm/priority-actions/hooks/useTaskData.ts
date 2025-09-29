@@ -1,5 +1,6 @@
 
 import { useQuery } from '@tanstack/react-query';
+import { useState, useEffect } from 'react';
 import { supabase, logResponse } from '@/lib/supabaseClient';
 import { Task } from '@/types/task';
 import logger from '@/utils/logger';
@@ -12,20 +13,43 @@ import logger from '@/utils/logger';
  * @returns Query result with task data
  */
 export const useTaskData = (category?: string, showCompleted = false) => {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  // Check authentication status on mount
+  useEffect(() => {
+    const checkAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      setIsAuthenticated(!!session);
+    };
+    checkAuth();
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      setIsAuthenticated(!!session);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
   return useQuery({
-    queryKey: ['tasks', { category, showCompleted, timestamp: Date.now() }],
+    queryKey: ['tasks', { category, showCompleted }],
     queryFn: async (): Promise<Task[]> => {
       logger.info(`Fetching tasks with category: ${category}, showCompleted: ${showCompleted}`);
-      logger.info(`DEBUG: Fetching tasks with category: ${category}, showCompleted: ${showCompleted}`);
 
-      // Check authentication status first
-      const { data: { session } } = await supabase.auth.getSession();
-      logger.info('Current auth session:', session ? 'authenticated' : 'not authenticated');
-      if (session) {
-        logger.info('User email:', session.user.email);
-      } else {
-        logger.warn('No authentication session - RLS queries may fail');
+      // Check authentication status first - REQUIRED for RLS
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+
+      if (sessionError) {
+        logger.error('Session error:', sessionError);
+        throw new Error('Authentication check failed');
       }
+
+      if (!session) {
+        logger.warn('❌ No authentication session - cannot query tasks due to RLS policies');
+        throw new Error('Authentication required to access tasks');
+      }
+
+      logger.info('✅ Authenticated user:', session.user.email);
 
       try {
         // Build query for tasks table with explicit parameters
@@ -101,9 +125,17 @@ export const useTaskData = (category?: string, showCompleted = false) => {
         throw error;
       }
     },
-    staleTime: 0, // Always fetch fresh data
-    gcTime: 60000, // Keep data for 1 minute after component unmounts
+    enabled: isAuthenticated, // Only run query when authenticated
+    staleTime: 30000, // Cache for 30 seconds
+    gcTime: 300000, // Keep data for 5 minutes after component unmounts
     refetchOnWindowFocus: true, // Auto refetch on window focus
     refetchOnMount: true, // Refetch on mount
+    retry: (failureCount, error) => {
+      // Don't retry authentication errors
+      if (error.message.includes('Authentication required')) {
+        return false;
+      }
+      return failureCount < 2;
+    }
   });
 };
