@@ -23,7 +23,7 @@ export const useTaskData = (category?: string, showCompleted = false) => {
         let query = supabase
           .from('tasks')
           .select('*, clients(name)')
-          .eq('status', showCompleted ? 'completed' : 'incomplete');
+          [showCompleted ? 'eq' : 'not']('status', showCompleted ? 'completed' : 'completed');
         
         // Add category filter if specified
         if (category && category !== 'All') {

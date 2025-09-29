@@ -51,13 +51,15 @@ export function MainNav() {
           <ThemeToggle />
           <Button 
             variant="ghost"
+            type="button"
             onClick={async () => {
               try {
                 await supabase.auth.signOut();
-                navigate('/login', { replace: true });
+                try { localStorage.clear(); } catch {}
+                window.location.assign('/login');
               } catch (err) {
                 console.error('Logout failed', err);
-                navigate('/login', { replace: true });
+                window.location.assign('/login');
               }
             }}
             className="gap-2"
