@@ -54,8 +54,11 @@ export function MainNav() {
             onClick={async () => {
               try {
                 await supabase.auth.signOut();
-              } catch {}
-              navigate('/login');
+                navigate('/login', { replace: true });
+              } catch (err) {
+                console.error('Logout failed', err);
+                navigate('/login', { replace: true });
+              }
             }}
             className="gap-2"
             title="Log out"

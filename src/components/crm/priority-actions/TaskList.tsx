@@ -1,5 +1,5 @@
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { TaskItem } from './TaskItem';
 import { useTaskList } from './hooks/useTaskList';
 import { PriorityActionsSkeleton } from './PriorityActionsSkeleton';
@@ -36,18 +36,19 @@ export const TaskList = ({
     refreshKey
   } = useTaskList({ category, showCompleted });
   
-  // Force refresh when component mounts
+  // Force refresh when component first mounts only (prevent loops)
+  const didInitRef = useRef(false);
   useEffect(() => {
+    if (didInitRef.current) return;
+    didInitRef.current = true;
     logger.info("TaskList mounted with:", { 
       category, 
       showCompleted, 
       taskCount: filteredTasks?.length || 0,
       hasError: !!error
     });
-    
-    // Force a refresh when component mounts to ensure fresh data
     handleRefresh();
-  }, [category, showCompleted, handleRefresh]);
+  }, [handleRefresh]);
   
   // Debug log for rendering
   logger.info("TaskList rendering with:", { 
