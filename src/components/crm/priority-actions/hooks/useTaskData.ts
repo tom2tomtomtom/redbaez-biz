@@ -2,18 +2,26 @@
 import { useQuery } from '@tanstack/react-query';
 import { useState, useEffect } from 'react';
 import { supabase, logResponse } from '@/lib/supabaseClient';
-import { Task } from '@/types/task';
+import { Task, TaskPriority, TaskStatus } from '@/types/task';
 import logger from '@/utils/logger';
 
 /**
- * Custom hook to fetch task data from the Supabase database
- * 
- * @param category Optional category filter
- * @param showCompleted Whether to show completed tasks or active tasks
- * @returns Query result with task data
+ * Unified hook to fetch all tasks from the database
+ * Replaces the complex priority/task/next_step system with a simple unified approach
+ *
+ * @param options Filter options for tasks
+ * @returns Query result with unified task data
  */
-export const useTaskData = (category?: string, showCompleted = false) => {
+interface UseTaskDataOptions {
+  category?: string;
+  status?: TaskStatus | 'all';
+  priority?: TaskPriority | 'all';
+  clientId?: number;
+}
+
+export const useTaskData = (options: UseTaskDataOptions = {}) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const { category, status = 'all', priority = 'all', clientId } = options;
 
   // Check authentication status on mount
   useEffect(() => {
@@ -32,9 +40,9 @@ export const useTaskData = (category?: string, showCompleted = false) => {
   }, []);
 
   return useQuery({
-    queryKey: ['tasks', { category, showCompleted }],
+    queryKey: ['unified-tasks', { category, status, priority, clientId }],
     queryFn: async (): Promise<Task[]> => {
-      logger.info(`Fetching tasks with category: ${category}, showCompleted: ${showCompleted}`);
+      logger.info(`Fetching unified tasks with filters:`, { category, status, priority, clientId });
 
       // Check authentication status first - REQUIRED for RLS
       const { data: { session }, error: sessionError } = await supabase.auth.getSession();
@@ -52,51 +60,40 @@ export const useTaskData = (category?: string, showCompleted = false) => {
       logger.info('✅ Authenticated user:', session.user.email);
 
       try {
-        // Build query for tasks table with explicit parameters
+        // Build query for tasks table
         let query = supabase
           .from('tasks')
           .select('*, clients(name)')
 
-        // Filter by completion status
-        if (showCompleted) {
-          query = query.eq('status', 'completed');
-        } else {
-          query = query.not('status', 'eq', 'completed');
+        // Apply filters
+        if (status !== 'all') {
+          query = query.eq('status', status);
         }
-        
-        // Add category filter if specified
+
         if (category && category !== 'All') {
           query = query.ilike('category', `%${category}%`);
         }
 
-        // Execute query with explicit ordering
-        const { data, error } = await query
-          .order('urgent', { ascending: false })
-          .order('due_date', { ascending: true });
+        if (clientId) {
+          query = query.eq('client_id', clientId);
+        }
 
-        // Log the complete response for debugging
+        // Execute query with priority-based ordering
+        const { data, error } = await query
+          .order('urgent', { ascending: false }) // Urgent tasks first
+          .order('due_date', { ascending: true }); // Then by due date
+
         logResponse({ data }, error, 'useTaskData');
 
         if (error) {
           logger.error('Error fetching tasks:', error);
-
-          // Check for common RLS/auth errors
           if (error.code === '42501' || error.message.includes('row-level security')) {
             logger.error('RLS Policy Error: User may not be authenticated or have permissions');
           }
-
           throw error;
         }
 
-        // Log the raw data for debugging
-        logger.info(`Raw tasks data: ${JSON.stringify(data?.slice(0, 2))}`);
-        if (data && data.length > 0) {
-          logger.info('Raw tasks data sample:', data.slice(0, 2));
-        } else {
-          logger.info('No tasks data returned from query');
-        }
-
-        // Map the data to our Task type
+        // Map database rows to unified Task interface
         const tasks: Task[] = (data || []).map(task => ({
           id: task.id,
           title: task.title,
@@ -105,33 +102,39 @@ export const useTaskData = (category?: string, showCompleted = false) => {
           client: task.clients,
           client_name: task.clients?.name,
           due_date: task.due_date,
-          urgent: task.urgent || false,
-          status: task.status,
+          // Map legacy urgent boolean to priority system
+          priority: task.urgent ? 'urgent' as TaskPriority : 'normal' as TaskPriority,
+          status: task.status as TaskStatus,
           category: task.category,
           created_at: task.created_at,
           updated_at: task.updated_at,
           created_by: task.created_by,
           updated_by: task.updated_by,
-          type: 'task' // Set default type
+          completed_at: task.completed_at,
+          // Keep legacy urgent for backward compatibility
+          urgent: task.urgent || false
         }));
-        
-        logger.info(`Processed ${tasks.length} tasks with status: ${showCompleted ? 'completed' : 'incomplete'}`);
-        logger.info(`Processed ${tasks.length} tasks with status: ${showCompleted ? 'completed' : 'incomplete'}`);
-        
-        return tasks;
+
+        // Apply priority filter if specified (client-side since DB still uses boolean)
+        let filteredTasks = tasks;
+        if (priority !== 'all') {
+          filteredTasks = tasks.filter(task => task.priority === priority);
+        }
+
+        logger.info(`Processed ${filteredTasks.length} unified tasks`);
+
+        return filteredTasks;
       } catch (error) {
-        logger.error('Exception in useTaskData:', error);
         logger.error('Exception in useTaskData:', error);
         throw error;
       }
     },
     enabled: isAuthenticated, // Only run query when authenticated
-    staleTime: 30000, // Cache for 30 seconds
-    gcTime: 300000, // Keep data for 5 minutes after component unmounts
-    refetchOnWindowFocus: true, // Auto refetch on window focus
-    refetchOnMount: true, // Refetch on mount
+    staleTime: 30000,
+    gcTime: 300000,
+    refetchOnWindowFocus: true,
+    refetchOnMount: true,
     retry: (failureCount, error) => {
-      // Don't retry authentication errors
       if (error.message.includes('Authentication required')) {
         return false;
       }

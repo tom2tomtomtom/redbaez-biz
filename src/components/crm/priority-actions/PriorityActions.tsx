@@ -1,75 +1,64 @@
 
-import { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Plus } from 'lucide-react';
-import { TaskList } from './TaskList';
-import { PriorityActionsFilter } from './PriorityActionsFilter';
+import React, { useState } from 'react';
+import { UnifiedTaskList } from './UnifiedTaskList';
 import { TaskDialog } from './TaskDialog';
 import { Task } from '@/types/task';
+import logger from '@/utils/logger';
 
 interface PriorityActionsProps {
   hideAddButton?: boolean;
   initialCategory?: string;
   onTaskClick?: (taskId: string) => void;
+  clientId?: number; // Optional client filter
 }
 
-export const PriorityActions = ({ 
-  hideAddButton = false, 
+export const PriorityActions = ({
+  hideAddButton = false,
   initialCategory,
-  onTaskClick
+  onTaskClick,
+  clientId
 }: PriorityActionsProps) => {
-  const [filter, setFilter] = useState<string>(initialCategory || 'All');
-  const [showCompleted, setShowCompleted] = useState(false);
   const [isNewTaskOpen, setIsNewTaskOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+
+  logger.info('PriorityActions rendered', { hideAddButton, initialCategory, clientId });
 
   const handleTaskSelected = (taskId: string) => {
     if (onTaskClick) {
       onTaskClick(taskId);
     } else {
-      setSelectedTask({ id: taskId } as Task);
+      // For now, we'll just log the selection
+      logger.info('Task selected:', taskId);
+      // TODO: Implement task details view if needed
     }
   };
 
   return (
-    <div className="space-y-4">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <PriorityActionsFilter
-          filter={filter}
-          onFilterChange={setFilter}
-          showCompleted={showCompleted}
-          onShowCompletedChange={setShowCompleted}
-        />
-        
-        {!hideAddButton && (
-          <Button onClick={() => setIsNewTaskOpen(true)} size="sm">
-            <Plus className="mr-2 h-4 w-4" />
-            New Task
-          </Button>
-        )}
-      </div>
-
-      <TaskList 
-        category={filter === 'All' ? undefined : filter} 
-        showCompleted={showCompleted}
-        onItemSelected={handleTaskSelected}
+    <div className="space-y-6">
+      <UnifiedTaskList
+        title="Priority Actions"
+        showAddButton={!hideAddButton}
+        onAddTask={() => setIsNewTaskOpen(true)}
+        clientId={clientId}
       />
-      
-      <TaskDialog 
+
+      <TaskDialog
         isOpen={isNewTaskOpen}
         onOpenChange={setIsNewTaskOpen}
         task={null}
         onSaved={() => setIsNewTaskOpen(false)}
         defaultCategory={initialCategory}
       />
-      
-      <TaskDialog
-        isOpen={!!selectedTask}
-        onOpenChange={() => setSelectedTask(null)}
-        task={selectedTask}
-        onSaved={() => setSelectedTask(null)}
-        defaultCategory={initialCategory}
-      />
+
+      {selectedTask && (
+        <TaskDialog
+          isOpen={!!selectedTask}
+          onOpenChange={() => setSelectedTask(null)}
+          task={selectedTask}
+          onSaved={() => setSelectedTask(null)}
+          defaultCategory={initialCategory}
+        />
+      )}
     </div>
   );
 };

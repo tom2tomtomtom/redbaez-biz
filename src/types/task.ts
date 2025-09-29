@@ -1,11 +1,15 @@
 
 /**
- * Centralized Task type definition
+ * Unified Task type definition - Single task type for all use cases
  */
 
-// Define the task type as a proper union type
-export type TaskType = 'task' | 'next_step' | 'idea';
+// Priority levels for tasks (replaces the complex type system)
+export type TaskPriority = 'low' | 'normal' | 'high' | 'urgent';
 
+// Task status
+export type TaskStatus = 'pending' | 'in_progress' | 'completed';
+
+// Unified Task interface
 export interface Task {
   id: string;
   title: string;
@@ -14,16 +18,15 @@ export interface Task {
   client?: { name: string } | null;
   client_name?: string | null;
   due_date?: string | null;
-  urgent: boolean;
-  status?: string;
+  priority: TaskPriority; // Replaces 'urgent' boolean with priority levels
+  status: TaskStatus;
   completed_at?: string | null;
   category?: string | null;
-  type?: TaskType;
-  notes?: string | null;
   created_at?: string | null;
   updated_at?: string | null;
   created_by?: string | null;
   updated_by?: string | null;
-  source_table?: 'tasks' | 'general_tasks' | 'client_next_steps';
-  next_due_date?: string | null; // Added for backward compatibility
+
+  // Legacy support for existing data
+  urgent?: boolean; // Will map to priority 'urgent' vs 'normal'
 }

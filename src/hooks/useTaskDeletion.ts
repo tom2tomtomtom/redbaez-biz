@@ -46,6 +46,7 @@ export const useTaskDeletion = (onSuccess?: () => void) => {
       }
 
       logger.info(`[DELETE] Authenticated user: ${session.user.email}, proceeding with delete`);
+      console.log(`🔥 [DELETE] Authenticated user: ${session.user.email}, proceeding with delete task ID: ${task.id}`);
 
       // Execute the actual deletion from the unified tasks table
       const { error } = await supabase
@@ -57,6 +58,8 @@ export const useTaskDeletion = (onSuccess?: () => void) => {
         logger.error('[DELETE] Supabase delete error:', error);
         logger.error('[DELETE] Error code:', error.code);
         logger.error('[DELETE] Error message:', error.message);
+        console.error(`🚨 [DELETE] Supabase delete error:`, error);
+        console.error(`🚨 [DELETE] Error code: ${error.code}, Error message: ${error.message}`);
 
         // Check for RLS policy errors
         if (error.code === '42501') {
@@ -67,6 +70,7 @@ export const useTaskDeletion = (onSuccess?: () => void) => {
       }
       
       logger.info(`[DELETE] Successfully deleted task`);
+      console.log(`✅ [DELETE] Successfully deleted task ID: ${task.id}`);
       
       // Simplify cache management to avoid race conditions and unnecessary refetches
       // We no longer remove queries or force refetches - let React Query optimistic updates handle this
