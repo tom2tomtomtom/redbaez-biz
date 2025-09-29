@@ -22,23 +22,47 @@ export const useTaskDeletion = (onSuccess?: () => void) => {
       logger.error("No valid task ID provided for deletion");
       return false;
     }
-    
+
     if (isDeleting) {
       logger.info("Already processing a deletion");
       return false;
     }
-    
+
     setIsDeleting(true);
     logger.info(`[DELETE] Starting deletion for task ID: ${task.id}`);
-    
+
     try {
+      // Check authentication before attempting delete
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+
+      if (sessionError) {
+        logger.error('[DELETE] Session error:', sessionError);
+        throw new Error('Authentication check failed');
+      }
+
+      if (!session) {
+        logger.error('[DELETE] No authentication session - cannot delete due to RLS policies');
+        throw new Error('Authentication required to delete tasks');
+      }
+
+      logger.info(`[DELETE] Authenticated user: ${session.user.email}, proceeding with delete`);
+
       // Execute the actual deletion from the unified tasks table
       const { error } = await supabase
         .from('tasks')
         .delete()
         .eq('id', task.id);
-      
+
       if (error) {
+        logger.error('[DELETE] Supabase delete error:', error);
+        logger.error('[DELETE] Error code:', error.code);
+        logger.error('[DELETE] Error message:', error.message);
+
+        // Check for RLS policy errors
+        if (error.code === '42501') {
+          throw new Error('Permission denied - you may not have access to delete this task');
+        }
+
         throw error;
       }
       
@@ -84,9 +108,19 @@ export const useTaskDeletion = (onSuccess?: () => void) => {
       return true;
     } catch (error) {
       logger.error('[DELETE] Error deleting task:', error);
+
+      let errorMessage = "Failed to delete task. Please try again.";
+      if (error.message.includes('Authentication required')) {
+        errorMessage = "Please log in to delete tasks.";
+      } else if (error.message.includes('Permission denied')) {
+        errorMessage = "You don't have permission to delete this task.";
+      } else if (error.code === '42501') {
+        errorMessage = "Access denied. Please check your permissions.";
+      }
+
       toast({
         title: "Error",
-        description: "Failed to delete task. Please try again.",
+        description: errorMessage,
         variant: "destructive",
       });
       return false;
