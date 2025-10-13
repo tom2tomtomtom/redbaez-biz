@@ -3,9 +3,9 @@ import logger from '@/utils/logger';
 import { useTasksQuery } from './useTasksQuery';
 import { useTasksMutations } from './useTasksMutations';
 import { useQueryManager } from '@/hooks/useQueryManager';
-import { Task } from './taskTypes';
+import { Task } from '@/types/task';
 
-export type { Task } from './taskTypes';
+export type { Task } from '@/types/task';
 
 export const useTasks = (category?: string, showCompleted = false) => {
   const { 

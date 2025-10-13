@@ -7,7 +7,7 @@
 export type TaskPriority = 'low' | 'normal' | 'high' | 'urgent';
 
 // Task status
-export type TaskStatus = 'pending' | 'in_progress' | 'completed';
+export type TaskStatus = 'pending' | 'in_progress' | 'completed' | 'incomplete';
 
 // Unified Task interface
 export interface Task {
@@ -26,6 +26,8 @@ export interface Task {
   updated_at?: string | null;
   created_by?: string | null;
   updated_by?: string | null;
+  next_due_date?: string | null;
+  notes?: string | null;
 
   // Legacy support for existing data
   urgent?: boolean; // Will map to priority 'urgent' vs 'normal'

@@ -1,51 +1,54 @@
 
 import { supabase } from '@/lib/supabaseClient';
-import { TaskType } from '@/types/task';
+import { Task, TaskPriority, TaskStatus } from '@/types/task';
 
-export { TaskType } from '@/types/task';
+export type PriorityItem = Task;
 
-export interface Task {
+export interface SupabaseTaskRow {
   id: string;
   title: string;
-  description?: string | null;
-  client_id?: number | null;
-  client?: { name: string } | null;
-  due_date?: string | null;
+  description: string | null;
+  category: string | null;
+  status: TaskStatus | 'incomplete';
+  due_date: string | null;
+  created_at: string | null;
+  updated_at: string | null;
   urgent: boolean;
-  status?: string;
+  client_id: number | null;
+  created_by: string | null;
+  updated_by: string | null;
   completed_at?: string | null;
-  category?: string | null;
-  type: TaskType;
-  source_table?: 'general_tasks' | 'client_next_steps';
+  priority?: TaskPriority | null;
+  notes?: string | null;
+  next_due_date?: string | null;
+  clients?: { name: string } | null;
 }
 
-// Define the priority item interface that's used across components
-export interface PriorityItem {
-  type: TaskType;
-  data: {
-    id: string;
-    title: string;
-    description?: string | null;
-    client_id?: number | null;
-    client?: { name: string } | null;
-    client_name?: string | null;
-    category?: string | null;
-    due_date?: string | null;
-    next_due_date?: string | null;
-    urgent: boolean;
-    status?: string;
-    notes?: string | null;
-    completed_at?: string | null;
+export const mapTaskRowToTask = (row: SupabaseTaskRow): Task => {
+  const priority = row.priority ?? (row.urgent ? 'urgent' : 'normal');
+
+  return {
+    id: row.id,
+    title: row.title,
+    description: row.description,
+    category: row.category,
+    status: (row.status ?? 'incomplete') as TaskStatus,
+    due_date: row.due_date,
+    next_due_date: row.next_due_date ?? row.due_date,
+    created_at: row.created_at,
+    updated_at: row.updated_at,
+    completed_at: row.completed_at ?? null,
+    client_id: row.client_id ?? undefined,
+    client: row.clients ?? null,
+    client_name: row.clients?.name ?? null,
+    created_by: row.created_by ?? null,
+    updated_by: row.updated_by ?? null,
+    priority,
+    urgent: priority === 'urgent' ? true : row.urgent,
+    notes: row.notes ?? row.description ?? null
   };
-}
-
-// Helper for accessing the appropriate table based on task type
-export const getTaskTable = (sourceTable: 'general_tasks' | 'client_next_steps') => {
-  return supabase.from(sourceTable);
 };
 
-// Export a reference to the tables for backward compatibility
 export const tasksTable = {
-  general: () => supabase.from('general_tasks'),
-  nextSteps: () => supabase.from('client_next_steps')
+  unified: () => supabase.from('tasks')
 };

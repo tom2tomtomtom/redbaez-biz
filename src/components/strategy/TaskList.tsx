@@ -2,7 +2,6 @@ import logger from '@/utils/logger';
 
 import { useState, useRef, useEffect } from "react";
 import { GeneralTaskItem } from "../crm/priority-actions/GeneralTaskItem";
-import { NextStepItem } from "../crm/priority-actions/NextStepItem";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,9 +11,10 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Trash2, RefreshCw } from "lucide-react";
 import { useTaskDeletion } from "./hooks/useTaskDeletion";
 import { useQueryClient } from "@tanstack/react-query";
+import { Task } from "@/types/task";
 
 interface TaskListProps {
-  tasks: any[];
+  tasks: Task[];
   isLoading: boolean;
   onTasksUpdated: () => void;
   isHistory?: boolean;
@@ -73,23 +73,9 @@ export const TaskList = ({ tasks, isLoading, onTasksUpdated, isHistory = false }
       queryClient.invalidateQueries({ queryKey: ['tasks'] });
       queryClient.invalidateQueries({ queryKey: ['generalTasks'] });
       
-      // If adding a due date, update the type from 'idea' to 'task'
-      if (date) {
-        const { error: typeError } = await supabase
-          .from('tasks')
-          .update({ 
-            type: 'task' // Change type from idea to task
-          })
-          .eq('id', taskId);
-          
-        if (typeError) {
-          logger.error('Error updating task type:', typeError);
-        }
-      }
-      
       toast({
         title: "Task updated",
-        description: date ? "Idea has been converted to a task and will appear in Priority Actions." : "Date removed from task.",
+        description: date ? "Due date added. The task will appear in Priority Actions." : "Date removed from task.",
       });
 
       // Use setTimeout to break potential render cycles
@@ -160,20 +146,21 @@ export const TaskList = ({ tasks, isLoading, onTasksUpdated, isHistory = false }
     if (isHistory) {
       return task.status === 'completed';
     }
-    
-    // For active tasks section, show tasks with due dates
-    if (!isHistory && task.next_due_date) {
+
+    const dueDate = task.due_date || task.next_due_date;
+    if (dueDate) {
       return task.status !== 'completed';
     }
-    
-    // For ideas section, show tasks without due dates
-    return task.status !== 'completed' && !task.next_due_date;
+
+    return task.status !== 'completed' && !dueDate;
   });
 
-  // Sort tasks by due date if they have one
   const sortedTasks = [...filteredTasks].sort((a, b) => {
-    if (!a.next_due_date || !b.next_due_date) return 0;
-    return new Date(a.next_due_date).getTime() - new Date(b.next_due_date).getTime();
+    const aDue = a.due_date || a.next_due_date;
+    const bDue = b.due_date || b.next_due_date;
+
+    if (!aDue || !bDue) return 0;
+    return new Date(aDue).getTime() - new Date(bDue).getTime();
   });
 
   if (isLoading) {
@@ -216,14 +203,7 @@ export const TaskList = ({ tasks, isLoading, onTasksUpdated, isHistory = false }
         <div key={task.id} className="relative space-y-2 border p-4 rounded-md shadow-sm hover:shadow-md transition-shadow">
           <div className="flex">
             <div className="flex-1">
-              {task.type === 'next_step' ? (
-                <NextStepItem nextStep={task.original_data} />
-              ) : (
-                <GeneralTaskItem 
-                  task={task}
-                  isClientTask={!!task.client_id}
-                />
-              )}
+              <GeneralTaskItem task={task} isClientTask={!!task.client_id} />
             </div>
             {!isHistory && (
               <Button 
@@ -239,7 +219,7 @@ export const TaskList = ({ tasks, isLoading, onTasksUpdated, isHistory = false }
               </Button>
             )}
           </div>
-          {!isHistory && !task.next_due_date && task.type !== 'next_step' && (
+          {!isHistory && !(task.due_date || task.next_due_date) && (
             <div className="flex items-center gap-2 px-6">
               <Input
                 type="date"

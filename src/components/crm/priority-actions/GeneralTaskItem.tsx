@@ -1,9 +1,7 @@
 import { cn } from "@/lib/utils";
-import { Tables } from "@/integrations/supabase/types";
+import { Task } from '@/types/task';
 
-type GeneralTaskRow = Tables<'general_tasks'>;
-
-const getCategoryColor = (task: GeneralTaskRow, isClientTask: boolean) => {
+const getCategoryColor = (task: Task, isClientTask: boolean) => {
   if (isClientTask || task.client_id) {
     return 'bg-[#FEC6A1]/50 hover:bg-[#FEC6A1]/70';
   }
@@ -29,19 +27,20 @@ const getCategoryColor = (task: GeneralTaskRow, isClientTask: boolean) => {
   return 'bg-gray-50 hover:bg-gray-100';
 };
 
-export const GeneralTaskItem = ({ task, isClientTask = false }: { task: GeneralTaskRow; isClientTask?: boolean }) => {
+export const GeneralTaskItem = ({ task, isClientTask = false }: { task: Task; isClientTask?: boolean }) => {
   const colorClasses = getCategoryColor(task, isClientTask);
-  
+
   const titleMatch = task.title.match(/Strategic Recommendation for (.+)/);
   const displayTitle = titleMatch ? `${titleMatch[1]} Strategic Recommendation` : task.title;
-  
+
   let displayDescription = task.description || 'No description provided';
   if (titleMatch && displayDescription.includes('Type:')) {
     const [metadata, ...contentParts] = displayDescription.split('\n\n');
     displayDescription = contentParts.join('\n\n');
   }
 
-  const isOverdue = task.next_due_date ? new Date(task.next_due_date) < new Date() : false;
+  const dueDate = task.next_due_date || task.due_date;
+  const isOverdue = dueDate ? new Date(dueDate) < new Date() : false;
 
   return (
     <div className={cn(
@@ -53,16 +52,16 @@ export const GeneralTaskItem = ({ task, isClientTask = false }: { task: GeneralT
         <div className="flex-1">
           <h3 className="font-medium text-gray-900 mb-2">{displayTitle}</h3>
           <p className="text-sm text-gray-600 whitespace-pre-wrap leading-relaxed">{displayDescription}</p>
-          {task.next_due_date && (
+          {dueDate && (
             <p className={cn(
               "mt-3 text-sm flex items-center",
               isOverdue ? "text-red-600 font-medium" : "text-gray-500"
             )}>
-              Due: {new Date(task.next_due_date).toLocaleDateString()}
+              Due: {new Date(dueDate).toLocaleDateString()}
             </p>
           )}
         </div>
-        {task.urgent && (
+        {(task.urgent ?? false) && (
           <span className="px-3 py-1 text-xs font-medium text-red-700 bg-red-100 rounded-full shrink-0">
             Urgent
           </span>

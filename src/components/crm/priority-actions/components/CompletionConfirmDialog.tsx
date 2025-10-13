@@ -14,14 +14,12 @@ interface CompletionConfirmDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onConfirm: () => void;
-  itemType: 'task' | 'next_step';
 }
 
-export const CompletionConfirmDialog = ({ 
-  open, 
-  onOpenChange, 
-  onConfirm, 
-  itemType 
+export const CompletionConfirmDialog = ({
+  open,
+  onOpenChange,
+  onConfirm
 }: CompletionConfirmDialogProps) => {
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
@@ -29,8 +27,7 @@ export const CompletionConfirmDialog = ({
         <AlertDialogHeader>
           <AlertDialogTitle>Mark as completed?</AlertDialogTitle>
           <AlertDialogDescription>
-            Are you sure you want to mark this {itemType === 'task' ? 'task' : 'next step'} as completed?
-            It will be moved to the completed items list.
+            Are you sure you want to mark this task as completed? It will be moved to the completed items list.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>

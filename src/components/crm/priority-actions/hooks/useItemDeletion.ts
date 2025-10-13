@@ -1,7 +1,7 @@
 import logger from '@/utils/logger';
 
 import { toast } from '@/hooks/use-toast';
-import { PriorityItem } from './usePriorityData';
+import { Task } from '@/types/task';
 import { useState } from 'react';
 import { useTaskDeletion } from '@/hooks/useTaskDeletion';
 import { useQueryClient } from '@tanstack/react-query';
@@ -31,17 +31,17 @@ export const useItemDeletion = () => {
     ]);
   });
 
-  const handleDelete = async (item: PriorityItem) => {
+  const handleDelete = async (task: Task) => {
     if (isDeleting) {
       return false;
     }
-    
+
     setIsDeleting(true);
-    
+
     try {
-      const itemId = item.data.id;
-      logger.info(`[ITEM_DELETION] Deleting item ${item.type}:${itemId}`);
-      
+      const itemId = task.id;
+      logger.info(`[ITEM_DELETION] Deleting task ${itemId}`);
+
       // Format task for deletion
       const taskToDelete = {
         id: String(itemId)
@@ -55,14 +55,14 @@ export const useItemDeletion = () => {
       }
       
       // If this was a client task, refresh client data
-      if (item.data.client_id) {
+      if (task.client_id) {
         await Promise.all([
-          queryClient.refetchQueries({ 
-            queryKey: queryKeys.clients.detail(item.data.client_id) 
+          queryClient.refetchQueries({
+            queryKey: queryKeys.clients.detail(task.client_id)
           }),
-          
-          queryClient.refetchQueries({ 
-            queryKey: queryKeys.tasks.clientItems(item.data.client_id) 
+
+          queryClient.refetchQueries({
+            queryKey: queryKeys.tasks.clientItems(task.client_id)
           })
         ]);
       }

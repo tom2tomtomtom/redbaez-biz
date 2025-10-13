@@ -1,7 +1,8 @@
 import logger from '@/utils/logger';
 
 import { useQuery } from '@tanstack/react-query';
-import { Task, tasksTable } from './taskTypes';
+import { Task } from '@/types/task';
+import { mapTaskRowToTask, tasksTable, SupabaseTaskRow } from './taskTypes';
 import { supabase, logQuery } from '@/lib/supabaseClient';
 import { toast } from '@/hooks/use-toast';
 
@@ -12,8 +13,8 @@ export const useTasksQuery = (category?: string, showCompleted = false) => {
     logger.info(`Fetching tasks with category: ${category}, showCompleted: ${showCompleted}`);
 
     try {
-      // Prepare query builder for general_tasks table
-      let query = tasksTable.general().select('*, clients(name)');
+      // Prepare query builder for the unified tasks table
+      let query = tasksTable.unified().select('*, clients(name)');
 
       // Apply completed filter
       if (showCompleted) {
@@ -45,13 +46,8 @@ export const useTasksQuery = (category?: string, showCompleted = false) => {
       logger.info(`Fetched ${data?.length} tasks`);
       
       // Map the returned data to our Task interface
-      const tasks = (data || []).map(task => ({
-        ...task,
-        type: 'task' as const,
-        source_table: 'general_tasks' as const
-      }));
-      
-      return tasks;
+      const rows = (data || []) as SupabaseTaskRow[];
+      return rows.map(mapTaskRowToTask);
     } catch (e) {
       logger.error('Exception in fetchTasks:', e);
       return [];
