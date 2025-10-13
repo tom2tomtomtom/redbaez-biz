@@ -1,13 +1,12 @@
 
 import { useEffect, useState } from 'react';
-import { PriorityItem } from '../hooks/usePriorityData';
 import { GeneralTaskItem } from '../GeneralTaskItem';
 import { ItemControls } from './ItemControls';
-import { Task } from '@/integrations/supabase/types/general-tasks.types'; // Updated import
+import { Task } from '@/types/task';
 import { useNavigate } from 'react-router-dom';
 
 interface PriorityListItemProps {
-  item: PriorityItem;
+  item: Task;
   index: number;
   onTaskClick: (taskId: string) => void;
   onComplete: () => void;
@@ -36,10 +35,10 @@ export const PriorityListItem = ({
   }, [index]);
 
   const handleClick = () => {
-    if (item.data.client_id) {
-      navigate(`/client/${item.data.client_id}`);
+    if (item.client_id) {
+      navigate(`/client/${item.client_id}`);
     } else {
-      onTaskClick(item.data.id);
+      onTaskClick(item.id);
     }
   };
 
@@ -58,25 +57,8 @@ export const PriorityListItem = ({
   };
 
   // Convert PriorityItem to Task format for GeneralTaskItem
-  const convertToTaskFormat = (): Task => {
-    return {
-      id: item.data.id,
-      title: item.data.title,
-      description: item.data.description || null,
-      client_id: item.data.client_id || null,
-      client: item.data.client || null,
-      due_date: item.data.due_date || null,
-      urgent: item.data.urgent,
-      status: item.data.status as "incomplete" | "completed" || "incomplete",
-      completed_at: item.data.completed_at || null,
-      category: item.data.category || null,
-      type: item.type === "next_step" ? "next_step" : "task",
-      // Removing source_table as it's not in the updated Task type
-    };
-  };
-
   return (
-    <div 
+    <div
       className={`relative transition-all duration-500 transform ${
         isVisible 
           ? 'opacity-100 scale-100 max-h-96' 
@@ -96,10 +78,7 @@ export const PriorityListItem = ({
         className="transition-all duration-300 transform hover:scale-[1.01] hover:shadow-md rounded-lg cursor-pointer"
         onClick={handleClick}
       >
-        <GeneralTaskItem 
-          task={convertToTaskFormat() as any} 
-          isClientTask={!!item.data.client_id}
-        />
+        <GeneralTaskItem task={item as any} isClientTask={!!item.client_id} />
       </div>
     </div>
   );

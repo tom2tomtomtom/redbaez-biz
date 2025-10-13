@@ -1,31 +1,31 @@
 
 import { Link } from 'react-router-dom';
 import { Calendar, AlertCircle } from 'lucide-react';
-import { PriorityItem } from './hooks/usePriorityData';
+import { Task } from '@/types/task';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 
 interface PriorityActionItemProps {
-  item: PriorityItem;
+  item: Task;
   onUrgentChange: (checked: boolean) => void;
 }
 
 export const PriorityActionItem = ({ item, onUrgentChange }: PriorityActionItemProps) => {
   // Get title from task data
-  const title = item.data.title || (item.data.notes || 'No details');
-  
+  const title = item.title || item.notes || 'No details';
+
   // Get description from task data
-  const description = item.data.description || '';
-  
+  const description = item.description || '';
+
   // Get client name if available
-  const clientName = item.data.client?.name || item.data.client_name || null;
-  
+  const clientName = item.client?.name || item.client_name || null;
+
   // Get due date
-  const dueDate = item.data.due_date || item.data.next_due_date || null;
-  
+  const dueDate = item.due_date || item.next_due_date || null;
+
   // Get urgent status
-  const urgent = item.data.urgent || false;
+  const urgent = item.urgent ?? item.priority === 'urgent';
   
   const toggleUrgent = () => {
     onUrgentChange(!urgent);
@@ -33,12 +33,12 @@ export const PriorityActionItem = ({ item, onUrgentChange }: PriorityActionItemP
 
   // Determine background color based on type or category
   const getBackgroundColorClass = () => {
-    if (item.data.client_id) {
+    if (item.client_id) {
       return 'bg-[#FEC6A1]/30 hover:bg-[#FEC6A1]/50';
     }
-    
-    if (item.data.category) {
-      const category = item.data.category.toLowerCase();
+
+    if (item.category) {
+      const category = item.category.toLowerCase();
       
       if (category === 'business admin') {
         return 'bg-gray-100 hover:bg-gray-200';

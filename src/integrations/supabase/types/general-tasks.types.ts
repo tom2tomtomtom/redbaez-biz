@@ -1,5 +1,5 @@
 
-import { Task as CoreTask, TaskType } from '@/types/task';
+import { Task as CoreTask, TaskPriority, TaskStatus } from '@/types/task';
 
 export type GeneralTaskRow = {
   id: string;
@@ -18,7 +18,7 @@ export type GeneralTaskRow = {
   completed_at: string | null;
   notes: string | null;
   client_name?: string | null;
-  type?: TaskType; // Use TaskType from the core definition
+  priority?: TaskPriority | null;
 }
 
 export type GeneralTaskInsert = Omit<GeneralTaskRow, 'id' | 'created_at' | 'updated_at'> & {
@@ -48,7 +48,7 @@ export const taskToGeneralTaskRow = (task: CoreTask): GeneralTaskRow => {
     completed_at: task.status === 'completed' ? task.updated_at : null,
     notes: task.description || null,
     client_name: task.client?.name || task.client_name || null,
-    type: task.type || 'task'
+    priority: task.priority
   };
 };
 
@@ -72,7 +72,7 @@ export const generalTaskRowToTask = (row: GeneralTaskRow): CoreTask => {
     completed_at: row.completed_at,
     client_name: row.client_name,
     client: row.client_name ? { name: row.client_name } : null,
-    type: row.type || 'task'
+    priority: row.priority || (row.urgent ? 'urgent' : 'normal')
   };
 };
 
@@ -84,13 +84,13 @@ export interface Task {
   client?: { name: string } | null;
   due_date?: string | null;
   urgent: boolean;
-  status: "incomplete" | "completed";
+  status: TaskStatus;
   completed_at?: string | null;
   category?: string | null;
   created_at?: string | null;
   updated_at?: string | null;
   created_by?: string | null;
   updated_by?: string | null;
-  type?: TaskType;
+  priority?: TaskPriority;
   source_table?: string;
 }

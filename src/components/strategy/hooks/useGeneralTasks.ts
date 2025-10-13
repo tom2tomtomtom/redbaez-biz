@@ -2,13 +2,14 @@ import logger from '@/utils/logger';
 
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabaseClient";
-import { Task } from "@/hooks/useTaskDeletion";
+import { Task } from "@/types/task";
 import { queryKeys } from "@/lib/queryKeys";
+import { mapTaskRowToTask, SupabaseTaskRow } from "@/components/crm/priority-actions/hooks/taskTypes";
 
 export const useGeneralTasks = (category: string, refreshTrigger: number) => {
   return useQuery({
     queryKey: [...queryKeys.tasks.general(), category, refreshTrigger],
-    queryFn: async () => {
+    queryFn: async (): Promise<Task[]> => {
       logger.info('Fetching tasks for category:', category);
 
       // Fetch tasks from the unified tasks table
@@ -25,15 +26,8 @@ export const useGeneralTasks = (category: string, refreshTrigger: number) => {
       logger.info('Strategy - fetched tasks:', tasks?.length);
       
       // Format tasks for display
-      const formattedTasks = tasks?.map(task => ({
-        ...task,
-        type: 'task' as const,
-        source_table: 'tasks',
-        next_due_date: task.due_date, // Map due_date to next_due_date for backward compatibility
-        notes: task.description, // Map description to notes for backward compatibility
-        client_name: task.clients?.name, // Add client_name for compatibility 
-        original_data: task // Store the full original object for reference
-      })) || [];
+      const rows = (tasks || []) as SupabaseTaskRow[];
+      const formattedTasks = rows.map(mapTaskRowToTask);
 
       logger.info('Strategy - formatted tasks count:', formattedTasks.length);
       return formattedTasks;

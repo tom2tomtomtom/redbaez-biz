@@ -5,7 +5,7 @@ import { supabase } from '@/lib/supabaseClient';
 import { toast } from '@/hooks/use-toast';
 import { useQueryClient } from '@tanstack/react-query';
 import { queryKeys } from '@/lib/queryKeys';
-import { Task, TaskType } from '@/types/task';
+import { Task } from '@/types/task';
 
 // Re-export the Task type for backward compatibility
 export type { Task } from '@/types/task';

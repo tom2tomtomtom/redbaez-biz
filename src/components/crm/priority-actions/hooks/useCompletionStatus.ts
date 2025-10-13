@@ -2,7 +2,7 @@ import logger from '@/utils/logger';
 
 import { supabase } from '@/lib/supabaseClient';
 import { toast } from '@/hooks/use-toast';
-import { PriorityItem } from './usePriorityData';
+import { Task } from '@/types/task';
 import { useQueryManager } from '@/hooks/useQueryManager';
 import { useState } from 'react';
 
@@ -10,7 +10,7 @@ export const useCompletionStatus = () => {
   const { invalidateTaskQueries } = useQueryManager();
   const [processing, setProcessing] = useState(false);
 
-  const handleCompletedChange = async (item: PriorityItem, completed: boolean) => {
+  const handleCompletedChange = async (task: Task, completed: boolean) => {
     // Prevent multiple simultaneous updates
     if (processing) {
       logger.info('Already processing a completion change, ignoring request');
@@ -19,12 +19,11 @@ export const useCompletionStatus = () => {
     
     try {
       setProcessing(true);
-      logger.info(`Updating item (${item.type}:${item.data.id}) completed status to: ${completed}`);
+      logger.info(`Updating task (${task.id}) completed status to: ${completed}`);
       
       // Add timestamp for debugging
       const timestamp = new Date().toISOString();
-      const itemId = item.data.id;
-      const clientId = item.data.client_id;
+      const itemId = task.id;
       
       // Update the database with the new status
       const { error } = await supabase

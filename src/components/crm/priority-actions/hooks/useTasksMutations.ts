@@ -2,7 +2,6 @@ import logger from '@/utils/logger';
 
 import { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { Task, tasksTable } from './taskTypes';
 import { supabase, logQuery } from '@/lib/supabaseClient';
 import { toast } from '@/hooks/use-toast';
 
@@ -17,19 +16,12 @@ export const useTasksMutations = () => {
       setIsUpdating(true);
       logQuery('tasks', 'updating completion');
       
-      let table;
-      // Determine which table to update based on the task ID format
-      if (args.taskId.startsWith('next-step-')) {
-        table = tasksTable.nextSteps();
-      } else {
-        table = tasksTable.general();
-      }
-      
-      const { data, error } = await table
+      const { data, error } = await supabase
+        .from('tasks')
         .update({
           status: args.completed ? 'completed' : 'incomplete'
         })
-        .eq('id', args.taskId.replace('next-step-', ''))
+        .eq('id', args.taskId)
         .select();
 
       if (error) {
@@ -65,17 +57,10 @@ export const useTasksMutations = () => {
       setIsUpdating(true);
       logQuery('tasks', 'updating urgency');
       
-      let table;
-      // Determine which table to update based on the task ID format
-      if (args.taskId.startsWith('next-step-')) {
-        table = tasksTable.nextSteps();
-      } else {
-        table = tasksTable.general();
-      }
-      
-      const { data, error } = await table
+      const { data, error } = await supabase
+        .from('tasks')
         .update({ urgent: args.urgent })
-        .eq('id', args.taskId.replace('next-step-', ''))
+        .eq('id', args.taskId)
         .select();
 
       if (error) {
@@ -108,17 +93,10 @@ export const useTasksMutations = () => {
       setIsDeleting(true);
       logQuery('tasks', 'deleting');
       
-      let table;
-      // Determine which table to delete from based on the task ID format
-      if (taskId.startsWith('next-step-')) {
-        table = tasksTable.nextSteps();
-      } else {
-        table = tasksTable.general();
-      }
-      
-      const { error } = await table
+      const { error } = await supabase
+        .from('tasks')
         .delete()
-        .eq('id', taskId.replace('next-step-', ''));
+        .eq('id', taskId);
 
       if (error) {
         logger.error('Error deleting task:', error);

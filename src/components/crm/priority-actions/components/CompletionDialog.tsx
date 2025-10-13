@@ -8,12 +8,12 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { PriorityItem } from "../hooks/usePriorityData";
+import { Task } from "@/types/task";
 
 interface CompletionDialogProps {
-  itemToComplete: PriorityItem | null;
+  itemToComplete: Task | null;
   onOpenChange: (open: boolean) => void;
-  onComplete: (item: PriorityItem) => void;
+  onComplete: (item: Task) => void;
 }
 
 export const CompletionDialog = ({

@@ -2,27 +2,27 @@ import logger from '@/utils/logger';
 
 import { supabase } from '@/lib/supabaseClient';
 import { toast } from '@/hooks/use-toast';
-import { PriorityItem } from './usePriorityData';
+import { Task } from '@/types/task';
 import { useQueryManager } from '@/hooks/useQueryManager';
 
 export const useUrgencyStatus = () => {
   const { invalidateTaskQueries } = useQueryManager();
 
-  const handleUrgentChange = async (item: PriorityItem, checked: boolean) => {
+  const handleUrgentChange = async (task: Task, checked: boolean) => {
     try {
       // Add timestamp for debugging
       const timestamp = new Date().toISOString();
-      const itemId = item.data.id;
-      const clientId = item.data.client_id;
+      const itemId = task.id;
       
-      logger.info(`Updating urgency for ${item.type}:${itemId} to ${checked} at ${timestamp}`);
+      logger.info(`Updating urgency for task:${itemId} to ${checked} at ${timestamp}`);
       
       // Update database
       const { error } = await supabase
         .from('tasks')
-        .update({ 
+        .update({
           urgent: checked,
-          updated_at: timestamp 
+          priority: checked ? 'urgent' : 'normal',
+          updated_at: timestamp
         })
         .eq('id', itemId);
 

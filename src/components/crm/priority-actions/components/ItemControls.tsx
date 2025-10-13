@@ -1,11 +1,11 @@
 
 import { CheckCircle2, AlertCircle, XCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { PriorityItem } from '../hooks/usePriorityData';
+import { Task } from '@/types/task';
 import { cn } from '@/lib/utils';
 
 interface ItemControlsProps {
-  item: PriorityItem;
+  item: Task;
   onComplete: () => void;
   onUrgentChange: (checked: boolean) => void;
   onDelete: () => void;
@@ -17,8 +17,8 @@ export const ItemControls = ({
   onUrgentChange, 
   onDelete 
 }: ItemControlsProps) => {
-  const taskIsCompleted = item.data.status === 'completed';
-  const urgent = item.data.urgent || false;
+  const taskIsCompleted = item.status === 'completed';
+  const urgent = item.urgent ?? item.priority === 'urgent';
 
   const handleUrgentToggle = (e: React.MouseEvent) => {
     e.stopPropagation();
