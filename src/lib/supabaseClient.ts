@@ -20,15 +20,22 @@ const getCacheHeaders = () => ({
   'X-Request-ID': `req_${Math.random().toString(36).substring(2, 15)}_${Date.now()}`
 });
 
+// Supabase needs a storage implementation for session persistence.
+// In non-browser environments (e.g. during SSR or tests) `localStorage`
+// is not available, so we gracefully disable persistence to prevent
+// reference errors that would crash the runtime.
+const browserStorage = typeof window !== 'undefined' ? window.localStorage : undefined;
+const shouldPersistSession = Boolean(browserStorage);
+
 // Create Supabase client with anti-caching configuration
 export const supabase = createClient(
   SUPABASE_URL,
   SUPABASE_ANON_KEY,
   {
     auth: {
-      persistSession: true,
-      autoRefreshToken: true,
-      storage: localStorage
+      persistSession: shouldPersistSession,
+      autoRefreshToken: shouldPersistSession,
+      storage: browserStorage
     },
     global: {
       headers: getCacheHeaders()
